@@ -731,15 +731,15 @@ function renderAll(etfs, cal, updatedAt, market) {
 
 // ── Bootstrap & reload ──
 function reloadData() {
-  const btn = document.getElementById('refreshBtn');
-  btn.classList.add('spinning');
-  document.getElementById('updatedAt').textContent = '更新中…';
+  window.location.reload(true);
+}
+function fetchData() {
   fetch('data.json?t=' + Date.now())
     .then(r => r.json())
-    .then(d => { renderAll(d.etfs, STATIC_CAL, d.updated, d.market); btn.classList.remove('spinning'); })
-    .catch(() => { renderAll(STATIC_ETFS, STATIC_CAL, '示範資料', null); btn.classList.remove('spinning'); });
+    .then(d => renderAll(d.etfs, STATIC_CAL, d.updated, d.market))
+    .catch(() => renderAll(STATIC_ETFS, STATIC_CAL, '示範資料', null));
 }
-reloadData();
+fetchData();
 
 // ── 每日股市笑話 ──
 const JOKES = [
