@@ -68,7 +68,7 @@ def calc_signal(price, ma20, ma60, low52, high52, premium, ret5d, vol_ratio, yld
     # 合理價：全部條件通過
     conds = [
         premium < 1,
-        price <= ma20 * 1.02,
+        price <= ma60 * 1.03,
         ret5d < 5,
         vol_ratio > 0.5,
     ]
