@@ -655,7 +655,7 @@ function renderAll(etfs, cal, updatedAt) {
 }
 
 // ── Bootstrap：優先讀 data.json，失敗用靜態資料 ──
-fetch('data.json')
+fetch('data.json?t=' + Date.now())
   .then(r => r.json())
   .then(d => renderAll(d.etfs, STATIC_CAL, d.updated))
   .catch(() => renderAll(STATIC_ETFS, STATIC_CAL, '示範資料'));
