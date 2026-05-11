@@ -349,7 +349,7 @@
   .risk-A { background:rgba(255,63,94,.12); color:var(--dear); border:1px solid rgba(255,63,94,.3); }
   .suggest-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
   .suggest-chip { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; background:rgba(88,166,255,.1); color:#58a6ff; border:1px solid rgba(88,166,255,.25); }
-  .etf-inputs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .etf-inputs { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
   .etf-code-inp { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:16px; color:var(--bright); font-family:var(--mono); text-align:center; letter-spacing:.08em; }
   .etf-code-inp:focus { outline:none; border-color:rgba(88,166,255,.5); }
   .etf-code-inp::placeholder { font-size:12px; letter-spacing:0; color:var(--dim); }
@@ -958,7 +958,7 @@ function renderAll(etfs, cal, updatedAt, market) {
 
 // ── Bootstrap & reload ──
 function reloadData() {
-  window.location.reload(true);
+  window.location.href = window.location.pathname + '?v=' + Date.now();
 }
 function fetchData() {
   fetch('data.json?t=' + Date.now())
