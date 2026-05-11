@@ -5,9 +5,6 @@ on:
     - cron: "30 0 * * 1-5"   # 台灣時間 08:30，週一至週五
   workflow_dispatch:           # 手動觸發
 
-permissions:
-  contents: write
-
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -19,15 +16,15 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install yfinance
+        run: pip install yfinance requests
 
       - name: Fetch ETF data
         run: python fetch_etf.py
 
-      - name: Commit data.json
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data.json
-          git diff --cached --quiet || git commit -m "chore: update ETF data $(date +'%Y-%m-%d %H:%M')"
-          git push
+          npm install -g netlify-cli
+          netlify deploy --prod --dir=.
