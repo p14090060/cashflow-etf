@@ -144,10 +144,26 @@ for code, name in ETFS:
             "premium": 0, "ret5d": 0, "vol_ratio": 0, "heat": 0,
         })
 
+# ── 大盤加權指數（^TWII）──
+market = {"change_pct": 0.0, "change_pt": 0.0, "price": 0.0}
+try:
+    twii = yf.Ticker("^TWII")
+    h = twii.history(period="5d")
+    if len(h) >= 2:
+        prev  = float(h["Close"].iloc[-2])
+        cur   = float(h["Close"].iloc[-1])
+        chg   = round(cur - prev, 2)
+        chg_p = round((cur - prev) / prev * 100, 2)
+        market = {"change_pct": chg_p, "change_pt": chg, "price": round(cur, 2)}
+        print(f"[OK] 大盤 {cur}  {chg:+.2f} ({chg_p:+.2f}%)")
+except Exception as e:
+    print(f"[WARN] 大盤抓取失敗: {e}")
+
 output = {
     "updated": datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=8))
     ).strftime("%Y-%m-%d %H:%M"),
+    "market": market,
     "etfs": results,
 }
 

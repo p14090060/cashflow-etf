@@ -104,11 +104,12 @@
     border-radius:12px; padding:13px 14px; margin-bottom:13px;
     display:flex; align-items:center; gap:13px;
   }
-  .mood-emoji { font-size:32px; line-height:1; }
-  .mood-main  { font-size:15px; font-weight:700; }
-  .mood-sub   { font-size:11px; color:var(--bright); margin-top:2px; }
-  .mood-idx   { font-family:var(--mono); font-size:12px; margin-top:1px; }
-  .mood-idx.up{ color:var(--up); } .mood-idx.dn{ color:var(--dn); }
+  .mood-emoji { font-size:36px; line-height:1; flex-shrink:0; }
+  .mood-main  { font-size:17px; font-weight:700; }
+  .mood-sub   { font-size:13px; color:var(--bright); margin-top:3px; line-height:1.5; }
+  .mood-cta   { font-size:12px; color:#e8607a; margin-top:5px; font-weight:600; }
+  .mood-idx   { font-family:var(--mono); font-size:12px; margin-top:4px; }
+  .mood-idx.up{ color:var(--up); } .mood-idx.dn{ color:var(--dn); } .mood-idx.flat{ color:var(--dim); }
 
   /* ── Buy cards ── */
   .buy-card {
@@ -339,10 +340,11 @@
 
     <div class="mood-card">
       <div class="mood-emoji" id="moodEmoji">😊</div>
-      <div>
-        <div class="mood-main" id="moodText">今天 ETF 投資人開心</div>
-        <div class="mood-sub" id="moodSub">大盤上漲，持有族笑笑看就好</div>
-        <div class="mood-idx up" id="moodIdx">加權 ▲ +329.8 (+0.81%)</div>
+      <div style="flex:1">
+        <div class="mood-main" id="moodText">—</div>
+        <div class="mood-sub"  id="moodSub">—</div>
+        <div class="mood-cta"  id="moodCta"></div>
+        <div class="mood-idx"  id="moodIdx"></div>
       </div>
     </div>
 
@@ -628,10 +630,41 @@ function lookupToday() {
 document.getElementById('customCode').addEventListener('keydown', e => { if (e.key==='Enter') lookupCustom(); });
 document.getElementById('todayCode').addEventListener('keydown',  e => { if (e.key==='Enter') lookupToday();  });
 
+// ── Mood card ──
+function renderMood(market) {
+  const pct = market ? market.change_pct : 0;
+  const pt  = market ? market.change_pt  : 0;
+  const pr  = market ? market.price      : 0;
+
+  const MOODS = [
+    { min:  1.0, emoji:'🚀', main:'大盤狂奔中',     sub:'追的人開心、沒上車的焦慮',     cta:'⚠️ 越漲越要冷靜，看看你想買的還合理嗎 ▼' },
+    { min:  0.3, emoji:'😊', main:'大盤微微暖',     sub:'存股族笑笑看，跟風族先別急',   cta:'🔥 熱門排行更新囉 ▼' },
+    { min: -0.3, emoji:'😐', main:'大盤裝睡中',     sub:'不漲不跌，適合慢慢挑',         cta:'🎯 來看看哪些 ETF 處於甜蜜點 ▼' },
+    { min: -1.0, emoji:'🍂', main:'大盤小休息',     sub:'存股族的撿便宜時機到了？',     cta:'💧 今日合理價清單 ▼' },
+    { min: -999, emoji:'🌧️', main:'大盤下雨天',     sub:'新聞會嚇人，但便宜貨可能來了', cta:'💎 跌出機會了嗎？來看健診 ▼' },
+  ];
+
+  const m = MOODS.find(x => pct >= x.min) || MOODS[MOODS.length-1];
+  document.getElementById('moodEmoji').textContent = m.emoji;
+  document.getElementById('moodText').textContent  = m.main;
+  document.getElementById('moodSub').textContent   = m.sub;
+  document.getElementById('moodCta').textContent   = m.cta;
+
+  const sign  = pt >= 0 ? '▲' : '▼';
+  const cls   = pct >= 0.3 ? 'up' : pct <= -0.3 ? 'dn' : 'flat';
+  const arrow = pt >= 0 ? '+' : '';
+  const idxEl = document.getElementById('moodIdx');
+  idxEl.className = `mood-idx ${cls}`;
+  idxEl.textContent = pr > 0
+    ? `加權 ${sign} ${arrow}${pt.toFixed(1)} (${arrow}${pct.toFixed(2)}%)`
+    : '';
+}
+
 // ── renderAll：用資料渲染整頁 ──
-function renderAll(etfs, cal, updatedAt) {
+function renderAll(etfs, cal, updatedAt, market) {
   ETFS = etfs;
   document.getElementById('updatedAt').textContent = updatedAt + ' 盤後更新';
+  renderMood(market);
 
   const SIG_LABEL = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' };
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' };
@@ -715,8 +748,8 @@ function reloadData() {
   document.getElementById('updatedAt').textContent = '更新中…';
   fetch('data.json?t=' + Date.now())
     .then(r => r.json())
-    .then(d => { renderAll(d.etfs, STATIC_CAL, d.updated); btn.classList.remove('spinning'); })
-    .catch(() => { renderAll(STATIC_ETFS, STATIC_CAL, '示範資料'); btn.classList.remove('spinning'); });
+    .then(d => { renderAll(d.etfs, STATIC_CAL, d.updated, d.market); btn.classList.remove('spinning'); })
+    .catch(() => { renderAll(STATIC_ETFS, STATIC_CAL, '示範資料', null); btn.classList.remove('spinning'); });
 }
 reloadData();
 </script>
