@@ -133,6 +133,30 @@
     border:1px solid var(--dear); border-radius:6px;
     padding:3px 10px; font-size:12px; font-weight:700; white-space:nowrap;
   }
+  .sig-hot {
+    background:rgba(255,149,0,.12); color:#ff9500;
+    border:1px solid #ff9500; border-radius:6px;
+    padding:3px 10px; font-size:12px; font-weight:700; white-space:nowrap;
+  }
+  .empty-state {
+    background:var(--card2); border:1px solid var(--border);
+    border-radius:12px; padding:18px 16px; text-align:center;
+    color:var(--dim); font-size:13px; line-height:1.7; margin-bottom:10px;
+  }
+  .empty-why {
+    margin-top:12px; padding:10px 12px;
+    background:rgba(88,166,255,.06); border:1px solid rgba(88,166,255,.15);
+    border-radius:8px; font-size:12px; color:#58a6ff; text-align:left; line-height:1.7;
+  }
+  .hot-item {
+    display:flex; align-items:center; gap:10px;
+    background:var(--card2); border:1px solid var(--border);
+    border-radius:10px; padding:10px 13px; margin-bottom:7px;
+  }
+  .hot-rank { font-family:var(--sans); font-size:15px; font-weight:700; color:var(--dim); width:22px; flex-shrink:0; }
+  .hot-rank.gold { color:var(--gold); }
+  .hot-rank.silver { color:#aab0b8; }
+  .hot-rank.bronze { color:#cd7f32; }
   .buy-stats {
     display:flex; gap:14px; font-size:13px; margin-bottom:9px; flex-wrap:wrap;
   }
@@ -304,7 +328,8 @@
   <button class="refresh-btn" id="refreshBtn" onclick="reloadData()">↻</button>
 </div>
 <div class="disclaimer">
-  ⚠️ 投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書。
+  ⚠️ 投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書。<br>
+  本站訊號僅供參考，非個別標的買賣建議。
 </div>
 
 <div class="pages">
@@ -322,14 +347,13 @@
     </div>
 
     <div class="section-hdr buy">
-      ✓ 今天可以考慮買進
+      合理價 ETF
       <span class="badge-count" id="buyCount"></span>
     </div>
     <div id="buyCards"></div>
 
     <div class="section-hdr wait" style="margin-top:14px">
-      ⏸ 今天先觀望
-      <span class="badge-count" id="waitCount"></span>
+      今日熱門 ETF TOP 10
     </div>
     <div id="waitItems"></div>
 
@@ -496,8 +520,8 @@ document.getElementById('sharesIn').addEventListener('input', calcUpdate);
 // ── Signal card renderer ──
 function renderSignalCard(etf, estimated) {
   const pos = Math.min(97, Math.max(3, (etf.price - etf.low52) / (etf.high52 - etf.low52) * 100));
-  const sigLabel = { cheap:'現在便宜 ✓', fair:'合理區間', dear:'目前偏貴' }[etf.signal];
-  const sigClass = { cheap:'sig-cheap', fair:'sig-fair', dear:'sig-dear' }[etf.signal];
+  const sigLabel = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' }[etf.signal] || '目前偏貴';
+  const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' }[etf.signal] || 'sig-dear';
   const note = estimated ? `<div style="font-size:11px;color:var(--dim);margin-top:8px">⚠ 估算數值，每日更新後將顯示真實資料</div>` : '';
   return `<div class="buy-card">
     <div class="buy-top">
@@ -608,37 +632,62 @@ function renderAll(etfs, cal, updatedAt) {
   ETFS = etfs;
   document.getElementById('updatedAt').textContent = updatedAt + ' 盤後更新';
 
-  const cheap = ETFS.filter(e => e.signal==='cheap');
-  const wait  = ETFS.filter(e => e.signal!=='cheap');
-  document.getElementById('buyCount').textContent  = cheap.length + ' 支';
-  document.getElementById('waitCount').textContent = wait.length  + ' 支';
+  const SIG_LABEL = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' };
+  const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' };
 
-  document.getElementById('buyCards').innerHTML = cheap.map(e => {
-    const pos = Math.min(97, Math.max(3, (e.price-e.low52)/(e.high52-e.low52)*100));
-    return `<div class="buy-card">
-      <div class="buy-top">
-        <div><div class="buy-code">${e.code}</div><div class="buy-name">${e.name}</div></div>
-        <div class="sig-cheap">現在便宜 ✓</div>
-      </div>
-      <div class="buy-stats">
-        <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
-        <span><span class="lbl">殖利率 </span><span class="val">${e.yld}%</span></span>
-        <span><span class="lbl">60MA </span><span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span></span>
-      </div>
-      <div class="range-track">
-        <div class="range-fill" style="width:${pos}%"></div>
-        <div class="range-dot"  style="left:${pos}%"></div>
-      </div>
-      <div class="range-lbl"><span>低 ${e.low52}</span><span>高 ${e.high52}</span></div>
-      <div class="div-pill">🎁 <span class="div-num">${e.days}</span> 天後配息 · 預估 <span class="div-num">${e.est.toFixed(2)}</span> 元/張</div>
-    </div>`;
-  }).join('');
+  const fairList = ETFS.filter(e => e.signal==='cheap' || e.signal==='fair');
+  document.getElementById('buyCount').textContent = fairList.length + ' 支';
 
-  document.getElementById('waitItems').innerHTML = wait.map(e => `
-    <div class="wait-item">
-      <div class="wait-code">${e.code}</div>
-      <div class="wait-name">${e.name}</div>
-      <div class="wait-sig ${e.signal}">${e.signal==='dear'?'偏貴':'合理'}</div>
+  if (fairList.length === 0) {
+    document.getElementById('buyCards').innerHTML = `
+      <div class="empty-state">
+        目前沒有 ETF 符合篩選條件<br>
+        大盤偏熱，可參考下方熱門排行或自行搜尋
+        <div class="empty-why">
+          ℹ️ 為什麼今天沒有？<br>
+          當 ETF 普遍溢價、追在均線上方時，就會出現 0 支符合條件的情況。<br>
+          這代表今天不是好的進場時機。
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('buyCards').innerHTML = fairList.map(e => {
+      const pos = Math.min(97, Math.max(3, (e.price-e.low52)/(e.high52-e.low52)*100));
+      return `<div class="buy-card">
+        <div class="buy-top">
+          <div><div class="buy-code">${e.code}</div><div class="buy-name">${e.name}</div></div>
+          <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
+        </div>
+        <div class="buy-stats">
+          <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
+          <span><span class="lbl">殖利率 </span><span class="val">${e.yld}%</span></span>
+          <span><span class="lbl">60MA </span><span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span></span>
+        </div>
+        <div class="range-track">
+          <div class="range-fill" style="width:${pos}%"></div>
+          <div class="range-dot"  style="left:${pos}%"></div>
+        </div>
+        <div class="range-lbl"><span>低 ${e.low52}</span><span>高 ${e.high52}</span></div>
+        <div class="div-pill">🎁 <span class="div-num">${e.days}</span> 天後配息 · 預估 <span class="div-num">${e.est.toFixed(2)}</span> 元/張</div>
+      </div>`;
+    }).join('');
+  }
+
+  // TOP 10 熱門：依 heat 分數排序
+  const top10 = [...ETFS].sort((a,b) => (b.heat||0)-(a.heat||0)).slice(0,10);
+  const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  document.getElementById('waitItems').innerHTML = top10.map((e,i) => `
+    <div class="hot-item">
+      <div class="hot-rank ${rankClass(i)}">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="wait-code" style="font-size:16px">${e.code}</span>
+          <span class="wait-name">${e.name}</span>
+        </div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">
+          現價 ${e.price} · 殖利率 ${e.yld}%
+        </div>
+      </div>
+      <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
     </div>`).join('');
 
   selETF = ETFS.find(e => e.code==='0056') || ETFS[0];
