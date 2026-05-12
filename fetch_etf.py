@@ -1,5 +1,12 @@
-import json, datetime, requests
+import json, math, datetime, requests
 import yfinance as yf
+
+def safe(v, default=0):
+    """把 float NaN / Inf 換成 default，避免寫出非法 JSON。"""
+    try:
+        return default if (v is None or math.isnan(float(v)) or math.isinf(float(v))) else v
+    except Exception:
+        return default
 
 ETFS = [
     ("0056",   "元大高股息"),
@@ -122,13 +129,13 @@ for code, name in ETFS:
 
         results.append({
             "code": code, "name": name,
-            "price": price, "ma60": ma60, "ma20": ma20,
-            "low52": low52, "high52": high52,
-            "yld": yld, "days": DIV_DAYS.get(code, 90),
+            "price": safe(price), "ma60": safe(ma60), "ma20": safe(ma20),
+            "low52": safe(low52), "high52": safe(high52),
+            "yld": safe(yld), "days": DIV_DAYS.get(code, 90),
             "est": DIV_EST.get(code, 0.5),
-            "signal": signal, "maD": maD,
-            "premium": premium, "ret5d": ret5d,
-            "vol_ratio": vol_ratio, "heat": heat,
+            "signal": signal, "maD": safe(maD),
+            "premium": safe(premium), "ret5d": safe(ret5d),
+            "vol_ratio": safe(vol_ratio), "heat": safe(heat),
         })
         print(f"[OK] {code} {name}  {price}  sig={signal}  maD={maD}%  ret5d={ret5d}%  premium={premium}%")
 

@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ETF健診">
 <meta name="theme-color" content="#0d1117">
-<title>ETF 存股健診</title>
+<title>ETF 存股健診 v2</title>
 <style>
   :root {
     --bg:    #0d1117;
@@ -592,16 +592,16 @@
 <script>
 // ── Fallback static data（data.json 抓失敗時使用）──
 const STATIC_ETFS = [
-  { code:'0056',   name:'元大高股息',      price:35.2,  ma60:33.8,  low52:31.8, high52:38.5,  yld:6.3, days:47,  est:1.10, signal:'cheap', maD:-4.1 },
-  { code:'00713',  name:'台灣高息低波',     price:58.3,  ma60:60.1,  low52:51.2, high52:63.5,  yld:5.9, days:88,  est:1.05, signal:'cheap', maD:-3.0 },
-  { code:'0050',   name:'元大台灣50',       price:175.3, ma60:172.1, low52:142.5,high52:183.8, yld:4.2, days:145, est:3.50, signal:'fair',  maD:+1.9 },
-  { code:'00919',  name:'群益台灣精選高息', price:22.8,  ma60:22.1,  low52:19.5, high52:25.2,  yld:7.1, days:32,  est:0.45, signal:'fair',  maD:+3.2 },
-  { code:'006208', name:'富邦台50',         price:103.2, ma60:100.1, low52:84.6, high52:108.5, yld:3.8, days:158, est:2.10, signal:'fair',  maD:+3.1 },
-  { code:'00981A', name:'統一台股增長',     price:16.8,  ma60:16.2,  low52:13.5, high52:17.9,  yld:7.5, days:55,  est:0.40, signal:'fair',  maD:+3.7 },
-  { code:'00878',  name:'國泰永續高息',     price:21.5,  ma60:20.2,  low52:18.2, high52:23.1,  yld:6.8, days:65,  est:0.38, signal:'dear',  maD:+6.4 },
-  { code:'00940',  name:'元大台灣價值高息', price:14.8,  ma60:13.9,  low52:12.1, high52:16.2,  yld:7.8, days:28,  est:0.32, signal:'dear',  maD:+6.5 },
-  { code:'00929',  name:'復華台灣科技優息', price:19.2,  ma60:17.8,  low52:15.8, high52:20.1,  yld:8.2, days:19,  est:0.42, signal:'dear',  maD:+7.9 },
-  { code:'00850',  name:'元大ESG永續',      price:32.1,  ma60:30.5,  low52:27.8, high52:34.2,  yld:4.1, days:112, est:0.80, signal:'dear',  maD:+5.2 },
+  { code:'0056',   name:'元大高股息',      price:35.2,  ma60:33.8,  low52:31.8, high52:38.5,  yld:6.3, days:47,  est:1.10, signal:'cheap', maD:-4.1, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'00713',  name:'台灣高息低波',     price:58.3,  ma60:60.1,  low52:51.2, high52:63.5,  yld:5.9, days:88,  est:1.05, signal:'cheap', maD:-3.0, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'0050',   name:'元大台灣50',       price:175.3, ma60:172.1, low52:142.5,high52:183.8, yld:4.2, days:145, est:3.50, signal:'fair',  maD:+1.9, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'00919',  name:'群益台灣精選高息', price:22.8,  ma60:22.1,  low52:19.5, high52:25.2,  yld:7.1, days:32,  est:0.45, signal:'fair',  maD:+3.2, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'006208', name:'富邦台50',         price:103.2, ma60:100.1, low52:84.6, high52:108.5, yld:3.8, days:158, est:2.10, signal:'fair',  maD:+3.1, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'00981A', name:'統一台股增長',     price:16.8,  ma60:16.2,  low52:13.5, high52:17.9,  yld:7.5, days:55,  est:0.40, signal:'fair',  maD:+3.7, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'00878',  name:'國泰永續高息',     price:21.5,  ma60:20.2,  low52:18.2, high52:23.1,  yld:6.8, days:65,  est:0.38, signal:'dear',  maD:+6.4, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'00940',  name:'元大台灣價值高息', price:14.8,  ma60:13.9,  low52:12.1, high52:16.2,  yld:7.8, days:28,  est:0.32, signal:'dear',  maD:+6.5, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'00929',  name:'復華台灣科技優息', price:19.2,  ma60:17.8,  low52:15.8, high52:20.1,  yld:8.2, days:19,  est:0.42, signal:'dear',  maD:+7.9, premium:0, ret5d:0, vol_ratio:1 },
+  { code:'00850',  name:'元大ESG永續',      price:32.1,  ma60:30.5,  low52:27.8, high52:34.2,  yld:4.1, days:112, est:0.80, signal:'dear',  maD:+5.2, premium:0, ret5d:0, vol_ratio:1 },
 ];
 const STATIC_CAL = [
   { mon:'5月', day:'19', code:'00929', name:'復華台灣科技優息', amt:0.42, soon:true  },
@@ -694,7 +694,7 @@ function runETFCheck() {
     const etf = ETFS.find(e => e.code.toUpperCase() === code);
     if (!etf) return `<div class="health-card"><div class="health-top"><div><div class="health-code">${code}</div><div class="health-name" style="color:var(--dear)">查無資料（不在今日清單）</div></div></div></div>`;
     const sigColor = SIG_COLOR[etf.signal] || 'var(--dear)';
-    const fmt = (v, pos) => (v >= 0 ? '+' : '') + v + '%';
+    const fmt = v => (v == null || isNaN(v)) ? '0%' : (v >= 0 ? '+' : '') + v + '%';
     return `<div class="health-card">
       <div class="health-top">
         <div><div class="health-code">${etf.code}</div><div class="health-name">${etf.name}</div></div>
@@ -706,7 +706,7 @@ function runETFCheck() {
         <div class="health-kv"><div class="k">溢折價</div><div class="v" style="color:${etf.premium>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.premium)}</div></div>
         <div class="health-kv"><div class="k">60MA偏離</div><div class="v" style="color:${etf.maD>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.maD)}</div></div>
         <div class="health-kv"><div class="k">5日漲跌</div><div class="v" style="color:${etf.ret5d>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.ret5d)}</div></div>
-        <div class="health-kv"><div class="k">量比</div><div class="v">${etf.vol_ratio}x</div></div>
+        <div class="health-kv"><div class="k">量比</div><div class="v">${etf.vol_ratio ?? 0}x</div></div>
       </div>
     </div>`;
   }).join('');
