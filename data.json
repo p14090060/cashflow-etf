@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-12 16:16",
+  "updated": "2026-05-12 18:20",
   "market": {
     "change_pct": 0.26,
     "change_pt": 108.26,
@@ -345,7 +345,7 @@
       "cur_vol": 42575524.0,
       "vol_ratio": 0.84,
       "heat": 1.068,
-      "div_freq": "半年配"
+      "div_freq": "年配"
     },
     {
       "code": "0053",
@@ -1357,7 +1357,7 @@
       "cur_vol": 1495155.0,
       "vol_ratio": 0.93,
       "heat": 1.355,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "00735",
@@ -2185,7 +2185,7 @@
       "cur_vol": 1442528.0,
       "vol_ratio": 0.79,
       "heat": 0.986,
-      "div_freq": "季配"
+      "div_freq": "月配"
     },
     {
       "code": "00909",
@@ -2254,7 +2254,7 @@
       "cur_vol": 694320.0,
       "vol_ratio": 1.46,
       "heat": 3.338,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "00912",
@@ -2415,7 +2415,7 @@
       "cur_vol": 657672.0,
       "vol_ratio": 1.84,
       "heat": 1.84,
-      "div_freq": "不明"
+      "div_freq": "年配"
     },
     {
       "code": "00921",
@@ -2576,7 +2576,7 @@
       "cur_vol": 3092863.0,
       "vol_ratio": 0.81,
       "heat": 1.436,
-      "div_freq": "季配"
+      "div_freq": "月配"
     },
     {
       "code": "00932",
@@ -2691,7 +2691,7 @@
       "cur_vol": 844169.0,
       "vol_ratio": 0.66,
       "heat": 0.762,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "00939",
@@ -3128,7 +3128,7 @@
       "cur_vol": 471304.0,
       "vol_ratio": 2.14,
       "heat": 2.752,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "009800",
@@ -3197,7 +3197,7 @@
       "cur_vol": 7636733.0,
       "vol_ratio": 0.86,
       "heat": 1.477,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "009803",
@@ -3220,7 +3220,7 @@
       "cur_vol": 2451724.0,
       "vol_ratio": 1.18,
       "heat": 1.493,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "009804",
@@ -3243,7 +3243,7 @@
       "cur_vol": 1385784.0,
       "vol_ratio": 0.48,
       "heat": 0.739,
-      "div_freq": "半年配"
+      "div_freq": "年配"
     },
     {
       "code": "009805",
@@ -3289,7 +3289,7 @@
       "cur_vol": 803960.0,
       "vol_ratio": 1.0,
       "heat": 1.424,
-      "div_freq": "半年配"
+      "div_freq": "年配"
     },
     {
       "code": "009809",
@@ -3335,7 +3335,7 @@
       "cur_vol": 16839097.0,
       "vol_ratio": 0.94,
       "heat": 1.466,
-      "div_freq": "半年配"
+      "div_freq": "年配"
     },
     {
       "code": "009810",
@@ -3519,7 +3519,7 @@
       "cur_vol": 4687419.0,
       "vol_ratio": 1.22,
       "heat": 1.355,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "009820",
@@ -3588,7 +3588,7 @@
       "cur_vol": 383154.0,
       "vol_ratio": 0.31,
       "heat": 0.31,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "00982T",
@@ -3657,7 +3657,7 @@
       "cur_vol": 1317255.0,
       "vol_ratio": 0.96,
       "heat": 0.96,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "00984A",
@@ -3680,7 +3680,7 @@
       "cur_vol": 9757804.0,
       "vol_ratio": 0.67,
       "heat": 0.877,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "00984D",
@@ -4140,7 +4140,7 @@
       "cur_vol": 174153.0,
       "vol_ratio": 0.45,
       "heat": 0.869,
-      "div_freq": "年配"
+      "div_freq": "半年配"
     },
     {
       "code": "9110",
@@ -4301,7 +4301,7 @@
       "cur_vol": 29360.0,
       "vol_ratio": 0.21,
       "heat": 0.21,
-      "div_freq": "半年配"
+      "div_freq": "年配"
     },
     {
       "code": "01002T",
