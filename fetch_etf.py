@@ -75,19 +75,21 @@ EXCLUDE_KW = [
 ]
 
 def fetch_twse_etf_pool():
-    """從 TWSE ISIN 抓完整上市受益憑證/ETF 清單，過濾出股票型，回傳 [(code, name)]"""
+    """從 TWSE ISIN strMode=2 的 ETF 區段抓股票型 ETF 清單，回傳 [(code, name)]"""
     try:
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
         req = _ur.Request(
-            'https://isin.twse.com.tw/isin/C_public.jsp?strMode=4',
+            'https://isin.twse.com.tw/isin/C_public.jsp?strMode=2',
             headers={'User-Agent': 'Mozilla/5.0'}
         )
         with _ur.urlopen(req, timeout=20, context=ctx) as r:
             html = r.read().decode('big5', errors='ignore')
-        # 頁面格式：代號　名稱
-        pairs = re.findall(r'([0-9]{4,6}[A-Z]?)　([^\t<\r\n]{2,30})', html)
+        # 只取 ETF 區段（從 "ETF <B>" 開始）
+        etf_start = html.find('ETF <B>')
+        section = html[etf_start:] if etf_start >= 0 else html
+        pairs = re.findall(r'([0-9]{4,6}[A-Z]?)　([^\t<\r\n]{2,30})', section)
         results, seen = [], set()
         for code, name in pairs:
             code, name = code.strip(), name.strip()
