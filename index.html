@@ -926,7 +926,13 @@ function renderAll(etfs, cal, updatedAt, market) {
   const SIG_LABEL = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' };
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' };
 
-  const fairList = ETFS.filter(e => e.signal==='cheap' || e.signal==='fair');
+  // 只從成交量前 100 篩選，避免冷門 ETF 混入
+  const TOP100 = [...ETFS]
+    .filter(e => (e.cur_vol || 0) > 0 && e.price > 0)
+    .sort((a, b) => (b.cur_vol || 0) - (a.cur_vol || 0))
+    .slice(0, 100);
+
+  const fairList = TOP100.filter(e => e.signal==='cheap' || e.signal==='fair');
   document.getElementById('buyCount').textContent = fairList.length + ' 支';
 
   if (fairList.length === 0) {
@@ -963,8 +969,8 @@ function renderAll(etfs, cal, updatedAt, market) {
     }).join('');
   }
 
-  // TOP 10 熱門：依 heat 分數排序
-  const top10 = [...ETFS].sort((a,b) => (b.heat||0)-(a.heat||0)).slice(0,10);
+  // TOP 10 熱門：從成交量前 100 依 heat 分數排序
+  const top10 = [...TOP100].sort((a,b) => (b.heat||0)-(a.heat||0)).slice(0,10);
   const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
   document.getElementById('waitItems').innerHTML = top10.map((e,i) => `
     <div class="hot-item">
