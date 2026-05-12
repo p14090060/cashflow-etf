@@ -60,7 +60,7 @@ _NAME_FREQ = [
     (["年配"],           "年配"),
 ]
 
-def detect_div_freq(tk, code, name=""):
+def detect_div_freq(tk, code, name="", hist_days=0):
     """優先查手動表 → 名稱關鍵字 → TWSE API → yfinance 股利歷史推算"""
     # 1. 手動維護表
     manual = DIV_FREQ.get(code)
@@ -74,13 +74,14 @@ def detect_div_freq(tk, code, name=""):
     twse = fetch_div_freq_twse(code)
     if twse:
         return twse
-    # 4. yfinance 股利歷史（拉長到 2 年）
+    # 4. yfinance 股利歷史（拉長到 3 年）
     try:
         import pandas as _pd
         divs = tk.dividends
         if len(divs) == 0:
-            return "不明"
-        cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=730)
+            # 有 1 年以上交易紀錄卻從未配息 → 確認不配
+            return "不配" if hist_days >= 200 else "不明"
+        cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=1095)
         n = len(divs[divs.index > cutoff])
         if n >= 10: return "月配"
         if n >= 5:  return "季配"
@@ -107,6 +108,7 @@ EXCLUDE_KW = [
     '債', '期貨', '槓桿', '反向', '貨幣市場', '貨幣',
     '正2', '反1', '公債', '公司債', '高收益', '不動產',
     'REITs', '基礎建設', '優先股', '可轉換', '黃金', '原油',
+    '石油', '天然氣', '白銀', '農產',
 ]
 
 def fetch_twse_etf_pool():
@@ -237,7 +239,7 @@ for code, name in ALL_ETFS:
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    premium, ret5d, vol_ratio, yld, name)
         heat     = round(vol_ratio * max(1.0, 1 + ret5d * 0.1), 3)
-        div_freq = detect_div_freq(tk, code, name)
+        div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
 
         results.append({
             "code": code, "name": name, "curated": curated,
