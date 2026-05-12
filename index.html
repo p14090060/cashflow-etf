@@ -44,20 +44,20 @@
     padding:12px 16px 10px;
     display:flex; align-items:center; justify-content:space-between;
   }
-  .topbar-title { font-size:17px; font-weight:700; letter-spacing:.02em; }
-  .topbar-sub   { font-family:var(--mono); font-size:10px; color:var(--dim); margin-top:1px; }
-  .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:18px; cursor:pointer; line-height:1; }
+  .topbar-title { font-size:26px; font-weight:700; letter-spacing:.02em; }
+  .topbar-sub   { font-family:var(--mono); font-size:20px; color:var(--dim); margin-top:1px; }
+  .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:26px; cursor:pointer; line-height:1; }
   .refresh-btn.spinning { animation:spin .6s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
   .disclaimer {
     background:rgba(240,184,64,.08); border-bottom:1px solid rgba(240,184,64,.2);
-    padding:6px 16px; font-size:11px; color:var(--fair);
+    padding:6px 16px; font-size:20px; color:var(--fair);
     text-align:center; letter-spacing:.02em; line-height:1.5;
   }
   .demo-badge {
     background:rgba(240,184,64,.12); color:var(--fair);
     border:1px solid rgba(240,184,64,.4); border-radius:4px;
-    padding:2px 8px; font-size:10px; font-family:var(--mono);
+    padding:2px 8px; font-size:20px; font-family:var(--mono);
   }
 
   /* ── Page container ── */
@@ -82,18 +82,18 @@
   }
   .nav-btn.active { color:var(--cheap); }
   .nav-btn svg { width:22px; height:22px; }
-  .nav-btn span { font-size:11px; font-weight:500; }
+  .nav-btn span { font-size:16px; font-weight:500; }
 
   /* ── Cards / layout helpers ── */
   .section-hdr {
     display:flex; align-items:center; gap:8px;
-    font-size:18px; font-weight:700; margin-bottom:10px;
+    font-size:26px; font-weight:700; margin-bottom:10px;
     padding-bottom:7px; border-bottom:1px solid var(--border);
   }
   .section-hdr.buy  { color:var(--bright); border-color:rgba(0,229,160,.2); }
   .section-hdr.wait { color:var(--bright); }
   .badge-count {
-    font-family:var(--sans); font-size:16px; font-weight:700;
+    font-family:var(--sans); font-size:26px; font-weight:700;
     background:rgba(255,255,255,.07); border-radius:10px; padding:2px 10px;
     color:var(--bright);
   }
@@ -105,10 +105,10 @@
     display:flex; align-items:center; gap:13px;
   }
   .mood-emoji { font-size:36px; line-height:1; flex-shrink:0; }
-  .mood-main  { font-size:17px; font-weight:700; }
-  .mood-sub   { font-size:13px; color:var(--bright); margin-top:3px; line-height:1.5; }
-  .mood-cta   { font-size:12px; color:#e8607a; margin-top:5px; font-weight:600; }
-  .mood-idx   { font-family:var(--mono); font-size:12px; margin-top:4px; }
+  .mood-main  { font-size:26px; font-weight:700; }
+  .mood-sub   { font-size:22px; color:var(--bright); margin-top:3px; line-height:1.5; }
+  .mood-cta   { font-size:20px; color:#e8607a; margin-top:5px; font-weight:600; }
+  .mood-idx   { font-family:var(--mono); font-size:22px; margin-top:4px; }
   .mood-idx.up{ color:var(--up); } .mood-idx.dn{ color:var(--dn); } .mood-idx.flat{ color:var(--dim); }
 
   /* ── Buy cards ── */
@@ -118,64 +118,64 @@
   }
   .buy-top  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
   .buy-code { font-family:var(--sans); font-size:22px; font-weight:700; color:var(--bright); letter-spacing:.04em; }
-  .buy-name { font-size:14px; font-weight:500; margin-top:3px; color:#58a6ff; }
+  .buy-name { font-size:26px; font-weight:500; margin-top:3px; color:#58a6ff; }
   .sig-cheap {
     background:rgba(0,229,160,.12); color:var(--cheap);
     border:1px solid var(--cheap); border-radius:6px;
-    padding:3px 10px; font-size:12px; font-weight:700; white-space:nowrap;
+    padding:3px 10px; font-size:20px; font-weight:700; white-space:nowrap;
   }
   .sig-fair {
     background:rgba(240,184,64,.12); color:var(--fair);
     border:1px solid var(--fair); border-radius:6px;
-    padding:3px 10px; font-size:12px; font-weight:700; white-space:nowrap;
+    padding:3px 10px; font-size:20px; font-weight:700; white-space:nowrap;
   }
   .sig-dear {
     background:rgba(255,63,94,.12); color:var(--dear);
     border:1px solid var(--dear); border-radius:6px;
-    padding:3px 10px; font-size:12px; font-weight:700; white-space:nowrap;
+    padding:3px 10px; font-size:20px; font-weight:700; white-space:nowrap;
   }
   .sig-hot {
     background:rgba(255,149,0,.12); color:#ff9500;
     border:1px solid #ff9500; border-radius:6px;
-    padding:3px 10px; font-size:12px; font-weight:700; white-space:nowrap;
+    padding:3px 10px; font-size:20px; font-weight:700; white-space:nowrap;
   }
   .empty-state {
     background:var(--card2); border:1px solid var(--border);
     border-radius:12px; padding:18px 16px; text-align:center;
-    color:var(--dim); font-size:13px; line-height:1.7; margin-bottom:10px;
+    color:var(--dim); font-size:26px; line-height:1.7; margin-bottom:10px;
   }
   .empty-why {
     margin-top:12px; padding:10px 12px;
     background:rgba(88,166,255,.06); border:1px solid rgba(88,166,255,.15);
-    border-radius:8px; font-size:12px; color:#58a6ff; text-align:left; line-height:1.7;
+    border-radius:8px; font-size:22px; color:#58a6ff; text-align:left; line-height:1.7;
   }
   .hot-item {
     display:flex; align-items:center; gap:10px;
     background:var(--card2); border:1px solid var(--border);
     border-radius:10px; padding:10px 13px; margin-bottom:7px;
   }
-  .hot-rank { font-family:var(--sans); font-size:15px; font-weight:700; color:var(--dim); width:22px; flex-shrink:0; }
+  .hot-rank { font-family:var(--sans); font-size:26px; font-weight:700; color:var(--dim); width:22px; flex-shrink:0; }
   .hot-rank.gold { color:var(--gold); }
   .hot-rank.silver { color:#aab0b8; }
   .hot-rank.bronze { color:#cd7f32; }
   .buy-stats {
-    display:flex; gap:14px; font-size:13px; margin-bottom:9px; flex-wrap:wrap;
+    display:flex; gap:14px; font-size:26px; margin-bottom:9px; flex-wrap:wrap;
   }
   .buy-stats .lbl { color:var(--bright); }
-  .buy-stats .val { color:var(--bright); font-family:var(--mono); font-size:15px; font-weight:700; }
-  .buy-stats .neg { color:#58a6ff; font-family:var(--mono); font-size:15px; font-weight:700; }
-  .buy-stats .pos { color:#58a6ff; font-family:var(--mono); font-size:15px; font-weight:700; }
+  .buy-stats .val { color:var(--bright); font-family:var(--mono); font-size:26px; font-weight:700; }
+  .buy-stats .neg { color:#58a6ff; font-family:var(--mono); font-size:26px; font-weight:700; }
+  .buy-stats .pos { color:#58a6ff; font-family:var(--mono); font-size:26px; font-weight:700; }
   .range-track { height:5px; background:rgba(255,255,255,.08); border-radius:3px; position:relative; margin-bottom:4px; }
   .range-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,rgba(88,166,255,.15),rgba(88,166,255,.6)); }
   .range-dot   { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:#58a6ff; border:2px solid var(--bg); }
-  .range-lbl   { display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--dim); }
+  .range-lbl   { display:flex; justify-content:space-between; font-family:var(--mono); font-size:20px; color:var(--dim); }
   .div-pill {
     display:inline-flex; align-items:center; gap:3px;
     background:rgba(255,149,0,.1); border:1px solid rgba(255,149,0,.35);
-    border-radius:20px; padding:5px 12px; font-size:12px; color:#ff9500;
+    border-radius:20px; padding:5px 12px; font-size:22px; color:#ff9500;
     font-family:var(--mono); margin-top:8px; font-weight:500;
   }
-  .div-num { font-size:19px; font-weight:700; }
+  .div-num { font-size:26px; font-weight:700; }
 
   /* ── Wait list ── */
   .wait-item {
@@ -183,15 +183,15 @@
     background:rgba(255,255,255,.03); border:1px solid var(--border);
     border-radius:8px; padding:10px 12px; margin-bottom:7px;
   }
-  .wait-code  { font-family:var(--sans); font-size:18px; font-weight:700; color:var(--bright); width:68px; flex-shrink:0; }
-  .wait-name  { font-size:15px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#58a6ff; }
-  .wait-sig   { border-radius:6px; padding:4px 12px; font-size:15px; font-weight:700; flex-shrink:0; white-space:nowrap; }
+  .wait-code  { font-family:var(--sans); font-size:26px; font-weight:700; color:var(--bright); width:68px; flex-shrink:0; }
+  .wait-name  { font-size:26px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#58a6ff; }
+  .wait-sig   { border-radius:6px; padding:4px 12px; font-size:26px; font-weight:700; flex-shrink:0; white-space:nowrap; }
   .wait-sig.dear { background:rgba(255,63,94,.1); color:var(--dear); border:1px solid rgba(255,63,94,.3); }
   .wait-sig.fair { background:rgba(240,184,64,.1); color:var(--fair); border:1px solid rgba(240,184,64,.3); }
 
   /* ── Dividend page ── */
   .panel { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:15px; margin-bottom:13px; }
-  .panel-title { font-size:17px; font-weight:700; margin-bottom:12px; color:#ff9500; }
+  .panel-title { font-size:26px; font-weight:700; margin-bottom:12px; color:#ff9500; }
   .panel-title .ic { margin-right:6px; }
 
   /* Calculator */
@@ -199,19 +199,19 @@
   .etf-chip  {
     background:rgba(255,255,255,.05); border:1px solid var(--border);
     border-radius:20px; padding:6px 13px;
-    font-family:var(--sans); font-size:15px; font-weight:700; color:#4a7099; cursor:pointer;
+    font-family:var(--sans); font-size:26px; font-weight:700; color:#4a7099; cursor:pointer;
     transition:all .15s;
   }
   .etf-chip:active, .etf-chip.on {
-    background:rgba(88,166,255,.15); border-color:#58a6ff; color:#a8ccff; font-size:22px;
+    background:rgba(88,166,255,.15); border-color:#58a6ff; color:#a8ccff; font-size:26px;
   }
   .input-row {
     display:flex; align-items:center; gap:10px; margin-bottom:12px;
   }
-  .input-lbl { font-size:13px; color:var(--bright); }
+  .input-lbl { font-size:26px; color:var(--bright); }
   .num-input {
     background:var(--card2); border:1px solid var(--border); border-radius:8px;
-    padding:8px 12px; font-family:var(--mono); font-size:18px; font-weight:700;
+    padding:8px 12px; font-family:var(--mono); font-size:26px; font-weight:700;
     color:var(--bright); width:90px; text-align:center; outline:none;
     transition:border-color .15s;
   }
@@ -221,19 +221,19 @@
   }
   .custom-input {
     background:var(--card2); border:1px solid var(--border); border-radius:8px;
-    padding:7px 12px; font-family:var(--sans); font-size:16px; font-weight:700;
+    padding:7px 12px; font-family:var(--sans); font-size:26px; font-weight:700;
     color:var(--bright); flex:1; outline:none; transition:border-color .15s;
     letter-spacing:.04em;
   }
-  .custom-input::placeholder { color:var(--dim); font-weight:400; font-size:13px; }
+  .custom-input::placeholder { color:var(--dim); font-weight:400; font-size:26px; }
   .custom-input:focus { border-color:#ff9500; }
   .custom-btn {
     background:#ff9500; border:none; border-radius:8px;
-    padding:7px 16px; font-size:14px; font-weight:700; color:#000;
+    padding:7px 16px; font-size:26px; font-weight:700; color:#000;
     cursor:pointer; white-space:nowrap; transition:opacity .15s;
   }
   .custom-btn:active { opacity:.8; }
-  .custom-msg { font-size:12px; margin-bottom:10px; padding:6px 10px; border-radius:6px; }
+  .custom-msg { font-size:22px; margin-bottom:10px; padding:6px 10px; border-radius:6px; }
   .custom-msg.ok   { background:rgba(0,229,160,.08); color:var(--cheap); border:1px solid rgba(0,229,160,.2); }
   .custom-msg.warn { background:rgba(240,184,64,.08); color:var(--fair);  border:1px solid rgba(240,184,64,.2); }
   .custom-msg.err  { background:rgba(255,63,94,.08);  color:var(--dear);  border:1px solid rgba(255,63,94,.2); }
@@ -243,10 +243,10 @@
   }
   .calc-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
   .calc-row:last-child { margin:0; padding-top:9px; border-top:1px solid rgba(255,63,94,.15); }
-  .calc-lbl  { font-size:12px; color:var(--bright); }
-  .calc-lbl .big-num { font-family:var(--sans); font-size:18px; font-weight:700; color:var(--bright); }
+  .calc-lbl  { font-size:26px; color:var(--bright); }
+  .calc-lbl .big-num { font-family:var(--sans); font-size:26px; font-weight:700; color:var(--bright); }
   .calc-val  { font-family:var(--mono); font-size:26px; font-weight:700; color:var(--dear); }
-  .calc-val.sm { font-size:18px; color:var(--dear); }
+  .calc-val.sm { font-size:26px; color:var(--dear); }
 
   /* Calendar */
   .cal-item {
@@ -257,18 +257,18 @@
   .cal-item.soon { background:rgba(255,215,0,.05); border-color:rgba(255,215,0,.25); }
   .cal-item:last-child { margin:0; }
   .cal-date { text-align:center; width:38px; flex-shrink:0; }
-  .cal-day   { font-family:var(--mono); font-size:20px; font-weight:700; display:block; line-height:1; }
-  .cal-mon   { font-size:10px; color:var(--bright); }
+  .cal-day   { font-family:var(--mono); font-size:26px; font-weight:700; display:block; line-height:1; }
+  .cal-mon   { font-size:22px; color:var(--bright); }
   .cal-line  { width:1px; height:30px; background:var(--border); flex-shrink:0; }
   .cal-info  { flex:1; }
-  .cal-code2 { font-family:var(--sans); font-size:18px; font-weight:700; color:var(--bright); }
-  .cal-name2 { font-size:15px; color:#58a6ff; margin-top:2px; }
+  .cal-code2 { font-family:var(--sans); font-size:26px; font-weight:700; color:var(--bright); }
+  .cal-name2 { font-size:26px; color:#58a6ff; margin-top:2px; }
   .cal-r     { text-align:right; }
-  .cal-amt   { font-family:var(--mono); font-size:20px; font-weight:700; color:var(--gold); }
-  .cal-ulbl  { font-size:10px; color:var(--bright); }
+  .cal-amt   { font-family:var(--mono); font-size:26px; font-weight:700; color:var(--gold); }
+  .cal-ulbl  { font-size:22px; color:var(--bright); }
   .soon-pill {
     display:inline-block; background:rgba(255,215,0,.15); color:var(--gold);
-    border-radius:4px; padding:1px 6px; font-size:10px; font-family:var(--mono);
+    border-radius:4px; padding:1px 6px; font-size:20px; font-family:var(--mono);
     margin-top:3px;
   }
 
@@ -280,11 +280,11 @@
   }
   .yt-logo  { line-height:1; margin-bottom:10px; }
   .yt-logo img { width:288px !important; height:288px !important; max-width:288px !important; object-fit:contain; border-radius:12px; display:block; margin:0 auto; }
-  .yt-name  { font-size:19px; font-weight:700; margin-bottom:5px; }
-  .yt-desc  { font-size:13px; color:var(--bright); line-height:1.6; margin-bottom:16px; }
+  .yt-name  { font-size:26px; font-weight:700; margin-bottom:5px; }
+  .yt-desc  { font-size:26px; color:var(--bright); line-height:1.6; margin-bottom:16px; }
   .yt-btn   {
     display:inline-block; background:#ff3f5e; color:#fff;
-    border-radius:24px; padding:11px 28px; font-size:14px; font-weight:700;
+    border-radius:24px; padding:11px 28px; font-size:26px; font-weight:700;
     text-decoration:none; transition:opacity .15s;
   }
   .yt-btn:active { opacity:.8; }
@@ -293,74 +293,74 @@
     border-top:1px solid rgba(255,63,94,.2); padding-top:14px;
   }
   .yt-stat { flex:1; text-align:center; }
-  .yt-stat .n { font-family:var(--mono); font-size:17px; font-weight:700; color:var(--bright); }
-  .yt-stat .l { font-size:11px; color:var(--dim); margin-top:2px; }
+  .yt-stat .n { font-family:var(--mono); font-size:26px; font-weight:700; color:var(--bright); }
+  .yt-stat .l { font-size:26px; color:var(--dim); margin-top:2px; }
 
   .joke-card {
     background:var(--card); border:1px solid var(--border);
     border-radius:12px; padding:18px 16px; margin-bottom:12px;
   }
-  .joke-hdr  { font-size:12px; color:#e8607a; font-weight:600; margin-bottom:10px; letter-spacing:.04em; }
-  .joke-body { font-size:15px; color:var(--bright); line-height:1.8; white-space:pre-line; }
-  .joke-day  { font-size:11px; color:var(--dim); margin-top:10px; text-align:right; }
+  .joke-hdr  { font-size:26px; color:#e8607a; font-weight:600; margin-bottom:10px; letter-spacing:.04em; }
+  .joke-body { font-size:26px; color:var(--bright); line-height:1.8; white-space:pre-line; }
+  .joke-day  { font-size:22px; color:var(--dim); margin-top:10px; text-align:right; }
 
   .latest-card {
     background:rgba(255,63,94,.05); border:1px solid rgba(255,63,94,.2);
     border-radius:12px; padding:14px; margin-bottom:12px;
   }
-  .latest-lbl { font-size:11px; color:var(--dim); margin-bottom:5px; font-family:var(--mono); }
-  .latest-title { font-size:14px; font-weight:700; margin-bottom:10px; line-height:1.4; }
+  .latest-lbl { font-size:26px; color:var(--dim); margin-bottom:5px; font-family:var(--mono); }
+  .latest-title { font-size:26px; font-weight:700; margin-bottom:10px; line-height:1.4; }
   .latest-link  {
     display:flex; align-items:center; gap:6px;
-    color:var(--dear); font-size:13px; font-weight:600; text-decoration:none;
+    color:var(--dear); font-size:26px; font-weight:600; text-decoration:none;
   }
 
   /* ── Check page ── */
   .check-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:13px; }
   .check-title { font-size:26px; font-weight:700; margin-bottom:16px; color:#ff9500; }
   .check-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; }
-  .check-lbl { font-size:22px; color:var(--bright); flex-shrink:0; }
+  .check-lbl { font-size:26px; color:var(--bright); flex-shrink:0; }
   .input-prefix { display:flex; align-items:center; background:var(--card2); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
-  .input-prefix span { padding:12px 10px; font-size:20px; color:var(--dim); border-right:1px solid var(--border); white-space:nowrap; }
-  .input-prefix input { background:transparent; border:none; padding:12px 12px; font-size:22px; color:var(--bright); width:130px; text-align:right; font-family:var(--mono); }
+  .input-prefix span { padding:12px 10px; font-size:26px; color:var(--dim); border-right:1px solid var(--border); white-space:nowrap; }
+  .input-prefix input { background:transparent; border:none; padding:12px 12px; font-size:26px; color:var(--bright); width:130px; text-align:right; font-family:var(--mono); }
   .input-prefix input:focus { outline:none; }
   .dca-toggle { display:flex; gap:8px; }
-  .dca-btn { padding:12px 28px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:20px; font-weight:600; cursor:pointer; }
+  .dca-btn { padding:12px 28px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:26px; font-weight:600; cursor:pointer; }
   .dca-btn.active { background:rgba(0,229,160,.12); border-color:var(--cheap); color:var(--cheap); }
-  .dca-tip { font-size:18px; color:var(--dim); line-height:1.7; padding:14px 16px; background:rgba(255,255,255,.03); border-radius:8px; margin-bottom:16px; }
+  .dca-tip { font-size:26px; color:var(--dim); line-height:1.7; padding:14px 16px; background:rgba(255,255,255,.03); border-radius:8px; margin-bottom:16px; }
   .rate-presets { display:flex; gap:8px; margin-bottom:14px; }
-  .rate-btn { flex:1; padding:14px 4px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:18px; font-weight:600; cursor:pointer; text-align:center; line-height:1.4; }
-  .rate-btn small { display:block; font-size:15px; font-weight:400; margin-top:4px; }
+  .rate-btn { flex:1; padding:14px 4px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:26px; font-weight:600; cursor:pointer; text-align:center; line-height:1.4; }
+  .rate-btn small { display:block; font-size:22px; font-weight:400; margin-top:4px; }
   .rate-btn.active { background:rgba(88,166,255,.12); border-color:#58a6ff; color:#58a6ff; }
   .rate-btn.active small { color:#58a6ff; }
   .rate-slider-row { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
   .rate-slider-row input[type=range] { flex:1; height:6px; }
-  .rate-num { font-family:var(--mono); font-size:24px; font-weight:700; color:#58a6ff; min-width:54px; text-align:right; }
+  .rate-num { font-family:var(--mono); font-size:26px; font-weight:700; color:#58a6ff; min-width:54px; text-align:right; }
   .check-calc-btn { width:100%; padding:18px; background:linear-gradient(90deg,rgba(88,166,255,.15),rgba(0,229,160,.15)); border:1px solid rgba(88,166,255,.3); border-radius:10px; color:var(--bright); font-size:22px; font-weight:700; cursor:pointer; margin-top:8px; }
   .check-calc-btn:active { opacity:.8; }
   .proj-table { width:100%; border-collapse:collapse; margin-top:16px; }
-  .proj-table th { font-size:18px; color:var(--dim); padding:12px 4px; text-align:center; border-bottom:1px solid var(--border); }
-  .proj-table td { font-size:20px; font-family:var(--mono); padding:14px 4px; text-align:center; border-bottom:1px solid rgba(255,255,255,.05); color:var(--bright); }
+  .proj-table th { font-size:26px; color:var(--dim); padding:12px 4px; text-align:center; border-bottom:1px solid var(--border); }
+  .proj-table td { font-size:26px; font-family:var(--mono); padding:14px 4px; text-align:center; border-bottom:1px solid rgba(255,255,255,.05); color:var(--bright); }
   .proj-table tr:last-child td { border-bottom:none; }
-  .proj-table td.year-col { color:var(--dim); font-size:18px; }
-  .risk-badge { display:inline-block; padding:10px 20px; border-radius:20px; font-size:20px; font-weight:700; margin:14px 0 10px; }
+  .proj-table td.year-col { color:var(--dim); font-size:26px; }
+  .risk-badge { display:inline-block; padding:10px 20px; border-radius:20px; font-size:26px; font-weight:700; margin:14px 0 10px; }
   .risk-C { background:rgba(0,229,160,.12); color:var(--cheap); border:1px solid rgba(0,229,160,.3); }
   .risk-M { background:rgba(240,184,64,.12); color:var(--fair); border:1px solid rgba(240,184,64,.3); }
   .risk-A { background:rgba(255,63,94,.12); color:var(--dear); border:1px solid rgba(255,63,94,.3); }
   .suggest-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-  .suggest-chip { padding:10px 18px; border-radius:20px; font-size:18px; font-weight:700; background:rgba(88,166,255,.1); color:#58a6ff; border:1px solid rgba(88,166,255,.25); }
+  .suggest-chip { padding:10px 18px; border-radius:20px; font-size:26px; font-weight:700; background:rgba(88,166,255,.1); color:#58a6ff; border:1px solid rgba(88,166,255,.25); }
   .etf-inputs { display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
-  .etf-code-inp { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:16px 18px; font-size:24px; color:var(--bright); font-family:var(--mono); text-align:center; letter-spacing:.08em; }
+  .etf-code-inp { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:16px 18px; font-size:26px; color:var(--bright); font-family:var(--mono); text-align:center; letter-spacing:.08em; }
   .etf-code-inp:focus { outline:none; border-color:rgba(88,166,255,.5); }
-  .etf-code-inp::placeholder { font-size:18px; letter-spacing:0; color:var(--dim); }
+  .etf-code-inp::placeholder { font-size:26px; letter-spacing:0; color:var(--dim); }
   .health-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:14px; }
   .health-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
-  .health-code { font-size:24px; font-weight:700; font-family:var(--mono); color:var(--bright); }
-  .health-name { font-size:18px; color:var(--dim); margin-top:4px; }
+  .health-code { font-size:26px; font-weight:700; font-family:var(--mono); color:var(--bright); }
+  .health-name { font-size:26px; color:var(--dim); margin-top:4px; }
   .health-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-  .health-kv .k { font-size:16px; color:var(--dim); }
-  .health-kv .v { font-size:22px; font-family:var(--mono); font-weight:700; color:var(--bright); }
-  .health-miss { font-size:20px; color:var(--dim); text-align:center; padding:16px 0; }
+  .health-kv .k { font-size:22px; color:var(--dim); }
+  .health-kv .v { font-size:26px; font-family:var(--mono); font-weight:700; color:var(--bright); }
+  .health-miss { font-size:26px; color:var(--dim); text-align:center; padding:16px 0; }
 </style>
 </head>
 <body>
@@ -397,7 +397,7 @@
       合理價 ETF
       <span class="badge-count" id="buyCount"></span>
     </div>
-    <div style="font-size:12px;color:#e8607a;margin:-8px 0 10px 2px">現價在60日均線附近，溢價低、未追熱</div>
+    <div style="font-size:20px;color:#e8607a;margin:-8px 0 10px 2px">現價在60日均線附近，溢價低、未追熱</div>
     <div id="buyCards"></div>
 
     <div class="section-hdr wait" style="margin-top:14px">
@@ -520,7 +520,7 @@
         <input type="range" id="chkRate" min="3" max="15" step="0.5" value="8" oninput="updateRate(this.value)">
         <div class="rate-num"><span id="rateVal">8</span>%</div>
       </div>
-      <div style="font-size:11px;color:var(--dim);margin-bottom:12px;margin-top:-8px">
+      <div style="font-size:20px;color:var(--dim);margin-bottom:12px;margin-top:-8px">
         參考區間：台灣高息 ETF 配息約 5–8%／年；大盤指數型歷史年化約 7–10%
       </div>
 
@@ -534,10 +534,10 @@
           <tbody id="projBody"></tbody>
         </table>
         <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px">
-          <div style="font-size:12px;color:var(--dim);margin-bottom:4px">依您的設定，適合的 ETF 類型：</div>
+          <div style="font-size:20px;color:var(--dim);margin-bottom:4px">依您的設定，適合的 ETF 類型：</div>
           <div id="riskBadge" class="risk-badge"></div>
           <div id="suggestRow" class="suggest-row"></div>
-          <div style="font-size:11px;color:var(--dim);margin-top:10px">⚠ 試算為複利估算，未扣稅費；實際報酬因市場波動而異，非投資建議</div>
+          <div style="font-size:20px;color:var(--dim);margin-top:10px">⚠ 試算為複利估算，未扣稅費；實際報酬因市場波動而異，非投資建議</div>
         </div>
       </div>
     </div>
@@ -545,7 +545,7 @@
     <!-- ETF 持倉健檢 -->
     <div class="check-section">
       <div class="check-title">🩺 ETF 持倉健檢</div>
-      <div style="font-size:18px;color:var(--dim);margin-bottom:14px">輸入持有的 ETF 代碼（最多 5 支），依今日資料健檢現況</div>
+      <div style="font-size:26px;color:var(--dim);margin-bottom:14px">輸入持有的 ETF 代碼（最多 5 支），依今日資料健檢現況</div>
       <div class="etf-inputs">
         <input class="etf-code-inp" id="etfInp0" placeholder="如 0056" maxlength="8">
         <input class="etf-code-inp" id="etfInp1" placeholder="如 00878" maxlength="8">
@@ -698,7 +698,7 @@ function runETFCheck() {
     return `<div class="health-card">
       <div class="health-top">
         <div><div class="health-code">${etf.code}</div><div class="health-name">${etf.name}</div></div>
-        <div style="font-size:13px;font-weight:700;color:${sigColor}">${SIG_LABEL[etf.signal]||'目前偏貴'}</div>
+        <div style="font-size:26px;font-weight:700;color:${sigColor}">${SIG_LABEL[etf.signal]||'目前偏貴'}</div>
       </div>
       <div class="health-grid">
         <div class="health-kv"><div class="k">現價</div><div class="v">${etf.price}</div></div>
@@ -740,7 +740,7 @@ function renderSignalCard(etf, estimated) {
   const pos = Math.min(97, Math.max(3, (etf.price - etf.low52) / (etf.high52 - etf.low52) * 100));
   const sigLabel = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' }[etf.signal] || '目前偏貴';
   const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' }[etf.signal] || 'sig-dear';
-  const note = estimated ? `<div style="font-size:11px;color:var(--dim);margin-top:8px">⚠ 估算數值，每日更新後將顯示真實資料</div>` : '';
+  const note = estimated ? `<div style="font-size:20px;color:var(--dim);margin-top:8px">⚠ 估算數值，每日更新後將顯示真實資料</div>` : '';
   return `<div class="buy-card">
     <div class="buy-top">
       <div><div class="buy-code">${etf.code}</div><div class="buy-name">${etf.name}</div></div>
@@ -929,10 +929,10 @@ function renderAll(etfs, cal, updatedAt, market) {
       <div class="hot-rank ${rankClass(i)}">${i+1}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px">
-          <span class="wait-code" style="font-size:16px">${e.code}</span>
+          <span class="wait-code" style="font-size:26px">${e.code}</span>
           <span class="wait-name">${e.name}</span>
         </div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">
+        <div style="font-size:20px;color:var(--dim);margin-top:2px">
           現價 ${e.price} · 殖利率 ${e.yld}%
         </div>
       </div>
