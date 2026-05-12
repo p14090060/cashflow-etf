@@ -27,6 +27,34 @@ CURATED_CODES = {code for code, _ in CURATED}
 SUFFIX = ".TW"
 HIGH_DIV_KEYWORDS = ["高股息", "高息", "精選高息", "永續高息", "價值高息"]
 
+# 配息頻率（精選池手動維護）
+DIV_FREQ = {
+    "0056":"半年配", "00713":"季配", "0050":"年配",
+    "00919":"月配",  "006208":"季配", "00981A":"月配",
+    "00403A":"月配", "00878":"月配",  "00940":"月配",
+    "00929":"月配",  "00850":"季配",
+}
+
+def detect_div_freq(tk, code):
+    """優先查手動表；否則從 yfinance 股利歷史推算頻率"""
+    manual = DIV_FREQ.get(code)
+    if manual:
+        return manual
+    try:
+        import pandas as _pd
+        divs = tk.dividends
+        if len(divs) == 0:
+            return "不明"
+        cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=400)
+        n = len(divs[divs.index > cutoff])
+        if n >= 10: return "月配"
+        if n >= 3:  return "季配"
+        if n >= 2:  return "半年配"
+        if n >= 1:  return "年配"
+    except Exception:
+        pass
+    return "不明"
+
 # 配息資料（精選池手動維護，每季更新）
 DIV_DAYS = {
     "0056":47, "00713":88, "0050":145, "00919":32,
@@ -150,6 +178,7 @@ for code, name in ALL_ETFS:
         ma60     = round(float(hist["Close"].tail(60).mean()), 2)
         ma20     = round(float(hist["Close"].tail(20).mean()), 2)
         ret5d    = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[-6] - 1) * 100), 2) if len(hist) >= 6 else 0.0
+        ret1y    = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[0] - 1) * 100), 1) if len(hist) >= 20 else 0.0
         avg_vol  = float(hist["Volume"].tail(20).mean())
         cur_vol  = float(hist["Volume"].iloc[-1])
         vol_ratio = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
@@ -170,7 +199,8 @@ for code, name in ALL_ETFS:
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    premium, ret5d, vol_ratio, yld, name)
-        heat = round(vol_ratio * max(1.0, 1 + ret5d * 0.1), 3)
+        heat     = round(vol_ratio * max(1.0, 1 + ret5d * 0.1), 3)
+        div_freq = detect_div_freq(tk, code)
 
         results.append({
             "code": code, "name": name, "curated": curated,
@@ -180,7 +210,9 @@ for code, name in ALL_ETFS:
             "est": DIV_EST.get(code, 0.30),
             "signal": signal, "maD": safe(maD),
             "premium": safe(premium), "ret5d": safe(ret5d),
+            "ret1y": safe(ret1y), "avg_vol": safe(avg_vol),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat),
+            "div_freq": div_freq,
         })
         tag = "精選" if curated else "自動"
         print(f"[{tag}] {code} {name}  {price}  sig={signal}  vol={avg_vol:.0f}")

@@ -363,6 +363,20 @@
   .health-kv .k { font-size:14px; color:var(--dim); }
   .health-kv .v { font-size:16px; font-family:var(--mono); font-weight:700; color:var(--bright); }
   .health-miss { font-size:16px; color:var(--dim); text-align:center; padding:16px 0; }
+
+  /* ── Rank page ── */
+  .rank-hdr { display:flex; align-items:center; padding:6px 10px; font-size:13px; color:var(--dim); border-bottom:1px solid var(--border); margin-bottom:4px; }
+  .rank-row { display:flex; align-items:center; padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.04); }
+  .rank-no  { width:30px; text-align:center; font-size:14px; font-weight:700; color:var(--dim); flex-shrink:0; }
+  .rank-no.gold   { color:#FFD700; }
+  .rank-no.silver { color:#C0C0C0; }
+  .rank-no.bronze { color:#CD7F32; }
+  .rank-etf  { flex:1; min-width:0; padding-right:6px; }
+  .rank-code { font-size:14px; font-weight:700; font-family:var(--mono); color:var(--bright); }
+  .rank-name { font-size:12px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-sig  { width:52px; text-align:center; font-size:12px; font-weight:600; flex-shrink:0; }
+  .rank-freq { width:46px; text-align:center; font-size:12px; color:var(--dim); flex-shrink:0; }
+  .rank-ret  { width:52px; text-align:right; font-size:13px; font-weight:700; font-family:var(--mono); flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -561,6 +575,22 @@
 
   </div>
 
+  <!-- ══ PAGE 5: 排行 ══ -->
+  <div class="page" id="page-rank">
+    <div class="section-hdr" style="color:#FFD700; border-color:rgba(255,215,0,.2); margin-bottom:6px;">
+      🏆 ETF 成交量排行
+    </div>
+    <div style="font-size:13px; color:var(--dim); margin-bottom:12px;">依 20 日均量排序 · 共 <span id="rankTotal">-</span> 支</div>
+    <div class="rank-hdr">
+      <div style="width:30px"></div>
+      <div style="flex:1">ETF</div>
+      <div style="width:52px;text-align:center">狀態</div>
+      <div style="width:46px;text-align:center">配息</div>
+      <div style="width:52px;text-align:right">年報酬</div>
+    </div>
+    <div id="rankRows"></div>
+  </div>
+
 </div><!-- /pages -->
 
 <!-- Bottom nav -->
@@ -588,6 +618,12 @@
       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
     </svg>
     <span>健診</span>
+  </button>
+  <button class="nav-btn" id="nav-rank" onclick="switchPage('rank')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span>排行</span>
   </button>
 </nav>
 
@@ -957,6 +993,39 @@ function renderAll(etfs, cal, updatedAt, market) {
         ${c.soon?'<div class="soon-pill">快到了！</div>':''}
       </div>
     </div>`).join('');
+
+  renderRank();
+}
+
+// ── Rank page ──────────────────────────────────────────────────────
+function renderRank() {
+  const SIG_LABEL = { cheap:'便宜', fair:'合理', hot:'過熱', dear:'偏貴' };
+  const SIG_COLOR = { cheap:'#00e5a0', fair:'#f0b840', hot:'#ff3f5e', dear:'#8b949e' };
+
+  const sorted = [...ETFS]
+    .filter(e => (e.avg_vol || 0) > 0 && e.price > 0)
+    .sort((a, b) => (b.avg_vol || 0) - (a.avg_vol || 0))
+    .slice(0, 100);
+
+  document.getElementById('rankTotal').textContent = sorted.length;
+
+  document.getElementById('rankRows').innerHTML = sorted.map((e, i) => {
+    const rank = i + 1;
+    const cls  = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
+    const sigC = SIG_COLOR[e.signal] || '#8b949e';
+    const ret  = e.ret1y != null ? ((e.ret1y >= 0 ? '+' : '') + e.ret1y.toFixed(1) + '%') : '--';
+    const retC = (e.ret1y || 0) >= 0 ? '#ff6b6b' : '#00e5a0';
+    return `<div class="rank-row">
+      <div class="rank-no ${cls}">${rank}</div>
+      <div class="rank-etf">
+        <div class="rank-code">${e.code}</div>
+        <div class="rank-name">${e.name}</div>
+      </div>
+      <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
+      <div class="rank-freq">${e.div_freq||'不明'}</div>
+      <div class="rank-ret" style="color:${retC}">${ret}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── Bootstrap & reload ──
