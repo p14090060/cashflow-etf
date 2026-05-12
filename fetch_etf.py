@@ -35,21 +35,56 @@ DIV_FREQ = {
     "00929":"月配",  "00850":"季配",
 }
 
-def detect_div_freq(tk, code):
-    """優先查手動表；否則從 yfinance 股利歷史推算頻率"""
+def fetch_div_freq_twse(code):
+    """從 TWSE ETF_SEARCH 回傳資料中找配息頻率關鍵字"""
+    try:
+        clean = ''.join(c for c in code if c.isalnum())
+        r = requests.get(
+            f"https://www.twse.com.tw/fund/ETF_SEARCH?response=json&etfNo={clean}",
+            timeout=6, headers={"User-Agent": "Mozilla/5.0"}
+        )
+        text = r.text
+        if '每月' in text or '月配' in text: return "月配"
+        if '每季' in text or '季配' in text: return "季配"
+        if '每半年' in text or '半年' in text: return "半年配"
+        if '每年' in text or '年配' in text: return "年配"
+    except Exception:
+        pass
+    return None
+
+# 名稱關鍵字對應配息頻率
+_NAME_FREQ = [
+    (["月月配", "月配"], "月配"),
+    (["季配"],           "季配"),
+    (["半年配"],         "半年配"),
+    (["年配"],           "年配"),
+]
+
+def detect_div_freq(tk, code, name=""):
+    """優先查手動表 → 名稱關鍵字 → TWSE API → yfinance 股利歷史推算"""
+    # 1. 手動維護表
     manual = DIV_FREQ.get(code)
     if manual:
         return manual
+    # 2. 名稱關鍵字（直接含月配/季配等字樣）
+    for keywords, freq in _NAME_FREQ:
+        if any(kw in name for kw in keywords):
+            return freq
+    # 3. TWSE ETF_SEARCH 頁面文字
+    twse = fetch_div_freq_twse(code)
+    if twse:
+        return twse
+    # 4. yfinance 股利歷史（拉長到 2 年）
     try:
         import pandas as _pd
         divs = tk.dividends
         if len(divs) == 0:
             return "不明"
-        cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=400)
+        cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=730)
         n = len(divs[divs.index > cutoff])
         if n >= 10: return "月配"
-        if n >= 3:  return "季配"
-        if n >= 2:  return "半年配"
+        if n >= 5:  return "季配"
+        if n >= 3:  return "半年配"
         if n >= 1:  return "年配"
     except Exception:
         pass
@@ -202,7 +237,7 @@ for code, name in ALL_ETFS:
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    premium, ret5d, vol_ratio, yld, name)
         heat     = round(vol_ratio * max(1.0, 1 + ret5d * 0.1), 3)
-        div_freq = detect_div_freq(tk, code)
+        div_freq = detect_div_freq(tk, code, name)
 
         results.append({
             "code": code, "name": name, "curated": curated,
