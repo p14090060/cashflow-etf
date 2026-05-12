@@ -580,7 +580,7 @@
     <div class="section-hdr" style="color:#FFD700; border-color:rgba(255,215,0,.2); margin-bottom:6px;">
       ETF 成交量排行
     </div>
-    <div style="font-size:13px; color:var(--dim); margin-bottom:12px;">依 20 日均量排序 · 共 <span id="rankTotal">-</span> 支</div>
+    <div style="font-size:13px; color:var(--dim); margin-bottom:12px;">依當日成交量排序 · 共 <span id="rankTotal">-</span> 支</div>
     <div class="rank-hdr">
       <div style="width:30px"></div>
       <div style="flex:1">ETF</div>
@@ -1000,8 +1000,8 @@ function renderRank() {
   const SIG_COLOR = { cheap:'#00e5a0', fair:'#f0b840', hot:'#ff3f5e', dear:'#8b949e' };
 
   const sorted = [...ETFS]
-    .filter(e => (e.avg_vol || 0) > 0 && e.price > 0)
-    .sort((a, b) => (b.avg_vol || 0) - (a.avg_vol || 0))
+    .filter(e => (e.cur_vol || 0) > 0 && e.price > 0)
+    .sort((a, b) => (b.cur_vol || 0) - (a.cur_vol || 0))
     .slice(0, 100);
 
   document.getElementById('rankTotal').textContent = sorted.length;

@@ -210,7 +210,7 @@ for code, name in ALL_ETFS:
             "est": DIV_EST.get(code, 0.30),
             "signal": signal, "maD": safe(maD),
             "premium": safe(premium), "ret5d": safe(ret5d),
-            "ret1y": safe(ret1y), "avg_vol": safe(avg_vol),
+            "ret1y": safe(ret1y), "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat),
             "div_freq": div_freq,
         })
