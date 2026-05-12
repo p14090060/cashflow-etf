@@ -1,14 +1,15 @@
-import json, math, datetime, requests
+import json, math, datetime, ssl, re, requests
+import urllib.request as _ur
 import yfinance as yf
 
 def safe(v, default=0):
-    """把 float NaN / Inf 換成 default，避免寫出非法 JSON。"""
     try:
         return default if (v is None or math.isnan(float(v)) or math.isinf(float(v))) else v
     except Exception:
         return default
 
-ETFS = [
+# ── 精選池：固定追蹤，B-1 計算機 / D-1 建議用此清單 ──────────────────
+CURATED = [
     ("0056",   "元大高股息"),
     ("00713",  "台灣高息低波"),
     ("0050",   "元大台灣50"),
@@ -21,12 +22,12 @@ ETFS = [
     ("00929",  "復華台灣科技優息"),
     ("00850",  "元大ESG永續"),
 ]
+CURATED_CODES = {code for code, _ in CURATED}
 
 SUFFIX = ".TW"
-
 HIGH_DIV_KEYWORDS = ["高股息", "高息", "精選高息", "永續高息", "價值高息"]
 
-# 手動維護：近期配息天數 & 預估金額（每季更新）
+# 配息資料（精選池手動維護，每季更新）
 DIV_DAYS = {
     "0056":47, "00713":88, "0050":145, "00919":32,
     "006208":158, "00981A":55, "00878":65, "00940":28,
@@ -38,15 +39,84 @@ DIV_EST = {
     "00929":0.42, "00850":0.80, "00403A":0.30,
 }
 
+# ── 自動發現：排除非股票型 ETF 的關鍵字 ────────────────────────────
+EXCLUDE_KW = [
+    '債', '期貨', '槓桿', '反向', '貨幣市場', '貨幣',
+    '正2', '反1', '公債', '公司債', '高收益', '不動產',
+    'REITs', '基礎建設', '優先股', '可轉換', '黃金', '原油',
+]
+
+def fetch_twse_etf_pool():
+    """從 TWSE ISIN 抓完整上市受益憑證/ETF 清單，過濾出股票型，回傳 [(code, name)]"""
+    try:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = _ur.Request(
+            'https://isin.twse.com.tw/isin/C_public.jsp?strMode=4',
+            headers={'User-Agent': 'Mozilla/5.0'}
+        )
+        with _ur.urlopen(req, timeout=20, context=ctx) as r:
+            html = r.read().decode('big5', errors='ignore')
+        # 頁面格式：代號　名稱
+        pairs = re.findall(r'([0-9]{4,6}[A-Z]?)　([^\t<\r\n]{2,30})', html)
+        results, seen = [], set()
+        for code, name in pairs:
+            code, name = code.strip(), name.strip()
+            if not code or not name or code in seen:
+                continue
+            if any(kw in name for kw in EXCLUDE_KW):
+                continue
+            seen.add(code)
+            results.append((code, name))
+        print(f"[POOL] TWSE 股票型 ETF: {len(results)} 支")
+        return results
+    except Exception as e:
+        print(f"[POOL] TWSE 抓取失敗，僅用精選清單: {e}")
+        return []
+
+def build_pool():
+    """精選池 + TWSE 自動發現池合併，精選碼不重複"""
+    auto = fetch_twse_etf_pool()
+    pool = list(CURATED)
+    added = 0
+    for code, name in auto:
+        if code not in CURATED_CODES:
+            pool.append((code, name))
+            added += 1
+    print(f"[POOL] 合計: 精選 {len(CURATED)} + 自動發現 {added} = {len(pool)} 支")
+    return pool
+
+# ── 訊號計算 ──────────────────────────────────────────────────────────
 def is_high_div(name, yld):
     return any(k in name for k in HIGH_DIV_KEYWORDS) or yld > 5
 
+def calc_signal(price, ma20, ma60, low52, high52, premium, ret5d, vol_ratio, yld, name):
+    pos52 = (price - low52) / (high52 - low52) if high52 > low52 else 0.5
+    maD60 = round((price - ma60) / ma60 * 100, 1) if ma60 > 0 else 0
+
+    if ret5d >= 5 or premium >= 2:
+        return "hot", maD60
+    if pos52 > 0.78 or price > ma60 * 1.06:
+        return "dear", maD60
+
+    conds = [premium < 1, price <= ma60 * 1.03, ret5d < 5, vol_ratio > 0.5]
+    if is_high_div(name, yld):
+        conds.append(yld > 5)
+    if all(conds):
+        return "fair", maD60
+
+    if pos52 < 0.30 and maD60 < -3:
+        return "cheap", maD60
+    return "dear", maD60
+
 def fetch_nav_twse(code):
-    """從 TWSE 公開資訊觀測站抓 ETF 前一日淨值，失敗回傳 None"""
     try:
         clean = ''.join(c for c in code if c.isdigit())
-        url = f"https://www.twse.com.tw/fund/ETF_SEARCH?response=json&etfNo={clean}"
-        r = requests.get(url, timeout=6, headers={"User-Agent": "Mozilla/5.0"})
+        r = requests.get(
+            f"https://www.twse.com.tw/fund/ETF_SEARCH?response=json&etfNo={clean}",
+            timeout=6, headers={"User-Agent": "Mozilla/5.0"}
+        )
         d = r.json()
         if d.get("stat") == "OK" and d.get("data"):
             for row in d["data"]:
@@ -57,49 +127,22 @@ def fetch_nav_twse(code):
                             return val
                     except Exception:
                         pass
-    except Exception as e:
-        print(f"  [NAV] {code} TWSE 抓取失敗: {e}")
+    except Exception:
+        pass
     return None
 
-def calc_signal(price, ma20, ma60, low52, high52, premium, ret5d, vol_ratio, yld, name):
-    pos52 = (price - low52) / (high52 - low52) if high52 > low52 else 0.5
-    maD60 = round((price - ma60) / ma60 * 100, 1) if ma60 > 0 else 0
-
-    # 過熱：近5日漲幅過大 或 溢價偏高
-    if ret5d >= 5 or premium >= 2:
-        return "hot", maD60
-
-    # 偏貴：52週高位 或 遠高於60均線
-    if pos52 > 0.78 or price > ma60 * 1.06:
-        return "dear", maD60
-
-    # 合理價：全部條件通過
-    conds = [
-        premium < 1,
-        price <= ma60 * 1.03,
-        ret5d < 5,
-        vol_ratio > 0.5,
-    ]
-    if is_high_div(name, yld):
-        conds.append(yld > 5)
-
-    if all(conds):
-        return "fair", maD60
-
-    # 便宜：低位且明顯低於均線
-    if pos52 < 0.30 and maD60 < -3:
-        return "cheap", maD60
-
-    return "dear", maD60
+# ── 主流程 ──────────────────────────────────────────────────────────
+ALL_ETFS = build_pool()
 
 results = []
-for code, name in ETFS:
+for code, name in ALL_ETFS:
+    curated = code in CURATED_CODES
     ticker_code = code + SUFFIX
     try:
         tk = yf.Ticker(ticker_code)
         hist = tk.history(period="1y")
-        if hist.empty:
-            raise ValueError("no data")
+        if hist.empty or len(hist) < 5:
+            raise ValueError("insufficient data")
 
         price    = round(float(hist["Close"].iloc[-1]), 2)
         low52    = round(float(hist["Low"].min()), 2)
@@ -111,11 +154,14 @@ for code, name in ETFS:
         cur_vol  = float(hist["Volume"].iloc[-1])
         vol_ratio = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
 
-        # NAV：優先 TWSE，fallback 前一日收盤
+        # 自動發現的 ETF：成交量太低（冷門）就跳過
+        if not curated and avg_vol < 100:
+            print(f"[SKIP] {code} {name}  avg_vol={avg_vol:.0f} 太低，略過")
+            continue
+
         nav = fetch_nav_twse(code) or round(float(hist["Close"].iloc[-2]), 2)
         premium = round((price - nav) / nav * 100, 2) if nav > 0 else 0.0
 
-        # 殖利率
         try:
             info = tk.fast_info
             yld = round(getattr(info, "dividend_yield", 0) * 100, 1)
@@ -124,35 +170,36 @@ for code, name in ETFS:
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    premium, ret5d, vol_ratio, yld, name)
-
-        # 熱度分數：用於 TOP 10 排序
         heat = round(vol_ratio * max(1.0, 1 + ret5d * 0.1), 3)
 
         results.append({
-            "code": code, "name": name,
+            "code": code, "name": name, "curated": curated,
             "price": safe(price), "ma60": safe(ma60), "ma20": safe(ma20),
             "low52": safe(low52), "high52": safe(high52),
             "yld": safe(yld), "days": DIV_DAYS.get(code, 90),
-            "est": DIV_EST.get(code, 0.5),
+            "est": DIV_EST.get(code, 0.30),
             "signal": signal, "maD": safe(maD),
             "premium": safe(premium), "ret5d": safe(ret5d),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat),
         })
-        print(f"[OK] {code} {name}  {price}  sig={signal}  maD={maD}%  ret5d={ret5d}%  premium={premium}%")
+        tag = "精選" if curated else "自動"
+        print(f"[{tag}] {code} {name}  {price}  sig={signal}  vol={avg_vol:.0f}")
 
     except Exception as e:
-        print(f"[WARN] {code} {name} 失敗: {e}")
-        results.append({
-            "code": code, "name": name,
-            "price": 0, "ma60": 0, "ma20": 0,
-            "low52": 0, "high52": 0,
-            "yld": 0, "days": DIV_DAYS.get(code, 90),
-            "est": DIV_EST.get(code, 0.5),
-            "signal": "dear", "maD": 0,
-            "premium": 0, "ret5d": 0, "vol_ratio": 0, "heat": 0,
-        })
+        if curated:
+            # 精選池即使失敗也要輸出（保持計算機可用）
+            results.append({
+                "code": code, "name": name, "curated": True,
+                "price": 0, "ma60": 0, "ma20": 0, "low52": 0, "high52": 0,
+                "yld": 0, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
+                "signal": "dear", "maD": 0,
+                "premium": 0, "ret5d": 0, "vol_ratio": 0, "heat": 0,
+            })
+            print(f"[WARN] {code} {name} 失敗（保留精選）: {e}")
+        else:
+            print(f"[SKIP] {code} {name} 失敗，略過: {e}")
 
-# ── 大盤加權指數（^TWII）──
+# ── 大盤加權指數（^TWII）────────────────────────────────────────────
 market = {"change_pct": 0.0, "change_pt": 0.0, "price": 0.0}
 try:
     twii = yf.Ticker("^TWII")
@@ -167,6 +214,9 @@ try:
 except Exception as e:
     print(f"[WARN] 大盤抓取失敗: {e}")
 
+curated_n = sum(1 for r in results if r.get("curated"))
+auto_n    = len(results) - curated_n
+
 output = {
     "updated": datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=8))
@@ -178,4 +228,4 @@ output = {
 with open("data.json", "w", encoding="utf-8") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)
 
-print(f"\n✓ data.json 完成，共 {len(results)} 支 ETF")
+print(f"\n✓ data.json 完成：精選 {curated_n} + 自動發現 {auto_n} = {len(results)} 支 ETF")

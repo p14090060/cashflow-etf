@@ -716,12 +716,13 @@ function runETFCheck() {
 
 // ── Mutable globals（renderAll 會更新）──
 let ETFS = STATIC_ETFS;
-let selETF = ETFS[0];
+let selETF = ETFS.find(e => e.curated !== false) || ETFS[0];
 
-// ── Chip & calculator ──
+// ── Chip & calculator（只顯示精選 ETF，有準確配息資料）──
 function renderChips() {
-  document.getElementById('chips').innerHTML = ETFS.map(e =>
-    `<div class="etf-chip ${e.code===selETF.code?'on':''}" onclick="selChip('${e.code}')">${e.code}</div>`
+  const curated = ETFS.filter(e => e.curated !== false);
+  document.getElementById('chips').innerHTML = curated.map(e =>
+    `<div class="etf-chip ${e.code===selETF?.code?'on':''}" onclick="selChip('${e.code}')">${e.code}</div>`
   ).join('');
 }
 function selChip(code) { selETF = ETFS.find(e => e.code===code); renderChips(); calcUpdate(); }
