@@ -22,14 +22,16 @@
 ### 今日頁（Tab 1）
 | 代號 | 說明 |
 |---|---|
-| A 區「合理價 ETF」 | 折溢價 + 技術面篩選，可能為 0 支 |
-| B 區「今日熱門 TOP 10」 | 熱度排行，非推薦清單 |
-| C 區「查詢其他 ETF」 | 自訂 ETF 即時查詢 |
+| A-1 | 大盤現況（mood-card：大盤漲跌 + 情緒） |
+| A-2 | 合理價 ETF 區（折溢價 + 技術面篩選，可能為 0 支） |
+| A-3 | 今日熱門 TOP 10 區（熱度排行，非推薦清單） |
+| A-4 | 查詢其他 ETF（自訂代碼即時查詢） |
 
 ### 配息頁（Tab 2）
 | 代號 | 說明 |
 |---|---|
-| — | 配息行事曆 + 計算機 |
+| B-1 | 配息計算機 |
+| B-2 | 配息行事曆 |
 
 ### 頻道頁（Tab 3）
 | 代號 | 說明 |
@@ -69,6 +71,6 @@
 
 ## 部署
 
-- Netlify：cashflow-etf.netlify.app
+- GitHub Pages：p14090060.github.io/cashflow-etf（主要，Netlify 超額停用）
 - GitHub：github.com/p14090060/cashflow-etf
 - Action 手動觸發：GitHub → Actions → Fetch ETF Data → Run workflow
