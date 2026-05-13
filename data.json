@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-13 08:29",
+  "updated": "2026-05-13 08:46",
   "market": {
     "change_pct": 0.45,
     "change_pt": 186.12,
@@ -3460,7 +3460,7 @@
       "vol_ratio": 0.4,
       "heat": 28.9,
       "aum": 0,
-      "div_freq": "不明"
+      "div_freq": "年配"
     },
     {
       "code": "009811",
@@ -3748,7 +3748,7 @@
       "vol_ratio": 0.94,
       "heat": 33.25,
       "aum": 0,
-      "div_freq": "不明"
+      "div_freq": "年配"
     },
     {
       "code": "00983D",
@@ -3868,7 +3868,7 @@
       "vol_ratio": 1.42,
       "heat": 58.46,
       "aum": 0,
-      "div_freq": "不明"
+      "div_freq": "年配"
     },
     {
       "code": "00987A",
