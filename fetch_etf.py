@@ -27,12 +27,47 @@ CURATED_CODES = {code for code, _ in CURATED}
 SUFFIX = ".TW"
 HIGH_DIV_KEYWORDS = ["高股息", "高息", "精選高息", "永續高息", "價值高息"]
 
-# 配息頻率（精選池手動維護）
+# ── 配息頻率靜態對照表（ETF 配息頻率幾乎不變，寫死最可靠）──────────
 DIV_FREQ = {
-    "0056":"半年配", "00713":"季配", "0050":"年配",
-    "00919":"月配",  "006208":"季配", "00981A":"月配",
-    "00403A":"月配", "00878":"月配",  "00940":"月配",
-    "00929":"月配",  "00850":"季配",
+    # ── 半年配 ──
+    "0056":"半年配",
+    # ── 年配 ──
+    "0050":"年配",  "0051":"年配",  "0052":"半年配", "0053":"年配",
+    "0055":"年配",  "0057":"年配",  "006201":"年配", "00646":"不配",
+    "00660":"年配", "00909":"年配", "00951":"年配",  "00971":"年配",
+    "009804":"年配","009811":"年配","00984D":"年配", "00980A":"年配",
+    "00982A":"年配",
+    # ── 季配 ──
+    "00713":"季配", "006208":"季配","00850":"季配",
+    "00881":"季配", "00882":"季配", "00892":"季配",
+    "00901":"季配", "00908":"季配", "00913":"季配",
+    "00916":"季配", "00921":"季配", "00922":"季配",
+    "00923":"季配", "00926":"半年配","00932":"季配",
+    "00947":"季配", "00692":"季配", "00701":"季配",
+    "00733":"季配", "00735":"季配",
+    "009816":"季配","009819":"季配","009820":"季配","009813":"季配",
+    "00985A":"季配","00987A":"季配","00988A":"季配","00989A":"季配",
+    "00990A":"季配","00991A":"季配","00992A":"季配","00993A":"季配",
+    "00994A":"季配","00995A":"季配","00997A":"季配",
+    # ── 月配 ──
+    "00919":"月配", "00981A":"月配","00403A":"月配","00878":"月配",
+    "00940":"月配", "00929":"月配",
+    "00891":"月配", "00894":"月配", "00896":"月配", "00900":"月配",
+    "00904":"月配", "00905":"月配", "00907":"月配", "00915":"月配",
+    "00918":"月配", "00927":"月配", "00930":"月配", "00934":"月配",
+    "00936":"月配", "00939":"月配", "00944":"月配", "00946":"月配",
+    "00948":"月配", "00952":"月配", "00961":"月配", "00964":"月配",
+    "00400A":"月配","00401A":"月配","00999A":"月配","00996A":"月配",
+    # ── 半年配 ──
+    "00830":"半年配","00935":"半年配","00984A":"半年配",
+    "009802":"半年配","009803":"半年配","00981T":"半年配",
+    "00982T":"半年配","00983D":"半年配",
+    # ── 不配（外國指數/商品/無配息型）──
+    "00641":"不配", "00643":"不配", "00652":"不配",
+    "00662":"不配", "00757":"不配", "00885":"不配",
+    "00902":"不配", "00910":"不配", "00924":"不配",
+    "00941":"不配", "00949":"不配", "00954":"不配",
+    "00965":"不配", "009800":"不配",
 }
 
 def fetch_div_freq_twse(code):
@@ -103,6 +138,17 @@ DIV_EST = {
     "00929":0.42, "00850":0.80, "00403A":0.30,
 }
 
+def calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated=False):
+    """複合熱度指數：量比(0-40) + 漲跌幅(0-30) + 連續性(0-30)，規模 <500億歸零"""
+    if not curated and aum > 0 and aum < 50_000_000_000:
+        return 0
+    vol_ratio   = cur_vol / avg_vol if avg_vol > 0 else 0
+    score_vol   = min(vol_ratio * 20, 40)
+    score_chg   = min(abs(today_chg) * 10, 30)
+    days_above  = sum(1 for v in recent_vols if avg_vol > 0 and v > avg_vol)
+    score_cont  = days_above * 6
+    return round(score_vol + score_chg + score_cont, 2)
+
 # ── 自動發現：排除非股票型 ETF 的關鍵字 ────────────────────────────
 EXCLUDE_KW = [
     '債', '期貨', '槓桿', '反向', '貨幣市場', '貨幣',
@@ -131,6 +177,8 @@ def fetch_twse_etf_pool():
         for code, name in pairs:
             code, name = code.strip(), name.strip()
             if not code or not name or code in seen:
+                continue
+            if not code.startswith('0'):   # 排除台灣存託憑證（9xxx）
                 continue
             if any(kw in name for kw in EXCLUDE_KW):
                 continue
@@ -218,9 +266,11 @@ for code, name in ALL_ETFS:
         ma20     = round(float(hist["Close"].tail(20).mean()), 2)
         ret5d    = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[-6] - 1) * 100), 2) if len(hist) >= 6 else 0.0
         ret1y    = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[0] - 1) * 100), 1) if len(hist) >= 20 else 0.0
-        avg_vol  = float(hist["Volume"].tail(20).mean())
-        cur_vol  = float(hist["Volume"].iloc[-1])
-        vol_ratio = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
+        avg_vol     = float(hist["Volume"].tail(20).mean())
+        cur_vol     = float(hist["Volume"].iloc[-1])
+        vol_ratio   = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
+        today_chg   = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1) * 100), 2) if len(hist) >= 2 else 0.0
+        recent_vols = hist["Volume"].tail(5).values.tolist()
 
         # 自動發現的 ETF：成交量太低（冷門）就跳過
         if not curated and avg_vol < 100:
@@ -230,15 +280,17 @@ for code, name in ALL_ETFS:
         nav = fetch_nav_twse(code) or round(float(hist["Close"].iloc[-2]), 2)
         premium = round((price - nav) / nav * 100, 2) if nav > 0 else 0.0
 
+        aum = 0.0
         try:
             info = tk.fast_info
             yld = round(getattr(info, "dividend_yield", 0) * 100, 1)
+            aum = safe(getattr(info, "market_cap", 0) or 0)
         except Exception:
             yld = 0.0
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    premium, ret5d, vol_ratio, yld, name)
-        heat     = round(vol_ratio * max(1.0, 1 + ret5d * 0.1), 3)
+        heat     = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
         div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
 
         results.append({
@@ -251,7 +303,7 @@ for code, name in ALL_ETFS:
             "premium": safe(premium), "ret5d": safe(ret5d),
             "ret1y": safe(ret1y), "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat),
-            "div_freq": div_freq,
+            "aum": safe(aum), "div_freq": div_freq,
         })
         tag = "精選" if curated else "自動"
         print(f"[{tag}] {code} {name}  {price}  sig={signal}  vol={avg_vol:.0f}")
@@ -264,7 +316,9 @@ for code, name in ALL_ETFS:
                 "price": 0, "ma60": 0, "ma20": 0, "low52": 0, "high52": 0,
                 "yld": 0, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
                 "signal": "dear", "maD": 0,
-                "premium": 0, "ret5d": 0, "vol_ratio": 0, "heat": 0,
+                "premium": 0, "ret5d": 0, "ret1y": 0,
+                "avg_vol": 0, "cur_vol": 0, "vol_ratio": 0, "heat": 0,
+                "aum": 0, "div_freq": DIV_FREQ.get(code, "不明"),
             })
             print(f"[WARN] {code} {name} 失敗（保留精選）: {e}")
         else:
