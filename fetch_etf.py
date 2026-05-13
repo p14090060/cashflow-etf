@@ -168,7 +168,7 @@ def fetch_twse_etf_pool():
             headers={'User-Agent': 'Mozilla/5.0'}
         )
         with _ur.urlopen(req, timeout=20, context=ctx) as r:
-            html = r.read().decode('big5', errors='ignore')
+            html = r.read().decode('ms950', errors='ignore')
         # 只取 ETF 區段（從 "ETF <B>" 開始）
         etf_start = html.find('ETF <B>')
         section = html[etf_start:] if etf_start >= 0 else html

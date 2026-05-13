@@ -920,8 +920,10 @@ function renderMood(market) {
 // ── renderAll：用資料渲染整頁 ──
 function renderAll(etfs, cal, updatedAt, market) {
   ETFS = etfs;
+  _staticUpdated = updatedAt;
   document.getElementById('updatedAt').textContent = updatedAt + ' 盤後更新';
   renderMood(market);
+  startLiveMarket();
 
   const SIG_LABEL = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' };
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' };
@@ -1035,6 +1037,50 @@ function renderRank() {
       <div class="rank-ret" style="color:${retC}">${ret}</div>
     </div>`;
   }).join('');
+}
+
+// ── A-1 大盤即時更新（交易時段直接從 TWSE MIS 抓，不需後端）──
+let _liveTimer = null, _staticUpdated = '';
+
+function isTwTradingNow() {
+  const tw = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const day = tw.getDay();           // 0=Sun, 6=Sat
+  if (day === 0 || day === 6) return false;
+  const mins = tw.getHours() * 60 + tw.getMinutes();
+  return mins >= 540 && mins <= 815; // 09:00 ~ 13:35
+}
+
+async function pollLiveMarket() {
+  try {
+    const res = await fetch(
+      'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?json=1&delay=0&ex_ch=tse_t00.tw',
+      { cache: 'no-store' }
+    );
+    const d = await res.json();
+    const item = d.msgArray?.[0];
+    if (!item || !item.z || item.z === '-') return;
+    const cur  = parseFloat(item.z);
+    const prev = parseFloat(item.y);
+    if (!cur || !prev) return;
+    const chgPt  = Math.round((cur - prev) * 100) / 100;
+    const chgPct = Math.round((cur - prev) / prev * 10000) / 100;
+    renderMood({ price: cur, change_pt: chgPt, change_pct: chgPct });
+    const t = (item.t || '').slice(0, 5);
+    document.getElementById('updatedAt').textContent = t ? `即時 ${t}` : '即時';
+  } catch (_) { /* CORS 或離線，保留靜態資料 */ }
+}
+
+function startLiveMarket() {
+  if (!isTwTradingNow()) return;
+  pollLiveMarket();
+  _liveTimer = setInterval(() => {
+    if (isTwTradingNow()) {
+      pollLiveMarket();
+    } else {
+      clearInterval(_liveTimer);
+      document.getElementById('updatedAt').textContent = _staticUpdated + ' 盤後更新';
+    }
+  }, 30 * 1000);
 }
 
 // ── Bootstrap & reload ──
