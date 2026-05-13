@@ -281,12 +281,26 @@ for code, name in ALL_ETFS:
         premium = round((price - nav) / nav * 100, 2) if nav > 0 else 0.0
 
         aum = 0.0
+        yld = 0.0
         try:
             info = tk.fast_info
-            yld = round(getattr(info, "dividend_yield", 0) * 100, 1)
             aum = safe(getattr(info, "market_cap", 0) or 0)
+            # fast_info.dividend_yield 對台灣 ETF 幾乎都是 None，改從股利歷史計算
+            _dy = getattr(info, "dividend_yield", None)
+            if _dy:
+                yld = round(float(_dy) * 100, 1)
         except Exception:
-            yld = 0.0
+            pass
+        if yld == 0.0 and price > 0:
+            try:
+                import pandas as _pd
+                divs = tk.dividends
+                cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=365)
+                annual = float(divs[divs.index > cutoff].sum())
+                if annual > 0:
+                    yld = round(annual / price * 100, 1)
+            except Exception:
+                pass
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    premium, ret5d, vol_ratio, yld, name)
