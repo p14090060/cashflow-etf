@@ -259,18 +259,24 @@ for code, name in ALL_ETFS:
         if hist.empty or len(hist) < 5:
             raise ValueError("insufficient data")
 
-        price    = round(float(hist["Close"].iloc[-1]), 2)
-        low52    = round(float(hist["Low"].min()), 2)
-        high52   = round(float(hist["High"].max()), 2)
-        ma60     = round(float(hist["Close"].tail(60).mean()), 2)
-        ma20     = round(float(hist["Close"].tail(20).mean()), 2)
-        ret5d    = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[-6] - 1) * 100), 2) if len(hist) >= 6 else 0.0
-        ret1y    = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[0] - 1) * 100), 1) if len(hist) >= 20 else 0.0
-        avg_vol     = float(hist["Volume"].tail(20).mean())
-        cur_vol     = float(hist["Volume"].iloc[-1])
+        # 開盤前 Action 跑時，yfinance 最後一筆可能是 Close=NaN 的不完整當日資料
+        c = hist["Close"].dropna()
+        v = hist["Volume"].dropna()
+        if len(c) < 5:
+            raise ValueError("insufficient clean data")
+
+        price    = round(float(c.iloc[-1]), 2)
+        low52    = round(float(c.min()), 2)
+        high52   = round(float(c.max()), 2)
+        ma60     = round(float(c.tail(60).mean()), 2)
+        ma20     = round(float(c.tail(20).mean()), 2)
+        ret5d    = round(float((c.iloc[-1] / c.iloc[-6] - 1) * 100), 2) if len(c) >= 6 else 0.0
+        ret1y    = round(float((c.iloc[-1] / c.iloc[0]  - 1) * 100), 1) if len(c) >= 20 else 0.0
+        avg_vol     = float(v.tail(20).mean())
+        cur_vol     = float(v.iloc[-1])
         vol_ratio   = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
-        today_chg   = round(float((hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1) * 100), 2) if len(hist) >= 2 else 0.0
-        recent_vols = hist["Volume"].tail(5).values.tolist()
+        today_chg   = round(float((c.iloc[-1] / c.iloc[-2] - 1) * 100), 2) if len(c) >= 2 else 0.0
+        recent_vols = v.tail(5).values.tolist()
 
         # 自動發現的 ETF：成交量太低（冷門）就跳過
         if not curated and avg_vol < 100:
