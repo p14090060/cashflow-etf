@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-13 08:16",
+  "updated": "2026-05-13 08:29",
   "market": {
     "change_pct": 0.45,
     "change_pt": 186.12,
@@ -460,7 +460,7 @@
       "vol_ratio": 0.93,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "006203",
@@ -532,7 +532,7 @@
       "vol_ratio": 1.07,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "006206",
@@ -556,7 +556,7 @@
       "vol_ratio": 2.73,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "006207",
@@ -580,7 +580,7 @@
       "vol_ratio": 0.75,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00625K",
@@ -604,7 +604,7 @@
       "vol_ratio": 5.71,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00636",
@@ -628,7 +628,7 @@
       "vol_ratio": 1.55,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00636K",
@@ -652,7 +652,7 @@
       "vol_ratio": 1.43,
       "heat": 56.97,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00639",
@@ -676,7 +676,7 @@
       "vol_ratio": 1.51,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00643",
@@ -700,7 +700,7 @@
       "vol_ratio": 1.6,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00643K",
@@ -724,7 +724,7 @@
       "vol_ratio": 6.67,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00645",
@@ -748,7 +748,7 @@
       "vol_ratio": 1.54,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00646",
@@ -772,7 +772,7 @@
       "vol_ratio": 0.5,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00652",
@@ -796,7 +796,7 @@
       "vol_ratio": 2.15,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00657",
@@ -820,7 +820,7 @@
       "vol_ratio": 0.16,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00657K",
@@ -844,7 +844,7 @@
       "vol_ratio": 1.0,
       "heat": 20.8,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00660",
@@ -892,7 +892,7 @@
       "vol_ratio": 1.68,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00662",
@@ -916,7 +916,7 @@
       "vol_ratio": 1.0,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00665L",
@@ -940,7 +940,7 @@
       "vol_ratio": 0.86,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00666R",
@@ -964,7 +964,7 @@
       "vol_ratio": 0.38,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00668",
@@ -988,7 +988,7 @@
       "vol_ratio": 0.9,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00668K",
@@ -1012,7 +1012,7 @@
       "vol_ratio": 1.0,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00678",
@@ -1036,7 +1036,7 @@
       "vol_ratio": 1.14,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00682U",
@@ -1060,7 +1060,7 @@
       "vol_ratio": 5.02,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00690",
@@ -1132,7 +1132,7 @@
       "vol_ratio": 0.98,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00700",
@@ -1156,7 +1156,7 @@
       "vol_ratio": 1.0,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00701",
@@ -1228,7 +1228,7 @@
       "vol_ratio": 1.36,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00709",
@@ -1252,7 +1252,7 @@
       "vol_ratio": 0.78,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00714",
@@ -1468,7 +1468,7 @@
       "vol_ratio": 0.98,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00739",
@@ -1516,7 +1516,7 @@
       "vol_ratio": 0.95,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00757",
@@ -1540,7 +1540,7 @@
       "vol_ratio": 0.58,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00762",
@@ -1564,7 +1564,7 @@
       "vol_ratio": 1.0,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00763U",
@@ -1588,7 +1588,7 @@
       "vol_ratio": 1.76,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00770",
@@ -1660,7 +1660,7 @@
       "vol_ratio": 1.11,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00830",
@@ -1732,7 +1732,7 @@
       "vol_ratio": 1.56,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00875",
@@ -1756,7 +1756,7 @@
       "vol_ratio": 0.8,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00876",
@@ -1780,7 +1780,7 @@
       "vol_ratio": 0.78,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00881",
@@ -1852,7 +1852,7 @@
       "vol_ratio": 0.87,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00891",
@@ -1924,7 +1924,7 @@
       "vol_ratio": 0.6,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00894",
@@ -1972,7 +1972,7 @@
       "vol_ratio": 0.92,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00896",
@@ -2020,7 +2020,7 @@
       "vol_ratio": 1.07,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00898",
@@ -2044,7 +2044,7 @@
       "vol_ratio": 0.97,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00899",
@@ -2068,7 +2068,7 @@
       "vol_ratio": 0.81,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00900",
@@ -2140,7 +2140,7 @@
       "vol_ratio": 0.79,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00903",
@@ -2164,7 +2164,7 @@
       "vol_ratio": 0.44,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00904",
@@ -2284,7 +2284,7 @@
       "vol_ratio": 1.17,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00911",
@@ -2572,7 +2572,7 @@
       "vol_ratio": 0.64,
       "heat": 15.39,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00926",
@@ -2812,7 +2812,7 @@
       "vol_ratio": 0.9,
       "heat": 41.52,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00943",
@@ -2932,7 +2932,7 @@
       "vol_ratio": 1.03,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00951",
@@ -3004,7 +3004,7 @@
       "vol_ratio": 0.94,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00956",
@@ -3172,7 +3172,7 @@
       "vol_ratio": 0.63,
       "heat": 0,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "00971",
@@ -3244,7 +3244,7 @@
       "vol_ratio": 0.57,
       "heat": 12.25,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "009801",
@@ -3268,7 +3268,7 @@
       "vol_ratio": 0.49,
       "heat": 22.46,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "009802",
@@ -3364,7 +3364,7 @@
       "vol_ratio": 1.0,
       "heat": 74.01,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "009808",
@@ -4180,7 +4180,7 @@
       "vol_ratio": 0.32,
       "heat": 24.08,
       "aum": 0,
-      "div_freq": "不配"
+      "div_freq": "不配息"
     },
     {
       "code": "01001T",
