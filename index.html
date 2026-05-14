@@ -280,6 +280,21 @@
     margin-top:3px;
   }
 
+  /* Source badges */
+  .src-lbl         { font-size:11px; margin-top:3px; }
+  .src-official    { color:#7ec8e3; }
+  .src-estimate    { color:var(--dim); }
+  .yld-badge       { font-size:12px; margin-left:2px; opacity:.8; }
+
+  /* Footer */
+  .site-footer {
+    margin:28px 12px 16px; padding:14px 16px;
+    border-top:1px solid var(--border); border-radius:8px;
+    font-size:12px; color:var(--dim); line-height:1.8;
+  }
+  .site-footer a { color:#58a6ff; text-decoration:none; }
+  .site-footer a:hover { text-decoration:underline; }
+
   /* ── Channel page ── */
   .yt-hero {
     background:var(--bg);
@@ -758,7 +773,7 @@ function runETFCheck() {
       </div>
       <div class="health-grid">
         <div class="health-kv"><div class="k">現價</div><div class="v">${etf.price}</div></div>
-        <div class="health-kv"><div class="k">殖利率</div><div class="v">${etf.yld}%</div></div>
+        <div class="health-kv"><div class="k">殖利率</div><div class="v">${etf.yld}%${yldBadge(etf)}</div></div>
         <div class="health-kv"><div class="k">溢折價</div><div class="v" style="color:${etf.premium>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.premium)}</div></div>
         <div class="health-kv"><div class="k">60MA偏離</div><div class="v" style="color:${etf.maD>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.maD)}</div></div>
         <div class="health-kv"><div class="k">5日漲跌</div><div class="v" style="color:${etf.ret5d>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.ret5d)}</div></div>
@@ -766,6 +781,13 @@ function runETFCheck() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ── 殖利率來源 badge ──────────────────────────────────────
+function yldBadge(e) {
+  if (e.yld_source === 'official')   return '<span class="yld-badge" title="TWSE 官方公告推算">🏛️</span>';
+  if (e.yld_source === 'historical') return '<span class="yld-badge" title="歷史平均估算">📊</span>';
+  return '';
 }
 
 // ── Mutable globals（renderAll 會更新）──
@@ -805,7 +827,7 @@ function renderSignalCard(etf, estimated) {
     </div>
     <div class="buy-stats">
       <span><span class="lbl">現價 </span><span class="val">${etf.price}</span></span>
-      <span><span class="lbl">殖利率 </span><span class="val">${etf.yld}%</span></span>
+      <span><span class="lbl">殖利率 </span><span class="val">${etf.yld}%${yldBadge(etf)}</span></span>
       <span><span class="lbl">60MA </span><span class="${etf.maD>=0?'pos':'neg'}">${etf.maD>=0?'+':''}${etf.maD.toFixed(1)}%</span></span>
     </div>
     <div class="range-track">
@@ -988,7 +1010,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
         </div>
         <div class="buy-stats">
           <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
-          <span><span class="lbl">殖利率 </span><span class="val">${e.yld}%</span></span>
+          <span><span class="lbl">殖利率 </span><span class="val">${e.yld}%${yldBadge(e)}</span></span>
           <span><span class="lbl">60MA </span><span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span></span>
         </div>
         <div class="range-track">
@@ -1013,7 +1035,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
           <span class="wait-name">${e.name}</span>
         </div>
         <div style="font-size:16px;color:var(--dim);margin-top:2px">
-          現價 ${e.price} · 殖利率 ${e.yld}%
+          現價 ${e.price} · 殖利率 ${e.yld}%${yldBadge(e)}
         </div>
       </div>
       <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
@@ -1023,17 +1045,27 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   renderChips();
   calcUpdate();
 
-  document.getElementById('calList').innerHTML = cal.map(c => `
+  document.getElementById('calList').innerHTML = cal.map(c => {
+    const isOfficial = c.source === 'official';
+    const srcHtml = isOfficial
+      ? `<div class="src-lbl src-official">🏛️ TWSE 官方公告</div>`
+      : `<div class="src-lbl src-estimate">📊 歷史平均估算</div>`;
+    return `
     <div class="cal-item ${c.soon?'soon':''}">
       <div class="cal-date"><span class="cal-day">${c.day}</span><span class="cal-mon">${c.mon}</span></div>
       <div class="cal-line"></div>
-      <div class="cal-info"><div class="cal-code2">${c.code}</div><div class="cal-name2">${c.name}</div></div>
+      <div class="cal-info">
+        <div class="cal-code2">${c.code}</div>
+        <div class="cal-name2">${c.name}</div>
+        ${srcHtml}
+      </div>
       <div class="cal-r">
         <div class="cal-amt">${c.amt.toFixed(2)} 元</div>
-        <div class="cal-ulbl">每張</div>
+        <div class="cal-ulbl">每單位</div>
         ${c.soon?'<div class="soon-pill">快到了！</div>':''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   renderRank();
 }
@@ -1129,5 +1161,10 @@ const JOKES = [
   document.getElementById('jokeDay').textContent  = `第 ${nth} / ${JOKES.length} 則`;
 })();
 </script>
+
+<footer class="site-footer">
+  本站 ETF 配息資料來源：🏛️ <a href="https://openapi.twse.com.tw" target="_blank" rel="noopener">TWSE OpenAPI</a>（政府開放資料，data.gov.tw/license）｜📊 各投信公告（手動更新）<br>
+  完整配息行事曆請參考 TWSE 官方：<a href="https://www.twse.com.tw/zh/ETFortune/dividendCalendar" target="_blank" rel="noopener">twse.com.tw/zh/ETFortune/dividendCalendar</a>
+</footer>
 </body>
 </html>

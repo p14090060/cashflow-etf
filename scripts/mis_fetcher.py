@@ -14,7 +14,10 @@ from pathlib import Path
 ROOT    = Path(__file__).parent.parent
 BASE    = ROOT / "data" / "_base.json"
 DIV     = ROOT / "data" / "dividend_info.json"
+DIV_CAL = ROOT / "data" / "dividend_calendar.json"   # TWSE 官方公告（週一/四更新）
 OUT     = ROOT / "data" / "market.json"
+
+FREQ_MAP = {"月配": 12, "季配": 4, "半年配": 2, "年配": 1, "不配息": 0}
 
 # ── MIS API ──────────────────────────────────────────────
 MIS_URL = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp"
@@ -115,6 +118,96 @@ def calc_signal(price, ma20, ret5d, rsi, vol_ratio):
         return "cheap"
     return "dear"
 
+# ── 殖利率反算（Plan C）─────────────────────────────────
+def calc_yield_with_source(code: str, price: float,
+                           div_etfs: dict, div_cal_etfs: dict) -> tuple:
+    """
+    回傳 (yld_pct, yld_source, yld_label)
+    優先順序：TWSE 官方公告 → 歷史平均 → 無資料
+    """
+    if price <= 0:
+        return 0.0, "none", "無配息紀錄"
+
+    info       = div_etfs.get(code, {})
+    frequency  = info.get("frequency", "季配")
+    multiplier = FREQ_MAP.get(frequency, 4)
+
+    if multiplier == 0:
+        return 0.0, "none", "無配息紀錄"
+
+    # 優先 1：TWSE 官方公告
+    cal = div_cal_etfs.get(code)
+    if cal:
+        annual = cal["amount"] * multiplier
+        yld    = round(annual / price * 100, 2)
+        return yld, "official", "TWSE 官方公告推算"
+
+    # 優先 2：歷史平均
+    avg = info.get("avg_dividend_per_share") or 0
+    if avg > 0:
+        annual = avg * multiplier
+        yld    = round(annual / price * 100, 2)
+        return yld, "historical", "歷史平均估算"
+
+    return 0.0, "none", "無配息紀錄"
+
+
+# ── 行事曆合併（官方公告優先）────────────────────────────
+def build_calendar(div_info_cal: list, div_cal_etfs: dict) -> list:
+    """
+    合併兩個來源的行事曆：
+    - div_cal_etfs (官方，source="official")
+    - div_info_cal (手動估算，source="estimate"，官方已涵蓋的代號不重複加入)
+    依除息日升序排列，計算 soon（≤ 14 天）
+    """
+    today = datetime.date.today()
+    result = []
+
+    # 加入官方公告
+    official_codes = set()
+    for code, d in div_cal_etfs.items():
+        try:
+            ex_date = datetime.date.fromisoformat(d["ex_dividend_date"])
+        except (ValueError, KeyError):
+            continue
+        days_left = (ex_date - today).days
+        if days_left < 0:
+            continue
+        result.append({
+            "code":   code,
+            "name":   d["name"],
+            "day":    str(ex_date.day),
+            "mon":    f"{ex_date.month}月",
+            "amt":    d["amount"],
+            "soon":   days_left <= 14,
+            "days_until": days_left,
+            "source": "official",
+        })
+        official_codes.add(code)
+
+    # 補入估算（跳過官方已涵蓋的代號）
+    for item in div_info_cal:
+        code = item.get("code", "")
+        if code in official_codes:
+            continue
+        result.append({
+            "code":   code,
+            "name":   item.get("name", ""),
+            "day":    item.get("day", ""),
+            "mon":    item.get("mon", ""),
+            "amt":    item.get("amt", 0),
+            "soon":   item.get("soon", False),
+            "days_until": None,
+            "source": "estimate",
+        })
+
+    # 官方有確切日期的排前面；估算的保持原序接在後面
+    official_part  = [x for x in result if x["source"] == "official"]
+    estimate_part  = [x for x in result if x["source"] == "estimate"]
+    official_part.sort(key=lambda x: x["days_until"])
+    return official_part + estimate_part
+
+
 # ── 工具 ─────────────────────────────────────────────────
 def load_json(path):
     try:
@@ -140,7 +233,15 @@ def main():
     # 讀配息靜態資料
     div_info = load_json(DIV) or {}
     div_etfs = div_info.get("etfs", {})
-    calendar = div_info.get("calendar", [])
+
+    # 讀官方公告（若尚未建立則 fallback 空 dict）
+    div_cal      = load_json(DIV_CAL) or {}
+    div_cal_etfs = div_cal.get("etfs", {})
+    if div_cal_etfs:
+        print(f"[DIV_CAL] 載入官方公告 {len(div_cal_etfs)} 支")
+
+    # 合併行事曆：官方優先，估算補充
+    calendar = build_calendar(div_info.get("calendar", []), div_cal_etfs)
 
     base_etfs = {e["code"]: e for e in base.get("etfs", [])}
 
@@ -181,7 +282,7 @@ def main():
             e["div_category"]      = d.get("category", "")
             e["div_todo"]          = d.get("_todo", True)
 
-        # 重算訊號（Task 5，不靠 NAV）
+        # 重算訊號（不靠 NAV）
         e["signal"] = calc_signal(
             e.get("price",     0),
             e.get("ma20",      0),
@@ -190,6 +291,15 @@ def main():
             e.get("vol_ratio", 1),
         )
         e.pop("premium", None)   # 移除 NAV 相關欄位
+
+        # 殖利率反算（Plan C：官方公告 → 歷史平均 → 無資料）
+        yld, yld_src, yld_lbl = calc_yield_with_source(
+            code, e.get("price", 0), div_etfs, div_cal_etfs
+        )
+        if yld > 0:
+            e["yld"] = yld          # 覆寫 _base.json 原始值
+        e["yld_source"] = yld_src
+        e["yld_label"]  = yld_lbl
 
         etfs_out.append(e)
 
