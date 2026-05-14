@@ -984,48 +984,60 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
     .sort((a, b) => (b.cur_vol || 0) - (a.cur_vol || 0))
     .slice(0, 100);
 
-  const fairList = TOP100.filter(e => {
-    if (!(e.signal === 'cheap' || e.signal === 'fair')) return false;
-    if (!LAZY_WATCHLIST.has(e.code)) return false;
-    const yld = e.yld || 0;
-    if (yld <= 0) return false;
-    if ((e.div_category || '').includes('高股息') && yld < 4) return false;
-    return true;
-  });
-  document.getElementById('buyCount').textContent = fairList.length + ' 支';
+  // ── A-2：便宜全顯示 + 合理最多5支 ──
+  const a2Base = e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && (e.yld || 0) > 0;
+  const cheapList = TOP100.filter(e => e.signal === 'cheap' && a2Base(e));
+  const fairOnly  = TOP100.filter(e => e.signal === 'fair'  && a2Base(e)).slice(0, 5);
+  const showList  = [...cheapList, ...fairOnly];
 
-  if (fairList.length === 0) {
-    document.getElementById('buyCards').innerHTML = `
-      <div class="empty-state">
-        目前沒有 ETF 符合篩選條件<br>
-        大盤偏熱，可參考下方熱門排行或自行搜尋
-        <div class="empty-why">
-          ℹ️ 為什麼今天沒有？<br>
-          當 ETF 普遍溢價、追在均線上方時，就會出現 0 支符合條件的情況。<br>
-          這代表今天不是好的進場時機。
-        </div>
-      </div>`;
+  const renderBuyCard = (e, note='') => {
+    const pos = e.high52 > e.low52
+      ? Math.min(97, Math.max(3, (e.price - e.low52) / (e.high52 - e.low52) * 100))
+      : 50;
+    return `<div class="buy-card">
+      <div class="buy-top">
+        <div><div class="buy-code">${e.code}</div><div class="buy-name">${e.name}</div></div>
+        <div class="${SIG_CLASS[e.signal] || 'sig-dear'}">${SIG_LABEL[e.signal] || '偏貴'}</div>
+      </div>
+      ${note}
+      <div class="buy-stats">
+        <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
+        <span><span class="lbl">殖利率 </span><span class="val">${e.yld}%${yldBadge(e)}</span></span>
+        <span><span class="lbl">60MA </span><span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span></span>
+      </div>
+      <div class="range-track">
+        <div class="range-fill" style="width:${pos}%"></div>
+        <div class="range-dot"  style="left:${pos}%"></div>
+      </div>
+      <div class="range-lbl"><span>低 ${e.low52}</span><span>高 ${e.high52}</span></div>
+      <div class="div-pill">🎁 <span class="div-num">${e.days || '--'}</span> 天後配息 · 預估 <span class="div-num">${e.est != null ? e.est.toFixed(2) : '--'}</span> 元/張</div>
+    </div>`;
+  };
+
+  if (showList.length > 0) {
+    document.getElementById('buyCount').textContent = showList.length + ' 支';
+    document.getElementById('buyCards').innerHTML = showList.map(e => renderBuyCard(e)).join('');
   } else {
-    document.getElementById('buyCards').innerHTML = fairList.map(e => {
-      const pos = Math.min(97, Math.max(3, (e.price-e.low52)/(e.high52-e.low52)*100));
-      return `<div class="buy-card">
-        <div class="buy-top">
-          <div><div class="buy-code">${e.code}</div><div class="buy-name">${e.name}</div></div>
-          <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
-        </div>
-        <div class="buy-stats">
-          <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
-          <span><span class="lbl">殖利率 </span><span class="val">${e.yld}%${yldBadge(e)}</span></span>
-          <span><span class="lbl">60MA </span><span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span></span>
-        </div>
-        <div class="range-track">
-          <div class="range-fill" style="width:${pos}%"></div>
-          <div class="range-dot"  style="left:${pos}%"></div>
-        </div>
-        <div class="range-lbl"><span>低 ${e.low52}</span><span>高 ${e.high52}</span></div>
-        <div class="div-pill">🎁 <span class="div-num">${e.days}</span> 天後配息 · 預估 <span class="div-num">${e.est.toFixed(2)}</span> 元/張</div>
-      </div>`;
-    }).join('');
+    // fallback：LAZY_WATCHLIST 中最接近合理價的 3 支（maD 絕對值最小）
+    const closest = [...ETFS]
+      .filter(e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && typeof e.maD === 'number')
+      .sort((a, b) => Math.abs(a.maD) - Math.abs(b.maD))
+      .slice(0, 3);
+    document.getElementById('buyCount').textContent = '0 支';
+    document.getElementById('buyCards').innerHTML =
+      (closest.length > 0
+        ? `<div class="empty-why" style="margin-bottom:10px">📊 今日無符合合理價條件的 ETF，以下為最接近門檻的標的，僅供參考</div>`
+          + closest.map(e => renderBuyCard(e)).join('')
+        : `<div class="empty-state">
+            目前沒有 ETF 符合篩選條件<br>
+            大盤偏熱，可參考下方熱門排行或自行搜尋
+            <div class="empty-why">
+              ℹ️ 為什麼今天沒有？<br>
+              當 ETF 普遍溢價、追在均線上方時，就會出現 0 支符合條件的情況。<br>
+              這代表今天不是好的進場時機。
+            </div>
+          </div>`
+      );
   }
 
   // TOP 10 熱門：與排行頁相同，取成交量前 10
