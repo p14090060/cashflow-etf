@@ -650,6 +650,15 @@ const STATIC_ETFS = [
   { code:'00929',  name:'復華台灣科技優息', price:19.2,  ma60:17.8,  low52:15.8, high52:20.1,  yld:8.2, days:19,  est:0.42, signal:'dear',  maD:+7.9, premium:0, ret5d:0, vol_ratio:1 },
   { code:'00850',  name:'元大ESG永續',      price:32.1,  ma60:30.5,  low52:27.8, high52:34.2,  yld:4.1, days:112, est:0.80, signal:'dear',  maD:+5.2, premium:0, ret5d:0, vol_ratio:1 },
 ];
+const LAZY_WATCHLIST = new Set([
+  '0050','0056','006208',
+  '00878','00919','00929','00940','00939',
+  '00936','00930','00932',
+  '00713','00701','00850','00757',
+  '00646','00662',
+  '00679B','00687B','00772B',
+]);
+
 const STATIC_CAL = [
   { mon:'5月', day:'19', code:'00929', name:'復華台灣科技優息', amt:0.42, soon:true  },
   { mon:'5月', day:'28', code:'00940', name:'元大台灣價值高息', amt:0.32, soon:false },
@@ -948,7 +957,14 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
     .sort((a, b) => (b.cur_vol || 0) - (a.cur_vol || 0))
     .slice(0, 100);
 
-  const fairList = TOP100.filter(e => e.signal==='cheap' || e.signal==='fair');
+  const fairList = TOP100.filter(e => {
+    if (!(e.signal === 'cheap' || e.signal === 'fair')) return false;
+    if (!LAZY_WATCHLIST.has(e.code)) return false;
+    const yld = e.yld || 0;
+    if (yld <= 0) return false;
+    if ((e.div_category || '').includes('高股息') && yld < 4) return false;
+    return true;
+  });
   document.getElementById('buyCount').textContent = fairList.length + ' 支';
 
   if (fairList.length === 0) {
