@@ -1,6 +1,23 @@
 import json, math, datetime, ssl, re, requests
 import urllib.request as _ur
+from pathlib import Path
 import yfinance as yf
+
+OUT_BASE = Path(__file__).parent / "data" / "_base.json"
+
+def calc_rsi(close_series, period=14):
+    """Wilder RSI，回傳 0-100；資料不足時回傳 50"""
+    c = close_series.dropna()
+    if len(c) < period + 1:
+        return 50.0
+    delta  = c.diff().dropna()
+    gains  = delta.clip(lower=0).tail(period * 3)
+    losses = (-delta).clip(lower=0).tail(period * 3)
+    avg_g  = gains.ewm(com=period - 1, adjust=False).mean().iloc[-1]
+    avg_l  = losses.ewm(com=period - 1, adjust=False).mean().iloc[-1]
+    if avg_l == 0:
+        return 100.0
+    return round(100 - (100 / (1 + avg_g / avg_l)), 1)
 
 def safe(v, default=0):
     try:
@@ -270,6 +287,7 @@ for code, name in ALL_ETFS:
         high52   = round(float(c.max()), 2)
         ma60     = round(float(c.tail(60).mean()), 2)
         ma20     = round(float(c.tail(20).mean()), 2)
+        rsi      = calc_rsi(c)
         ret5d    = round(float((c.iloc[-1] / c.iloc[-6] - 1) * 100), 2) if len(c) >= 6 else 0.0
         ret1y    = round(float((c.iloc[-1] / c.iloc[0]  - 1) * 100), 1) if len(c) >= 20 else 0.0
         avg_vol     = float(v.tail(20).mean())
@@ -317,10 +335,11 @@ for code, name in ALL_ETFS:
             "code": code, "name": name, "curated": curated,
             "price": safe(price), "ma60": safe(ma60), "ma20": safe(ma20),
             "low52": safe(low52), "high52": safe(high52),
+            "rsi": safe(rsi),
             "yld": safe(yld), "days": DIV_DAYS.get(code, 90),
             "est": DIV_EST.get(code, 0.30),
             "signal": signal, "maD": safe(maD),
-            "premium": safe(premium), "ret5d": safe(ret5d),
+            "ret5d": safe(ret5d),
             "ret1y": safe(ret1y), "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat),
             "aum": safe(aum), "div_freq": div_freq,
@@ -334,9 +353,10 @@ for code, name in ALL_ETFS:
             results.append({
                 "code": code, "name": name, "curated": True,
                 "price": 0, "ma60": 0, "ma20": 0, "low52": 0, "high52": 0,
+                "rsi": 50,
                 "yld": 0, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
                 "signal": "dear", "maD": 0,
-                "premium": 0, "ret5d": 0, "ret1y": 0,
+                "ret5d": 0, "ret1y": 0,
                 "avg_vol": 0, "cur_vol": 0, "vol_ratio": 0, "heat": 0,
                 "aum": 0, "div_freq": DIV_FREQ.get(code, "不明"),
             })
@@ -370,7 +390,8 @@ output = {
     "etfs": results,
 }
 
-with open("data.json", "w", encoding="utf-8") as f:
+OUT_BASE.parent.mkdir(parents=True, exist_ok=True)
+with open(OUT_BASE, "w", encoding="utf-8") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)
 
-print(f"\n✓ data.json 完成：精選 {curated_n} + 自動發現 {auto_n} = {len(results)} 支 ETF")
+print(f"\n✓ data/_base.json 完成：精選 {curated_n} + 自動發現 {auto_n} = {len(results)} 支 ETF")

@@ -1,0 +1,47 @@
+name: Update Market Data (Intraday)
+
+on:
+  schedule:
+    # 每 10 分鐘，UTC 01:00-05:59 = 台北 09:00-13:59，週一至週五
+    - cron: "*/10 1-5 * * 1-5"
+  workflow_dispatch:    # 支援手動觸發
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install yfinance requests
+
+      - name: Ensure data/ directory exists
+        run: mkdir -p data
+
+      - name: Run full fetch if _base.json is missing
+        run: |
+          if [ ! -f data/_base.json ]; then
+            echo "_base.json 不存在，先執行完整抓取..."
+            python fetch_etf.py
+          else
+            echo "_base.json 已存在，跳過完整抓取"
+          fi
+
+      - name: Run MIS fetcher
+        run: python scripts/mis_fetcher.py
+
+      - name: Commit data/market.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/market.json
+          git diff --cached --quiet || git commit -m "chore: update market data $(date +'%Y-%m-%d %H:%M' -d '+8 hours')"
+          git pull --rebase origin main
+          git push

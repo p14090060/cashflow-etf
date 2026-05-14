@@ -47,6 +47,12 @@
   }
   .topbar-title { font-size:16px; font-weight:700; letter-spacing:.02em; }
   .topbar-sub   { font-family:var(--mono); font-size:16px; color:var(--dim); margin-top:1px; }
+  .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; border-radius:6px; padding:2px 8px; margin-top:3px; }
+  .status-live  { background:rgba(0,229,160,.12); color:#00e5a0; border:1px solid rgba(0,229,160,.3); }
+  .status-live::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:#00e5a0; animation:pulse 1.2s ease-in-out infinite; }
+  .status-closed  { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
+  .status-holiday { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:16px; cursor:pointer; line-height:1; }
   .refresh-btn.spinning { animation:spin .6s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -386,7 +392,7 @@
 <div class="topbar">
   <div>
     <div class="topbar-title">ETF 存股健診</div>
-    <div class="topbar-sub" id="updatedAt">載入中…</div>
+    <div id="statusBadge" class="status-badge status-closed">載入中…</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="reloadData()">↻</button>
 </div>
@@ -918,12 +924,20 @@ function renderMood(market) {
 }
 
 // ── renderAll：用資料渲染整頁 ──
-function renderAll(etfs, cal, updatedAt, market) {
+function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   ETFS = etfs;
-  _staticUpdated = updatedAt;
-  document.getElementById('updatedAt').textContent = updatedAt + ' 盤後更新';
+  const badge = document.getElementById('statusBadge');
+  if (isHoliday) {
+    badge.className = 'status-badge status-holiday';
+    badge.textContent = '今日休市';
+  } else if (isClosed) {
+    badge.className = 'status-badge status-closed';
+    badge.textContent = '收盤資料 · ' + (updatedAt || '').slice(0, 10);
+  } else {
+    badge.className = 'status-badge status-live';
+    badge.textContent = 'LIVE · 更新 ' + (updatedAt || '').slice(11, 16);
+  }
   renderMood(market);
-  startLiveMarket();
 
   const SIG_LABEL = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' };
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' };
@@ -1039,59 +1053,19 @@ function renderRank() {
   }).join('');
 }
 
-// ── A-1 大盤即時更新（交易時段直接從 TWSE MIS 抓，不需後端）──
-let _liveTimer = null, _staticUpdated = '';
-
-function isTwTradingNow() {
-  const tw = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
-  const day = tw.getDay();           // 0=Sun, 6=Sat
-  if (day === 0 || day === 6) return false;
-  const mins = tw.getHours() * 60 + tw.getMinutes();
-  return mins >= 540 && mins <= 815; // 09:00 ~ 13:35
-}
-
-async function pollLiveMarket() {
-  try {
-    const res = await fetch(
-      'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?json=1&delay=0&ex_ch=tse_t00.tw',
-      { cache: 'no-store' }
-    );
-    const d = await res.json();
-    const item = d.msgArray?.[0];
-    if (!item || !item.z || item.z === '-') return;
-    const cur  = parseFloat(item.z);
-    const prev = parseFloat(item.y);
-    if (!cur || !prev) return;
-    const chgPt  = Math.round((cur - prev) * 100) / 100;
-    const chgPct = Math.round((cur - prev) / prev * 10000) / 100;
-    renderMood({ price: cur, change_pt: chgPt, change_pct: chgPct });
-    const t = (item.t || '').slice(0, 5);
-    document.getElementById('updatedAt').textContent = t ? `即時 ${t}` : '即時';
-  } catch (_) { /* CORS 或離線，保留靜態資料 */ }
-}
-
-function startLiveMarket() {
-  if (!isTwTradingNow()) return;
-  pollLiveMarket();
-  _liveTimer = setInterval(() => {
-    if (isTwTradingNow()) {
-      pollLiveMarket();
-    } else {
-      clearInterval(_liveTimer);
-      document.getElementById('updatedAt').textContent = _staticUpdated + ' 盤後更新';
-    }
-  }, 30 * 1000);
-}
-
 // ── Bootstrap & reload ──
 function reloadData() {
   window.location.href = window.location.pathname + '?v=' + Date.now();
 }
+let _pollTimer = null;
 function fetchData() {
-  fetch('data.json?t=' + Date.now())
+  fetch('data/market.json?t=' + Date.now())
     .then(r => r.json())
-    .then(d => renderAll(d.etfs, STATIC_CAL, d.updated, d.market))
-    .catch(() => renderAll(STATIC_ETFS, STATIC_CAL, '示範資料', null));
+    .then(d => renderAll(d.etfs, d.calendar || STATIC_CAL, d.updated, d.market, d.is_closed, d.is_holiday))
+    .catch(() => renderAll(STATIC_ETFS, STATIC_CAL, '示範資料', null, true, false));
+  if (!_pollTimer) {
+    _pollTimer = setInterval(fetchData, 30 * 1000);
+  }
 }
 fetchData();
 

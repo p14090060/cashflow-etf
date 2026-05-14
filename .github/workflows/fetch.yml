@@ -25,11 +25,12 @@ jobs:
       - name: Fetch ETF data
         run: python fetch_etf.py
 
-      - name: Commit data.json
+      - name: Commit data/_base.json
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data.json
-          git diff --cached --quiet || git commit -m "chore: update ETF data $(date +'%Y-%m-%d %H:%M')"
+          mkdir -p data
+          git add data/_base.json
+          git diff --cached --quiet || git commit -m "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')"
           git pull --rebase origin main
           git push

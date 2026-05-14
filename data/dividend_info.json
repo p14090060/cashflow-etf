@@ -1,0 +1,256 @@
+{
+  "_note": "此檔案由人工維護。_todo:true 的欄位需對照 TWSE 或投信官網核實後填寫。",
+
+  "etfs": {
+
+    "0050": {
+      "name": "元大台灣50",
+      "frequency": "季配",
+      "months": [1, 4, 7, 10],
+      "category": "指數型",
+      "avg_dividend_per_share": 3.50,
+      "_todo": false
+    },
+    "0056": {
+      "name": "元大高股息",
+      "frequency": "季配",
+      "months": [1, 4, 7, 10],
+      "category": "高股息",
+      "avg_dividend_per_share": 1.10,
+      "_todo": false
+    },
+    "00878": {
+      "name": "國泰永續高息",
+      "frequency": "季配",
+      "months": [2, 5, 8, 11],
+      "category": "高股息",
+      "avg_dividend_per_share": 0.38,
+      "_todo": false
+    },
+    "00919": {
+      "name": "群益台灣精選高息",
+      "frequency": "季配",
+      "months": [3, 6, 9, 12],
+      "category": "高股息",
+      "avg_dividend_per_share": 0.45,
+      "_todo": false
+    },
+    "006208": {
+      "name": "富邦台50",
+      "frequency": "半年配",
+      "months": [7, 11],
+      "category": "指數型",
+      "avg_dividend_per_share": 2.10,
+      "_todo": false
+    },
+    "00929": {
+      "name": "復華台灣科技優息",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": 0.42,
+      "_todo": false
+    },
+    "00940": {
+      "name": "元大台灣價值高息",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": 0.32,
+      "_todo": false
+    },
+    "00939": {
+      "name": "統一台灣科技優息",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": false
+    },
+    "00936": {
+      "name": "台新台灣永續高息",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": false
+    },
+    "00930": {
+      "name": "永豐ESG低碳高息",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": false
+    },
+
+    "00713": {
+      "name": "元大台灣高息低波",
+      "frequency": "季配",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": 1.05,
+      "_todo": true
+    },
+    "00850": {
+      "name": "元大ESG永續",
+      "frequency": "季配",
+      "months": [],
+      "category": "ESG",
+      "avg_dividend_per_share": 0.80,
+      "_todo": true
+    },
+    "00981A": {
+      "name": "統一台股增長",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": 0.40,
+      "_todo": true
+    },
+    "00403A": {
+      "name": "統一台股升級50",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": 0.30,
+      "_todo": true
+    },
+    "00881": {
+      "name": "國泰台灣5G+",
+      "frequency": "季配",
+      "months": [],
+      "category": "科技",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00892": {
+      "name": "富邦台灣半導體",
+      "frequency": "季配",
+      "months": [],
+      "category": "科技",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00900": {
+      "name": "富邦特選高股息30",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "0051": {
+      "name": "元大中型100",
+      "frequency": "年配",
+      "months": [],
+      "category": "指數型",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00692": {
+      "name": "富邦公司治理",
+      "frequency": "季配",
+      "months": [],
+      "category": "ESG",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00701": {
+      "name": "國泰股利精選30",
+      "frequency": "季配",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00733": {
+      "name": "富邦台灣中小",
+      "frequency": "季配",
+      "months": [],
+      "category": "指數型",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00735": {
+      "name": "國泰臺灣高股息",
+      "frequency": "季配",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "006201": {
+      "name": "元大MSCI台灣",
+      "frequency": "年配",
+      "months": [],
+      "category": "指數型",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00646": {
+      "name": "元大S&P500",
+      "frequency": "不配息",
+      "months": [],
+      "category": "海外",
+      "avg_dividend_per_share": 0,
+      "_todo": false
+    },
+    "00757": {
+      "name": "統一FANG+",
+      "frequency": "不配息",
+      "months": [],
+      "category": "海外",
+      "avg_dividend_per_share": 0,
+      "_todo": false
+    },
+    "00891": {
+      "name": "中信關鍵半導體",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "科技",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00894": {
+      "name": "中信小資高價",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00918": {
+      "name": "大華優利高填息30",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00921": {
+      "name": "兆豐台灣電子科技",
+      "frequency": "季配",
+      "months": [],
+      "category": "科技",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00932": {
+      "name": "兆豐永續高息",
+      "frequency": "季配",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    }
+  },
+
+  "calendar": [
+    { "mon": "5月", "day": "19", "code": "00929", "name": "復華台灣科技優息", "amt": 0.42, "soon": true  },
+    { "mon": "5月", "day": "28", "code": "00940", "name": "元大台灣價值高息", "amt": 0.32, "soon": false },
+    { "mon": "6月", "day": "05", "code": "00919", "name": "群益台灣精選高息", "amt": 0.45, "soon": false },
+    { "mon": "6月", "day": "10", "code": "0056",  "name": "元大高股息",       "amt": 1.10, "soon": false },
+    { "mon": "6月", "day": "27", "code": "00878", "name": "國泰永續高息",     "amt": 0.38, "soon": false }
+  ]
+}
