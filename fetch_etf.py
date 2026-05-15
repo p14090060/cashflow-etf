@@ -4,6 +4,7 @@ from pathlib import Path
 import yfinance as yf
 
 OUT_BASE = Path(__file__).parent / "data" / "_base.json"
+OUT_DIV  = Path(__file__).parent / "data" / "dividend_info.json"
 
 def calc_rsi(close_series, period=14):
     """Wilder RSI，回傳 0-100；資料不足時回傳 50"""
@@ -143,7 +144,7 @@ def detect_div_freq(tk, code, name="", hist_days=0):
         pass
     return "不明"
 
-# 配息資料（精選池手動維護，每季更新）
+# 配息資料 fallback（yfinance 抓不到時才用）
 DIV_DAYS = {
     "0056":47, "00713":88, "0050":145, "00919":32,
     "006208":158, "00981A":55, "00878":65, "00940":28,
@@ -154,6 +155,45 @@ DIV_EST = {
     "006208":2.10, "00981A":0.40, "00878":0.38, "00940":0.32,
     "00929":0.42, "00850":0.80, "00403A":0.30,
 }
+
+# 每種配息頻率對應的預設間隔天數
+_FREQ_DAYS = {"月配": 30, "季配": 91, "半年配": 182, "年配": 365}
+
+def calc_div_forecast(divs, code, div_freq):
+    """從 yfinance 股利歷史推算下次配息日與預估金額。
+    回傳 (days_left, est_amt, next_date_str or None)
+    """
+    fallback_days = DIV_DAYS.get(code, 90)
+    fallback_est  = DIV_EST.get(code, 0.30)
+    try:
+        if divs is None or divs.empty:
+            return fallback_days, fallback_est, None
+
+        freq_days = _FREQ_DAYS.get(div_freq, 90)
+
+        # 用最近幾次配息算實際平均間隔（比寫死更準）
+        n = {"月配": 4, "季配": 4, "半年配": 3, "年配": 2}.get(div_freq, 3)
+        if len(divs) >= n + 1:
+            recent = divs.index[-(n + 1):]
+            gaps = [(recent[i + 1] - recent[i]).days for i in range(len(recent) - 1)]
+            freq_days = int(sum(gaps) / len(gaps))
+
+        last_date = divs.index[-1].to_pydatetime().replace(tzinfo=None)
+        last_amt  = round(float(divs.iloc[-1]), 2)
+
+        today = datetime.datetime.now(
+            datetime.timezone(datetime.timedelta(hours=8))
+        ).replace(tzinfo=None)
+
+        # 往後推直到未來日期
+        next_date = last_date + datetime.timedelta(days=freq_days)
+        while next_date <= today:
+            next_date += datetime.timedelta(days=freq_days)
+
+        days_left = (next_date - today).days
+        return days_left, last_amt, next_date.strftime("%Y-%m-%d")
+    except Exception:
+        return fallback_days, fallback_est, None
 
 def calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated=False):
     """複合熱度指數：量比(0-40) + 漲跌幅(0-30) + 連續性(0-30)，規模 <500億歸零"""
@@ -315,10 +355,10 @@ for code, name in ALL_ETFS:
                 yld = round(float(_dy) * 100, 1)
         except Exception:
             pass
+        import pandas as _pd
+        divs = tk.dividends  # 一次抓，殖利率 + 配息預測共用
         if yld == 0.0 and price > 0:
             try:
-                import pandas as _pd
-                divs = tk.dividends
                 cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=365)
                 annual = float(divs[divs.index > cutoff].sum())
                 if annual > 0:
@@ -330,14 +370,15 @@ for code, name in ALL_ETFS:
                                    premium, ret5d, vol_ratio, yld, name)
         heat     = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
         div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
+        div_days, div_est, div_next = calc_div_forecast(divs, code, div_freq)
 
         results.append({
             "code": code, "name": name, "curated": curated,
             "price": safe(price), "ma60": safe(ma60), "ma20": safe(ma20),
             "low52": safe(low52), "high52": safe(high52),
             "rsi": safe(rsi),
-            "yld": safe(yld), "days": DIV_DAYS.get(code, 90),
-            "est": DIV_EST.get(code, 0.30),
+            "yld": safe(yld), "days": div_days,
+            "est": div_est, "div_next": div_next,
             "signal": signal, "maD": safe(maD),
             "ret5d": safe(ret5d),
             "ret1y": safe(ret1y), "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
@@ -355,7 +396,7 @@ for code, name in ALL_ETFS:
                 "price": 0, "ma60": 0, "ma20": 0, "low52": 0, "high52": 0,
                 "rsi": 50,
                 "yld": 0, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
-                "signal": "dear", "maD": 0,
+                "div_next": None, "signal": "dear", "maD": 0,
                 "ret5d": 0, "ret1y": 0,
                 "avg_vol": 0, "cur_vol": 0, "vol_ratio": 0, "heat": 0,
                 "aum": 0, "div_freq": DIV_FREQ.get(code, "不明"),
@@ -382,16 +423,50 @@ except Exception as e:
 curated_n = sum(1 for r in results if r.get("curated"))
 auto_n    = len(results) - curated_n
 
+# ── 配息日曆：從精選池中取 div_next 在 90 天內的，依日期排序 ──
+today_str = datetime.datetime.now(
+    datetime.timezone(datetime.timedelta(hours=8))
+).strftime("%Y-%m-%d")
+calendar = []
+for r in results:
+    if not r.get("curated") or not r.get("div_next"):
+        continue
+    if r["div_next"] > today_str and r["days"] <= 90:
+        d = datetime.datetime.strptime(r["div_next"], "%Y-%m-%d")
+        calendar.append({
+            "mon":    f"{d.month}月",
+            "day":    str(d.day),
+            "code":   r["code"],
+            "name":   r["name"],
+            "amt":    r["est"],
+            "soon":   r["days"] <= 14,
+            "source": "yfinance",
+        })
+calendar.sort(key=lambda x: x["mon"] + x["day"].zfill(2))
+
 output = {
     "updated": datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=8))
     ).strftime("%Y-%m-%d %H:%M"),
     "market": market,
     "etfs": results,
+    "calendar": calendar,
 }
 
 OUT_BASE.parent.mkdir(parents=True, exist_ok=True)
 with open(OUT_BASE, "w", encoding="utf-8") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)
+
+# 同步更新 dividend_info.json 的 calendar（mis_fetcher.py 讀這個當估算來源）
+if calendar and OUT_DIV.exists():
+    try:
+        with open(OUT_DIV, encoding="utf-8") as f:
+            div_info = json.load(f)
+        div_info["calendar"] = calendar
+        with open(OUT_DIV, "w", encoding="utf-8") as f:
+            json.dump(div_info, f, ensure_ascii=False, indent=2)
+        print(f"✓ dividend_info.json calendar 更新：{len(calendar)} 筆")
+    except Exception as e:
+        print(f"[WARN] dividend_info.json 更新失敗: {e}")
 
 print(f"\n✓ data/_base.json 完成：精選 {curated_n} + 自動發現 {auto_n} = {len(results)} 支 ETF")
