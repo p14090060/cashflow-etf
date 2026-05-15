@@ -1020,7 +1020,8 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   } else {
     // fallback：LAZY_WATCHLIST 中最接近合理價的 3 支（maD 絕對值最小）
     const closest = [...ETFS]
-      .filter(e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && typeof e.maD === 'number')
+      .filter(e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && typeof e.maD === 'number'
+                && e.signal !== 'hot' && e.signal !== 'dear')
       .sort((a, b) => Math.abs(a.maD) - Math.abs(b.maD))
       .slice(0, 3);
     document.getElementById('buyCount').textContent = '0 支';
