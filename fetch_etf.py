@@ -434,6 +434,7 @@ for r in results:
     if r["div_next"] > today_str and r["days"] <= 90:
         d = datetime.datetime.strptime(r["div_next"], "%Y-%m-%d")
         calendar.append({
+            "iso_date": r["div_next"],
             "mon":    f"{d.month}月",
             "day":    str(d.day),
             "code":   r["code"],
@@ -442,7 +443,7 @@ for r in results:
             "soon":   r["days"] <= 14,
             "source": "yfinance",
         })
-calendar.sort(key=lambda x: x["mon"] + x["day"].zfill(2))
+calendar.sort(key=lambda x: x["iso_date"])
 
 output = {
     "updated": datetime.datetime.now(

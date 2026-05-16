@@ -185,27 +185,47 @@ def build_calendar(div_info_cal: list, div_cal_etfs: dict) -> list:
         })
         official_codes.add(code)
 
-    # 補入估算（跳過官方已涵蓋的代號）
+    # 補入估算（跳過官方已涵蓋的代號，跳過已過期的）
     for item in div_info_cal:
         code = item.get("code", "")
         if code in official_codes:
             continue
+        iso = item.get("iso_date", "")
+        if iso:
+            try:
+                ex_date = datetime.date.fromisoformat(iso)
+                days_left = (ex_date - today).days
+                if days_left < 0:
+                    continue
+                soon = days_left <= 14
+            except ValueError:
+                soon = item.get("soon", False)
+                days_left = None
+        else:
+            soon = item.get("soon", False)
+            days_left = None
         result.append({
             "code":   code,
             "name":   item.get("name", ""),
             "day":    item.get("day", ""),
             "mon":    item.get("mon", ""),
             "amt":    item.get("amt", 0),
-            "soon":   item.get("soon", False),
-            "days_until": None,
+            "soon":   soon,
+            "days_until": days_left,
             "source": "estimate",
         })
 
-    # 官方有確切日期的排前面；估算的保持原序接在後面
-    official_part  = [x for x in result if x["source"] == "official"]
-    estimate_part  = [x for x in result if x["source"] == "estimate"]
-    official_part.sort(key=lambda x: x["days_until"])
-    return official_part + estimate_part
+    # 官方排前面；估算有 days_until 的接著，無日期的排最後
+    official_part  = sorted(
+        [x for x in result if x["source"] == "official"],
+        key=lambda x: x["days_until"]
+    )
+    estimate_dated = sorted(
+        [x for x in result if x["source"] == "estimate" and x["days_until"] is not None],
+        key=lambda x: x["days_until"]
+    )
+    estimate_undated = [x for x in result if x["source"] == "estimate" and x["days_until"] is None]
+    return official_part + estimate_dated + estimate_undated
 
 
 # ── 工具 ─────────────────────────────────────────────────
