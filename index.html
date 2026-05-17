@@ -792,7 +792,7 @@ function renderChips() {
 function selChip(code) { selETF = ETFS.find(e => e.code===code); renderChips(); calcUpdate(); }
 function calcUpdate() {
   const n = parseInt(document.getElementById('sharesIn').value) || 0;
-  const next = (selETF.est * n).toFixed(0);
+  const next = (selETF.est * n * 1000).toFixed(0);
   const ann  = (selETF.yld / 100 * selETF.price * n * 1000).toFixed(0);
   const cost = (selETF.price * n * 1000).toFixed(0);
   document.getElementById('calcOut').innerHTML = `
