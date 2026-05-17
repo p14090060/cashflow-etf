@@ -164,10 +164,19 @@ def build_calendar(div_info_cal: list, div_cal_etfs: dict,
     result = []
     covered = set()   # 已有正確日期的代號（官方 or 人工）
 
+    # 金額備用：優先 manual > yfinance，官方金額為 0 時使用
+    amt_fallback = {item["code"]: item["amt"]
+                    for item in div_info_cal if item.get("amt")}
+    for code, d in manual_etfs.items():
+        if d.get("amount"):
+            amt_fallback[code] = d["amount"]
+
     def _append(code, name, ex_date, amt, source):
         days_left = (ex_date - today).days
         if days_left < 0:
             return
+        if not amt:
+            amt = amt_fallback.get(code, 0)
         result.append({
             "code":       code,
             "name":       name,

@@ -1,23 +1,44 @@
 {
   "_meta": {
     "last_updated": "2026-05-17",
-    "source": "TWSE OpenAPI (TWT48U_ALL)",
-    "source_url": "https://openapi.twse.com.tw/v1/exchangeReport/TWT48U_ALL",
+    "source": "TWSE e添富 (ETFortune/dividendList)",
+    "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)",
-    "note": "僅收錄 LAZY_WATCHLIST 中的 ETF；同代號多筆時取最近未來公告"
+    "note": "抓當月+未來兩個月，LAZY_WATCHLIST 中同代號取最近未來日期"
   },
   "etfs": {
+    "00930": {
+      "code": "00930",
+      "name": "永豐ESG低碳高息",
+      "ex_dividend_date": "2026-05-26",
+      "amount": 0.0
+    },
+    "00850": {
+      "code": "00850",
+      "name": "元大臺灣ESG永續",
+      "ex_dividend_date": "2026-05-22",
+      "amount": 0.0
+    },
+    "00929": {
+      "code": "00929",
+      "name": "復華台灣科技優息",
+      "ex_dividend_date": "2026-05-20",
+      "amount": 0.0
+    },
     "00878": {
+      "code": "00878",
       "name": "國泰永續高股息",
       "ex_dividend_date": "2026-05-19",
       "amount": 0.66
     },
     "00932": {
+      "code": "00932",
       "name": "兆豐永續高息等權",
       "ex_dividend_date": "2026-05-19",
       "amount": 0.22
     },
     "00936": {
+      "code": "00936",
       "name": "台新永續高息中小",
       "ex_dividend_date": "2026-05-18",
       "amount": 0.1
