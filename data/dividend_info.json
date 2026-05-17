@@ -410,15 +410,7 @@
   },
   "calendar": [
     {
-      "mon": "5月",
-      "day": "16",
-      "code": "00981A",
-      "name": "統一台股增長",
-      "amt": 0.41,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
+      "iso_date": "2026-05-20",
       "mon": "5月",
       "day": "20",
       "code": "006208",
@@ -428,6 +420,7 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-05-22",
       "mon": "5月",
       "day": "22",
       "code": "00929",
@@ -437,6 +430,7 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-05-29",
       "mon": "5月",
       "day": "29",
       "code": "00878",
@@ -446,6 +440,7 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-05-29",
       "mon": "5月",
       "day": "29",
       "code": "00850",
@@ -455,6 +450,7 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-06-05",
       "mon": "6月",
       "day": "5",
       "code": "00940",
@@ -464,6 +460,17 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-06-15",
+      "mon": "6月",
+      "day": "15",
+      "code": "00981A",
+      "name": "統一台股增長",
+      "amt": 0.41,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-06-16",
       "mon": "6月",
       "day": "16",
       "code": "00919",
@@ -473,6 +480,7 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-06-19",
       "mon": "6月",
       "day": "19",
       "code": "00713",
@@ -482,6 +490,7 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-07-24",
       "mon": "7月",
       "day": "24",
       "code": "0056",
@@ -491,6 +500,7 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-07-26",
       "mon": "7月",
       "day": "26",
       "code": "0050",
