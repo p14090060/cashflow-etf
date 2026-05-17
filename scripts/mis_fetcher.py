@@ -252,6 +252,7 @@ def load_json(path):
 # ── 主流程 ────────────────────────────────────────────────
 def main():
     now      = tw_now()
+    today    = now.date()
     trading  = is_trading_hour(now)
     weekday  = is_weekday(now)
     holiday  = not weekday
@@ -322,6 +323,19 @@ def main():
             e["div_avg_per_share"] = d.get("avg_dividend_per_share")
             e["div_category"]      = d.get("category", "")
             e["div_todo"]          = d.get("_todo", True)
+
+        # 官方公告金額/日期 → 覆蓋 yfinance 的 est 和 days
+        if code in div_cal_etfs:
+            official = div_cal_etfs[code]
+            if official.get("amount", 0) > 0:
+                e["est"] = official["amount"]
+            try:
+                ex_date = datetime.date.fromisoformat(official["ex_dividend_date"])
+                days_left = (ex_date - today).days
+                if days_left >= 0:
+                    e["days"] = days_left
+            except (ValueError, KeyError):
+                pass
 
         # 重算訊號（不靠 NAV）
         e["signal"] = calc_signal(
