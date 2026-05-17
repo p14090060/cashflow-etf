@@ -1,0 +1,15 @@
+{
+  "_note": "人工核實的除息日。優先於 yfinance 估算，但低於 TWSE 官方公告。fetch_etf.py 不會覆蓋此檔。",
+  "etfs": {
+    "00929": {
+      "name": "復華台灣科技優息",
+      "ex_dividend_date": "2026-05-20",
+      "amount": 0.13
+    },
+    "00850": {
+      "name": "元大ESG永續",
+      "ex_dividend_date": "2026-05-22",
+      "amount": 0.8
+    }
+  }
+}

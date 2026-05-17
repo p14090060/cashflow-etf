@@ -11,11 +11,12 @@ import urllib.request as _ur
 from pathlib import Path
 
 # ── 路徑 ────────────────────────────────────────────────
-ROOT    = Path(__file__).parent.parent
-BASE    = ROOT / "data" / "_base.json"
-DIV     = ROOT / "data" / "dividend_info.json"
-DIV_CAL = ROOT / "data" / "dividend_calendar.json"   # TWSE 官方公告（週一/四更新）
-OUT     = ROOT / "data" / "market.json"
+ROOT        = Path(__file__).parent.parent
+BASE        = ROOT / "data" / "_base.json"
+DIV         = ROOT / "data" / "dividend_info.json"
+DIV_CAL     = ROOT / "data" / "dividend_calendar.json"    # TWSE 官方公告
+MANUAL_CAL  = ROOT / "data" / "manual_calendar.json"      # 人工核實（不被 Action 覆蓋）
+OUT         = ROOT / "data" / "market.json"
 
 FREQ_MAP = {"月配": 12, "季配": 4, "半年配": 2, "年配": 1, "不配息": 0}
 
@@ -152,80 +153,82 @@ def calc_yield_with_source(code: str, price: float,
     return 0.0, "none", "無配息紀錄"
 
 
-# ── 行事曆合併（官方公告優先）────────────────────────────
-def build_calendar(div_info_cal: list, div_cal_etfs: dict) -> list:
+# ── 行事曆合併（官方 > 人工核實 > yfinance 估算）────────────────────────────
+def build_calendar(div_info_cal: list, div_cal_etfs: dict,
+                   manual_etfs: dict, div_info_etfs: dict) -> list:
     """
-    合併兩個來源的行事曆：
-    - div_cal_etfs (官方，source="official")
-    - div_info_cal (手動估算，source="estimate"，官方已涵蓋的代號不重複加入)
-    依除息日升序排列，計算 soon（≤ 14 天）
+    優先順序：TWSE 官方公告 > manual_calendar.json（人工核實）> yfinance 估算
+    yfinance 估算多一道月份合法性過濾：預測月份不在 dividend_info.json 的 months 清單時剔除。
     """
     today = datetime.date.today()
     result = []
+    covered = set()   # 已有正確日期的代號（官方 or 人工）
 
-    # 加入官方公告
-    official_codes = set()
+    def _append(code, name, ex_date, amt, source):
+        days_left = (ex_date - today).days
+        if days_left < 0:
+            return
+        result.append({
+            "code":       code,
+            "name":       name,
+            "day":        str(ex_date.day),
+            "mon":        f"{ex_date.month}月",
+            "amt":        amt,
+            "soon":       days_left <= 14,
+            "days_until": days_left,
+            "source":     source,
+        })
+        covered.add(code)
+
+    # 1. TWSE 官方公告
     for code, d in div_cal_etfs.items():
         try:
             ex_date = datetime.date.fromisoformat(d["ex_dividend_date"])
         except (ValueError, KeyError):
             continue
+        _append(code, d["name"], ex_date, d["amount"], "official")
+
+    # 2. 人工核實（覆蓋 yfinance，但不蓋掉官方）
+    for code, d in manual_etfs.items():
+        if code in covered:
+            continue
+        try:
+            ex_date = datetime.date.fromisoformat(d["ex_dividend_date"])
+        except (ValueError, KeyError):
+            continue
+        _append(code, d["name"], ex_date, d["amount"], "manual")
+
+    # 3. yfinance 估算（官方/人工已涵蓋的略過；月份不符的剔除）
+    for item in div_info_cal:
+        code = item.get("code", "")
+        if code in covered:
+            continue
+        iso = item.get("iso_date", "")
+        if not iso:
+            continue
+        try:
+            ex_date = datetime.date.fromisoformat(iso)
+        except ValueError:
+            continue
+        # 月份合法性過濾：dividend_info.json 有設 months 時，月份必須吻合
+        known_months = div_info_etfs.get(code, {}).get("months", [])
+        if known_months and ex_date.month not in known_months:
+            continue
         days_left = (ex_date - today).days
         if days_left < 0:
             continue
         result.append({
-            "code":   code,
-            "name":   d["name"],
-            "day":    str(ex_date.day),
-            "mon":    f"{ex_date.month}月",
-            "amt":    d["amount"],
-            "soon":   days_left <= 14,
+            "code":       code,
+            "name":       item.get("name", ""),
+            "day":        str(ex_date.day),
+            "mon":        f"{ex_date.month}月",
+            "amt":        item.get("amt", 0),
+            "soon":       days_left <= 14,
             "days_until": days_left,
-            "source": "official",
-        })
-        official_codes.add(code)
-
-    # 補入估算（跳過官方已涵蓋的代號，跳過已過期的）
-    for item in div_info_cal:
-        code = item.get("code", "")
-        if code in official_codes:
-            continue
-        iso = item.get("iso_date", "")
-        if iso:
-            try:
-                ex_date = datetime.date.fromisoformat(iso)
-                days_left = (ex_date - today).days
-                if days_left < 0:
-                    continue
-                soon = days_left <= 14
-            except ValueError:
-                soon = item.get("soon", False)
-                days_left = None
-        else:
-            soon = item.get("soon", False)
-            days_left = None
-        result.append({
-            "code":   code,
-            "name":   item.get("name", ""),
-            "day":    item.get("day", ""),
-            "mon":    item.get("mon", ""),
-            "amt":    item.get("amt", 0),
-            "soon":   soon,
-            "days_until": days_left,
-            "source": "estimate",
+            "source":     "estimate",
         })
 
-    # 官方排前面；估算有 days_until 的接著，無日期的排最後
-    official_part  = sorted(
-        [x for x in result if x["source"] == "official"],
-        key=lambda x: x["days_until"]
-    )
-    estimate_dated = sorted(
-        [x for x in result if x["source"] == "estimate" and x["days_until"] is not None],
-        key=lambda x: x["days_until"]
-    )
-    estimate_undated = [x for x in result if x["source"] == "estimate" and x["days_until"] is None]
-    return official_part + estimate_dated + estimate_undated
+    return sorted(result, key=lambda x: x["days_until"])
 
 
 # ── 工具 ─────────────────────────────────────────────────
@@ -260,8 +263,17 @@ def main():
     if div_cal_etfs:
         print(f"[DIV_CAL] 載入官方公告 {len(div_cal_etfs)} 支")
 
-    # 合併行事曆：官方優先，估算補充
-    calendar = build_calendar(div_info.get("calendar", []), div_cal_etfs)
+    # 讀人工核實日期
+    manual_cal  = load_json(MANUAL_CAL) or {}
+    manual_etfs = manual_cal.get("etfs", {})
+    if manual_etfs:
+        print(f"[MANUAL_CAL] 載入人工核實 {len(manual_etfs)} 支")
+
+    # 合併行事曆：官方 > 人工核實 > yfinance 估算
+    calendar = build_calendar(
+        div_info.get("calendar", []), div_cal_etfs,
+        manual_etfs, div_etfs,
+    )
 
     base_etfs = {e["code"]: e for e in base.get("etfs", [])}
 
