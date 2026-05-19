@@ -38,11 +38,19 @@
     },
     "00919": {
       "name": "群益台灣精選高息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
+        1,
+        2,
         3,
+        4,
+        5,
         6,
+        7,
+        8,
         9,
+        10,
+        11,
         12
       ],
       "category": "高股息",
@@ -324,7 +332,7 @@
         11
       ],
       "category": "科技",
-      "avg_dividend_per_share": 1.0,
+      "avg_dividend_per_share": null,
       "_todo": true
     },
     "00894": {
