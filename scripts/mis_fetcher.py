@@ -190,6 +190,7 @@ def build_calendar(div_info_cal: list, div_cal_etfs: dict,
         result.append({
             "code":       code,
             "name":       name,
+            "iso_date":   ex_date.isoformat(),
             "day":        str(ex_date.day),
             "mon":        f"{ex_date.month}月",
             "amt":        amt,

@@ -262,7 +262,8 @@
     border-radius:9px; padding:10px 12px; margin-bottom:8px;
     background:rgba(255,255,255,.03); border:1px solid var(--border);
   }
-  .cal-item.soon { background:rgba(255,215,0,.05); border-color:rgba(255,215,0,.25); }
+  .cal-item.soon  { background:rgba(255,215,0,.05); border-color:rgba(255,215,0,.25); }
+  .cal-item.today { background:rgba(0,229,160,.06); border-color:rgba(0,229,160,.35); }
   .cal-item:last-child { margin:0; }
   .cal-date { text-align:center; width:38px; flex-shrink:0; }
   .cal-day   { font-family:var(--mono); font-size:16px; font-weight:700; display:block; line-height:1; }
@@ -278,6 +279,10 @@
     display:inline-block; background:rgba(255,215,0,.15); color:var(--gold);
     border-radius:4px; padding:1px 6px; font-size:16px; font-family:var(--mono);
     margin-top:3px;
+  }
+  .today-pill {
+    background:rgba(0,229,160,.18); color:var(--cheap);
+    border:1px solid rgba(0,229,160,.4);
   }
 
   /* Source badges */
@@ -1048,13 +1053,19 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   renderChips();
   calcUpdate();
 
-  document.getElementById('calList').innerHTML = cal.map(c => {
+  const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD（本地時間）
+  const futureCal = cal.filter(c => !c.iso_date || c.iso_date >= todayStr);
+  document.getElementById('calList').innerHTML = futureCal.map(c => {
+    const isToday    = c.iso_date === todayStr || c.days_until === 0;
     const isOfficial = c.source === 'official';
     const srcHtml = isOfficial
       ? `<div class="src-lbl src-official">🏛️ TWSE 官方公告</div>`
       : `<div class="src-lbl src-estimate">📊 歷史平均估算</div>`;
+    const pill = isToday
+      ? `<div class="soon-pill today-pill">今日配息</div>`
+      : c.soon ? `<div class="soon-pill">快配息囉～</div>` : '';
     return `
-    <div class="cal-item ${c.soon?'soon':''}">
+    <div class="cal-item ${isToday?'today':c.soon?'soon':''}">
       <div class="cal-date"><span class="cal-day">${c.day}</span><span class="cal-mon">${c.mon}</span></div>
       <div class="cal-line"></div>
       <div class="cal-info">
@@ -1065,7 +1076,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
       <div class="cal-r">
         <div class="cal-amt">${c.amt.toFixed(2)} 元</div>
         <div class="cal-ulbl">每單位</div>
-        ${c.soon?'<div class="soon-pill">快配息囉～</div>':''}
+        ${pill}
       </div>
     </div>`;
   }).join('');
