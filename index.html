@@ -829,7 +829,9 @@ function renderSignalCard(etf, estimated) {
       <div class="range-dot"  style="left:${pos}%"></div>
     </div>
     <div class="range-lbl"><span>低 ${etf.low52}</span><span>高 ${etf.high52}</span></div>
-    <div class="div-pill">🎁 ${etf.days === 0 ? '今日配息' : `<span class="div-num">${etf.days ?? '--'}</span> 天後配息`} · 預估 <span class="div-num">${etf.est.toFixed(2)}</span> 元/張</div>
+    <div class="div-pill">${(etf.yld || 0) > 0
+      ? `🎁 ${etf.days === 0 ? '今日配息' : `<span class="div-num">${etf.days ?? '--'}</span> 天後配息`} · 預估 <span class="div-num">${etf.est.toFixed(2)}</span> 元/張`
+      : '🆕 新ETF 待首次配息公告'}</div>
     ${note}
   </div>`;
 }
@@ -1000,7 +1002,9 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
         <div class="range-dot"  style="left:${pos}%"></div>
       </div>
       <div class="range-lbl"><span>低 ${e.low52}</span><span>高 ${e.high52}</span></div>
-      <div class="div-pill">🎁 ${e.days === 0 ? '今日配息' : `<span class="div-num">${e.days ?? '--'}</span> 天後配息`} · 預估 <span class="div-num">${e.est != null ? e.est.toFixed(2) : '--'}</span> 元/張</div>
+      <div class="div-pill">${(e.yld || 0) > 0
+        ? `🎁 ${e.days === 0 ? '今日配息' : `<span class="div-num">${e.days ?? '--'}</span> 天後配息`} · 預估 <span class="div-num">${e.est != null ? e.est.toFixed(2) : '--'}</span> 元/張`
+        : '🆕 新ETF 待首次配息公告'}</div>
     </div>`;
   };
 
