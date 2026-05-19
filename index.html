@@ -660,6 +660,7 @@ const LAZY_WATCHLIST = new Set([
   '00713','00701','00850','00757',
   '00646','00662',
   '00679B','00687B','00772B',
+  '00403A',
 ]);
 
 const STATIC_CAL = [
@@ -968,8 +969,9 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
     .slice(0, 100);
 
   // ── A-2：便宜全顯示 + 合理最多5支 ──
-  const a2Base = e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && (e.yld || 0) > 0;
-  const cheapList = TOP100.filter(e => e.signal === 'cheap' && a2Base(e));
+  const hasDividend = e => (e.div_frequency || '') !== '不配息';
+  const cheapList = TOP100.filter(e => e.signal === 'cheap' && e.price > 0 && hasDividend(e));
+  const a2Base    = e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && hasDividend(e);
   const fairOnly  = TOP100.filter(e => e.signal === 'fair'  && a2Base(e)).slice(0, 5);
   const showList  = [...cheapList, ...fairOnly];
 
