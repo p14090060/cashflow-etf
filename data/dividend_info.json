@@ -116,13 +116,17 @@
     },
     "00930": {
       "name": "永豐ESG低碳高息",
-      "frequency": "季配",
+      "frequency": "雙月配",
       "months": [
         1,
-        3
+        3,
+        5,
+        7,
+        9,
+        11
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.1455,
+      "avg_dividend_per_share": 0.31,
       "_todo": false
     },
     "00713": {

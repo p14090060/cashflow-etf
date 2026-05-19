@@ -18,7 +18,7 @@ DIV_CAL     = ROOT / "data" / "dividend_calendar.json"    # TWSE 官方公告
 MANUAL_CAL  = ROOT / "data" / "manual_calendar.json"      # 人工核實（不被 Action 覆蓋）
 OUT         = ROOT / "data" / "market.json"
 
-FREQ_MAP = {"月配": 12, "季配": 4, "半年配": 2, "年配": 1, "不配息": 0}
+FREQ_MAP = {"月配": 12, "雙月配": 6, "季配": 4, "半年配": 2, "年配": 1, "不配息": 0}
 
 # ── MIS API ──────────────────────────────────────────────
 MIS_URL = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp"
