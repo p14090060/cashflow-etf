@@ -63,12 +63,7 @@
     "00929": {
       "name": "復華台灣科技優息",
       "frequency": "月配",
-      "months": [
-        1,
-        3,
-        4,
-        5
-      ],
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
       "category": "高股息",
       "avg_dividend_per_share": 0.11,
       "_todo": false
@@ -76,13 +71,7 @@
     "00940": {
       "name": "元大台灣價值高息",
       "frequency": "月配",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
       "category": "高股息",
       "avg_dividend_per_share": 0.045,
       "_todo": false
@@ -90,11 +79,7 @@
     "00939": {
       "name": "統一台灣科技優息",
       "frequency": "月配",
-      "months": [
-        2,
-        3,
-        5
-      ],
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
       "category": "高股息",
       "avg_dividend_per_share": 0.072,
       "_todo": false
@@ -108,7 +93,13 @@
         3,
         4,
         5,
-        7
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.092,
