@@ -28,6 +28,11 @@ jobs:
       - name: Fetch dividend calendar (TWSE official)
         run: python scripts/fetch_dividend_calendar.py
 
+      - name: Daily check & auto-fix avg
+        env:
+          LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
+        run: python scripts/daily_check.py
+
       - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
