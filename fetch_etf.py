@@ -281,22 +281,22 @@ def build_pool():
 def is_high_div(name, yld):
     return any(k in name for k in HIGH_DIV_KEYWORDS) or yld > 5
 
-def calc_signal(price, ma20, ma60, low52, high52, premium, ret5d, vol_ratio, yld, name):
+def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, name):
     pos52 = (price - low52) / (high52 - low52) if high52 > low52 else 0.5
     maD60 = round((price - ma60) / ma60 * 100, 1) if ma60 > 0 else 0
 
-    if ret5d >= 5 or premium >= 2:
+    if ret5d >= 5 or rsi >= 75:
         return "hot", maD60
     if pos52 > 0.78 or price > ma60 * 1.06:
         return "dear", maD60
 
-    conds = [premium < 1, price <= ma60 * 1.03, ret5d < 5, vol_ratio > 0.5]
+    conds = [price <= ma60 * 1.03, ret5d < 5, 0.5 <= vol_ratio <= 3.0, rsi < 75]
     if is_high_div(name, yld):
         conds.append(yld > 5)
     if all(conds):
         return "fair", maD60
 
-    if pos52 < 0.30 and maD60 < -3:
+    if pos52 < 0.40 and maD60 < -2:
         return "cheap", maD60
     return "dear", maD60
 
@@ -385,7 +385,7 @@ for code, name in ALL_ETFS:
                 pass
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
-                                   premium, ret5d, vol_ratio, yld, name)
+                                   ret5d, vol_ratio, rsi, yld, name)
         heat     = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
         div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
         div_days, div_est, div_next = calc_div_forecast(divs, code, div_freq)

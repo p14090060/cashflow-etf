@@ -71,7 +71,7 @@ def fetch_mis_etfs(codes):
                     continue
                 try:
                     price = float(z)
-                    prev  = float(y)
+                    prev  = float(y) if y and y != "-" else price
                     vol   = float(str(v).replace(",", "")) if v and v != "-" else 0
                     results[code] = {
                         "price":      price,
@@ -93,7 +93,7 @@ def fetch_mis_market():
         item = d.get("msgArray", [{}])[0]
         z, y, t = item.get("z","-"), item.get("y","-"), item.get("t","")
         if z and z != "-":
-            cur, prev = float(z), float(y)
+            cur, prev = float(z), (float(y) if y and y != "-" else float(z))
             return {
                 "price":      round(cur, 2),
                 "change_pt":  round(cur - prev, 2),
@@ -104,18 +104,28 @@ def fetch_mis_market():
         print(f"[MIS] 大盤失敗: {e}", file=sys.stderr)
     return None
 
-# ── 訊號計算（Task 5：不靠 NAV）────────────────────────────
-def calc_signal(price, ma20, ret5d, rsi, vol_ratio):
-    if price <= 0 or ma20 <= 0:
+# ── 訊號計算（與 fetch_etf.py 統一：ma60 + RSI，不靠 NAV）──
+_HIGH_DIV_KW = ["高股息", "高息", "精選高息", "永續高息", "價值高息"]
+
+def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, name):
+    if price <= 0 or ma60 <= 0:
         return "dear"
-    if ret5d >= 5 or rsi >= 70:
+    pos52 = (price - low52) / (high52 - low52) if high52 > low52 else 0.5
+    maD60 = round((price - ma60) / ma60 * 100, 1) if ma60 > 0 else 0
+
+    if ret5d >= 5 or rsi >= 75:
         return "hot"
-    if (ret5d < 5
-            and price <= ma20 * 1.02
-            and 0.5 <= vol_ratio <= 3.0
-            and rsi < 70):
+    if pos52 > 0.78 or price > ma60 * 1.06:
+        return "dear"
+
+    is_high_div = any(k in name for k in _HIGH_DIV_KW) or yld > 5
+    conds = [price <= ma60 * 1.03, ret5d < 5, 0.5 <= vol_ratio <= 3.0, rsi < 75]
+    if is_high_div:
+        conds.append(yld > 5)
+    if all(conds):
         return "fair"
-    if price < ma20 * 0.97 and rsi < 40:
+
+    if pos52 < 0.40 and maD60 < -2:
         return "cheap"
     return "dear"
 
@@ -323,6 +333,7 @@ def main():
             e["div_avg_per_share"] = d.get("avg_dividend_per_share")
             e["div_category"]      = d.get("category", "")
             e["div_todo"]          = d.get("_todo", True)
+            e.pop("div_freq", None)
 
         # 官方公告金額/日期 → 覆蓋 yfinance 的 est 和 days
         if code in div_cal_etfs:
@@ -337,13 +348,18 @@ def main():
             except (ValueError, KeyError):
                 pass
 
-        # 重算訊號（不靠 NAV）
+        # 重算訊號（不靠 NAV，與 fetch_etf.py 同一套邏輯）
         e["signal"] = calc_signal(
             e.get("price",     0),
             e.get("ma20",      0),
+            e.get("ma60",      0),
+            e.get("low52",     0),
+            e.get("high52",    0),
             e.get("ret5d",     0),
-            e.get("rsi",      50),
             e.get("vol_ratio", 1),
+            e.get("rsi",      50),
+            e.get("yld",       0),
+            e.get("name",     ""),
         )
         e.pop("premium", None)   # 移除 NAV 相關欄位
 
