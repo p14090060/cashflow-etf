@@ -1060,7 +1060,6 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   selETF = ETFS.find(e => e.code==='0056') || ETFS[0];
   renderChips();
   calcUpdate();
-  revCalcUpdate();
 
   const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD（本地時間）
   const futureCal = cal.filter(c => !c.iso_date || c.iso_date >= todayStr);
