@@ -372,8 +372,11 @@ def main():
         yld, yld_src, yld_lbl = calc_yield_with_source(
             code, e.get("price", 0), div_etfs, div_cal_etfs
         )
-        if yld > 0:
-            e["yld"] = yld          # 覆寫 _base.json 原始值
+        if 0 < yld <= 20:           # >20% 視為資料異常，捨棄
+            e["yld"] = yld
+        elif yld > 20:
+            yld_src = "error"
+            yld_lbl = "資料異常（殖利率>20%）"
         e["yld_source"] = yld_src
         e["yld_label"]  = yld_lbl
 

@@ -5,11 +5,11 @@
       "name": "元大台灣50",
       "frequency": "半年配",
       "months": [
-        1,
-        7
+        3,
+        9
       ],
       "category": "指數型",
-      "avg_dividend_per_share": 3.5,
+      "avg_dividend_per_share": 1.0,
       "_todo": false
     },
     "0056": {
@@ -22,7 +22,7 @@
         10
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 1.1,
+      "avg_dividend_per_share": 0.93,
       "_todo": false
     },
     "00878": {
@@ -30,12 +30,10 @@
       "frequency": "季配",
       "months": [
         2,
-        5,
-        8,
-        11
+        5
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.38,
+      "avg_dividend_per_share": 0.54,
       "_todo": false
     },
     "00919": {
@@ -67,20 +65,12 @@
       "frequency": "月配",
       "months": [
         1,
-        2,
         3,
         4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        5
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.42,
+      "avg_dividend_per_share": 0.11,
       "_todo": false
     },
     "00940": {
@@ -91,35 +81,19 @@
         2,
         3,
         4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        5
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.32,
+      "avg_dividend_per_share": 0.045,
       "_todo": false
     },
     "00939": {
       "name": "統一台灣科技優息",
       "frequency": "月配",
       "months": [
-        1,
         2,
         3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        5
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.072,
@@ -134,13 +108,7 @@
         3,
         4,
         5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        7
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.092,
@@ -148,20 +116,10 @@
     },
     "00930": {
       "name": "永豐ESG低碳高息",
-      "frequency": "月配",
+      "frequency": "季配",
       "months": [
         1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        3
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.1455,
@@ -171,21 +129,25 @@
       "name": "元大台灣高息低波",
       "frequency": "季配",
       "months": [
-        3
+        3,
+        6,
+        9,
+        12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 1.05,
-      "_todo": true
+      "avg_dividend_per_share": 0.78,
+      "_todo": false
     },
     "00850": {
       "name": "元大ESG永續",
-      "frequency": "季配",
+      "frequency": "半年配",
       "months": [
+        2,
         8
       ],
       "category": "ESG",
       "avg_dividend_per_share": 0.8,
-      "_todo": true
+      "_todo": false
     },
     "00981A": {
       "name": "統一台股增長",
@@ -240,17 +202,12 @@
         3,
         4,
         5,
-        6,
-        7,
-        8,
         9,
-        10,
-        11,
         12
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.075,
-      "_todo": true
+      "_todo": false
     },
     "0051": {
       "name": "元大中型100",
@@ -272,17 +229,19 @@
       "name": "國泰股利精選30",
       "frequency": "半年配",
       "months": [
-        1
+        1,
+        7
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.7,
-      "_todo": true
+      "_todo": false
     },
     "00733": {
       "name": "富邦台灣中小",
-      "frequency": "季配",
+      "frequency": "年配",
       "months": [
-        4
+        4,
+        6
       ],
       "category": "指數型",
       "avg_dividend_per_share": 0.578,
@@ -292,8 +251,8 @@
       "name": "國泰臺韓科技",
       "frequency": "年配",
       "months": [
-        10,
-        11
+        1,
+        5
       ],
       "category": "指數型",
       "avg_dividend_per_share": 1.0,
@@ -315,6 +274,38 @@
       "avg_dividend_per_share": 0,
       "_todo": false
     },
+    "00662": {
+      "name": "富邦NASDAQ",
+      "frequency": "不配息",
+      "months": [],
+      "category": "海外",
+      "avg_dividend_per_share": 0,
+      "_todo": false
+    },
+    "00679B": {
+      "name": "元大美債20年",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "債券",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00687B": {
+      "name": "國泰20年美債",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "債券",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00772B": {
+      "name": "中信高評等公司債",
+      "frequency": "月配",
+      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "category": "債券",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
     "00757": {
       "name": "統一FANG+",
       "frequency": "不配息",
@@ -325,20 +316,12 @@
     },
     "00891": {
       "name": "中信關鍵半導體",
-      "frequency": "月配",
+      "frequency": "季配",
       "months": [
-        1,
         2,
-        3,
-        4,
         5,
-        6,
-        7,
         8,
-        9,
-        10,
-        11,
-        12
+        11
       ],
       "category": "科技",
       "avg_dividend_per_share": 1.0,
@@ -346,20 +329,10 @@
     },
     "00894": {
       "name": "中信小資高價",
-      "frequency": "月配",
+      "frequency": "季配",
       "months": [
-        1,
         2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        5
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.5,
@@ -367,12 +340,10 @@
     },
     "00918": {
       "name": "大華優利高填息30",
-      "frequency": "季配",
+      "frequency": "年配",
       "months": [
         3,
-        6,
-        9,
-        12
+        8
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.62,
@@ -380,9 +351,10 @@
     },
     "00921": {
       "name": "兆豐台灣電子科技",
-      "frequency": "季配",
+      "frequency": "年配",
       "months": [
-        3
+        3,
+        12
       ],
       "category": "科技",
       "avg_dividend_per_share": 0.27,
@@ -401,7 +373,7 @@
     },
     "00690": {
       "name": "兆豐藍籌30",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         2,
         5
@@ -429,8 +401,7 @@
       "months": [
         1,
         4,
-        7,
-        10
+        12
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.925,
@@ -438,21 +409,22 @@
     },
     "00946": {
       "name": "群益科技高息成長",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.058,
-      "_todo": true
+      "_todo": false
     },
     "00953B": {
       "name": "群益優選非投等債",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
@@ -462,7 +434,7 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.061,
-      "_todo": true
+      "_todo": false
     },
     "00984D": {
       "name": "主動聯博全球非投",
@@ -476,7 +448,7 @@
     },
     "00985B": {
       "name": "群益ESG投等債0-5",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
@@ -486,7 +458,7 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.048,
-      "_todo": true
+      "_todo": false
     },
     "00771": {
       "name": "元大US高息特別股",
@@ -500,7 +472,7 @@
     },
     "00731": {
       "name": "復華富時高息低波",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         3,
         5
@@ -511,60 +483,63 @@
     },
     "00730": {
       "name": "富邦臺灣優質高息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.11,
-      "_todo": true
+      "_todo": false
     },
     "00934": {
       "name": "中信成長高股息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.161,
-      "_todo": true
+      "_todo": false
     },
     "00938": {
       "name": "凱基優選30",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         2,
         5
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.21,
-      "_todo": true
+      "_todo": false
     },
     "00943": {
       "name": "兆豐電子高息等權",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.0736,
-      "_todo": true
+      "_todo": false
     },
     "00944": {
       "name": "野村趨勢動能高息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
@@ -574,25 +549,39 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.054,
-      "_todo": true
+      "_todo": false
     },
     "00945B": {
       "name": "凱基美國非投等債",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
+        3,
         4,
-        5,
-        6
+        5
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.0874,
-      "_todo": true
+      "_todo": false
     },
     "00952": {
       "name": "凱基台灣AI50",
-      "frequency": "季配",
+      "frequency": "月配",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "category": "高股息",
+      "avg_dividend_per_share": 0.05,
+      "_todo": false
+    },
+    "00961": {
+      "name": "FT臺灣永續高息",
+      "frequency": "月配",
       "months": [
         1,
         2,
@@ -602,25 +591,11 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.06,
-      "_todo": true
-    },
-    "00961": {
-      "name": "FT臺灣永續高息",
-      "frequency": "季配",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
-      "category": "高股息",
-      "avg_dividend_per_share": 0.0718,
-      "_todo": true
+      "_todo": false
     },
     "00963": {
       "name": "中信全球高股息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
@@ -629,37 +604,39 @@
         5
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.0532,
-      "_todo": true
+      "avg_dividend_per_share": 0.045,
+      "_todo": false
     },
     "00964": {
       "name": "中信亞太高股息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.094,
-      "_todo": true
+      "_todo": false
     },
     "009808": {
       "name": "華南永昌優選50",
-      "frequency": "半年配",
+      "frequency": "年配",
       "months": [
         2,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.5255,
-      "_todo": true
+      "_todo": false
     },
     "00980A": {
       "name": "主動野村臺灣優選",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         2,
         5
@@ -670,46 +647,49 @@
     },
     "00981T": {
       "name": "平衡凱基雙核收息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.0578,
-      "_todo": true
+      "_todo": false
     },
     "00982A": {
       "name": "主動群益台灣強棒",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         2,
-        5
+        5,
+        12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.5085,
-      "_todo": true
+      "avg_dividend_per_share": 0.377,
+      "_todo": false
     },
     "00982D": {
       "name": "主動富邦動態入息",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.052,
-      "_todo": true
+      "_todo": false
     },
     "00983D": {
       "name": "主動富邦複合收益",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
         2,
@@ -719,35 +699,38 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.06,
-      "_todo": true
+      "_todo": false
     },
     "00775B": {
       "name": "新光投等債15+",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         2,
-        5
+        5,
+        12
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.35,
-      "_todo": true
+      "_todo": false
     },
     "00962": {
       "name": "台新AI優息動能",
-      "frequency": "季配",
+      "frequency": "月配",
       "months": [
         1,
+        2,
         3,
         4,
-        5
+        5,
+        9
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.042,
-      "_todo": true
+      "avg_dividend_per_share": 0.05,
+      "_todo": false
     },
     "00907": {
       "name": "永豐優息存股",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         2,
         4
@@ -768,7 +751,7 @@
     },
     "00714": {
       "name": "群益道瓊美國地產",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
@@ -779,7 +762,7 @@
     },
     "00717": {
       "name": "富邦美國特別股",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
@@ -790,18 +773,18 @@
     },
     "00905": {
       "name": "FT臺灣Smart",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.425,
-      "_todo": true
+      "avg_dividend_per_share": 0.6,
+      "_todo": false
     },
     "00908": {
       "name": "富邦入息REITs+",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
@@ -822,7 +805,7 @@
     },
     "00912": {
       "name": "中信臺灣智慧50",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
@@ -833,7 +816,7 @@
     },
     "00956": {
       "name": "中信日經高股息",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
@@ -844,7 +827,7 @@
     },
     "00960": {
       "name": "野村全球航運龍頭",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
@@ -868,15 +851,16 @@
       "frequency": "半年配",
       "months": [
         1,
-        4
+        4,
+        12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.218,
-      "_todo": true
+      "avg_dividend_per_share": 0.168,
+      "_todo": false
     },
     "00904": {
       "name": "新光臺灣半導體30",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
@@ -887,14 +871,14 @@
     },
     "00947": {
       "name": "台新臺灣IC設計",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.12,
-      "_todo": true
+      "_todo": false
     },
     "00728": {
       "name": "第一金工業30",
@@ -910,7 +894,8 @@
       "name": "復華彭博非投等債",
       "frequency": "年配",
       "months": [
-        3
+        3,
+        7
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.3,
@@ -990,7 +975,8 @@
       "name": "兆豐台灣晶圓製造",
       "frequency": "年配",
       "months": [
-        2
+        2,
+        3
       ],
       "category": "高股息",
       "avg_dividend_per_share": 1.6,
@@ -1010,7 +996,8 @@
       "name": "元大MSCI台灣",
       "frequency": "年配",
       "months": [
-        1
+        1,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 1.8,
@@ -1020,7 +1007,8 @@
       "name": "國泰標普低波高息",
       "frequency": "年配",
       "months": [
-        1
+        1,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.65,
@@ -1030,7 +1018,8 @@
       "name": "國泰新興市場",
       "frequency": "年配",
       "months": [
-        1
+        1,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.3,
@@ -1040,7 +1029,8 @@
       "name": "國泰北美科技",
       "frequency": "年配",
       "months": [
-        7
+        1,
+        6
       ],
       "category": "高股息",
       "avg_dividend_per_share": 4.2,
