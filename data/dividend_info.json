@@ -3,13 +3,8 @@
   "etfs": {
     "0050": {
       "name": "元大台灣50",
-      "frequency": "季配",
-      "months": [
-        1,
-        4,
-        7,
-        10
-      ],
+      "frequency": "半年配",
+      "months": [1, 7],
       "category": "指數型",
       "avg_dividend_per_share": 3.5,
       "_todo": false
@@ -274,7 +269,7 @@
     },
     "00701": {
       "name": "國泰股利精選30",
-      "frequency": "季配",
+      "frequency": "半年配",
       "months": [],
       "category": "高股息",
       "avg_dividend_per_share": null,
@@ -289,12 +284,12 @@
       "_todo": true
     },
     "00735": {
-      "name": "國泰臺灣高股息",
-      "frequency": "季配",
-      "months": [],
-      "category": "高股息",
+      "name": "國泰臺韓科技",
+      "frequency": "年配",
+      "months": [10, 11],
+      "category": "指數型",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": false
     },
     "006201": {
       "name": "元大MSCI台灣",
@@ -364,24 +359,11 @@
     },
     "00918": {
       "name": "大華優利高填息30",
-      "frequency": "月配",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
+      "frequency": "季配",
+      "months": [3, 6, 9, 12],
       "category": "高股息",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": false
     },
     "00921": {
       "name": "兆豐台灣電子科技",
@@ -398,6 +380,30 @@
       "category": "高股息",
       "avg_dividend_per_share": null,
       "_todo": true
+    },
+    "00690": {
+      "name": "兆豐藍籌30",
+      "frequency": "半年配",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00915": {
+      "name": "凱基優選高股息30",
+      "frequency": "季配",
+      "months": [3, 6, 9, 12],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": false
+    },
+    "00927": {
+      "name": "群益半導體收益",
+      "frequency": "季配",
+      "months": [1, 4, 7, 10],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": false
     }
   },
   "calendar": [
