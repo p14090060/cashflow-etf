@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-20 04:46",
+  "updated": "2026-05-20 07:08",
   "market": {
     "change_pct": -0.68,
     "change_pt": -280.54,
@@ -367,19 +367,19 @@
       "high52": 261.2,
       "rsi": 65.6,
       "yld": 2.1,
-      "days": 335,
+      "days": 336,
       "est": 1.2,
-      "div_next": "2027-04-20",
+      "div_next": "2027-04-21",
       "signal": "dear",
       "maD": 14.4,
       "ret5d": -1.93,
-      "ret1y": -67.9,
+      "ret1y": 0.0,
       "avg_vol": 45951262.75,
       "cur_vol": 32485319.0,
       "vol_ratio": 0.71,
       "heat": 21.94,
       "aum": 0,
-      "div_freq": "半年配"
+      "div_freq": "年配"
     },
     {
       "code": "0053",
@@ -1904,7 +1904,7 @@
       "vol_ratio": 1.45,
       "heat": 60.39,
       "aum": 0,
-      "div_freq": "月配"
+      "div_freq": "季配"
     },
     {
       "code": "00892",
@@ -1979,7 +1979,7 @@
       "vol_ratio": 1.19,
       "heat": 46.88,
       "aum": 0,
-      "div_freq": "月配"
+      "div_freq": "季配"
     },
     {
       "code": "00895",
@@ -2254,7 +2254,7 @@
       "vol_ratio": 1.01,
       "heat": 37.87,
       "aum": 0,
-      "div_freq": "月配"
+      "div_freq": "季配"
     },
     {
       "code": "00907",
@@ -2504,7 +2504,7 @@
       "vol_ratio": 0.52,
       "heat": 16.76,
       "aum": 0,
-      "div_freq": "季配"
+      "div_freq": "年配"
     },
     {
       "code": "00920",
@@ -2704,7 +2704,7 @@
       "vol_ratio": 0.95,
       "heat": 22.82,
       "aum": 0,
-      "div_freq": "月配"
+      "div_freq": "雙月配"
     },
     {
       "code": "00932",
@@ -2829,7 +2829,7 @@
       "vol_ratio": 2.63,
       "heat": 51.3,
       "aum": 0,
-      "div_freq": "半年配"
+      "div_freq": "季配"
     },
     {
       "code": "00939",
@@ -3717,9 +3717,9 @@
       "high52": 11.93,
       "rsi": 59.9,
       "yld": 2.5,
-      "days": 26,
+      "days": 28,
       "est": 0.07,
-      "div_next": "2026-06-15",
+      "div_next": "2026-06-17",
       "signal": "dear",
       "maD": 3.6,
       "ret5d": -0.76,
@@ -3729,7 +3729,7 @@
       "vol_ratio": 1.21,
       "heat": 44.73,
       "aum": 0,
-      "div_freq": "半年配"
+      "div_freq": "月配"
     },
     {
       "code": "009820",
@@ -3792,9 +3792,9 @@
       "high52": 10.27,
       "rsi": 28.4,
       "yld": 2.1,
-      "days": 26,
+      "days": 29,
       "est": 0.05,
-      "div_next": "2026-06-15",
+      "div_next": "2026-06-18",
       "signal": "fair",
       "maD": -2.4,
       "ret5d": -1.31,
@@ -3804,7 +3804,7 @@
       "vol_ratio": 2.92,
       "heat": 70.1,
       "aum": 0,
-      "div_freq": "半年配"
+      "div_freq": "月配"
     },
     {
       "code": "00982T",
@@ -3867,9 +3867,9 @@
       "high52": 10.36,
       "rsi": 33.6,
       "yld": 2.4,
-      "days": 26,
+      "days": 29,
       "est": 0.06,
-      "div_next": "2026-06-15",
+      "div_next": "2026-06-18",
       "signal": "fair",
       "maD": -1.8,
       "ret5d": -0.99,
@@ -3879,7 +3879,7 @@
       "vol_ratio": 0.65,
       "heat": 36.03,
       "aum": 0,
-      "div_freq": "半年配"
+      "div_freq": "月配"
     },
     {
       "code": "00984A",
@@ -3892,9 +3892,9 @@
       "high52": 15.05,
       "rsi": 61.6,
       "yld": 4.4,
-      "days": 61,
+      "days": 152,
       "est": 0.27,
-      "div_next": "2026-07-20",
+      "div_next": "2026-10-19",
       "signal": "dear",
       "maD": 9.3,
       "ret5d": -3.33,
@@ -3904,7 +3904,7 @@
       "vol_ratio": 0.76,
       "heat": 39.98,
       "aum": 0,
-      "div_freq": "季配"
+      "div_freq": "半年配"
     },
     {
       "code": "00984D",

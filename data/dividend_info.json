@@ -35,7 +35,7 @@
         11
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.54,
+      "avg_dividend_per_share": 0.66,
       "_todo": false
     },
     "00919": {
@@ -65,15 +65,41 @@
     "00929": {
       "name": "復華台灣科技優息",
       "frequency": "月配",
-      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.11,
+      "avg_dividend_per_share": 0.13,
       "_todo": false
     },
     "00940": {
       "name": "元大台灣價值高息",
       "frequency": "月配",
-      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "category": "高股息",
       "avg_dividend_per_share": 0.045,
       "_todo": false
@@ -81,7 +107,20 @@
     "00939": {
       "name": "統一台灣科技優息",
       "frequency": "月配",
-      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "category": "高股息",
       "avg_dividend_per_share": 0.072,
       "_todo": false
@@ -145,7 +184,7 @@
         11
       ],
       "category": "ESG",
-      "avg_dividend_per_share": 0.70,
+      "avg_dividend_per_share": 0.7,
       "_todo": false
     },
     "00981A": {
@@ -284,7 +323,12 @@
     "00679B": {
       "name": "元大美債20年",
       "frequency": "季配",
-      "months": [2,5,8,11],
+      "months": [
+        2,
+        5,
+        8,
+        11
+      ],
       "category": "債券",
       "avg_dividend_per_share": 0.29,
       "_todo": false
@@ -292,15 +336,33 @@
     "00687B": {
       "name": "國泰20年美債",
       "frequency": "季配",
-      "months": [3,6,9,12],
+      "months": [
+        3,
+        6,
+        9,
+        12
+      ],
       "category": "債券",
-      "avg_dividend_per_share": 0.30,
+      "avg_dividend_per_share": 0.3,
       "_todo": false
     },
     "00772B": {
       "name": "中信高評等公司債",
       "frequency": "月配",
-      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "category": "債券",
       "avg_dividend_per_share": 0.135,
       "_todo": false
