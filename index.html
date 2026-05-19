@@ -1109,7 +1109,7 @@ function renderRank() {
     const cls  = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
     const sigC = SIG_COLOR[e.signal] || '#8b949e';
     const ret  = (!e.ret1y && e.ret1y !== 0) ? '--' : e.ret1y === 0 ? '新上市' : ((e.ret1y >= 0 ? '+' : '') + e.ret1y.toFixed(1) + '%');
-    const retC = e.ret1y === 0 ? 'var(--dim)' : (e.ret1y || 0) >= 0 ? '#ff6b6b' : '#00e5a0';
+    const retC = e.ret1y === 0 ? '#f59e0b' : (e.ret1y || 0) >= 0 ? '#ff6b6b' : '#00e5a0';
     return `<div class="rank-row">
       <div class="rank-no ${cls}">${rank}</div>
       <div class="rank-etf">

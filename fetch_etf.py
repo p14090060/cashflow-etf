@@ -350,7 +350,7 @@ for code, name in ALL_ETFS:
         ret1y    = round(float((c.iloc[-1] / c.iloc[0]  - 1) * 100), 1) if len(c) >= 20 else 0.0
         # yfinance 歷史資料異常防呆：52週高低比 > 4 代表含除權前舊資料，ret1y 不可信
         if high52 > 0 and low52 > 0 and (high52 / low52) > 4:
-            ret1y = 0.0
+            ret1y = None
         avg_vol     = float(v.tail(20).mean())
         cur_vol     = float(v.iloc[-1])
         vol_ratio   = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
