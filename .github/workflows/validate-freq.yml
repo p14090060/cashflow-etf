@@ -1,6 +1,6 @@
 name: Validate ETF Dividend Frequency
 
-on:
+"on":
   schedule:
     - cron: "0 1 * * 1"
   workflow_dispatch:
