@@ -334,6 +334,10 @@ def main():
             e["div_category"]      = d.get("category", "")
             e["div_todo"]          = d.get("_todo", True)
             e.pop("div_freq", None)
+        else:
+            # 不在 dividend_info.json，沿用 _base.json 的 div_freq
+            if "div_freq" in e:
+                e["div_frequency"] = e.pop("div_freq")
 
         # 官方公告金額/日期 → 覆蓋 yfinance 的 est 和 days
         if code in div_cal_etfs:
