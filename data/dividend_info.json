@@ -740,9 +740,9 @@
       "months": [
         4
       ],
-      "category": "高股息",
+      "category": "科技",
       "avg_dividend_per_share": 1.199,
-      "_todo": true
+      "_todo": false
     },
     "00714": {
       "name": "群益道瓊美國地產",

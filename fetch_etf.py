@@ -63,7 +63,7 @@ HIGH_DIV_KEYWORDS = ["高股息", "高息", "精選高息", "永續高息", "價
 # ── 配息頻率靜態對照表（ETF 配息頻率幾乎不變，寫死最可靠）──────────
 DIV_FREQ = {
     # ── 年配 ──
-    "0050":"半年配","0051":"年配",  "0052":"半年配", "0053":"年配",
+    "0050":"半年配","0051":"年配",  "0052":"年配",   "0053":"年配",
     "0055":"年配",  "0057":"年配",  "006201":"年配", "00646":"不配息",
     "00660":"年配", "00909":"年配", "00951":"年配",  "00971":"年配",
     "009804":"年配","009811":"年配","00984D":"年配", "00980A":"季配",
@@ -348,6 +348,9 @@ for code, name in ALL_ETFS:
         rsi      = calc_rsi(c)
         ret5d    = round(float((c.iloc[-1] / c.iloc[-6] - 1) * 100), 2) if len(c) >= 6 else 0.0
         ret1y    = round(float((c.iloc[-1] / c.iloc[0]  - 1) * 100), 1) if len(c) >= 20 else 0.0
+        # yfinance 歷史資料異常防呆：52週高低比 > 4 代表含除權前舊資料，ret1y 不可信
+        if high52 > 0 and low52 > 0 and (high52 / low52) > 4:
+            ret1y = 0.0
         avg_vol     = float(v.tail(20).mean())
         cur_vol     = float(v.iloc[-1])
         vol_ratio   = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
