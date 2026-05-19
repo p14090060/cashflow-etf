@@ -2,8 +2,8 @@ name: Validate ETF Dividend Frequency
 
 on:
   schedule:
-    - cron: "0 1 * * 1"   # 每週一 UTC 01:00 = 台灣時間週一 09:00
-  workflow_dispatch:        # 允許手動觸發
+    - cron: "0 1 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -30,7 +30,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/dividend_info.json
           git diff --cached --quiet && echo "no changes" || (
-            git commit -m "fix: 自動修正 ETF 配息頻率 $(date +'%Y-%m-%d')" &&
+            git commit -m "fix: auto-correct ETF dividend frequency $(date +'%Y-%m-%d')" &&
             git pull --rebase origin main &&
             git push
           )
