@@ -21,6 +21,11 @@ def _load_confirmed_freq():
 
 _CONFIRMED_FREQ = _load_confirmed_freq()
 
+# 手動覆蓋 ret1y：yfinance 歷史資料異常的 ETF，填真實年化報酬率
+_RET1Y_OVERRIDE = {
+    "0052": 125.3,   # yfinance 除權前舊資料混入，真實值 125.30%（2026-05-20 確認）
+}
+
 def calc_rsi(close_series, period=14):
     """Wilder RSI，回傳 0-100；資料不足時回傳 50"""
     c = close_series.dropna()
@@ -351,6 +356,9 @@ for code, name in ALL_ETFS:
         # yfinance 歷史資料異常防呆：52週高低比 > 4 代表含除權前舊資料，ret1y 不可信
         if high52 > 0 and low52 > 0 and (high52 / low52) > 4:
             ret1y = None
+        # 手動覆蓋優先（已知 yfinance 資料有問題的 ETF）
+        if code in _RET1Y_OVERRIDE:
+            ret1y = _RET1Y_OVERRIDE[code]
         avg_vol     = float(v.tail(20).mean())
         cur_vol     = float(v.iloc[-1])
         vol_ratio   = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
