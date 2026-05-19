@@ -395,6 +395,25 @@
   .rank-sig  { width:56px; text-align:center; font-size:16px; font-weight:600; flex-shrink:0; }
   .rank-freq { width:64px; text-align:center; font-size:16px; color:var(--dim); flex-shrink:0; }
   .rank-ret  { width:58px; text-align:right; font-size:16px; font-weight:700; font-family:var(--mono); flex-shrink:0; }
+
+  /* ── 逆向計算機 ── */
+  .rev-note { font-size:14px; color:var(--dim); margin-top:8px; text-align:right; }
+
+  /* ── 月月領息組合 ── */
+  .combo-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px; }
+  .combo-title   { font-size:17px; font-weight:700; color:#ff9500; margin-bottom:4px; }
+  .combo-desc    { font-size:15px; color:var(--dim); margin-bottom:12px; }
+  .combo-input-row { display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .combo-card    { background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:8px; }
+  .combo-card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .combo-code    { font-family:var(--mono); font-weight:700; color:var(--bright); font-size:15px; }
+  .combo-name    { font-size:14px; color:var(--dim); margin-left:6px; }
+  .combo-yld     { color:#4ade80; font-weight:700; font-size:15px; }
+  .combo-months  { font-size:14px; color:#58a6ff; margin-bottom:4px; }
+  .combo-nums    { font-size:14px; color:var(--dim); }
+  .combo-nums b  { color:var(--bright); }
+  .combo-total   { text-align:center; padding:12px 0 4px; font-size:16px; color:var(--dim); border-top:1px solid var(--border); margin-top:8px; }
+  .combo-total span { color:#fde047; font-size:22px; font-weight:700; }
 </style>
 </head>
 <body>
@@ -471,6 +490,18 @@
     </div>
 
     <div class="panel">
+      <div class="panel-title">🎯 每月想領多少？</div>
+      <div style="font-size:15px;color:var(--dim);margin-bottom:12px">反推你需要買幾張（以上方選取的 ETF 計算）</div>
+      <div class="input-row">
+        <span class="input-lbl">每月領</span>
+        <input class="num-input" id="targetIn" type="number" min="100" step="500" value="3000">
+        <span class="input-lbl">元</span>
+      </div>
+      <div class="calc-out" id="revCalcOut" style="margin-top:10px"></div>
+      <div class="rev-note">以年化殖利率均攤估算，非投資建議</div>
+    </div>
+
+    <div class="panel">
       <div class="panel-title">近期配息日曆</div>
       <div id="calList"></div>
     </div>
@@ -495,7 +526,18 @@
       </div>
     </div>
 
-<div class="joke-card">
+<div class="combo-section">
+      <div class="combo-title">🗓️ 月月都有錢領</div>
+      <div class="combo-desc">輸入預算，幫你配出每個月都能領息的 ETF 組合</div>
+      <div class="combo-input-row">
+        <span style="color:var(--dim);font-size:16px">NT$</span>
+        <input class="num-input" id="comboCapital" type="number" min="10000" step="10000" value="100000" style="width:110px">
+        <button class="custom-btn" onclick="buildCombo()">幫我配 ▶</button>
+      </div>
+      <div id="comboResult"></div>
+    </div>
+
+    <div class="joke-card">
       <div class="joke-hdr">😄 今日股市笑話</div>
       <div class="joke-body" id="jokeBody"></div>
       <div class="joke-day" id="jokeDay"></div>
@@ -795,7 +837,7 @@ function renderChips() {
     `<div class="etf-chip ${e.code===selETF?.code?'on':''}" onclick="selChip('${e.code}')">${e.code}</div>`
   ).join('');
 }
-function selChip(code) { selETF = ETFS.find(e => e.code===code); renderChips(); calcUpdate(); }
+function selChip(code) { selETF = ETFS.find(e => e.code===code); renderChips(); calcUpdate(); revCalcUpdate(); }
 function calcUpdate() {
   const n = parseInt(document.getElementById('sharesIn').value) || 0;
   const next = (selETF.est * n * 1000).toFixed(0);
@@ -807,6 +849,80 @@ function calcUpdate() {
     <div class="calc-row"><span class="calc-lbl">${n} 張市值約</span><span class="calc-val sm">${parseInt(cost).toLocaleString()} 元</span></div>`;
 }
 document.getElementById('sharesIn').addEventListener('input', calcUpdate);
+
+// ── 逆向計算機 ──
+function revCalcUpdate() {
+  const target = parseInt(document.getElementById('targetIn').value) || 0;
+  const el = document.getElementById('revCalcOut');
+  if (!selETF || !target) { el.innerHTML = ''; return; }
+  if ((selETF.yld || 0) <= 0) {
+    el.innerHTML = '<div style="color:var(--dim);padding:6px 0">此 ETF 尚無殖利率資料</div>';
+    return;
+  }
+  const annualPerLot = selETF.yld / 100 * selETF.price * 1000;
+  const lots = Math.ceil(target * 12 / annualPerLot);
+  const capital = lots * selETF.price * 1000;
+  const actualMonthly = Math.round(annualPerLot * lots / 12);
+  el.innerHTML = `
+    <div class="calc-row"><span class="calc-lbl">需要買</span><span class="calc-val"><span class="big-num">${lots}</span> 張</span></div>
+    <div class="calc-row"><span class="calc-lbl">本金約</span><span class="calc-val">${capital.toLocaleString()} 元</span></div>
+    <div class="calc-row"><span class="calc-lbl">實際每月均領</span><span class="calc-val sm">${actualMonthly.toLocaleString()} 元</span></div>`;
+}
+document.getElementById('targetIn').addEventListener('input', revCalcUpdate);
+
+// ── 月月領息組合 ──
+function buildCombo() {
+  const budget = parseInt(document.getElementById('comboCapital').value) || 0;
+  const el = document.getElementById('comboResult');
+  if (!budget || !ETFS.length) return;
+
+  const eligible = ETFS.filter(e =>
+    (e.yld || 0) > 0 &&
+    Array.isArray(e.div_months) && e.div_months.length > 0 &&
+    e.div_frequency !== '不配息' &&
+    (e.price || 0) > 0
+  ).sort((a, b) => b.yld - a.yld);
+
+  let picks = [];
+  const monthly = eligible.filter(e => e.div_frequency === '月配');
+
+  if (monthly.length >= 1) {
+    // 月配 ETF 已涵蓋全年，最多取前 2 支分散
+    picks = monthly.slice(0, 2).map((etf, i, arr) => ({ etf, frac: 1 / arr.length }));
+  } else {
+    // 季配三組：1/4/7/10、2/5/8/11、3/6/9/12
+    const grp = [[1,4,7,10],[2,5,8,11],[3,6,9,12]].map(months =>
+      eligible.find(e => e.div_months.some(m => months.includes(m)))
+    ).filter(Boolean);
+    // 去重
+    const seen = new Set();
+    grp.forEach(etf => { if (!seen.has(etf.code)) { seen.add(etf.code); picks.push({ etf, frac: 0 }); } });
+    picks.forEach(p => p.frac = 1 / picks.length);
+  }
+
+  const MNAME = ['','1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  let totalAnnual = 0;
+  const cards = picks.map(({ etf, frac }) => {
+    const lots = Math.floor(budget * frac / (etf.price * 1000));
+    if (lots === 0) return '';
+    const capital = lots * etf.price * 1000;
+    const annual  = capital * etf.yld / 100;
+    totalAnnual  += annual;
+    const monthsStr = etf.div_months.map(m => MNAME[m]).join(' · ');
+    return `<div class="combo-card">
+      <div class="combo-card-top">
+        <div><span class="combo-code">${etf.code}</span><span class="combo-name">${etf.name}</span></div>
+        <span class="combo-yld">${etf.yld}%</span>
+      </div>
+      <div class="combo-months">📅 ${monthsStr}</div>
+      <div class="combo-nums">買 <b>${lots}</b> 張 &nbsp;·&nbsp; 本金 <b>${capital.toLocaleString()}</b> 元 &nbsp;·&nbsp; 年領約 <b>${Math.round(annual).toLocaleString()}</b> 元</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = cards + `
+    <div class="combo-total">預估每月平均領息 <span>${Math.round(totalAnnual/12).toLocaleString()}</span> 元</div>
+    <div style="font-size:13px;color:var(--dim);margin-top:6px;text-align:center">以現價及歷史平均配息估算，非投資建議</div>`;
+}
 
 // ── Signal card renderer ──
 function renderSignalCard(etf, estimated) {
@@ -1056,6 +1172,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   selETF = ETFS.find(e => e.code==='0056') || ETFS[0];
   renderChips();
   calcUpdate();
+  revCalcUpdate();
 
   const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD（本地時間）
   const futureCal = cal.filter(c => !c.iso_date || c.iso_date >= todayStr);
