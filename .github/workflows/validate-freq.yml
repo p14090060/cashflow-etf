@@ -1,15 +1,15 @@
-name: Validate ETF Dividend Frequency
+name: Auto Sync ETF Dividend Info
 
 "on":
   schedule:
-    - cron: "0 1 * * 1"
+    - cron: "0 1 * * 1"   # 每週一 台北時間 09:00
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  validate:
+  sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +21,8 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Validate dividend frequency against TWSE
-        run: python scripts/validate_div_freq.py
+      - name: Auto sync ETF dividend info (new ETFs + avg + months + freq)
+        run: python scripts/auto_sync_etfs.py
 
       - name: Commit if changed
         run: |
@@ -30,7 +30,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/dividend_info.json
           git diff --cached --quiet && echo "no changes" || (
-            git commit -m "fix: auto-correct ETF dividend frequency $(date +'%Y-%m-%d')" &&
+            git commit -m "chore: auto-sync ETF dividend info $(date +'%Y-%m-%d')" &&
             git pull --rebase origin main &&
             git push
           )
