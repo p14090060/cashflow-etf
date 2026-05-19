@@ -4,7 +4,10 @@
     "0050": {
       "name": "元大台灣50",
       "frequency": "半年配",
-      "months": [1, 7],
+      "months": [
+        1,
+        7
+      ],
       "category": "指數型",
       "avg_dividend_per_share": 3.5,
       "_todo": false
@@ -286,7 +289,10 @@
     "00735": {
       "name": "國泰臺韓科技",
       "frequency": "年配",
-      "months": [10, 11],
+      "months": [
+        10,
+        11
+      ],
       "category": "指數型",
       "avg_dividend_per_share": null,
       "_todo": false
@@ -360,7 +366,12 @@
     "00918": {
       "name": "大華優利高填息30",
       "frequency": "季配",
-      "months": [3, 6, 9, 12],
+      "months": [
+        3,
+        6,
+        9,
+        12
+      ],
       "category": "高股息",
       "avg_dividend_per_share": null,
       "_todo": false
@@ -392,7 +403,12 @@
     "00915": {
       "name": "凱基優選高股息30",
       "frequency": "季配",
-      "months": [3, 6, 9, 12],
+      "months": [
+        3,
+        6,
+        9,
+        12
+      ],
       "category": "高股息",
       "avg_dividend_per_share": null,
       "_todo": false
@@ -400,7 +416,12 @@
     "00927": {
       "name": "群益半導體收益",
       "frequency": "季配",
-      "months": [1, 4, 7, 10],
+      "months": [
+        1,
+        4,
+        7,
+        10
+      ],
       "category": "高股息",
       "avg_dividend_per_share": null,
       "_todo": false
@@ -488,9 +509,9 @@
       "source": "yfinance"
     },
     {
-      "iso_date": "2026-07-25",
+      "iso_date": "2026-07-26",
       "mon": "7月",
-      "day": "25",
+      "day": "26",
       "code": "0050",
       "name": "元大台灣50",
       "amt": 1.0,
