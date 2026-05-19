@@ -6,6 +6,21 @@ import yfinance as yf
 OUT_BASE = Path(__file__).parent / "data" / "_base.json"
 OUT_DIV  = Path(__file__).parent / "data" / "dividend_info.json"
 
+# 啟動時載入 dividend_info.json，_todo:false 的條目作為最高優先來源
+def _load_confirmed_freq():
+    try:
+        with open(OUT_DIV, encoding="utf-8") as f:
+            info = json.load(f)
+        return {
+            code: meta["frequency"]
+            for code, meta in info.get("etfs", {}).items()
+            if not meta.get("_todo", True) and meta.get("frequency")
+        }
+    except Exception:
+        return {}
+
+_CONFIRMED_FREQ = _load_confirmed_freq()
+
 def calc_rsi(close_series, period=14):
     """Wilder RSI，回傳 0-100；資料不足時回傳 50"""
     c = close_series.dropna()
@@ -47,16 +62,15 @@ HIGH_DIV_KEYWORDS = ["高股息", "高息", "精選高息", "永續高息", "價
 
 # ── 配息頻率靜態對照表（ETF 配息頻率幾乎不變，寫死最可靠）──────────
 DIV_FREQ = {
-    # ── 半年配 ──
-    "0056":"半年配",
     # ── 年配 ──
-    "0050":"年配",  "0051":"年配",  "0052":"半年配", "0053":"年配",
+    "0050":"季配",  "0051":"年配",  "0052":"半年配", "0053":"年配",
     "0055":"年配",  "0057":"年配",  "006201":"年配", "00646":"不配息",
     "00660":"年配", "00909":"年配", "00951":"年配",  "00971":"年配",
     "009804":"年配","009811":"年配","00984D":"年配", "00980A":"年配",
     "00982A":"年配", "00983A":"年配", "00986A":"年配", "009810":"年配",
     # ── 季配 ──
-    "00713":"季配", "006208":"季配","00850":"季配",
+    "0056":"季配",
+    "00713":"季配", "006208":"半年配","00850":"季配",
     "00881":"季配", "00882":"季配", "00892":"季配",
     "00901":"季配", "00908":"季配", "00913":"季配",
     "00916":"季配", "00921":"季配", "00922":"季配",
@@ -68,7 +82,7 @@ DIV_FREQ = {
     "00990A":"季配","00991A":"季配","00992A":"季配","00993A":"季配",
     "00994A":"季配","00995A":"季配","00997A":"季配",
     # ── 月配 ──
-    "00919":"月配", "00981A":"月配","00403A":"月配","00878":"月配",
+    "00919":"月配", "00981A":"月配","00403A":"季配","00878":"月配",
     "00940":"月配", "00929":"月配",
     "00891":"月配", "00894":"月配", "00896":"月配", "00900":"月配",
     "00904":"月配", "00905":"月配", "00907":"月配", "00915":"月配",
@@ -114,7 +128,11 @@ _NAME_FREQ = [
 ]
 
 def detect_div_freq(tk, code, name="", hist_days=0):
-    """優先查手動表 → 名稱關鍵字 → TWSE API → yfinance 股利歷史推算"""
+    """優先查 dividend_info.json（已確認）→ 手動表 → 名稱關鍵字 → TWSE API → yfinance 推算"""
+    # 0. dividend_info.json 已確認（_todo:false）優先
+    confirmed = _CONFIRMED_FREQ.get(code)
+    if confirmed:
+        return confirmed
     # 1. 手動維護表
     manual = DIV_FREQ.get(code)
     if manual:

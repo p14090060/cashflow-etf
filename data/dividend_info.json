@@ -208,23 +208,15 @@
     },
     "00403A": {
       "name": "統一台股升級50",
-      "frequency": "月配",
+      "frequency": "季配",
       "months": [
-        1,
         2,
-        3,
-        4,
         5,
-        6,
-        7,
         8,
-        9,
-        10,
-        11,
-        12
+        11
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.3,
+      "avg_dividend_per_share": null,
       "_todo": true
     },
     "00881": {
