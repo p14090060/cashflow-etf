@@ -1,6 +1,6 @@
 """
 scripts/daily_check.py
-每日收盤後驗證 market.json 資料品質，有異常發 LINE Notify。
+每日收盤後驗證 market.json 資料品質，有異常發 Telegram 通知。
 自動修正：TWSE 官方新配息金額 vs 儲存 avg 差 >15% → 更新 dividend_info.json
 """
 import json, os, sys, urllib.request, urllib.parse
@@ -23,20 +23,21 @@ LAZY_WATCHLIST = {
 
 FREQ_MULT = {"月配":12,"雙月配":6,"季配":4,"半年配":2,"年配":1,"不配息":0}
 
-LINE_TOKEN = os.environ.get("LINE_NOTIFY_TOKEN","")
+TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 
 def notify(msg: str):
-    """發 LINE Notify，沒有 token 就印到 stdout。"""
+    """發 Telegram 訊息，沒有 token 就印到 stdout。"""
     print(f"[NOTIFY] {msg}")
-    if not LINE_TOKEN:
+    if not TG_TOKEN or not TG_CHAT_ID:
         return
     try:
-        data = urllib.parse.urlencode({"message": f"\n{msg}"}).encode()
+        data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg}).encode()
         req  = urllib.request.Request(
-            "https://notify-api.line.me/api/notify",
+            f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
             data=data,
-            headers={"Authorization": f"Bearer {LINE_TOKEN}"},
+            headers={"Content-Type": "application/json"},
         )
         urllib.request.urlopen(req, timeout=10)
     except Exception as e:
