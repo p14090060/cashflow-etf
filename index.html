@@ -771,7 +771,7 @@ function runETFCheck() {
       </div>
       <div class="health-grid">
         <div class="health-kv"><div class="k">現價</div><div class="v">${etf.price}</div></div>
-        <div class="health-kv"><div class="k">殖利率</div><div class="v">${etf.yld}%${yldBadge(etf)}</div></div>
+        <div class="health-kv"><div class="k">年化殖利率</div><div class="v">${etf.yld}%${yldBadge(etf)}</div></div>
         <div class="health-kv"><div class="k">溢折價</div><div class="v" style="color:${etf.premium>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.premium)}</div></div>
         <div class="health-kv"><div class="k">60MA偏離</div><div class="v" style="color:${etf.maD>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.maD)}</div></div>
         <div class="health-kv"><div class="k">5日漲跌</div><div class="v" style="color:${etf.ret5d>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.ret5d)}</div></div>
@@ -825,7 +825,7 @@ function renderSignalCard(etf, estimated) {
     </div>
     <div class="buy-stats">
       <span><span class="lbl">現價 </span><span class="val">${etf.price}</span></span>
-      <span><span class="lbl">殖利率 </span><span class="val">${etf.yld}%${yldBadge(etf)}</span></span>
+      <span><span class="lbl">年化殖利率 </span><span class="val">${etf.yld}%${yldBadge(etf)}</span></span>
       <span><span class="lbl">60MA </span><span class="${etf.maD>=0?'pos':'neg'}">${etf.maD>=0?'+':''}${etf.maD.toFixed(1)}%</span></span>
     </div>
     <div class="range-track">
@@ -998,7 +998,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
       ${note}
       <div class="buy-stats">
         <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
-        <span><span class="lbl">殖利率 </span><span class="val">${e.yld}%${yldBadge(e)}</span></span>
+        <span><span class="lbl">年化殖利率 </span><span class="val">${e.yld}%${yldBadge(e)}</span></span>
         <span><span class="lbl">60MA </span><span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span></span>
       </div>
       <div class="range-track">
@@ -1051,7 +1051,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
           <span class="wait-name">${e.name}</span>
         </div>
         <div style="font-size:16px;color:var(--dim);margin-top:2px">
-          現價 ${e.price} · 殖利率 ${e.yld}%${yldBadge(e)}
+          現價 ${e.price} · 年化殖利率 ${e.yld}%${yldBadge(e)}
         </div>
       </div>
       <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
