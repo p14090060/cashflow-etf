@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-05-19",
+    "last_updated": "2026-05-20",
     "source": "TWSE e添富 (ETFortune/dividendList)",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)",
@@ -30,18 +30,6 @@
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-05-20",
       "amount": 0.13
-    },
-    "00878": {
-      "code": "00878",
-      "name": "國泰永續高股息",
-      "ex_dividend_date": "2026-05-19",
-      "amount": 0.66
-    },
-    "00932": {
-      "code": "00932",
-      "name": "兆豐永續高息等權",
-      "ex_dividend_date": "2026-05-19",
-      "amount": 0.22
     }
   }
 }
