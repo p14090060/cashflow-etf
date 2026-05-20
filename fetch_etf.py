@@ -26,6 +26,11 @@ _RET1Y_OVERRIDE = {
     "0052": 125.3,   # yfinance 除權前舊資料混入，真實值 125.30%（2026-05-20 確認）
 }
 
+# 手動覆蓋 yld：yfinance 12 個月加總失真的 ETF，填真實年化殖利率
+_YLD_OVERRIDE = {
+    "00940": 4.67,   # yfinance 抓到上市初期大配息，真實年化 4.67%（2026-05-20 確認）
+}
+
 def calc_rsi(close_series, period=14):
     """Wilder RSI，回傳 0-100；資料不足時回傳 50"""
     c = close_series.dropna()
@@ -394,6 +399,8 @@ for code, name in ALL_ETFS:
                     yld = round(annual / price * 100, 1)
             except Exception:
                 pass
+        if code in _YLD_OVERRIDE:
+            yld = _YLD_OVERRIDE[code]
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    ret5d, vol_ratio, rsi, yld, name)
