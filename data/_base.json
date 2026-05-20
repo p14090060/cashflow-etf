@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-20 07:29",
+  "updated": "2026-05-20 08:10",
   "market": {
     "change_pct": -0.68,
     "change_pt": -280.54,
@@ -373,7 +373,7 @@
       "signal": "dear",
       "maD": 14.4,
       "ret5d": -1.93,
-      "ret1y": 0.0,
+      "ret1y": 125.3,
       "avg_vol": 45951262.75,
       "cur_vol": 32485319.0,
       "vol_ratio": 0.71,
