@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-05-20",
+    "last_updated": "2026-05-21",
     "source": "TWSE e添富 (ETFortune/dividendList)",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)",
@@ -24,12 +24,6 @@
       "name": "元大臺灣ESG永續",
       "ex_dividend_date": "2026-05-22",
       "amount": 0.85
-    },
-    "00929": {
-      "code": "00929",
-      "name": "復華台灣科技優息",
-      "ex_dividend_date": "2026-05-20",
-      "amount": 0.13
     }
   }
 }
