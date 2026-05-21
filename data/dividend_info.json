@@ -1152,16 +1152,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-05-22",
-      "mon": "5月",
-      "day": "22",
-      "code": "00929",
-      "name": "復華台灣科技優息",
-      "amt": 0.13,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-05-29",
       "mon": "5月",
       "day": "29",
@@ -1178,7 +1168,7 @@
       "code": "00940",
       "name": "元大台灣價值高息",
       "amt": 0.04,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
@@ -1208,6 +1198,16 @@
       "code": "00713",
       "name": "台灣高息低波",
       "amt": 0.78,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-06-19",
+      "mon": "6月",
+      "day": "19",
+      "code": "00929",
+      "name": "復華台灣科技優息",
+      "amt": 0.13,
       "soon": false,
       "source": "yfinance"
     },
