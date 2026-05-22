@@ -38,7 +38,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json
+          git add data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json data/daily_state.json
           git diff --cached --quiet || git commit -m "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')"
           git pull --rebase origin main
           git push

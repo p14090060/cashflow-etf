@@ -3,7 +3,7 @@ scripts/daily_check.py
 每日收盤後驗證 market.json 資料品質，有異常發 Telegram 通知。
 自動修正：TWSE 官方新配息金額 vs 儲存 avg 差 >15% → 更新 dividend_info.json
 """
-import json, os, sys, urllib.request, urllib.parse
+import json, os, sys, time, urllib.request
 from pathlib import Path
 
 ROOT        = Path(__file__).parent.parent
@@ -11,6 +11,7 @@ MARKET      = ROOT / "data" / "market.json"
 DIV_INFO    = ROOT / "data" / "dividend_info.json"
 DIV_CAL     = ROOT / "data" / "dividend_calendar.json"
 KNOWN_CODES = ROOT / "data" / "known_codes.json"
+DAILY_STATE = ROOT / "data" / "daily_state.json"
 
 LAZY_WATCHLIST = {
     '0050','0056','006208',
@@ -22,14 +23,11 @@ LAZY_WATCHLIST = {
     '00403A',
 }
 
-FREQ_MULT = {"月配":12,"雙月配":6,"季配":4,"半年配":2,"年配":1,"不配息":0}
-
 TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 
 def notify(msg: str):
-    """發 Telegram 訊息，沒有 token 就印到 stdout。"""
     print(f"[NOTIFY] {msg}")
     if not TG_TOKEN or not TG_CHAT_ID:
         return
@@ -53,8 +51,12 @@ def load(path):
         return None
 
 
+def save_json(path, obj):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=2)
+
+
 def check_new_in_top100(etfs: list) -> list:
-    """比對本次 TOP 100 與上次紀錄，回傳新進的 ETF 物件清單。"""
     top100 = sorted(
         [e for e in etfs if (e.get("cur_vol") or 0) > 0 and e.get("price", 0) > 0],
         key=lambda e: e.get("heat", 0),
@@ -62,16 +64,13 @@ def check_new_in_top100(etfs: list) -> list:
     )[:100]
     current_codes = {e["code"] for e in top100}
 
-    # 讀上次紀錄
     try:
         with open(KNOWN_CODES, encoding="utf-8") as f:
             known = set(json.load(f))
     except Exception:
-        known = None  # 第一次執行，沒有基準
+        known = None
 
-    # 更新紀錄
-    with open(KNOWN_CODES, "w", encoding="utf-8") as f:
-        json.dump(sorted(current_codes), f, ensure_ascii=False)
+    save_json(KNOWN_CODES, sorted(current_codes))
 
     if known is None:
         print("[INFO] known_codes.json 初始化完成，下次執行才開始偵測新進")
@@ -83,6 +82,16 @@ def check_new_in_top100(etfs: list) -> list:
 
 
 def main():
+    # ── 0. market.json 過期檢查（30 小時）──
+    if MARKET.exists():
+        age_hours = (time.time() - MARKET.stat().st_mtime) / 3600
+        if age_hours > 30:
+            notify(f"🚨 market.json 資料過期（已 {age_hours:.0f} 小時未更新），Action 可能執行失敗")
+            return
+    else:
+        notify("🚨 market.json 不存在，請確認 Action 是否正常執行")
+        return
+
     market   = load(MARKET)
     div_info = load(DIV_INFO)
     div_cal  = load(DIV_CAL)
@@ -95,38 +104,86 @@ def main():
     info_map = div_info.get("etfs", {})
     cal_map  = (div_cal or {}).get("etfs", {})
 
-    issues   = []
-    updated  = []  # avg 自動更新的紀錄
+    # ── 載入跨日狀態 ──
+    state      = load(DAILY_STATE) or {}
+    yld_prev   = state.get("yld_prev", {})
+    vol_streak = state.get("zero_vol_streak", {})
 
+    issues        = []
+    updated       = []
+    cheap_alerts  = []
+    div_alerts    = []
+
+    # ── 1. 報酬率異常 ±80%（全部 ETF，偵測拆分或資料錯誤）──
     for e in etfs:
-        code = e.get("code","")
+        ret1y = e.get("ret1y")
+        if ret1y is not None and abs(ret1y) > 80:
+            issues.append(
+                f"• {e['code']} {e.get('name','')}：近1年報酬 {ret1y:+.1f}%，"
+                f"數值異常，可能有拆分或資料錯誤，請人工確認"
+            )
+
+    # ── 2-6. LAZY_WATCHLIST 各項檢查 ──
+    for e in etfs:
+        code    = e.get("code", "")
+        name    = e.get("name", code)
+        price   = e.get("price", 0)
+        yld     = e.get("yld", 0)
+        cur_vol = e.get("cur_vol") or 0
+
+        # ── 3. 成交量消失連追（LAZY_WATCHLIST）──
+        if code in LAZY_WATCHLIST:
+            if cur_vol == 0:
+                vol_streak[code] = vol_streak.get(code, 0) + 1
+                if vol_streak[code] >= 3:
+                    issues.append(
+                        f"• {code} {name}：連續 {vol_streak[code]} 天無成交量，"
+                        f"可能下市、暫停交易或資料抓取失敗"
+                    )
+            else:
+                vol_streak[code] = 0
+
         if code not in LAZY_WATCHLIST:
             continue
 
-        name  = e.get("name", code)
-        price = e.get("price", 0)
-        yld   = e.get("yld",   0)
-
-        # ── 1. 價格異常 ──
+        # ── 2. 價格異常 ──
         if price <= 0:
             issues.append(f"• {code} {name}：現價為 0，資料抓取失敗")
             continue
 
-        # ── 2. 殖利率 >15%（防呆已攔截多數，這是最後防線）──
+        # ── 殖利率 >15%（防呆）──
         if yld > 15:
             issues.append(f"• {code} {name}：殖利率 {yld}% 異常（>15%）")
 
-        # ── 3. TWSE 官方最新配息 vs 儲存 avg，差 >15% → 自動更新 ──
-        cal = cal_map.get(code)
-        info = info_map.get(code, {})
-        stored_avg = info.get("avg_dividend_per_share")
+        # ── 2. 殖利率從有到 0 ──
+        prev_yld = yld_prev.get(code, 0)
+        if prev_yld > 0 and yld == 0:
+            issues.append(
+                f"• {code} {name}：殖利率歸零（上次 {prev_yld}%），"
+                f"可能 FinMind 無資料或該檔已停止配息"
+            )
+        yld_prev[code] = yld
 
+        # ── 4. 訊號變便宜 ──
+        if e.get("signal") == "cheap":
+            cheap_alerts.append(f"• {code} {name}：訊號轉為便宜，目前位置偏低")
+
+        # ── 5. 配息 7 天內 ──
+        days = e.get("days")
+        est  = e.get("est")
+        if days is not None and 0 <= days <= 7:
+            est_str = f"，預估 {est:.2f} 元/張" if est else ""
+            div_alerts.append(f"• {code} {name}：{days} 天後配息{est_str}")
+
+        # ── TWSE 官方配息 vs avg 差 >15% → 自動更新 ──
+        cal        = cal_map.get(code)
+        info       = info_map.get(code, {})
+        stored_avg = info.get("avg_dividend_per_share")
         if cal and stored_avg and stored_avg > 0:
             official_amt = cal.get("amount", 0)
             if official_amt > 0:
                 diff = abs(official_amt - stored_avg) / stored_avg
                 if diff > 0.15:
-                    # 自動更新
                     info_map[code]["avg_dividend_per_share"] = official_amt
                     updated.append(
                         f"• {code} {name}：avg {stored_avg}→{official_amt}"
@@ -136,9 +193,13 @@ def main():
     # ── 儲存自動更新 ──
     if updated:
         div_info["etfs"] = info_map
-        with open(DIV_INFO, "w", encoding="utf-8") as f:
-            json.dump(div_info, f, ensure_ascii=False, indent=2)
+        save_json(DIV_INFO, div_info)
         print(f"[AUTO-FIX] 更新 {len(updated)} 支 avg")
+
+    # ── 儲存跨日狀態 ──
+    state["yld_prev"]        = yld_prev
+    state["zero_vol_streak"] = vol_streak
+    save_json(DAILY_STATE, state)
 
     # ── TOP 100 新進偵測 ──
     new_entries = check_new_in_top100(etfs)
@@ -151,6 +212,12 @@ def main():
     if updated:
         lines.append("✅ ETF健診 avg 自動更新")
         lines.extend(updated)
+    if cheap_alerts:
+        lines.append("💚 監控清單 便宜訊號")
+        lines.extend(cheap_alerts)
+    if div_alerts:
+        lines.append("🎁 配息即將到來（7天內）")
+        lines.extend(div_alerts)
     if new_entries:
         lines.append("🆕 新進成交量 TOP 100")
         for e in new_entries:
@@ -162,7 +229,7 @@ def main():
     if lines:
         notify("\n".join(lines))
     else:
-        print("[OK] 所有 LAZY_WATCHLIST ETF 資料正常，TOP 100 無新進")
+        print("[OK] 所有監控 ETF 資料正常，TOP 100 無新進")
 
 
 if __name__ == "__main__":
