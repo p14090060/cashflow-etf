@@ -368,14 +368,17 @@ def main():
         )
         e.pop("premium", None)   # 移除 NAV 相關欄位
 
-        # 殖利率：_base.json 已通過雙源核對 → 直接沿用，不覆蓋
-        if b.get("yld_verified") and 0 < b.get("yld", 0) <= 20:
-            e["yld"]         = b["yld"]
-            e["yld_verified"] = True
-            e["yld_source"]  = "verified"
-            e["yld_label"]   = "雙源核對（FinMind × TWSE ETFortune）"
+        # 殖利率：_base.json 有合理值（fetch_etf.py 用 TWSE 多筆平均算的）→ 直接沿用
+        # 不靠 mis_fetcher 的 "單筆×頻率" 反算，那樣對變動配息 ETF 會嚴重失真
+        base_yld = b.get("yld") or 0
+        if 0 < base_yld <= 20:
+            e["yld"]          = base_yld
+            e["yld_verified"] = b.get("yld_verified", False)
+            e["yld_source"]   = "base" if not b.get("yld_verified") else "verified"
+            e["yld_label"]    = ("雙源核對（FinMind × TWSE ETFortune）"
+                                 if b.get("yld_verified") else "fetch_etf 計算")
         else:
-            # 殖利率反算（Plan C：官方公告 → 歷史平均 → 無資料）
+            # Fallback：_base.json 沒有 yld 才用 Plan C（官方公告 → 歷史平均）
             yld, yld_src, yld_lbl = calc_yield_with_source(
                 code, e.get("price", 0), div_etfs, div_cal_etfs
             )

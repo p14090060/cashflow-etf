@@ -837,7 +837,7 @@ function runHoldingCheck() {
         </div>
         <div class="health-kv">
           <div class="k">年殖利率</div>
-          <div class="v">${etf.yld > 0 ? etf.yld + '%' : '--'}</div>
+          <div class="v">${fmtYld(etf)}</div>
         </div>
         <div class="health-kv" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline">
           <div class="k">配息</div>
@@ -885,7 +885,7 @@ function runETFCheck() {
       </div>
       <div class="health-grid">
         <div class="health-kv"><div class="k">現價</div><div class="v">${etf.price}</div></div>
-        <div class="health-kv"><div class="k">年化殖利率</div><div class="v">${etf.yld}%${yldBadge(etf)}</div></div>
+        <div class="health-kv"><div class="k">年化殖利率</div><div class="v">${fmtYld(etf)}</div></div>
         <div class="health-kv"><div class="k">溢折價</div><div class="v" style="color:${etf.premium>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.premium)}</div></div>
         <div class="health-kv"><div class="k">60MA偏離</div><div class="v" style="color:${etf.maD>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.maD)}</div></div>
         <div class="health-kv"><div class="k">5日漲跌</div><div class="v" style="color:${etf.ret5d>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.ret5d)}</div></div>
@@ -914,12 +914,15 @@ function miniBars(months) {
   }).join('');
 }
 
-// ── 殖利率來源 badge ──────────────────────────────────────
-function yldBadge(e) {
-  if (e.yld_source === 'official')   return '<span class="yld-badge" title="TWSE 官方公告推算">🏛️</span>';
-  if (e.yld_source === 'historical') return '<span class="yld-badge" title="歷史平均估算">📊</span>';
-  return '';
+// ── 殖利率顯示：核對通過顯示數字，未通過加 ~ 提示待確認 ──
+function fmtYld(e) {
+  if (!e || e.yld == null) return '--';
+  const noDiv = (e.div_freq || e.div_frequency) === '不配息';
+  if (noDiv) return '不配息';
+  if (e.yld_verified) return e.yld > 0 ? e.yld.toFixed(1) + '%' : '--';
+  return e.yld > 0 ? '~' + e.yld.toFixed(1) + '%' : '--';
 }
+function yldBadge(e) { return ''; }
 
 // ── Mutable globals（renderAll 會更新）──
 let ETFS = STATIC_ETFS;
@@ -958,7 +961,7 @@ function renderSignalCard(etf, estimated) {
     </div>
     <div class="buy-stats">
       <span><span class="lbl">現價 </span><span class="val">${etf.price}</span></span>
-      <span><span class="lbl">年化殖利率 </span><span class="val">${etf.yld}%${yldBadge(etf)}</span></span>
+      <span><span class="lbl">年化殖利率 </span><span class="val">${fmtYld(etf)}</span></span>
       <span><span class="lbl">60MA </span><span class="${etf.maD>=0?'pos':'neg'}">${etf.maD>=0?'+':''}${etf.maD.toFixed(1)}%</span></span>
     </div>
     <div class="range-track">
@@ -1131,7 +1134,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
       ${note}
       <div class="buy-stats">
         <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
-        <span><span class="lbl">年化殖利率 </span><span class="val">${e.yld}%${yldBadge(e)}</span></span>
+        <span><span class="lbl">年化殖利率 </span><span class="val">${fmtYld(e)}</span></span>
         <span><span class="lbl">60MA </span><span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span></span>
       </div>
       <div class="range-track">
@@ -1247,9 +1250,12 @@ function renderRank() {
     const noDiv  = freq === '不配息';
     const yldTxt = noDiv         ? '不適用'
                  : e.new_listing ? '未滿1歲'
-                 : (e.yld > 0)  ? e.yld.toFixed(1) + '%'
+                 : e.yld_verified && e.yld > 0 ? e.yld.toFixed(1) + '%'
+                 : e.yld > 0    ? '~' + e.yld.toFixed(1) + '%'
                  : '--';
-    const yldClr = (e.yld > 0 && !noDiv && !e.new_listing) ? '#f5c842' : 'var(--dim)';
+    const yldClr = (e.yld > 0 && !noDiv && !e.new_listing)
+                   ? (e.yld_verified ? '#f5c842' : '#8b7020')
+                   : 'var(--dim)';
     const ret1y = fmtRet(e.ret1y);
     const y1C   = retClr(e.ret1y);
     return `<div class="rank-row">
