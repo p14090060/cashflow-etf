@@ -332,7 +332,7 @@ def fetch_nav_twse(code):
     return None
 
 # ── 主流程 ──────────────────────────────────────────────────────────
-ALL_ETFS = build_pool()
+ALL_ETFS  = build_pool()
 
 results = []
 for code, name in ALL_ETFS:
@@ -390,18 +390,31 @@ for code, name in ALL_ETFS:
         try:
             info = tk.fast_info
             aum = safe(getattr(info, "market_cap", 0) or 0)
-            # fast_info.dividend_yield 對台灣 ETF 幾乎都是 None，改從股利歷史計算
-            _dy = getattr(info, "dividend_yield", None)
-            if _dy:
-                yld = round(float(_dy) * 100, 1)
         except Exception:
             pass
         import pandas as _pd
-        divs = tk.dividends  # 一次抓，殖利率 + 配息預測共用
+        divs = tk.dividends  # 一次抓，配息預測共用
+
+        # 殖利率優先序：hist Dividends（已抓好、無時區問題）→ fast_info → tk.dividends → _YLD_OVERRIDE
+        if price > 0 and 'Dividends' in hist.columns:
+            try:
+                annual = float(hist['Dividends'].sum())
+                if annual > 0:
+                    yld = round(annual / price * 100, 1)
+            except Exception:
+                pass
+        if yld == 0.0 and price > 0:
+            try:
+                _dy = getattr(info, "dividend_yield", None)
+                if _dy:
+                    yld = round(float(_dy) * 100, 1)
+            except Exception:
+                pass
         if yld == 0.0 and price > 0:
             try:
                 cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=365)
-                annual = float(divs[divs.index > cutoff].sum())
+                idx = divs.index.tz_convert('UTC') if divs.index.tz else divs.index.tz_localize('UTC')
+                annual = float(divs[idx > cutoff].sum())
                 if annual > 0:
                     yld = round(annual / price * 100, 1)
             except Exception:
