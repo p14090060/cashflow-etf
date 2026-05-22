@@ -10,6 +10,7 @@ ROOT        = Path(__file__).parent.parent
 MARKET      = ROOT / "data" / "market.json"
 DIV_INFO    = ROOT / "data" / "dividend_info.json"
 DIV_CAL     = ROOT / "data" / "dividend_calendar.json"
+KNOWN_CODES = ROOT / "data" / "known_codes.json"
 
 LAZY_WATCHLIST = {
     '0050','0056','006208',
@@ -50,6 +51,35 @@ def load(path):
             return json.load(f)
     except Exception:
         return None
+
+
+def check_new_in_top100(etfs: list) -> list:
+    """比對本次 TOP 100 與上次紀錄，回傳新進的 ETF 物件清單。"""
+    top100 = sorted(
+        [e for e in etfs if (e.get("cur_vol") or 0) > 0 and e.get("price", 0) > 0],
+        key=lambda e: e.get("heat", 0),
+        reverse=True,
+    )[:100]
+    current_codes = {e["code"] for e in top100}
+
+    # 讀上次紀錄
+    try:
+        with open(KNOWN_CODES, encoding="utf-8") as f:
+            known = set(json.load(f))
+    except Exception:
+        known = None  # 第一次執行，沒有基準
+
+    # 更新紀錄
+    with open(KNOWN_CODES, "w", encoding="utf-8") as f:
+        json.dump(sorted(current_codes), f, ensure_ascii=False)
+
+    if known is None:
+        print("[INFO] known_codes.json 初始化完成，下次執行才開始偵測新進")
+        return []
+
+    new_codes = current_codes - known
+    code_map  = {e["code"]: e for e in top100}
+    return [code_map[c] for c in new_codes if c in code_map]
 
 
 def main():
@@ -110,6 +140,9 @@ def main():
             json.dump(div_info, f, ensure_ascii=False, indent=2)
         print(f"[AUTO-FIX] 更新 {len(updated)} 支 avg")
 
+    # ── TOP 100 新進偵測 ──
+    new_entries = check_new_in_top100(etfs)
+
     # ── 發通知 ──
     lines = []
     if issues:
@@ -118,11 +151,18 @@ def main():
     if updated:
         lines.append("✅ ETF健診 avg 自動更新")
         lines.extend(updated)
+    if new_entries:
+        lines.append("🆕 新進成交量 TOP 100")
+        for e in new_entries:
+            sig  = {"cheap":"便宜","fair":"合理","hot":"過熱","dear":"偏貴"}.get(e.get("signal",""), "?")
+            yld  = e.get("yld", 0)
+            ystr = f"殖利率 {yld}%" if yld else "無殖利率紀錄"
+            lines.append(f"• {e['code']} {e.get('name','')} · {sig} · {ystr}")
 
     if lines:
         notify("\n".join(lines))
     else:
-        print("[OK] 所有 LAZY_WATCHLIST ETF 資料正常")
+        print("[OK] 所有 LAZY_WATCHLIST ETF 資料正常，TOP 100 無新進")
 
 
 if __name__ == "__main__":
