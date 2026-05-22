@@ -520,19 +520,14 @@
     <div class="check-section">
       <div class="check-title">🩺 持倉健檢</div>
       <div style="font-size:16px;color:var(--dim);margin-bottom:14px">輸入代碼、張數、成本價，查看今日持倉現況</div>
-      <div style="display:grid;grid-template-columns:1fr 80px 100px;gap:8px;margin-bottom:12px">
-        <input class="num-input" id="hldCode" placeholder="ETF 代碼" maxlength="8"
-               style="text-transform:uppercase;font-family:var(--mono);font-size:16px"
-               onkeydown="if(event.key==='Enter')runHoldingCheck()">
-        <input class="num-input" id="hldShares" type="number" placeholder="張數" min="1" step="1"
+      <input class="num-input" id="hldCode" placeholder="ETF 代碼（如 0056）" maxlength="8"
+             style="width:100%;text-transform:uppercase;font-family:var(--mono);font-size:17px;margin-bottom:8px;box-sizing:border-box"
+             onkeydown="if(event.key==='Enter')runHoldingCheck()">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <input class="num-input" id="hldShares" type="number" placeholder="持有張數" min="1" step="1"
                style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
-        <input class="num-input" id="hldCost" type="number" placeholder="成本價" min="0" step="0.1"
+        <input class="num-input" id="hldCost" type="number" placeholder="成本價（元）" min="0" step="0.1"
                style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
-      </div>
-      <div style="display:flex;gap:6px;margin-bottom:4px">
-        <span style="font-size:14px;color:var(--dim);width:calc(100%/3)">↑ 代碼</span>
-        <span style="font-size:14px;color:var(--dim);width:80px">↑ 張數</span>
-        <span style="font-size:14px;color:var(--dim);width:100px">↑ 成本價（元）</span>
       </div>
       <button class="check-calc-btn" onclick="runHoldingCheck()">健檢 →</button>
       <div id="holdingResult" style="margin-top:12px"></div>
