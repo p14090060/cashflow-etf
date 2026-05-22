@@ -397,7 +397,7 @@
   .rank-code     { font-size:18px; font-weight:700; font-family:var(--mono); color:var(--bright); }
   .rank-name     { font-size:16px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rank-sig      { font-size:16px; font-weight:600; flex-shrink:0; white-space:nowrap; }
-  .rank-freq     { width:40px; font-size:16px; color:var(--dim); flex-shrink:0; }
+  .rank-freq     { width:52px; font-size:16px; color:var(--dim); flex-shrink:0; }
   .rank-num      { width:66px; font-size:16px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
   .rank-yld      { width:70px; font-size:16px; font-family:var(--mono); flex-shrink:0; text-align:right; color:#a78bfa; }
   .mini-bars     { display:flex; align-items:flex-end; gap:3px; height:26px; padding-left:8px; flex-shrink:0; }
@@ -610,7 +610,7 @@
           <div>狀態</div>
         </div>
         <div class="rank-hdr-sub">
-          <div style="width:40px">配息</div>
+          <div style="width:52px">配息</div>
           <div style="width:66px;text-align:right">年報酬率</div>
           <div style="width:70px;text-align:right">年殖利率</div>
           <div style="padding-left:8px">近3月績效</div>
@@ -1136,8 +1136,8 @@ function renderRank() {
     const rank  = i + 1;
     const cls   = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
     const sigC  = SIG_COLOR[e.signal] || '#8b949e';
-    const freq   = (e.div_freq||e.div_frequency) === '不配息' ? '不配' : (e.div_freq||e.div_frequency||'?');
-    const noDiv  = freq === '不配';
+    const freq   = e.div_freq || e.div_frequency || '?';
+    const noDiv  = freq === '不配息';
     const yldTxt = noDiv         ? '不適用'
                  : e.new_listing ? '未滿1歲'
                  : (e.yld > 0)  ? e.yld.toFixed(1) + '%'
