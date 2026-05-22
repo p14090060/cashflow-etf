@@ -383,25 +383,25 @@
 
   /* ── Rank page ── */
   .rank-sticky   { position:sticky; top:0; z-index:10; background:var(--bg); padding-bottom:4px; }
-  .rank-hdr      { font-size:13px; color:var(--dim); border-bottom:1px solid var(--border); margin-bottom:4px; padding:4px 10px 6px; }
-  .rank-hdr-main { display:flex; align-items:center; margin-bottom:3px; }
+  .rank-hdr      { font-size:14px; color:var(--dim); border-bottom:1px solid var(--border); margin-bottom:4px; padding:4px 10px 8px; }
+  .rank-hdr-main { display:flex; align-items:center; margin-bottom:4px; }
   .rank-hdr-sub  { display:flex; align-items:center; gap:0; padding-left:34px; }
-  .rank-row      { padding:10px; border-bottom:1px solid rgba(255,255,255,.04); }
+  .rank-row      { padding:12px 10px; border-bottom:1px solid rgba(255,255,255,.04); }
   .rank-main     { display:flex; align-items:center; }
-  .rank-sub      { display:flex; align-items:center; padding-left:34px; margin-top:6px; }
-  .rank-no       { width:34px; text-align:center; font-size:16px; font-weight:700; color:var(--dim); flex-shrink:0; }
+  .rank-sub      { display:flex; align-items:center; padding-left:34px; margin-top:8px; }
+  .rank-no       { width:34px; text-align:center; font-size:17px; font-weight:700; color:var(--dim); flex-shrink:0; }
   .rank-no.gold  { color:#FFD700; }
   .rank-no.silver{ color:#C0C0C0; }
   .rank-no.bronze{ color:#CD7F32; }
   .rank-etf      { flex:1; min-width:0; padding-right:6px; }
-  .rank-code     { font-size:16px; font-weight:700; font-family:var(--mono); color:var(--bright); }
-  .rank-name     { font-size:14px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .rank-sig      { font-size:14px; font-weight:600; flex-shrink:0; white-space:nowrap; }
-  .rank-freq     { width:38px; font-size:14px; color:var(--dim); flex-shrink:0; }
-  .rank-num      { width:58px; font-size:14px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
-  .rank-yld      { width:62px; font-size:14px; font-family:var(--mono); flex-shrink:0; text-align:right; color:#a78bfa; }
-  .mini-bars     { display:flex; align-items:flex-end; gap:2px; height:22px; padding-left:8px; flex-shrink:0; }
-  .mini-bar      { width:8px; border-radius:1px 1px 0 0; }
+  .rank-code     { font-size:17px; font-weight:700; font-family:var(--mono); color:var(--bright); }
+  .rank-name     { font-size:15px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-sig      { font-size:15px; font-weight:600; flex-shrink:0; white-space:nowrap; }
+  .rank-freq     { width:38px; font-size:15px; color:var(--dim); flex-shrink:0; }
+  .rank-num      { width:62px; font-size:15px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
+  .rank-yld      { width:66px; font-size:15px; font-family:var(--mono); flex-shrink:0; text-align:right; color:#a78bfa; }
+  .mini-bars     { display:flex; align-items:flex-end; gap:3px; height:24px; padding-left:8px; flex-shrink:0; }
+  .mini-bar      { width:9px; border-radius:1px 1px 0 0; }
 
   /* ── 逆向計算機 ── */
 
@@ -610,10 +610,10 @@
           <div>狀態</div>
         </div>
         <div class="rank-hdr-sub">
-          <div style="width:34px">配息</div>
-          <div style="width:58px;text-align:right">年報酬率</div>
-          <div style="width:62px;text-align:right">年殖利率</div>
-          <div style="padding-left:8px">近6月績效</div>
+          <div style="width:38px">配息</div>
+          <div style="width:62px;text-align:right">年報酬率</div>
+          <div style="width:66px;text-align:right">年殖利率</div>
+          <div style="padding-left:8px">近3月績效</div>
         </div>
       </div>
     </div>
@@ -1155,7 +1155,7 @@ function renderRank() {
         <div class="rank-freq">${freq}</div>
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
-        <div class="mini-bars">${miniBars(e.ret_months)}</div>
+        <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>
       </div>
     </div>`;
   }).join('');
