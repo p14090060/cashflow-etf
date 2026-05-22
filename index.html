@@ -1109,8 +1109,8 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
 function renderRank() {
   const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
   const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c' };
-  const fmtRet = v => (v == null) ? '--' : v === 0 ? '新上市' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-  const retClr = v => (v == null || v === 0) ? '#f59e0b' : v >= 0 ? '#ff6b6b' : '#00e5a0';
+  const fmtRet = v => (v == null) ? '--' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+  const retClr = v => (v == null) ? 'var(--dim)' : v >= 0 ? '#ff6b6b' : '#00e5a0';
 
   function miniBars(months) {
     if (!months || !months.length) return '<span style="color:var(--dim);font-size:11px">--</span>';
