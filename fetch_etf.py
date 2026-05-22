@@ -21,9 +21,19 @@ def _load_confirmed_freq():
 
 _CONFIRMED_FREQ = _load_confirmed_freq()
 
+# ETF 拆分紀錄（備查，供未來防呆與進榜時核對）
+# 格式：代碼 → [(拆分日, 拆分比例)]，比例 = 拆後張數 / 拆前張數
+SPLIT_RECORDS = {
+    "0050":   [("2025-06-01", 4)],   # 1拆4
+    "0052":   [("2025-11-30", 7)],   # 1拆7
+    "00631L": [("2026-03-01", 22)],  # 1拆22
+    "00663L": [("2026-01-01", 7)],   # 1拆7（首例槓桿型）
+    "00685L": [("2026-01-01", 24)],  # 1拆24（擬進行，待確認日期）
+}
+
 # 手動覆蓋 ret1y：yfinance 歷史資料異常的 ETF，填真實年化報酬率
 _RET1Y_OVERRIDE = {
-    "0052": 125.3,   # yfinance 除權前舊資料混入，真實值 125.30%（2026-05-20 確認）
+    # 改用 Adj Close 後拆分問題已自動修正，不再需要手動覆蓋
 }
 
 # 手動覆蓋 yld：yfinance 12 個月加總失真的 ETF，填真實年化殖利率
@@ -369,20 +379,23 @@ for code, name in ALL_ETFS:
         if len(c) < 5:
             raise ValueError("insufficient clean data")
 
+        # Adj Close：拆分回溯調整，用於報酬率計算；Close 用於現價/均線/訊號
+        adj = hist["Adj Close"].dropna() if "Adj Close" in hist.columns else c
+
         price    = round(float(c.iloc[-1]), 2)
         low52    = round(float(c.min()), 2)
         high52   = round(float(c.max()), 2)
         ma60     = round(float(c.tail(60).mean()), 2)
         ma20     = round(float(c.tail(20).mean()), 2)
         rsi      = calc_rsi(c)
-        ret5d    = round(float((c.iloc[-1] / c.iloc[-6]  - 1) * 100), 2) if len(c) >= 6  else 0.0
-        ret1m    = round(float((c.iloc[-1] / c.iloc[-22] - 1) * 100), 1) if len(c) >= 22 else 0.0
-        ret1y    = round(float((c.iloc[-1] / c.iloc[0]   - 1) * 100), 1) if len(c) >= 20 else 0.0
+        ret5d    = round(float((adj.iloc[-1] / adj.iloc[-6]  - 1) * 100), 2) if len(adj) >= 6  else 0.0
+        ret1m    = round(float((adj.iloc[-1] / adj.iloc[-22] - 1) * 100), 1) if len(adj) >= 22 else 0.0
+        ret1y    = round(float((adj.iloc[-1] / adj.iloc[0]   - 1) * 100), 1) if len(adj) >= 20 else 0.0
         # 每月個別報酬（最近 6 個月，oldest→newest），k=6 最舊、k=1 最新
         def _mr(k):
-            n = len(c); e = n-(k-1)*22; s = n-k*22
+            n = len(adj); e = n-(k-1)*22; s = n-k*22
             if s < 0 or e <= s: return None
-            return round(float((c.iloc[e-1]/c.iloc[s]-1)*100), 1)
+            return round(float((adj.iloc[e-1]/adj.iloc[s]-1)*100), 1)
         ret_months  = [_mr(k) for k in range(6, 0, -1)]
         new_listing = len(hist) < 240   # 上市未滿約1年（交易日 < 240）
         # yfinance 歷史資料異常防呆：52週高低比 > 4 代表含除權前舊資料，ret1y 不可信
