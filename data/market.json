@@ -7444,6 +7444,17 @@
   ],
   "calendar": [
     {
+      "code": "00850",
+      "name": "元大臺灣ESG永續",
+      "iso_date": "2026-05-22",
+      "day": "22",
+      "mon": "5月",
+      "amt": 0.85,
+      "soon": true,
+      "days_until": 0,
+      "source": "official"
+    },
+    {
       "code": "00930",
       "name": "永豐ESG低碳高息",
       "iso_date": "2026-05-26",
@@ -7451,7 +7462,7 @@
       "mon": "5月",
       "amt": 0.31,
       "soon": true,
-      "days_until": 3,
+      "days_until": 4,
       "source": "official"
     },
     {
@@ -7462,7 +7473,7 @@
       "mon": "6月",
       "amt": 0,
       "soon": true,
-      "days_until": 10,
+      "days_until": 11,
       "source": "official"
     },
     {
@@ -7472,7 +7483,7 @@
       "mon": "6月",
       "amt": 0.04,
       "soon": true,
-      "days_until": 13,
+      "days_until": 14,
       "source": "estimate"
     },
     {
@@ -7482,7 +7493,7 @@
       "mon": "6月",
       "amt": 0.78,
       "soon": false,
-      "days_until": 24,
+      "days_until": 25,
       "source": "estimate"
     },
     {
@@ -7492,7 +7503,7 @@
       "mon": "6月",
       "amt": 0.41,
       "soon": false,
-      "days_until": 24,
+      "days_until": 25,
       "source": "estimate"
     },
     {
@@ -7502,7 +7513,7 @@
       "mon": "6月",
       "amt": 0.13,
       "soon": false,
-      "days_until": 27,
+      "days_until": 28,
       "source": "estimate"
     },
     {
@@ -7512,7 +7523,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 61,
+      "days_until": 62,
       "source": "estimate"
     },
     {
@@ -7522,7 +7533,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 64,
+      "days_until": 65,
       "source": "estimate"
     },
     {
@@ -7532,17 +7543,7 @@
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
-      "days_until": 87,
-      "source": "estimate"
-    },
-    {
-      "code": "00850",
-      "name": "元大ESG永續",
-      "day": "21",
-      "mon": "8月",
-      "amt": 0.85,
-      "soon": false,
-      "days_until": 90,
+      "days_until": 88,
       "source": "estimate"
     }
   ]
