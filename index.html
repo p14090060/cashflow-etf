@@ -382,19 +382,26 @@
   .health-miss { font-size:16px; color:var(--dim); text-align:center; padding:16px 0; }
 
   /* ── Rank page ── */
-  .rank-hdr { display:flex; align-items:center; padding:6px 10px; font-size:13px; color:var(--dim); border-bottom:1px solid var(--border); margin-bottom:4px; }
-  .rank-row { display:flex; align-items:center; padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.04); }
-  .rank-no  { width:34px; text-align:center; font-size:16px; font-weight:700; color:var(--dim); flex-shrink:0; }
-  .rank-no.gold   { color:#FFD700; }
-  .rank-no.silver { color:#C0C0C0; }
-  .rank-no.bronze { color:#CD7F32; }
-  .rank-etf  { flex:1; min-width:0; padding-right:6px; }
-  .rank-code { font-size:16px; font-weight:700; font-family:var(--mono); color:var(--bright); }
-  .rank-name { font-size:14px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .rank-sticky { position:sticky; top:0; z-index:10; background:var(--bg); padding-bottom:4px; }
-  .rank-sig  { width:56px; text-align:center; font-size:16px; font-weight:600; flex-shrink:0; }
-  .rank-freq { width:64px; text-align:center; font-size:16px; color:var(--dim); flex-shrink:0; }
-  .rank-ret  { width:58px; text-align:right; font-size:16px; font-weight:700; font-family:var(--mono); flex-shrink:0; }
+  .rank-sticky   { position:sticky; top:0; z-index:10; background:var(--bg); padding-bottom:4px; }
+  .rank-hdr      { font-size:12px; color:var(--dim); border-bottom:1px solid var(--border); margin-bottom:4px; padding:4px 10px 6px; }
+  .rank-hdr-main { display:flex; align-items:center; margin-bottom:3px; }
+  .rank-hdr-sub  { display:flex; align-items:center; gap:0; padding-left:34px; }
+  .rank-row      { padding:10px; border-bottom:1px solid rgba(255,255,255,.04); }
+  .rank-main     { display:flex; align-items:center; }
+  .rank-sub      { display:flex; align-items:center; padding-left:34px; margin-top:5px; }
+  .rank-no       { width:34px; text-align:center; font-size:16px; font-weight:700; color:var(--dim); flex-shrink:0; }
+  .rank-no.gold  { color:#FFD700; }
+  .rank-no.silver{ color:#C0C0C0; }
+  .rank-no.bronze{ color:#CD7F32; }
+  .rank-etf      { flex:1; min-width:0; padding-right:6px; }
+  .rank-code     { font-size:16px; font-weight:700; font-family:var(--mono); color:var(--bright); }
+  .rank-name     { font-size:13px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-sig      { font-size:13px; font-weight:600; flex-shrink:0; white-space:nowrap; }
+  .rank-freq     { width:34px; font-size:12px; color:var(--dim); flex-shrink:0; }
+  .rank-num      { width:52px; font-size:12px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
+  .rank-yld      { width:46px; font-size:12px; font-family:var(--mono); flex-shrink:0; text-align:right; color:#a78bfa; }
+  .mini-bars     { display:flex; align-items:flex-end; gap:2px; height:20px; padding-left:8px; flex-shrink:0; }
+  .mini-bar      { width:7px; border-radius:1px 1px 0 0; }
 
   /* ── 逆向計算機 ── */
 
@@ -597,11 +604,17 @@
       </div>
       <div style="font-size:13px; color:var(--dim); margin-bottom:8px;">依當日成交量排序 · 共 <span id="rankTotal">-</span> 支</div>
       <div class="rank-hdr">
-        <div style="width:34px"></div>
-        <div style="flex:1">ETF</div>
-        <div style="width:56px;text-align:center">狀態</div>
-        <div style="width:52px;text-align:center">配息</div>
-        <div style="width:58px;text-align:right">年報酬</div>
+        <div class="rank-hdr-main">
+          <div style="width:34px">#</div>
+          <div style="flex:1">ETF</div>
+          <div>狀態</div>
+        </div>
+        <div class="rank-hdr-sub">
+          <div style="width:34px">配息</div>
+          <div style="width:52px;text-align:right">近1年</div>
+          <div style="width:46px;text-align:right">殖利率</div>
+          <div style="padding-left:8px">近6月績效</div>
+        </div>
       </div>
     </div>
     <div id="rankRows"></div>
@@ -1094,8 +1107,23 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
 
 // ── Rank page ──────────────────────────────────────────────────────
 function renderRank() {
-  const SIG_LABEL = { cheap:'便宜', fair:'合理 ✓', hot:'過熱', dear:'偏貴' };
+  const SIG_LABEL = { cheap:'便宜✓', fair:'合理✓', hot:'過熱⚡', dear:'偏貴' };
   const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c' };
+  const fmtRet = v => (v == null) ? '--' : v === 0 ? '新上市' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+  const retClr = v => (v == null || v === 0) ? '#f59e0b' : v >= 0 ? '#ff6b6b' : '#00e5a0';
+
+  function miniBars(months) {
+    if (!months || !months.length) return '<span style="color:var(--dim);font-size:11px">--</span>';
+    const vals = months.map(v => v ?? 0);
+    const maxAbs = Math.max(...vals.map(Math.abs), 2);
+    return months.map(v => {
+      const val = v ?? 0;
+      const h   = Math.max(3, Math.round(Math.abs(val) / maxAbs * 18));
+      const bg  = v == null ? 'var(--border)' : val >= 0 ? '#ff6b6b' : '#00e5a0';
+      const tip = v != null ? (val >= 0 ? '+' : '') + val.toFixed(1) + '%' : '--';
+      return `<div class="mini-bar" style="height:${h}px;background:${bg}" title="${tip}"></div>`;
+    }).join('');
+  }
 
   const sorted = [...ETFS]
     .filter(e => (e.cur_vol || 0) > 0 && e.price > 0)
@@ -1105,20 +1133,28 @@ function renderRank() {
   document.getElementById('rankTotal').textContent = sorted.length;
 
   document.getElementById('rankRows').innerHTML = sorted.map((e, i) => {
-    const rank = i + 1;
-    const cls  = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
-    const sigC = SIG_COLOR[e.signal] || '#8b949e';
-    const ret  = (!e.ret1y && e.ret1y !== 0) ? '--' : e.ret1y === 0 ? '新上市' : ((e.ret1y >= 0 ? '+' : '') + e.ret1y.toFixed(1) + '%');
-    const retC = e.ret1y === 0 ? '#f59e0b' : (e.ret1y || 0) >= 0 ? '#ff6b6b' : '#00e5a0';
+    const rank  = i + 1;
+    const cls   = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
+    const sigC  = SIG_COLOR[e.signal] || '#8b949e';
+    const freq  = (e.div_freq||e.div_frequency) === '不配息' ? '不配' : (e.div_freq||e.div_frequency||'?');
+    const yld   = (e.yld && e.yld > 0) ? e.yld.toFixed(1) + '%' : '--';
+    const ret1y = fmtRet(e.ret1y);
+    const y1C   = retClr(e.ret1y);
     return `<div class="rank-row">
-      <div class="rank-no ${cls}">${rank}</div>
-      <div class="rank-etf">
-        <div class="rank-code">${e.code}</div>
-        <div class="rank-name">${e.name}</div>
+      <div class="rank-main">
+        <div class="rank-no ${cls}">${rank}</div>
+        <div class="rank-etf">
+          <div class="rank-code">${e.code}</div>
+          <div class="rank-name">${e.name}</div>
+        </div>
+        <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
       </div>
-      <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
-      <div class="rank-freq">${(e.div_frequency||e.div_freq)==='不配'?'不配息':((e.div_frequency||e.div_freq)||'不明')}</div>
-      <div class="rank-ret" style="color:${retC}">${ret}</div>
+      <div class="rank-sub">
+        <div class="rank-freq">${freq}</div>
+        <div class="rank-num" style="color:${y1C}">${ret1y}</div>
+        <div class="rank-yld">${yld}</div>
+        <div class="mini-bars">${miniBars(e.ret_months)}</div>
+      </div>
     </div>`;
   }).join('');
 }
