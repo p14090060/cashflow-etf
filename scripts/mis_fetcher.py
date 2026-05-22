@@ -368,17 +368,25 @@ def main():
         )
         e.pop("premium", None)   # 移除 NAV 相關欄位
 
-        # 殖利率反算（Plan C：官方公告 → 歷史平均 → 無資料）
-        yld, yld_src, yld_lbl = calc_yield_with_source(
-            code, e.get("price", 0), div_etfs, div_cal_etfs
-        )
-        if 0 < yld <= 20:           # >20% 視為資料異常，捨棄
-            e["yld"] = yld
-        elif yld > 20:
-            yld_src = "error"
-            yld_lbl = "資料異常（殖利率>20%）"
-        e["yld_source"] = yld_src
-        e["yld_label"]  = yld_lbl
+        # 殖利率：_base.json 已通過雙源核對 → 直接沿用，不覆蓋
+        if b.get("yld_verified") and 0 < b.get("yld", 0) <= 20:
+            e["yld"]         = b["yld"]
+            e["yld_verified"] = True
+            e["yld_source"]  = "verified"
+            e["yld_label"]   = "雙源核對（FinMind × TWSE ETFortune）"
+        else:
+            # 殖利率反算（Plan C：官方公告 → 歷史平均 → 無資料）
+            yld, yld_src, yld_lbl = calc_yield_with_source(
+                code, e.get("price", 0), div_etfs, div_cal_etfs
+            )
+            if 0 < yld <= 20:
+                e["yld"] = yld
+            elif yld > 20:
+                yld_src = "error"
+                yld_lbl = "資料異常（殖利率>20%）"
+            e["yld_verified"] = False
+            e["yld_source"]   = yld_src
+            e["yld_label"]    = yld_lbl
 
         etfs_out.append(e)
 
