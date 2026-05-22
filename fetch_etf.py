@@ -381,32 +381,47 @@ def _parse_roc_date(s):
     return ""
 
 def fetch_twse_etfortune_yld(code, price, div_freq):
-    """從 TWSE ETFortune 官方 API 抓配息紀錄，依頻率取最近 N 次加總算年化殖利率。
-    作為 FinMind 的第二驗證來源，資料來自 TWSE 官方，免費無 key。
+    """從 TWSE ETFortune 官方網頁解析歷史配息，依頻率取最近 N 次加總算年化殖利率。
+    解析 HTML 表格（與 fetch_dividend_calendar.py 同一套做法），無需 JSON API。
     """
     if div_freq == "不配息" or price <= 0:
         return 0.0
     try:
         from datetime import datetime, timedelta
+        import ssl, urllib.request as _ur2
         start = (datetime.now() - timedelta(days=730)).strftime('%Y%m%d')
-        r = requests.get(
-            f"https://www.twse.com.tw/rwd/zh/ETFortune/dividendList"
-            f"?response=json&stkNo={code}&startDate={start}",
-            timeout=8, headers={"User-Agent": "Mozilla/5.0"}
-        )
-        raw = r.json()
-        records = raw.get('data', raw) if isinstance(raw, dict) else raw
-        if not records or not isinstance(records, list):
-            return 0.0
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode    = ssl.CERT_NONE
+        url = (f"https://www.twse.com.tw/rwd/zh/ETFortune/dividendList"
+               f"?stkNo={code}&startDate={start}")
+        req = _ur2.Request(url, headers={"User-Agent": "ETF-fetcher/1.0"})
+        with _ur2.urlopen(req, timeout=10, context=ctx) as r:
+            html = r.read().decode("utf-8")
+
+        # 解析 HTML 表格（與 fetch_dividend_calendar.py 同套 regex）
+        tr_re = re.compile(r'<tr[^>]*>(.*?)</tr>', re.DOTALL | re.IGNORECASE)
+        td_re = re.compile(r'<t[dh][^>]*>(.*?)</t[dh]>', re.DOTALL | re.IGNORECASE)
+        tag_re = re.compile(r'<[^>]+>')
+        def strip(h): return tag_re.sub('', h).strip()
 
         payments = []
-        for rec in records:
-            date_str = _parse_roc_date(rec.get('除息交易日', ''))
+        for tr in tr_re.finditer(html):
+            cells = [strip(td.group(1)) for td in td_re.finditer(tr.group(1))]
+            if len(cells) < 6:
+                continue
+            # 欄位：代碼 名稱 除息日 基準日 發放日 金額
+            row_code = cells[0].strip()
+            if row_code != code:
+                continue
+            date_str = _parse_roc_date(cells[2])
+            if not date_str:
+                continue
             try:
-                amt = float(str(rec.get('收益分配金額', 0) or 0).replace(',', ''))
+                amt = float(str(cells[5]).replace(',', ''))
             except Exception:
                 amt = 0.0
-            if amt > 0 and date_str:
+            if amt > 0:
                 payments.append((date_str, amt))
 
         if not payments:
@@ -419,7 +434,6 @@ def fetch_twse_etfortune_yld(code, price, div_freq):
             total  = sum(amt for _, amt in recent)
             annual = total / len(recent) * n
         else:
-            from datetime import datetime, timedelta
             one_year_ago = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
             annual = sum(amt for date, amt in payments if date >= one_year_ago)
 
@@ -487,6 +501,21 @@ for code, name in ALL_ETFS:
 
         # Adj Close：拆分回溯調整，用於報酬率計算；Close 用於現價/均線/訊號
         adj = hist["Adj Close"].dropna() if "Adj Close" in hist.columns else c
+
+        # yfinance 未套用已知拆股時，手動補正 adj close 中的拆股前價格
+        if code in SPLIT_RECORDS:
+            import pandas as _pd
+            adj = adj.copy()
+            for split_date_str, split_ratio in SPLIT_RECORDS[code]:
+                split_ts = _pd.Timestamp(split_date_str)
+                split_ts = split_ts.tz_localize(adj.index.tz) if adj.index.tz else split_ts
+                pre_mask = adj.index < split_ts
+                # 若拆股前的 adj close 均值明顯高於拆股後（超過比例的 50%），表示未調整
+                if pre_mask.any() and (~pre_mask).any():
+                    pre_mean  = float(adj[pre_mask].mean())
+                    post_mean = float(adj[~pre_mask].mean())
+                    if post_mean > 0 and pre_mean > post_mean * (split_ratio * 0.5):
+                        adj[pre_mask] = adj[pre_mask] / split_ratio
 
         price    = round(float(c.iloc[-1]), 2)
         low52    = round(float(c.min()), 2)
