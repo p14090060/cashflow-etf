@@ -400,8 +400,7 @@
   .rank-freq     { width:58px; font-size:18px; color:var(--dim); flex-shrink:0; }
   .rank-num      { width:82px; font-size:18px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
   .rank-yld      { width:72px; font-size:18px; font-family:var(--mono); font-weight:700; flex-shrink:0; text-align:right; }
-  .mini-bars     { display:flex; align-items:flex-end; gap:2px; height:26px; padding-left:6px; flex-shrink:0; }
-  .mini-bar      { width:8px; border-radius:1px 1px 0 0; }
+  .mini-bars     { display:flex; align-items:center; gap:2px; height:26px; padding-left:6px; flex-shrink:0; }
 
   /* ── 逆向計算機 ── */
 
@@ -1118,10 +1117,15 @@ function renderRank() {
     const maxAbs = Math.max(...vals.map(Math.abs), 2);
     return months.map(v => {
       const val = v ?? 0;
-      const h   = Math.max(3, Math.round(Math.abs(val) / maxAbs * 18));
-      const bg  = v == null ? 'var(--border)' : val >= 0 ? '#ff6b6b' : '#00e5a0';
+      const h   = v == null ? 2 : Math.max(2, Math.round(Math.abs(val) / maxAbs * 11));
       const tip = v != null ? (val >= 0 ? '+' : '') + val.toFixed(1) + '%' : '--';
-      return `<div class="mini-bar" style="height:${h}px;background:${bg}" title="${tip}"></div>`;
+      const col = v == null ? 'rgba(255,255,255,.15)' : val >= 0 ? '#ff6b6b' : '#00e5a0';
+      const rad = val >= 0 ? '1px 1px 0 0' : '0 0 1px 1px';
+      const pos = val >= 0 ? 'bottom:13px' : 'top:13px';
+      return `<div style="position:relative;width:8px;height:26px;flex-shrink:0" title="${tip}">
+        <div style="position:absolute;top:12px;left:0;right:0;height:1px;background:rgba(255,255,255,.12)"></div>
+        <div style="position:absolute;width:8px;height:${h}px;${pos};background:${col};border-radius:${rad}"></div>
+      </div>`;
     }).join('');
   }
 
