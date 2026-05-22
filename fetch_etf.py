@@ -39,6 +39,7 @@ _RET1Y_OVERRIDE = {
 # 手動覆蓋 yld：yfinance 12 個月加總失真的 ETF，填真實年化殖利率
 _YLD_OVERRIDE = {
     "00940": 4.67,   # yfinance 抓到上市初期大配息，真實年化 4.67%（2026-05-20 確認）
+    "006208": 3.06,  # FinMind 僅抓到半年配其中一次，真實年化 3.06%（2026-05-23 使用者確認）
 }
 
 def calc_rsi(close_series, period=14):
@@ -199,6 +200,9 @@ DIV_EST = {
 # 每種配息頻率對應的預設間隔天數
 _FREQ_DAYS = {"月配": 30, "雙月配": 60, "季配": 91, "半年配": 182, "年配": 365}
 
+# 每種配息頻率一年應配幾次（用於殖利率年化計算）
+_FREQ_N = {"月配": 12, "雙月配": 6, "季配": 4, "半年配": 2, "年配": 1}
+
 def calc_div_forecast(divs, code, div_freq):
     """從 yfinance 股利歷史推算下次配息日與預估金額。
     回傳 (days_left, est_amt, next_date_str or None)
@@ -322,22 +326,124 @@ def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, na
         return "cheap", maD60
     return "dear", maD60
 
-def fetch_finmind_yld(code, price):
-    """從 FinMind 抓近1年現金配息加總，算年化殖利率"""
+def fetch_finmind_yld(code, price, div_freq="不明"):
+    """從 FinMind 抓配息紀錄，依頻率取最近 N 次加總算年化殖利率。
+    拉 730 天確保各頻率都能抓到足夠筆數；不配息直接回 0。
+    """
+    if div_freq == "不配息":
+        return 0.0
     try:
         from datetime import datetime, timedelta
-        start = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+        start = (datetime.now() - timedelta(days=730)).strftime('%Y-%m-%d')
         r = requests.get(
             f'https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockDividend&data_id={code}&start_date={start}',
             timeout=8, headers={"User-Agent": "Mozilla/5.0"}
         )
         data = r.json().get('data', [])
-        annual = sum(float(x.get('CashEarningsDistribution', 0) or 0) for x in data)
+        if not data:
+            return 0.0
+
+        # 只保留現金配息 > 0，依日期降序（最新在前）
+        payments = sorted(
+            [(x.get('date', ''), float(x.get('CashEarningsDistribution', 0) or 0))
+             for x in data
+             if float(x.get('CashEarningsDistribution', 0) or 0) > 0],
+            key=lambda x: x[0], reverse=True
+        )
+        if not payments:
+            return 0.0
+
+        n = _FREQ_N.get(div_freq, 0)
+        if n > 0:
+            # 取最近 n 次；不足 n 次（新 ETF）按已有次數等比推算
+            recent = payments[:n]
+            total  = sum(amt for _, amt in recent)
+            annual = total / len(recent) * n
+        else:
+            # 頻率不明：退回 365 天加總
+            one_year_ago = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+            annual = sum(amt for date, amt in payments if date >= one_year_ago)
+
         if annual > 0 and price > 0:
             return round(annual / price * 100, 1)
     except Exception:
         pass
     return 0.0
+
+def _parse_roc_date(s):
+    """民國日期 '115年01月22日' → '2026-01-22'"""
+    try:
+        m = re.match(r'(\d+)年(\d+)月(\d+)日', str(s))
+        if m:
+            return f"{int(m.group(1))+1911}-{m.group(2)}-{m.group(3)}"
+    except Exception:
+        pass
+    return ""
+
+def fetch_twse_etfortune_yld(code, price, div_freq):
+    """從 TWSE ETFortune 官方 API 抓配息紀錄，依頻率取最近 N 次加總算年化殖利率。
+    作為 FinMind 的第二驗證來源，資料來自 TWSE 官方，免費無 key。
+    """
+    if div_freq == "不配息" or price <= 0:
+        return 0.0
+    try:
+        from datetime import datetime, timedelta
+        start = (datetime.now() - timedelta(days=730)).strftime('%Y%m%d')
+        r = requests.get(
+            f"https://www.twse.com.tw/rwd/zh/ETFortune/dividendList"
+            f"?response=json&stkNo={code}&startDate={start}",
+            timeout=8, headers={"User-Agent": "Mozilla/5.0"}
+        )
+        raw = r.json()
+        records = raw.get('data', raw) if isinstance(raw, dict) else raw
+        if not records or not isinstance(records, list):
+            return 0.0
+
+        payments = []
+        for rec in records:
+            date_str = _parse_roc_date(rec.get('除息交易日', ''))
+            try:
+                amt = float(str(rec.get('收益分配金額', 0) or 0).replace(',', ''))
+            except Exception:
+                amt = 0.0
+            if amt > 0 and date_str:
+                payments.append((date_str, amt))
+
+        if not payments:
+            return 0.0
+        payments.sort(key=lambda x: x[0], reverse=True)
+
+        n = _FREQ_N.get(div_freq, 0)
+        if n > 0:
+            recent = payments[:n]
+            total  = sum(amt for _, amt in recent)
+            annual = total / len(recent) * n
+        else:
+            from datetime import datetime, timedelta
+            one_year_ago = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+            annual = sum(amt for date, amt in payments if date >= one_year_ago)
+
+        if annual > 0:
+            return round(annual / price * 100, 1)
+    except Exception:
+        pass
+    return 0.0
+
+def cross_verify_yld(yld_a, yld_b, tolerance=2.0):
+    """雙源核對殖利率。回傳 (final_yld, verified)。
+    兩源都有且差距在容許範圍內 → verified=True。
+    只有單源或差距過大 → verified=False（顯示為 '--'）。
+    """
+    if yld_a > 0 and yld_b > 0:
+        if abs(yld_a - yld_b) <= tolerance:
+            return yld_a, True
+        else:
+            return yld_a, False
+    elif yld_a > 0:
+        return yld_a, False
+    elif yld_b > 0:
+        return yld_b, False
+    return 0.0, False
 
 def fetch_nav_twse(code):
     try:
@@ -398,8 +504,11 @@ for code, name in ALL_ETFS:
             return round(float((adj.iloc[e-1]/adj.iloc[s]-1)*100), 1)
         ret_months  = [_mr(k) for k in range(6, 0, -1)]
         new_listing = len(hist) < 240   # 上市未滿約1年（交易日 < 240）
-        # yfinance 歷史資料異常防呆：52週高低比 > 4 代表含除權前舊資料，ret1y 不可信
-        if high52 > 0 and low52 > 0 and (high52 / low52) > 4:
+        # yfinance 歷史資料異常防呆：adj close 高低比 > 4 代表拆分調整失效，ret1y 不可信
+        # 用 adj（已做拆分調整）而非原始 Close，避免正常拆股的 ETF 被誤判為 0
+        _adj_max = float(adj.max()) if len(adj) > 0 else 0
+        _adj_min = float(adj.min()) if len(adj) > 0 else 0
+        if _adj_max > 0 and _adj_min > 0 and (_adj_max / _adj_min) > 4:
             ret1y = None
         # 手動覆蓋優先（已知 yfinance 資料有問題的 ETF）
         if code in _RET1Y_OVERRIDE:
@@ -428,13 +537,21 @@ for code, name in ALL_ETFS:
         import pandas as _pd
         divs = tk.dividends  # 一次抓，配息預測共用
 
-        # 殖利率優先序：FinMind（最準）→ hist Dividends → fast_info → tk.dividends → _YLD_OVERRIDE
-        yld = fetch_finmind_yld(code, price)
-        if price > 0 and yld == 0.0 and 'Dividends' in hist.columns:
+        # 先偵測配息頻率，殖利率年化計算需要用到
+        div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
+
+        # 殖利率雙源核對：FinMind（A）× TWSE ETFortune（B），兩源一致才 verified
+        fm_yld   = fetch_finmind_yld(code, price, div_freq)
+        twse_yld = fetch_twse_etfortune_yld(code, price, div_freq)
+        yld, yld_verified = cross_verify_yld(fm_yld, twse_yld)
+
+        # fallback：兩源都是 0 才啟用，一律標記 unverified
+        if yld == 0.0 and price > 0 and 'Dividends' in hist.columns:
             try:
                 annual = float(hist['Dividends'].sum())
                 if annual > 0:
                     yld = round(annual / price * 100, 1)
+                    yld_verified = False
             except Exception:
                 pass
         if yld == 0.0 and price > 0:
@@ -442,6 +559,7 @@ for code, name in ALL_ETFS:
                 _dy = getattr(info, "dividend_yield", None)
                 if _dy:
                     yld = round(float(_dy) * 100, 1)
+                    yld_verified = False
             except Exception:
                 pass
         if yld == 0.0 and price > 0:
@@ -451,15 +569,17 @@ for code, name in ALL_ETFS:
                 annual = float(divs[idx > cutoff].sum())
                 if annual > 0:
                     yld = round(annual / price * 100, 1)
+                    yld_verified = False
             except Exception:
                 pass
+        # 手動覆寫：人工查證過的直接視為 verified
         if code in _YLD_OVERRIDE:
             yld = _YLD_OVERRIDE[code]
+            yld_verified = True
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    ret5d, vol_ratio, rsi, yld, name)
         heat     = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
-        div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
         div_days, div_est, div_next = calc_div_forecast(divs, code, div_freq)
 
         results.append({
@@ -467,7 +587,7 @@ for code, name in ALL_ETFS:
             "price": safe(price), "ma60": safe(ma60), "ma20": safe(ma20),
             "low52": safe(low52), "high52": safe(high52),
             "rsi": safe(rsi),
-            "yld": safe(yld), "days": div_days,
+            "yld": safe(yld), "yld_verified": yld_verified, "days": div_days,
             "est": div_est, "div_next": div_next,
             "signal": signal, "maD": safe(maD),
             "ret5d": safe(ret5d), "ret1m": safe(ret1m),
@@ -486,7 +606,7 @@ for code, name in ALL_ETFS:
                 "code": code, "name": name, "curated": True,
                 "price": 0, "ma60": 0, "ma20": 0, "low52": 0, "high52": 0,
                 "rsi": 50,
-                "yld": 0, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
+                "yld": 0, "yld_verified": False, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
                 "div_next": None, "signal": "dear", "maD": 0,
                 "ret5d": 0, "ret1m": 0, "ret1y": 0, "ret_months": [0,0,0,0,0,0], "new_listing": False,
                 "avg_vol": 0, "cur_vol": 0, "vol_ratio": 0, "heat": 0,
