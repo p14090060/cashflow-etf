@@ -800,10 +800,15 @@ function runHoldingCheck() {
     ? Math.min(97, Math.max(3, (price - etf.low52) / (etf.high52 - etf.low52) * 100)) : 50;
 
   // 配息
-  const noDiv   = (etf.div_frequency || etf.div_freq) === '不配息';
-  const divDays = etf.days;
-  const divTxt  = noDiv ? '不配息' : divDays === 0 ? '今日配息' : divDays ? `${divDays} 天後配息` : '--';
-  const estAmt  = (!noDiv && etf.est && shares > 0) ? (etf.est * 1000 * shares).toFixed(0) : null;
+  const noDiv            = (etf.div_frequency || etf.div_freq) === '不配息';
+  const divDays          = etf.days;
+  const isNewUnannounced = etf.new_listing && !etf.yld;
+  const divTxt  = noDiv             ? '不配息'
+                : isNewUnannounced  ? '新上市待公告'
+                : divDays === 0     ? '今日配息'
+                : divDays           ? `${divDays} 天後配息`
+                : '--';
+  const estAmt  = (!noDiv && !isNewUnannounced && etf.est && shares > 0) ? (etf.est * 1000 * shares).toFixed(0) : null;
 
   // 近3月
   const bars = miniBars((etf.ret_months || []).slice(-3));
