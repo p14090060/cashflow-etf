@@ -4324,7 +4324,8 @@
       "vol_ratio": 0.83,
       "heat": 25.69,
       "aum": 0,
-      "div_freq": "年配"
+      "div_freq": "年配",
+      "yld_pending": true
     },
     {
       "code": "00951",
@@ -4432,7 +4433,8 @@
       "vol_ratio": 0.76,
       "heat": 69.18,
       "aum": 0,
-      "div_freq": "年配"
+      "div_freq": "年配",
+      "yld_pending": true
     },
     {
       "code": "00956",
@@ -4684,7 +4686,8 @@
       "vol_ratio": 0.55,
       "heat": 34.61,
       "aum": 0,
-      "div_freq": "年配"
+      "div_freq": "年配",
+      "yld_pending": true
     },
     {
       "code": "00971",

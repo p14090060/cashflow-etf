@@ -919,6 +919,7 @@ function fmtYld(e) {
   if (!e || e.yld == null) return '--';
   const noDiv = (e.div_freq || e.div_frequency) === '不配息';
   if (noDiv) return '不配息';
+  if (e.yld_pending) return '待公告';
   if (e.yld_verified) return e.yld > 0 ? e.yld.toFixed(1) + '%' : '--';
   return e.yld > 0 ? '~' + e.yld.toFixed(1) + '%' : '--';
 }
