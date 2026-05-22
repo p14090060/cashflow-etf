@@ -310,6 +310,23 @@ def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, na
         return "cheap", maD60
     return "dear", maD60
 
+def fetch_finmind_yld(code, price):
+    """從 FinMind 抓近1年現金配息加總，算年化殖利率"""
+    try:
+        from datetime import datetime, timedelta
+        start = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+        r = requests.get(
+            f'https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockDividend&data_id={code}&start_date={start}',
+            timeout=8, headers={"User-Agent": "Mozilla/5.0"}
+        )
+        data = r.json().get('data', [])
+        annual = sum(float(x.get('CashEarningsDistribution', 0) or 0) for x in data)
+        if annual > 0 and price > 0:
+            return round(annual / price * 100, 1)
+    except Exception:
+        pass
+    return 0.0
+
 def fetch_nav_twse(code):
     try:
         clean = ''.join(c for c in code if c.isdigit())
@@ -364,7 +381,8 @@ for code, name in ALL_ETFS:
             n = len(c); e = n-(k-1)*22; s = n-k*22
             if s < 0 or e <= s: return None
             return round(float((c.iloc[e-1]/c.iloc[s]-1)*100), 1)
-        ret_months = [_mr(k) for k in range(6, 0, -1)]
+        ret_months  = [_mr(k) for k in range(6, 0, -1)]
+        new_listing = len(hist) < 240   # 上市未滿約1年（交易日 < 240）
         # yfinance 歷史資料異常防呆：52週高低比 > 4 代表含除權前舊資料，ret1y 不可信
         if high52 > 0 and low52 > 0 and (high52 / low52) > 4:
             ret1y = None
@@ -395,8 +413,9 @@ for code, name in ALL_ETFS:
         import pandas as _pd
         divs = tk.dividends  # 一次抓，配息預測共用
 
-        # 殖利率優先序：hist Dividends（已抓好、無時區問題）→ fast_info → tk.dividends → _YLD_OVERRIDE
-        if price > 0 and 'Dividends' in hist.columns:
+        # 殖利率優先序：FinMind（最準）→ hist Dividends → fast_info → tk.dividends → _YLD_OVERRIDE
+        yld = fetch_finmind_yld(code, price)
+        if price > 0 and yld == 0.0 and 'Dividends' in hist.columns:
             try:
                 annual = float(hist['Dividends'].sum())
                 if annual > 0:
@@ -437,7 +456,7 @@ for code, name in ALL_ETFS:
             "est": div_est, "div_next": div_next,
             "signal": signal, "maD": safe(maD),
             "ret5d": safe(ret5d), "ret1m": safe(ret1m),
-            "ret1y": safe(ret1y), "ret_months": ret_months,
+            "ret1y": safe(ret1y), "ret_months": ret_months, "new_listing": new_listing,
             "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat),
             "aum": safe(aum), "div_freq": div_freq,
@@ -454,7 +473,7 @@ for code, name in ALL_ETFS:
                 "rsi": 50,
                 "yld": 0, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
                 "div_next": None, "signal": "dear", "maD": 0,
-                "ret5d": 0, "ret1m": 0, "ret1y": 0, "ret_months": [0,0,0,0,0,0],
+                "ret5d": 0, "ret1m": 0, "ret1y": 0, "ret_months": [0,0,0,0,0,0], "new_listing": False,
                 "avg_vol": 0, "cur_vol": 0, "vol_ratio": 0, "heat": 0,
                 "aum": 0, "div_freq": DIV_FREQ.get(code, "不明"),
             })

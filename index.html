@@ -1107,7 +1107,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
 
 // ── Rank page ──────────────────────────────────────────────────────
 function renderRank() {
-  const SIG_LABEL = { cheap:'便宜✓', fair:'合理✓', hot:'過熱⚡', dear:'偏貴' };
+  const SIG_LABEL = { cheap:'便宜✓', fair:'合理✓', hot:'過熱', dear:'偏貴' };
   const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c' };
   const fmtRet = v => (v == null) ? '--' : v === 0 ? '新上市' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const retClr = v => (v == null || v === 0) ? '#f59e0b' : v >= 0 ? '#ff6b6b' : '#00e5a0';
@@ -1138,8 +1138,11 @@ function renderRank() {
     const sigC  = SIG_COLOR[e.signal] || '#8b949e';
     const freq   = (e.div_freq||e.div_frequency) === '不配息' ? '不配' : (e.div_freq||e.div_frequency||'?');
     const noDiv  = freq === '不配';
-    const yldTxt = (e.yld && e.yld > 0) ? e.yld.toFixed(1) + '%' : noDiv ? '不適用' : '--';
-    const yldClr = noDiv ? 'var(--dim)' : '#a78bfa';
+    const yldTxt = noDiv         ? '不適用'
+                 : e.new_listing ? '未滿1歲'
+                 : (e.yld > 0)  ? e.yld.toFixed(1) + '%'
+                 : '--';
+    const yldClr = (e.yld > 0 && !e.new_listing) ? '#a78bfa' : 'var(--dim)';
     const ret1y = fmtRet(e.ret1y);
     const y1C   = retClr(e.ret1y);
     return `<div class="rank-row">
