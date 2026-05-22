@@ -516,7 +516,29 @@
   <!-- ══ PAGE 4: 健診 ══ -->
   <div class="page" id="page-check">
 
-    <!-- 財務試算 -->
+    <!-- 持倉健檢（D-1） -->
+    <div class="check-section">
+      <div class="check-title">🩺 持倉健檢</div>
+      <div style="font-size:16px;color:var(--dim);margin-bottom:14px">輸入代碼、張數、成本價，查看今日持倉現況</div>
+      <div style="display:grid;grid-template-columns:1fr 80px 100px;gap:8px;margin-bottom:12px">
+        <input class="num-input" id="hldCode" placeholder="ETF 代碼" maxlength="8"
+               style="text-transform:uppercase;font-family:var(--mono);font-size:16px"
+               onkeydown="if(event.key==='Enter')runHoldingCheck()">
+        <input class="num-input" id="hldShares" type="number" placeholder="張數" min="1" step="1"
+               style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
+        <input class="num-input" id="hldCost" type="number" placeholder="成本價" min="0" step="0.1"
+               style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:4px">
+        <span style="font-size:14px;color:var(--dim);width:calc(100%/3)">↑ 代碼</span>
+        <span style="font-size:14px;color:var(--dim);width:80px">↑ 張數</span>
+        <span style="font-size:14px;color:var(--dim);width:100px">↑ 成本價（元）</span>
+      </div>
+      <button class="check-calc-btn" onclick="runHoldingCheck()">健檢 →</button>
+      <div id="holdingResult" style="margin-top:12px"></div>
+    </div>
+
+    <!-- 財務試算（D-2） -->
     <div class="check-section">
       <div class="check-title">💰 財務試算</div>
 
@@ -576,21 +598,6 @@
           <div style="font-size:16px;color:var(--dim);margin-top:10px">⚠ 試算為複利估算，未扣稅費；實際報酬因市場波動而異，非投資建議</div>
         </div>
       </div>
-    </div>
-
-    <!-- ETF 持倉健檢 -->
-    <div class="check-section">
-      <div class="check-title">🩺 ETF 持倉健檢</div>
-      <div style="font-size:16px;color:var(--dim);margin-bottom:14px">輸入持有的 ETF 代碼（最多 5 支），依今日資料健檢現況</div>
-      <div class="etf-inputs">
-        <input class="etf-code-inp" id="etfInp0" placeholder="如 0056" maxlength="8">
-        <input class="etf-code-inp" id="etfInp1" placeholder="如 00878" maxlength="8">
-        <input class="etf-code-inp" id="etfInp2" placeholder="如 0050" maxlength="8">
-        <input class="etf-code-inp" id="etfInp3" placeholder="如 00919" maxlength="8">
-        <input class="etf-code-inp" id="etfInp4" placeholder="（選填）" maxlength="8">
-      </div>
-      <button class="check-calc-btn" onclick="runETFCheck()">健檢 →</button>
-      <div id="etfCheckResult" style="margin-top:12px"></div>
     </div>
 
   </div>
@@ -761,6 +768,101 @@ function runCalc() {
   document.getElementById('calcResult').style.display = '';
 }
 
+function holdingHint(signal, profitPct) {
+  const profit = profitPct !== null && profitPct > 0;
+  const loss   = profitPct !== null && profitPct < 0;
+  if (signal === 'hot')   return profit ? '目前位置偏熱，持倉已有獲利，可留意風險' : '目前追高風險偏高，宜觀察後再決定';
+  if (signal === 'dear')  return profit ? '目前位置偏高，持倉已有獲利，可考慮分批調節' : '目前位置偏高，宜等待回落再評估';
+  if (signal === 'fair')  return '目前處於合理區間，可安心持有';
+  if (signal === 'cheap') return loss   ? '目前位置偏低，已有未實現虧損，可評估是否分批攤低成本' : '目前估值偏低，位置相對有利';
+  return '';
+}
+
+function runHoldingCheck() {
+  const code   = (document.getElementById('hldCode').value || '').trim().toUpperCase();
+  const shares = parseFloat(document.getElementById('hldShares').value) || 0;
+  const cost   = parseFloat(document.getElementById('hldCost').value)   || 0;
+  const out    = document.getElementById('holdingResult');
+
+  if (!code) { out.innerHTML = '<div class="health-miss">請輸入 ETF 代碼</div>'; return; }
+  const etf = ETFS.find(e => e.code === code);
+  if (!etf) { out.innerHTML = '<div class="health-miss">查無此代碼，可能不在今日成交量清單</div>'; return; }
+
+  const price    = etf.price;
+  const sigLabel = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' }[etf.signal] || '偏貴';
+  const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' }[etf.signal] || 'sig-dear';
+
+  // 損益
+  const profitPct = cost > 0 ? (price - cost) / cost * 100 : null;
+  const profitAmt = (cost > 0 && shares > 0) ? (price - cost) * 1000 * shares : null;
+  const profitClr = profitPct === null ? 'var(--dim)' : profitPct >= 0 ? '#ff6b6b' : '#00e5a0';
+  const profitTxt = profitPct === null ? '--'
+    : `${profitPct >= 0 ? '+' : ''}${profitPct.toFixed(2)}%`
+      + (profitAmt !== null ? `　${profitAmt >= 0 ? '+' : ''}NT$${Math.round(profitAmt).toLocaleString()}` : '');
+
+  // 52週位置
+  const pos = etf.high52 > etf.low52
+    ? Math.min(97, Math.max(3, (price - etf.low52) / (etf.high52 - etf.low52) * 100)) : 50;
+
+  // 配息
+  const noDiv   = (etf.div_frequency || etf.div_freq) === '不配息';
+  const divDays = etf.days;
+  const divTxt  = noDiv ? '不配息' : divDays === 0 ? '今日配息' : divDays ? `${divDays} 天後配息` : '--';
+  const estAmt  = (!noDiv && etf.est && shares > 0) ? (etf.est * 1000 * shares).toFixed(0) : null;
+
+  // 近3月
+  const bars = miniBars((etf.ret_months || []).slice(-3));
+
+  // 暗示語
+  const hint = holdingHint(etf.signal, profitPct);
+
+  out.innerHTML = `
+    <div class="buy-card" style="margin-top:4px">
+      <div class="buy-top">
+        <div>
+          <div class="buy-code">${etf.code}</div>
+          <div class="buy-name">${etf.name}</div>
+        </div>
+        <div class="${sigClass}">${sigLabel}</div>
+      </div>
+
+      <div class="health-grid" style="margin-top:10px">
+        <div class="health-kv">
+          <div class="k">現價</div>
+          <div class="v">${price}</div>
+        </div>
+        <div class="health-kv">
+          <div class="k">持倉損益</div>
+          <div class="v" style="color:${profitClr}">${profitTxt}</div>
+        </div>
+        <div class="health-kv">
+          <div class="k">年殖利率</div>
+          <div class="v">${etf.yld > 0 ? etf.yld + '%' : '--'}</div>
+        </div>
+        <div class="health-kv">
+          <div class="k">配息</div>
+          <div class="v">${divTxt}${estAmt ? `　預估 NT$${parseInt(estAmt).toLocaleString()}` : ''}</div>
+        </div>
+      </div>
+
+      <div class="range-track" style="margin:12px 0 4px">
+        <div class="range-fill" style="width:${pos}%"></div>
+        <div class="range-dot"  style="left:${pos}%"></div>
+      </div>
+      <div class="range-lbl"><span>低 ${etf.low52}</span><span>高 ${etf.high52}</span></div>
+
+      <div style="display:flex;align-items:center;gap:6px;margin-top:10px">
+        <span style="font-size:15px;color:var(--dim)">近3月</span>
+        <div class="mini-bars">${bars}</div>
+        <span style="font-size:15px;color:var(--dim);margin-left:4px">
+          ${(etf.ret_months||[]).slice(-3).map(v => v==null?'--':(v>=0?'+':'')+v.toFixed(1)+'%').join('　')}
+        </span>
+      </div>
+
+      ${hint ? `<div style="margin-top:12px;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:6px;font-size:15px;color:var(--dim)">📌 ${hint}</div>` : ''}
+    </div>`;
+}
+
 function runETFCheck() {
   const codes = [0,1,2,3,4]
     .map(i => document.getElementById('etfInp'+i).value.trim().toUpperCase())
@@ -789,6 +891,25 @@ function runETFCheck() {
         <div class="health-kv"><div class="k">5日漲跌</div><div class="v" style="color:${etf.ret5d>=0?'var(--dear)':'var(--cheap)'}">${fmt(etf.ret5d)}</div></div>
         <div class="health-kv"><div class="k">量比</div><div class="v">${etf.vol_ratio ?? 0}x</div></div>
       </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Mini bar chart（全域，排行頁與持倉健檢共用）──────────────────
+function miniBars(months) {
+  if (!months || !months.length) return '<span style="color:var(--dim);font-size:11px">--</span>';
+  const vals = months.map(v => v ?? 0);
+  const maxAbs = Math.max(...vals.map(Math.abs), 2);
+  return months.map(v => {
+    const val = v ?? 0;
+    const h   = v == null ? 2 : Math.max(2, Math.round(Math.abs(val) / maxAbs * 11));
+    const tip = v != null ? (val >= 0 ? '+' : '') + val.toFixed(1) + '%' : '--';
+    const col = v == null ? 'rgba(255,255,255,.15)' : val >= 0 ? '#ff6b6b' : '#00e5a0';
+    const rad = val >= 0 ? '1px 1px 0 0' : '0 0 1px 1px';
+    const pos = val >= 0 ? 'bottom:13px' : 'top:13px';
+    return `<div style="position:relative;width:8px;height:26px;flex-shrink:0" title="${tip}">
+      <div style="position:absolute;top:12px;left:0;right:0;height:1px;background:rgba(255,255,255,.12)"></div>
+      <div style="position:absolute;width:8px;height:${h}px;${pos};background:${col};border-radius:${rad}"></div>
     </div>`;
   }).join('');
 }
@@ -1110,24 +1231,6 @@ function renderRank() {
   const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c' };
   const fmtRet = v => (v == null) ? '--' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const retClr = v => (v == null) ? 'var(--dim)' : v >= 0 ? '#ff6b6b' : '#00e5a0';
-
-  function miniBars(months) {
-    if (!months || !months.length) return '<span style="color:var(--dim);font-size:11px">--</span>';
-    const vals = months.map(v => v ?? 0);
-    const maxAbs = Math.max(...vals.map(Math.abs), 2);
-    return months.map(v => {
-      const val = v ?? 0;
-      const h   = v == null ? 2 : Math.max(2, Math.round(Math.abs(val) / maxAbs * 11));
-      const tip = v != null ? (val >= 0 ? '+' : '') + val.toFixed(1) + '%' : '--';
-      const col = v == null ? 'rgba(255,255,255,.15)' : val >= 0 ? '#ff6b6b' : '#00e5a0';
-      const rad = val >= 0 ? '1px 1px 0 0' : '0 0 1px 1px';
-      const pos = val >= 0 ? 'bottom:13px' : 'top:13px';
-      return `<div style="position:relative;width:8px;height:26px;flex-shrink:0" title="${tip}">
-        <div style="position:absolute;top:12px;left:0;right:0;height:1px;background:rgba(255,255,255,.12)"></div>
-        <div style="position:absolute;width:8px;height:${h}px;${pos};background:${col};border-radius:${rad}"></div>
-      </div>`;
-    }).join('');
-  }
 
   const sorted = [...ETFS]
     .filter(e => (e.cur_vol || 0) > 0 && e.price > 0)
