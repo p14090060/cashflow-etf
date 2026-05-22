@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-23 06:59",
+  "updated": "2026-05-23 07:15",
   "is_closed": true,
   "is_holiday": true,
   "last_trading_time": null,
@@ -20,7 +20,7 @@
       "high52": 45.76,
       "rsi": 68.7,
       "yld": 7.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 61,
       "est": 1.0,
       "div_next": "2026-07-23",
@@ -53,8 +53,8 @@
       "div_avg_per_share": 0.93,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00713",
@@ -67,7 +67,7 @@
       "high52": 55.65,
       "rsi": 60.3,
       "yld": 6.2,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 27,
       "est": 0.78,
       "div_next": "2026-06-19",
@@ -100,8 +100,8 @@
       "div_avg_per_share": 0.78,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "0050",
@@ -114,7 +114,7 @@
       "high52": 97.7,
       "rsi": 64.8,
       "yld": 1.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 64,
       "est": 1.0,
       "div_next": "2026-07-26",
@@ -145,8 +145,8 @@
       "div_avg_per_share": 1.0,
       "div_category": "指數型",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00919",
@@ -159,7 +159,7 @@
       "high52": 26.53,
       "rsi": 79.4,
       "yld": 9.7,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 0.78,
       "div_next": "2026-06-16",
@@ -192,8 +192,8 @@
       "div_avg_per_share": 0.63,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "006208",
@@ -251,7 +251,7 @@
       "high52": 29.97,
       "rsi": 62.5,
       "yld": 5.5,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 0.41,
       "div_next": "2026-06-16",
@@ -284,8 +284,8 @@
       "div_avg_per_share": 0.4,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00403A",
@@ -447,7 +447,7 @@
       "high52": 26.49,
       "rsi": 73.8,
       "yld": 4.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 27,
       "est": 0.13,
       "div_next": "2026-06-19",
@@ -488,8 +488,8 @@
       "div_avg_per_share": 0.13,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00850",
@@ -502,7 +502,7 @@
       "high52": 83.2,
       "rsi": 68.8,
       "yld": 3.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 90,
       "est": 0.85,
       "div_next": "2026-08-21",
@@ -535,8 +535,8 @@
       "div_avg_per_share": 0.85,
       "div_category": "ESG",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00400A",
@@ -625,7 +625,7 @@
       "high52": 135.25,
       "rsi": 62.8,
       "yld": 2.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 185,
       "est": 3.0,
       "div_next": "2026-11-24",
@@ -653,8 +653,8 @@
       "div_avg_per_share": null,
       "div_category": "指數型",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "0052",
@@ -667,7 +667,7 @@
       "high52": 261.2,
       "rsi": 62.6,
       "yld": 2.1,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 333,
       "est": 1.2,
       "div_next": "2027-04-21",
@@ -677,7 +677,7 @@
       "ret1m": 12.9,
       "ret1y": 132.5,
       "ret_months": [
-        -86.5,
+        -5.2,
         9.5,
         7.4,
         5.2,
@@ -697,8 +697,8 @@
       "div_avg_per_share": 1.199,
       "div_category": "科技",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "0053",
@@ -711,7 +711,7 @@
       "high52": 225.5,
       "rsi": 63.9,
       "yld": 1.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 185,
       "est": 3.0,
       "div_next": "2026-11-24",
@@ -735,8 +735,8 @@
       "heat": 54.63,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "0055",
@@ -749,7 +749,7 @@
       "high52": 34.78,
       "rsi": 60.5,
       "yld": 3.7,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 185,
       "est": 1.25,
       "div_next": "2026-11-24",
@@ -773,8 +773,8 @@
       "heat": 27.79,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "0057",
@@ -863,7 +863,7 @@
       "high52": 178.25,
       "rsi": 64.0,
       "yld": 2.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 63,
       "est": 1.8,
       "div_next": "2026-07-25",
@@ -894,8 +894,8 @@
       "div_avg_per_share": 1.8,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "006204",
@@ -908,7 +908,7 @@
       "high52": 210.35,
       "rsi": 63.6,
       "yld": 1.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 154,
       "est": 3.26,
       "div_next": "2026-10-24",
@@ -932,8 +932,8 @@
       "heat": 73.98,
       "aum": 0,
       "div_frequency": "半年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "006205",
@@ -1752,7 +1752,7 @@
       "high52": 75.05,
       "rsi": 63.2,
       "yld": 3.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 87,
       "est": 1.4,
       "div_next": "2026-08-18",
@@ -1783,8 +1783,8 @@
       "div_avg_per_share": 1.225,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00692",
@@ -1797,7 +1797,7 @@
       "high52": 85.3,
       "rsi": 64.3,
       "yld": 3.5,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 180,
       "est": 1.25,
       "div_next": "2026-11-19",
@@ -1825,8 +1825,8 @@
       "div_avg_per_share": null,
       "div_category": "ESG",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00693U",
@@ -1960,7 +1960,7 @@
       "high52": 24.68,
       "rsi": 56.5,
       "yld": 11.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 60,
       "est": 0.65,
       "div_next": "2026-07-22",
@@ -1991,8 +1991,8 @@
       "div_avg_per_share": 0.65,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00703",
@@ -2081,7 +2081,7 @@
       "high52": 21.68,
       "rsi": 60.0,
       "yld": 6.8,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 58,
       "est": 0.12,
       "div_next": "2026-07-20",
@@ -2112,8 +2112,8 @@
       "div_avg_per_share": 0.123,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00717",
@@ -2171,7 +2171,7 @@
       "high52": 59.7,
       "rsi": 65.1,
       "yld": 3.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.52,
       "div_next": "2026-06-18",
@@ -2201,8 +2201,8 @@
       "div_avg_per_share": 0.52,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00730",
@@ -2215,7 +2215,7 @@
       "high52": 26.97,
       "rsi": 69.1,
       "yld": 4.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 25,
       "est": 0.11,
       "div_next": "2026-06-17",
@@ -2250,8 +2250,8 @@
       "div_avg_per_share": 0.11,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00731",
@@ -2309,7 +2309,7 @@
       "high52": 70.5,
       "rsi": 67.9,
       "yld": 4.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 150,
       "est": 0.58,
       "div_next": "2026-10-20",
@@ -2340,8 +2340,8 @@
       "div_avg_per_share": 0.578,
       "div_category": "指數型",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00735",
@@ -2354,7 +2354,7 @@
       "high52": 100.7,
       "rsi": 68.1,
       "yld": 1.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 61,
       "est": 1.0,
       "div_next": "2026-07-23",
@@ -2385,8 +2385,8 @@
       "div_avg_per_share": 1.0,
       "div_category": "指數型",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00736",
@@ -2399,7 +2399,7 @@
       "high52": 31.16,
       "rsi": 48.7,
       "yld": 3.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 60,
       "est": 0.3,
       "div_next": "2026-07-22",
@@ -2430,8 +2430,8 @@
       "div_avg_per_share": 0.3,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00737",
@@ -2482,7 +2482,7 @@
       "high52": 29.56,
       "rsi": 59.3,
       "yld": 3.1,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 338,
       "est": 0.9,
       "div_next": "2027-04-26",
@@ -2506,8 +2506,8 @@
       "heat": 18.72,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00752",
@@ -2676,7 +2676,7 @@
       "high52": 64.7,
       "rsi": 77.3,
       "yld": 12.7,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 239,
       "est": 4.2,
       "div_next": "2027-01-17",
@@ -2707,8 +2707,8 @@
       "div_avg_per_share": 4.2,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00771",
@@ -2803,7 +2803,7 @@
       "high52": 84.3,
       "rsi": 70.0,
       "yld": 15.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 239,
       "est": 9.0,
       "div_next": "2027-01-17",
@@ -2833,8 +2833,8 @@
       "div_avg_per_share": 9.0,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00851",
@@ -2847,7 +2847,7 @@
       "high52": 65.0,
       "rsi": 69.5,
       "yld": 2.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 692,
       "est": 1.7,
       "div_next": "2028-04-14",
@@ -2871,8 +2871,8 @@
       "heat": 41.07,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00861",
@@ -3043,7 +3043,7 @@
       "high52": 16.32,
       "rsi": 50.0,
       "yld": 12.1,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 59,
       "est": 0.45,
       "div_next": "2026-07-21",
@@ -3073,8 +3073,8 @@
       "div_avg_per_share": 0.45,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00885",
@@ -3125,7 +3125,7 @@
       "high52": 35.19,
       "rsi": 56.5,
       "yld": 9.2,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 87,
       "est": 1.25,
       "div_next": "2026-08-18",
@@ -3158,8 +3158,8 @@
       "div_avg_per_share": null,
       "div_category": "科技",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00892",
@@ -3172,7 +3172,7 @@
       "high52": 42.95,
       "rsi": 66.5,
       "yld": 2.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 180,
       "est": 0.28,
       "div_next": "2026-11-19",
@@ -3200,8 +3200,8 @@
       "div_avg_per_share": null,
       "div_category": "科技",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00893",
@@ -3252,7 +3252,7 @@
       "high52": 48.17,
       "rsi": 59.5,
       "yld": 3.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 87,
       "est": 0.6,
       "div_next": "2026-08-18",
@@ -3283,8 +3283,8 @@
       "div_avg_per_share": 0.5,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00895",
@@ -3543,7 +3543,7 @@
       "high52": 42.47,
       "rsi": 65.7,
       "yld": 6.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 191,
       "est": 2.6,
       "div_next": "2026-11-30",
@@ -3567,8 +3567,8 @@
       "heat": 53.01,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00902",
@@ -3747,7 +3747,7 @@
       "high52": 15.88,
       "rsi": 53.7,
       "yld": 14.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 30,
       "est": 0.2,
       "div_next": "2026-06-22",
@@ -3778,8 +3778,8 @@
       "div_avg_per_share": 0.18,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00909",
@@ -3792,7 +3792,7 @@
       "high52": 51.4,
       "rsi": 58.7,
       "yld": 5.8,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 514,
       "est": 2.75,
       "div_next": "2027-10-19",
@@ -3822,8 +3822,8 @@
       "div_avg_per_share": 2.75,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00910",
@@ -3963,7 +3963,7 @@
       "high52": 45.2,
       "rsi": 63.1,
       "yld": 8.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 95,
       "est": 1.6,
       "div_next": "2026-08-26",
@@ -3994,8 +3994,8 @@
       "div_avg_per_share": 1.6,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00915",
@@ -4008,7 +4008,7 @@
       "high52": 27.41,
       "rsi": 79.8,
       "yld": 4.5,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 23,
       "est": 0.38,
       "div_next": "2026-06-15",
@@ -4041,8 +4041,8 @@
       "div_avg_per_share": 0.38,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00916",
@@ -4055,7 +4055,7 @@
       "high52": 28.0,
       "rsi": 68.8,
       "yld": 3.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 0.25,
       "div_next": "2026-06-16",
@@ -4079,8 +4079,8 @@
       "heat": 17.57,
       "aum": 0,
       "div_frequency": "季配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00917",
@@ -4137,7 +4137,7 @@
       "high52": 26.59,
       "rsi": 79.6,
       "yld": 2.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.62,
       "div_next": "2026-06-18",
@@ -4168,8 +4168,8 @@
       "div_avg_per_share": 0.62,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00920",
@@ -4182,7 +4182,7 @@
       "high52": 26.78,
       "rsi": 59.1,
       "yld": 0.8,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 239,
       "est": 0.21,
       "div_next": "2027-01-17",
@@ -4206,8 +4206,8 @@
       "heat": 74.04,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00921",
@@ -4220,7 +4220,7 @@
       "high52": 21.79,
       "rsi": 62.2,
       "yld": 3.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 0.27,
       "div_next": "2026-06-16",
@@ -4251,8 +4251,8 @@
       "div_avg_per_share": 0.27,
       "div_category": "科技",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00922",
@@ -4265,7 +4265,7 @@
       "high52": 36.7,
       "rsi": 66.0,
       "yld": 13.5,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 115,
       "est": 2.0,
       "div_next": "2026-09-15",
@@ -4295,8 +4295,8 @@
       "div_avg_per_share": 2.0,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00923",
@@ -4309,7 +4309,7 @@
       "high52": 38.78,
       "rsi": 66.1,
       "yld": 11.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 96,
       "est": 1.71,
       "div_next": "2026-08-27",
@@ -4339,8 +4339,8 @@
       "div_avg_per_share": 1.71,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00924",
@@ -4391,7 +4391,7 @@
       "high52": 25.43,
       "rsi": 70.2,
       "yld": 11.7,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 1.47,
       "div_next": "2026-06-16",
@@ -4415,8 +4415,8 @@
       "heat": 47.71,
       "aum": 0,
       "div_frequency": "半年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00927",
@@ -4429,7 +4429,7 @@
       "high52": 36.53,
       "rsi": 69.1,
       "yld": 6.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 80,
       "est": 0.94,
       "div_next": "2026-08-11",
@@ -4461,8 +4461,8 @@
       "div_avg_per_share": 0.925,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00930",
@@ -4475,7 +4475,7 @@
       "high52": 22.41,
       "rsi": 72.1,
       "yld": 4.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 3,
       "est": 0.31,
       "div_next": "2026-07-21",
@@ -4510,8 +4510,8 @@
       "div_avg_per_share": 0.31,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00932",
@@ -4524,7 +4524,7 @@
       "high52": 16.88,
       "rsi": 58.2,
       "yld": 5.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 87,
       "est": 0.22,
       "div_next": "2026-08-18",
@@ -4557,8 +4557,8 @@
       "div_avg_per_share": 0.22,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00934",
@@ -4571,7 +4571,7 @@
       "high52": 26.23,
       "rsi": 62.0,
       "yld": 5.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.25,
       "div_next": "2026-06-18",
@@ -4606,8 +4606,8 @@
       "div_avg_per_share": 0.161,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00935",
@@ -4620,7 +4620,7 @@
       "high52": 55.65,
       "rsi": 65.3,
       "yld": 3.6,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 114,
       "est": 1.2,
       "div_next": "2026-09-14",
@@ -4650,8 +4650,8 @@
       "div_avg_per_share": 1.2,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00936",
@@ -4664,7 +4664,7 @@
       "high52": 20.03,
       "rsi": 61.7,
       "yld": 4.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 25,
       "est": 0.1,
       "div_next": "2026-06-17",
@@ -4705,8 +4705,8 @@
       "div_avg_per_share": 0.092,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00938",
@@ -4719,7 +4719,7 @@
       "high52": 21.4,
       "rsi": 62.6,
       "yld": 3.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 87,
       "est": 0.22,
       "div_next": "2026-08-18",
@@ -4750,8 +4750,8 @@
       "div_avg_per_share": 0.21,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00939",
@@ -4764,7 +4764,7 @@
       "high52": 18.62,
       "rsi": 73.2,
       "yld": 4.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 10,
       "est": 0.07,
       "div_next": "2026-06-03",
@@ -4805,8 +4805,8 @@
       "div_avg_per_share": 0.072,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00941",
@@ -4857,7 +4857,7 @@
       "high52": 20.61,
       "rsi": 83.6,
       "yld": 3.7,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.09,
       "div_next": "2026-06-18",
@@ -4892,8 +4892,8 @@
       "div_avg_per_share": 0.0736,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00944",
@@ -4906,7 +4906,7 @@
       "high52": 19.04,
       "rsi": 70.1,
       "yld": 3.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.05,
       "div_next": "2026-06-18",
@@ -4940,8 +4940,8 @@
       "div_avg_per_share": 0.054,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00946",
@@ -4954,7 +4954,7 @@
       "high52": 13.5,
       "rsi": 72.9,
       "yld": 4.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 13,
       "est": 0.06,
       "div_next": "2026-06-05",
@@ -4989,8 +4989,8 @@
       "div_avg_per_share": 0.058,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00947",
@@ -5003,7 +5003,7 @@
       "high52": 37.97,
       "rsi": 62.1,
       "yld": 1.1,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 55,
       "est": 0.12,
       "div_next": "2026-07-17",
@@ -5034,8 +5034,8 @@
       "div_avg_per_share": 0.12,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00949",
@@ -5086,7 +5086,7 @@
       "high52": 17.1,
       "rsi": 55.4,
       "yld": 1.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 178,
       "est": 0.16,
       "div_next": "2026-11-17",
@@ -5110,8 +5110,8 @@
       "heat": 68.3,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00952",
@@ -5124,7 +5124,7 @@
       "high52": 17.86,
       "rsi": 61.7,
       "yld": 2.8,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.1,
       "div_next": "2026-06-18",
@@ -5158,8 +5158,8 @@
       "div_avg_per_share": 0.05,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00954",
@@ -5210,7 +5210,7 @@
       "high52": 13.39,
       "rsi": 53.7,
       "yld": 5.5,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 58,
       "est": 0.2,
       "div_next": "2026-07-20",
@@ -5241,8 +5241,8 @@
       "div_avg_per_share": 0.23,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00960",
@@ -5255,7 +5255,7 @@
       "high52": 18.46,
       "rsi": 59.7,
       "yld": 4.8,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 36,
       "est": 0.23,
       "div_next": "2026-06-28",
@@ -5286,8 +5286,8 @@
       "div_avg_per_share": 0.225,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00961",
@@ -5300,7 +5300,7 @@
       "high52": 11.32,
       "rsi": 67.9,
       "yld": 6.5,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.11,
       "div_next": "2026-06-18",
@@ -5334,8 +5334,8 @@
       "div_avg_per_share": 0.06,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00962",
@@ -5348,7 +5348,7 @@
       "high52": 13.85,
       "rsi": 65.7,
       "yld": 2.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 25,
       "est": 0.05,
       "div_next": "2026-06-17",
@@ -5383,8 +5383,8 @@
       "div_avg_per_share": 0.05,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00963",
@@ -5397,7 +5397,7 @@
       "high52": 12.95,
       "rsi": 46.6,
       "yld": 5.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.09,
       "div_next": "2026-06-18",
@@ -5431,8 +5431,8 @@
       "div_avg_per_share": 0.045,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00964",
@@ -5532,7 +5532,7 @@
       "high52": 17.28,
       "rsi": 66.4,
       "yld": 6.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 207,
       "est": 1.0,
       "div_next": "2026-12-16",
@@ -5556,8 +5556,8 @@
       "heat": 24.11,
       "aum": 0,
       "div_frequency": "年配",
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00972",
@@ -5570,7 +5570,7 @@
       "high52": 21.08,
       "rsi": 62.1,
       "yld": 2.8,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 0.27,
       "div_next": "2026-06-16",
@@ -5600,8 +5600,8 @@
       "div_avg_per_share": 0.27,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "009800",
@@ -5690,7 +5690,7 @@
       "high52": 18.45,
       "rsi": 67.0,
       "yld": 2.2,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 0.09,
       "div_next": "2026-06-16",
@@ -5720,8 +5720,8 @@
       "div_avg_per_share": 0.092,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "009803",
@@ -5734,7 +5734,7 @@
       "high52": 20.63,
       "rsi": 63.4,
       "yld": 4.4,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 24,
       "est": 0.25,
       "div_next": "2026-06-16",
@@ -5764,8 +5764,8 @@
       "div_avg_per_share": 0.25,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "009804",
@@ -5778,7 +5778,7 @@
       "high52": 21.45,
       "rsi": 64.8,
       "yld": 6.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 149,
       "est": 0.88,
       "div_next": "2026-10-19",
@@ -5808,8 +5808,8 @@
       "div_avg_per_share": 0.876,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "009805",
@@ -5860,7 +5860,7 @@
       "high52": 29.17,
       "rsi": 60.7,
       "yld": 2.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 279,
       "est": 0.48,
       "div_next": "2027-02-26",
@@ -5892,8 +5892,8 @@
       "div_avg_per_share": 0.5255,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "009809",
@@ -5944,7 +5944,7 @@
       "high52": 24.13,
       "rsi": 57.4,
       "yld": 6.8,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 87,
       "est": 0.48,
       "div_next": "2026-08-18",
@@ -5975,8 +5975,8 @@
       "div_avg_per_share": 0.424,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "009810",
@@ -6255,7 +6255,7 @@
       "high52": 11.93,
       "rsi": 54.5,
       "yld": 5.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 25,
       "est": 0.07,
       "div_next": "2026-06-17",
@@ -6290,8 +6290,8 @@
       "div_avg_per_share": 0.0578,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "009820",
@@ -6342,7 +6342,7 @@
       "high52": 23.27,
       "rsi": 58.8,
       "yld": 7.0,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 87,
       "est": 0.64,
       "div_next": "2026-08-18",
@@ -6374,8 +6374,8 @@
       "div_avg_per_share": 0.377,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00982D",
@@ -6388,7 +6388,7 @@
       "high52": 10.27,
       "rsi": 30.5,
       "yld": 6.3,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.05,
       "div_next": "2026-06-18",
@@ -6423,8 +6423,8 @@
       "div_avg_per_share": 0.052,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00982T",
@@ -6513,7 +6513,7 @@
       "high52": 10.36,
       "rsi": 29.8,
       "yld": 7.2,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 26,
       "est": 0.06,
       "div_next": "2026-06-18",
@@ -6547,8 +6547,8 @@
       "div_avg_per_share": 0.06,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00984A",
@@ -6561,7 +6561,7 @@
       "high52": 15.2,
       "rsi": 63.2,
       "yld": 2.9,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 149,
       "est": 0.27,
       "div_next": "2026-10-19",
@@ -6593,8 +6593,8 @@
       "div_avg_per_share": 0.168,
       "div_category": "高股息",
       "div_todo": false,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00984D",
@@ -6607,7 +6607,7 @@
       "high52": 10.16,
       "rsi": 49.0,
       "yld": 10.1,
-      "yld_verified": false,
+      "yld_verified": true,
       "days": 11,
       "est": 0.09,
       "div_next": "2026-06-03",
@@ -6637,8 +6637,8 @@
       "div_avg_per_share": 0.085,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "base",
-      "yld_label": "fetch_etf 計算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00985A",
@@ -7441,6 +7441,17 @@
   ],
   "calendar": [
     {
+      "code": "00850",
+      "name": "元大臺灣ESG永續",
+      "iso_date": "2026-05-22",
+      "day": "22",
+      "mon": "5月",
+      "amt": 0.85,
+      "soon": true,
+      "days_until": 0,
+      "source": "official"
+    },
+    {
       "code": "00930",
       "name": "永豐ESG低碳高息",
       "iso_date": "2026-05-26",
@@ -7448,7 +7459,7 @@
       "mon": "5月",
       "amt": 0.31,
       "soon": true,
-      "days_until": 3,
+      "days_until": 4,
       "source": "official"
     },
     {
@@ -7459,7 +7470,7 @@
       "mon": "6月",
       "amt": 0,
       "soon": true,
-      "days_until": 10,
+      "days_until": 11,
       "source": "official"
     },
     {
@@ -7469,7 +7480,7 @@
       "mon": "6月",
       "amt": 0.04,
       "soon": true,
-      "days_until": 13,
+      "days_until": 14,
       "source": "estimate"
     },
     {
@@ -7479,7 +7490,7 @@
       "mon": "6月",
       "amt": 0.78,
       "soon": false,
-      "days_until": 24,
+      "days_until": 25,
       "source": "estimate"
     },
     {
@@ -7489,7 +7500,7 @@
       "mon": "6月",
       "amt": 0.41,
       "soon": false,
-      "days_until": 24,
+      "days_until": 25,
       "source": "estimate"
     },
     {
@@ -7499,7 +7510,7 @@
       "mon": "6月",
       "amt": 0.13,
       "soon": false,
-      "days_until": 27,
+      "days_until": 28,
       "source": "estimate"
     },
     {
@@ -7509,7 +7520,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 61,
+      "days_until": 62,
       "source": "estimate"
     },
     {
@@ -7519,7 +7530,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 64,
+      "days_until": 65,
       "source": "estimate"
     },
     {
@@ -7529,17 +7540,7 @@
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
-      "days_until": 87,
-      "source": "estimate"
-    },
-    {
-      "code": "00850",
-      "name": "元大ESG永續",
-      "day": "21",
-      "mon": "8月",
-      "amt": 0.85,
-      "soon": false,
-      "days_until": 90,
+      "days_until": 88,
       "source": "estimate"
     }
   ]
