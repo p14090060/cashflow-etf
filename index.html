@@ -834,9 +834,9 @@ function runHoldingCheck() {
           <div class="k">年殖利率</div>
           <div class="v">${etf.yld > 0 ? etf.yld + '%' : '--'}</div>
         </div>
-        <div class="health-kv">
+        <div class="health-kv" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline">
           <div class="k">配息</div>
-          <div class="v">${divTxt}${estAmt ? `　預估 NT$${parseInt(estAmt).toLocaleString()}` : ''}</div>
+          <div class="v" style="text-align:right">${divTxt}${estAmt ? `　預估 <span style="color:var(--fair)">NT$${parseInt(estAmt).toLocaleString()}</span>` : ''}</div>
         </div>
       </div>
 
