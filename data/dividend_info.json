@@ -1152,16 +1152,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-05-29",
-      "mon": "5月",
-      "day": "29",
-      "code": "00850",
-      "name": "元大ESG永續",
-      "amt": 0.8,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-06-05",
       "mon": "6月",
       "day": "5",
@@ -1238,6 +1228,16 @@
       "code": "00878",
       "name": "國泰永續高息",
       "amt": 0.66,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-08-21",
+      "mon": "8月",
+      "day": "21",
+      "code": "00850",
+      "name": "元大ESG永續",
+      "amt": 0.85,
       "soon": false,
       "source": "yfinance"
     }
