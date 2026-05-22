@@ -847,7 +847,7 @@ function runHoldingCheck() {
       <div class="range-lbl"><span>低 ${etf.low52}</span><span>高 ${etf.high52}</span></div>
 
       <div style="display:flex;align-items:center;gap:6px;margin-top:10px">
-        <span style="font-size:15px;color:var(--dim)">近3月</span>
+        <span style="font-size:15px;color:var(--dim)">近3月績效</span>
         <div class="mini-bars">${bars}</div>
         <span style="font-size:15px;color:var(--dim);margin-left:4px">
           ${(etf.ret_months||[]).slice(-3).map(v => v==null?'--':(v>=0?'+':'')+v.toFixed(1)+'%').join('　')}
