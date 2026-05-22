@@ -137,13 +137,13 @@
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-dear {
-    background:rgba(255,63,94,.12); color:var(--dear);
-    border:1px solid var(--dear); border-radius:6px;
+    background:rgba(251,146,60,.12); color:#fb923c;
+    border:1px solid #fb923c; border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-hot {
-    background:rgba(255,149,0,.12); color:#ff9500;
-    border:1px solid #ff9500; border-radius:6px;
+    background:rgba(239,68,68,.12); color:#ef4444;
+    border:1px solid #ef4444; border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .empty-state {
@@ -769,8 +769,8 @@ function runETFCheck() {
   const out = document.getElementById('etfCheckResult');
   if (!codes.length) { out.innerHTML = '<div class="health-miss">請至少輸入一支 ETF 代碼</div>'; return; }
 
-  const SIG_LABEL = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' };
-  const SIG_COLOR = { cheap:'var(--cheap)', fair:'var(--fair)', hot:'#ff9500', dear:'var(--dear)' };
+  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
+  const SIG_COLOR = { cheap:'var(--cheap)', fair:'var(--fair)', hot:'#ef4444', dear:'#fb923c' };
 
   out.innerHTML = codes.map(code => {
     const etf = ETFS.find(e => e.code.toUpperCase() === code);
@@ -828,7 +828,7 @@ document.getElementById('sharesIn').addEventListener('input', calcUpdate);
 // ── Signal card renderer ──
 function renderSignalCard(etf, estimated) {
   const pos = Math.min(97, Math.max(3, (etf.price - etf.low52) / (etf.high52 - etf.low52) * 100));
-  const sigLabel = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' }[etf.signal] || '目前偏貴';
+  const sigLabel = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' }[etf.signal] || '偏貴';
   const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' }[etf.signal] || 'sig-dear';
   const note = estimated ? `<div style="font-size:16px;color:var(--dim);margin-top:8px">⚠ 估算數值，每日更新後將顯示真實資料</div>` : '';
   return `<div class="buy-card">
@@ -983,7 +983,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   }
   renderMood(market);
 
-  const SIG_LABEL = { cheap:'現在便宜 ✓', fair:'合理價 ✓', hot:'過熱 ⚡', dear:'目前偏貴' };
+  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' };
 
   // 只從成交量前 100 篩選，避免冷門 ETF 混入
@@ -1107,7 +1107,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
 
 // ── Rank page ──────────────────────────────────────────────────────
 function renderRank() {
-  const SIG_LABEL = { cheap:'便宜✓', fair:'合理✓', hot:'過熱', dear:'偏貴' };
+  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
   const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c' };
   const fmtRet = v => (v == null) ? '--' : v === 0 ? '新上市' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const retClr = v => (v == null || v === 0) ? '#f59e0b' : v >= 0 ? '#ff6b6b' : '#00e5a0';
