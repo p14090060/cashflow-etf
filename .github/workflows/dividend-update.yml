@@ -2,7 +2,7 @@ name: Update Dividend Calendar
 
 on:
   schedule:
-    - cron: "30 0 * * 1,4"   # 週一、四 台北時間 08:30（UTC 00:30）
+    - cron: "30 0 * * 1-5"   # 每個工作日 台北時間 08:30（UTC 00:30）
   workflow_dispatch:           # 支援手動觸發
 
 permissions:
@@ -18,9 +18,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      # fetch_dividend_calendar.py 只用 Python 標準庫，無需額外安裝
-
-      - name: Fetch dividend calendar from TWSE OpenAPI
+      - name: Fetch dividend calendar（TWSE + FinMind 雙源）
+        env:
+          FINMIND_TOKEN:       ${{ secrets.FINMIND_TOKEN }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scripts/fetch_dividend_calendar.py
 
       - name: Commit dividend_calendar.json

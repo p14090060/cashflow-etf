@@ -1202,13 +1202,23 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   const futureCal = cal.filter(c => !c.iso_date || c.iso_date >= todayStr);
   document.getElementById('calList').innerHTML = futureCal.map(c => {
     const isToday    = c.iso_date === todayStr || c.days_until === 0;
-    const isOfficial = c.source === 'official';
-    const srcHtml = isOfficial
-      ? `<div class="src-lbl src-official">🏛️ TWSE 官方公告</div>`
-      : `<div class="src-lbl src-estimate">📊 歷史平均估算</div>`;
+    const amtSrc = c.amount_source || c.source || '';
+    const srcHtml = c.amt == null ? ''
+      : amtSrc === 'TWSE' || amtSrc === 'official'
+      ? `<div class="src-lbl src-official">🏛 TWSE 官方公告</div>`
+      : amtSrc === 'FinMind（估算）'
+      ? `<div class="src-lbl src-estimate">🔍 FinMind 估算</div>`
+      : amtSrc === 'manual'
+      ? `<div class="src-lbl src-official">✅ 人工核實</div>`
+      : amtSrc === 'estimate'
+      ? `<div class="src-lbl src-estimate">📊 歷史平均估算</div>`
+      : '';
     const pill = isToday
       ? `<div class="soon-pill today-pill">今日配息</div>`
       : c.soon ? `<div class="soon-pill">快配息囉～</div>` : '';
+    const amtHtml = c.amt != null
+      ? `<div class="cal-amt">${c.amt.toFixed(2)} 元</div><div class="cal-ulbl">每單位</div>`
+      : `<div class="cal-amt" style="color:var(--dim);font-size:14px;font-weight:400;">待公告</div>`;
     return `
     <div class="cal-item ${isToday?'today':c.soon?'soon':''}">
       <div class="cal-date"><span class="cal-day">${c.day}</span><span class="cal-mon">${c.mon}</span></div>
@@ -1219,8 +1229,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
         ${srcHtml}
       </div>
       <div class="cal-r">
-        <div class="cal-amt">${c.amt.toFixed(2)} 元</div>
-        <div class="cal-ulbl">每單位</div>
+        ${amtHtml}
         ${pill}
       </div>
     </div>`;

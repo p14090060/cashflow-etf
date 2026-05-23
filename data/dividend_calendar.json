@@ -1,35 +1,24 @@
 {
   "_meta": {
-    "last_updated": "2026-05-23",
-    "source": "TWSE e添富 (ETFortune/dividendList)",
+    "last_updated": "2026-05-24",
+    "sources": "TWSE ETFortune → TWSE per-ETF → FinMind",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
-    "license": "政府開放資料 (data.gov.tw/license)",
-    "note": "抓當月+未來兩個月，LAZY_WATCHLIST 中同代號取最近未來日期"
+    "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
     "00939": {
       "code": "00939",
       "name": "統一台灣高息動能",
       "ex_dividend_date": "2026-06-02",
-      "amount": 0.0
+      "amount": null,
+      "amount_source": null
     },
     "00930": {
       "code": "00930",
       "name": "永豐ESG低碳高息",
       "ex_dividend_date": "2026-05-26",
-      "amount": 0.31
-    },
-    "00932": {
-      "code": "00932",
-      "name": "兆豐永續高息等權",
-      "ex_dividend_date": "2217-05-19",
-      "amount": 0.22
-    },
-    "00936": {
-      "code": "00936",
-      "name": "台新永續高息中小",
-      "ex_dividend_date": "2809-06-25",
-      "amount": 0.1
+      "amount": 0.31,
+      "amount_source": "TWSE"
     }
   }
 }

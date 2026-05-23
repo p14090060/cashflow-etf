@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-23 09:18",
+  "updated": "2026-05-24 05:58",
   "is_closed": true,
   "is_holiday": true,
   "last_trading_time": null,
@@ -4584,7 +4584,7 @@
       "yld": 4.6,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
+      "days": 2,
       "est": 0.31,
       "div_next": "2026-07-21",
       "signal": "hot",
@@ -4634,7 +4634,7 @@
       "yld": 5.0,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 69757,
+      "days": 87,
       "est": 0.22,
       "div_next": "2026-08-18",
       "signal": "dear",
@@ -4777,7 +4777,7 @@
       "yld": 4.0,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 286018,
+      "days": 25,
       "est": 0.1,
       "div_next": "2026-06-17",
       "signal": "dear",
@@ -4879,7 +4879,7 @@
       "yld": 4.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 0.07,
       "div_next": "2026-06-03",
       "signal": "dear",
@@ -7626,8 +7626,9 @@
       "mon": "5月",
       "amt": 0.31,
       "soon": true,
-      "days_until": 3,
-      "source": "official"
+      "days_until": 2,
+      "source": "official",
+      "amount_source": "TWSE"
     },
     {
       "code": "00939",
@@ -7635,10 +7636,11 @@
       "iso_date": "2026-06-02",
       "day": "2",
       "mon": "6月",
-      "amt": 0,
+      "amt": null,
       "soon": true,
-      "days_until": 10,
-      "source": "official"
+      "days_until": 9,
+      "source": "official",
+      "amount_source": "official"
     },
     {
       "code": "00940",
@@ -7647,7 +7649,7 @@
       "mon": "6月",
       "amt": 0.04,
       "soon": true,
-      "days_until": 13,
+      "days_until": 12,
       "source": "estimate"
     },
     {
@@ -7657,7 +7659,7 @@
       "mon": "6月",
       "amt": 0.78,
       "soon": false,
-      "days_until": 24,
+      "days_until": 23,
       "source": "estimate"
     },
     {
@@ -7667,7 +7669,7 @@
       "mon": "6月",
       "amt": 0.41,
       "soon": false,
-      "days_until": 24,
+      "days_until": 23,
       "source": "estimate"
     },
     {
@@ -7677,7 +7679,7 @@
       "mon": "6月",
       "amt": 0.13,
       "soon": false,
-      "days_until": 27,
+      "days_until": 26,
       "source": "estimate"
     },
     {
@@ -7687,7 +7689,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 61,
+      "days_until": 60,
       "source": "estimate"
     },
     {
@@ -7697,7 +7699,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 64,
+      "days_until": 63,
       "source": "estimate"
     },
     {
@@ -7707,7 +7709,7 @@
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
-      "days_until": 87,
+      "days_until": 86,
       "source": "estimate"
     },
     {
@@ -7717,30 +7719,8 @@
       "mon": "8月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 90,
+      "days_until": 89,
       "source": "estimate"
-    },
-    {
-      "code": "00932",
-      "name": "兆豐永續高息等權",
-      "iso_date": "2217-05-19",
-      "day": "19",
-      "mon": "5月",
-      "amt": 0.22,
-      "soon": false,
-      "days_until": 69757,
-      "source": "official"
-    },
-    {
-      "code": "00936",
-      "name": "台新永續高息中小",
-      "iso_date": "2809-06-25",
-      "day": "25",
-      "mon": "6月",
-      "amt": 0.1,
-      "soon": false,
-      "days_until": 286018,
-      "source": "official"
     }
   ]
 }

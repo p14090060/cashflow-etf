@@ -181,22 +181,27 @@ def build_calendar(div_info_cal: list, div_cal_etfs: dict,
         if d.get("amount"):
             amt_fallback[code] = d["amount"]
 
-    def _append(code, name, ex_date, amt, source):
+    def _append(code, name, ex_date, amt, source, amount_source=None):
         days_left = (ex_date - today).days
         if days_left < 0:
             return
-        if not amt:
+        # amt=None 代表查無（待公告），不使用歷史 fallback
+        # amt=0 代表舊格式空值，才走 fallback
+        if amt is None:
+            pass
+        elif not amt:
             amt = amt_fallback.get(code, 0)
         result.append({
-            "code":       code,
-            "name":       name,
-            "iso_date":   ex_date.isoformat(),
-            "day":        str(ex_date.day),
-            "mon":        f"{ex_date.month}月",
-            "amt":        amt,
-            "soon":       days_left <= 14,
-            "days_until": days_left,
-            "source":     source,
+            "code":          code,
+            "name":          name,
+            "iso_date":      ex_date.isoformat(),
+            "day":           str(ex_date.day),
+            "mon":           f"{ex_date.month}月",
+            "amt":           amt,
+            "soon":          days_left <= 14,
+            "days_until":    days_left,
+            "source":        source,
+            "amount_source": amount_source or source,
         })
         covered.add(code)
 
@@ -206,7 +211,8 @@ def build_calendar(div_info_cal: list, div_cal_etfs: dict,
             ex_date = datetime.date.fromisoformat(d["ex_dividend_date"])
         except (ValueError, KeyError):
             continue
-        _append(code, d["name"], ex_date, d["amount"], "official")
+        _append(code, d["name"], ex_date, d.get("amount"), "official",
+                d.get("amount_source"))
 
     # 2. 人工核實（覆蓋 yfinance，但不蓋掉官方）
     for code, d in manual_etfs.items():
@@ -343,7 +349,7 @@ def main():
         # 官方公告金額/日期 → 覆蓋 yfinance 的 est 和 days
         if code in div_cal_etfs:
             official = div_cal_etfs[code]
-            if official.get("amount", 0) > 0:
+            if (official.get("amount") or 0) > 0:
                 e["est"] = official["amount"]
             try:
                 ex_date = datetime.date.fromisoformat(official["ex_dividend_date"])
