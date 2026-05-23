@@ -36,6 +36,9 @@ _RET1Y_OVERRIDE = {
     # 改用 Adj Close 後拆分問題已自動修正，不再需要手動覆蓋
 }
 
+# 上市後至今尚未配息，殖利率欄位顯示「待公告」
+_YLD_PENDING = {"00949", "00954", "00965"}
+
 # 手動覆蓋 yld：yfinance 12 個月加總失真的 ETF，填真實年化殖利率
 _YLD_OVERRIDE = {
     "00940": 4.67,   # yfinance 抓到上市初期大配息，真實年化 4.67%（2026-05-20 確認）
@@ -609,6 +612,8 @@ for code, name in ALL_ETFS:
             yld = _YLD_OVERRIDE[code]
             yld_verified = True
 
+        yld_pending = code in _YLD_PENDING
+
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    ret5d, vol_ratio, rsi, yld, name)
         heat     = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
@@ -619,7 +624,7 @@ for code, name in ALL_ETFS:
             "price": safe(price), "ma60": safe(ma60), "ma20": safe(ma20),
             "low52": safe(low52), "high52": safe(high52),
             "rsi": safe(rsi),
-            "yld": safe(yld), "yld_verified": yld_verified, "days": div_days,
+            "yld": safe(yld), "yld_verified": yld_verified, "yld_pending": yld_pending, "days": div_days,
             "est": div_est, "div_next": div_next,
             "signal": signal, "maD": safe(maD),
             "ret5d": safe(ret5d), "ret1m": safe(ret1m),
