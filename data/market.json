@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-23 09:04",
+  "updated": "2026-05-23 09:18",
   "is_closed": true,
   "is_holiday": true,
   "last_trading_time": null,
@@ -2317,8 +2317,8 @@
       "low52": 64.7,
       "high52": 75.8,
       "rsi": 60.8,
-      "yld": 4.02,
-      "yld_verified": false,
+      "yld": 3.7,
+      "yld_verified": true,
       "yld_pending": false,
       "days": 88,
       "est": 0.75,
@@ -2350,8 +2350,8 @@
       "div_avg_per_share": 0.752,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "historical",
-      "yld_label": "歷史平均估算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00733",
@@ -3414,8 +3414,8 @@
       "low52": 15.05,
       "high52": 27.14,
       "rsi": 61.7,
-      "yld": 2.68,
-      "yld_verified": false,
+      "yld": 2.7,
+      "yld_verified": true,
       "yld_pending": false,
       "days": 24,
       "est": 0.7,
@@ -3446,8 +3446,8 @@
       "div_avg_per_share": 0.7,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "historical",
-      "yld_label": "歷史平均估算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00897",
@@ -4190,8 +4190,8 @@
       "low52": 19.93,
       "high52": 31.8,
       "rsi": 55.9,
-      "yld": 16.17,
-      "yld_verified": false,
+      "yld": 16.2,
+      "yld_verified": true,
       "yld_pending": false,
       "days": 121,
       "est": 3.5,
@@ -4222,8 +4222,8 @@
       "div_avg_per_share": 3.5,
       "div_category": "高股息",
       "div_todo": true,
-      "yld_source": "historical",
-      "yld_label": "歷史平均估算"
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     },
     {
       "code": "00918",

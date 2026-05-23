@@ -1251,6 +1251,7 @@ function renderRank() {
     const noDiv  = freq === '不配息';
     const yldTxt = noDiv         ? '不適用'
                  : e.new_listing ? '未滿1歲'
+                 : e.yld_pending  ? '待公告'
                  : e.yld_verified && e.yld > 0 ? e.yld.toFixed(1) + '%'
                  : e.yld > 0    ? '~' + e.yld.toFixed(1) + '%'
                  : '--';

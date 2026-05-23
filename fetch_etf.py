@@ -63,6 +63,9 @@ _YLD_OVERRIDE = {
     "00728": 0.9,
     "00690": 5.7,
     "00984D": 0.8,
+    "00731": 3.7,    # FinMind×TWSE 核實（2026-05-23）
+    "00896": 2.7,    # FinMind×TWSE 核實（2026-05-23）
+    "00917": 16.2,   # FinMind×TWSE 核實（2026-05-23）
 }
 
 def calc_rsi(close_series, period=14):
