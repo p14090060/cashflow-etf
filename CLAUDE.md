@@ -123,12 +123,34 @@
 - 只在 LAZY_WATCHLIST 有 `cheap` 訊號時發送
 - 15:00 收盤通知由 `daily_check.py` 的 cheap_alerts 覆蓋
 
+## 配息行事曆雙源查詢邏輯（fetch_dividend_calendar.py）
+
+排程：每個工作日 08:30（dividend-update.yml）
+
+**距除息日 ≤ 14 天 → 強制雙源查詢（TWSE × FinMind）**
+
+| 結果 | 來源標記 |
+|---|---|
+| TWSE 有、FinMind 有，差異 ≤5% | `TWSE × FinMind 核實` |
+| TWSE 有、FinMind 無 | `TWSE` |
+| TWSE 無、FinMind 有 | `FinMind（估算）` |
+| 兩者皆無，且距除息 ≤ 7 天 | TG 通知 Gavin，前端顯示「待公告」 |
+
+**關於第三來源：**
+- Goodinfo 等網站的「未公告金額」是用歷史配息估算，非官方資料
+- TWSE 和 FinMind 都查無 = 金額真的還沒公告，加第三官方源無效
+- 若 FinMind 也無當筆，可考慮用 FinMind 最近一筆歷史配息作估算（待實作，需 Gavin 同意）
+
+**`amount` 欄位語意：**
+- `0.072`（數字）→ 有資料，前端顯示金額
+- `null` → 查無，前端顯示「待公告」（不走歷史 fallback）
+
 ## 資料來源
 
 - 即時行情 / 歷史資料：yfinance（`.TW` 後綴）
 - ETF 淨值：TWSE 公開資訊觀測站 API（失敗 fallback 前一日收盤）
 - 殖利率：FinMind API（主要）+ yfinance（fallback）
-- 配息行事曆：TWSE 官方
+- 配息行事曆：TWSE ETFortune（主）+ FinMind TaiwanStockDividend（副）
 
 ## 法遵
 
