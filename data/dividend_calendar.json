@@ -18,18 +18,6 @@
       "name": "永豐ESG低碳高息",
       "ex_dividend_date": "2026-05-26",
       "amount": 0.31
-    },
-    "00932": {
-      "code": "00932",
-      "name": "兆豐永續高息等權",
-      "ex_dividend_date": "2217-05-19",
-      "amount": 0.22
-    },
-    "00936": {
-      "code": "00936",
-      "name": "台新永續高息中小",
-      "ex_dividend_date": "2809-06-25",
-      "amount": 0.1
     }
   }
 }
