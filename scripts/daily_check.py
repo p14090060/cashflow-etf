@@ -114,13 +114,19 @@ def main():
     cheap_alerts  = []
     div_alerts    = []
 
-    # ── 1. 報酬率異常 ±80%（全部 ETF，偵測拆分或資料錯誤）──
+    # ── 1. 報酬率異常（台股 AI 行情 100-230% 屬正常，門檻設 300%）──
     for e in etfs:
         ret1y = e.get("ret1y")
-        if ret1y is not None and abs(ret1y) > 80:
+        new_listing = e.get("new_listing", False)
+        if ret1y is not None and abs(ret1y) > 300:
             issues.append(
                 f"• {e['code']} {e.get('name','')}：近1年報酬 {ret1y:+.1f}%，"
-                f"數值異常，可能有拆分或資料錯誤，請人工確認"
+                f"數值異常（>300%），疑似拆分未修正，請人工確認"
+            )
+        elif ret1y == 0 and not new_listing:
+            issues.append(
+                f"• {e['code']} {e.get('name','')}：近1年報酬為 0%（非新上市），"
+                f"疑似資料抓取失敗或拆分問題，請確認"
             )
 
     # ── 2-6. LAZY_WATCHLIST 各項檢查 ──
@@ -151,9 +157,9 @@ def main():
             issues.append(f"• {code} {name}：現價為 0，資料抓取失敗")
             continue
 
-        # ── 殖利率 >15%（防呆）──
-        if yld > 15:
-            issues.append(f"• {code} {name}：殖利率 {yld}% 異常（>15%）")
+        # ── 殖利率 >20%（防呆，15% 以上有合法高息 ETF）──
+        if yld > 20:
+            issues.append(f"• {code} {name}：殖利率 {yld}% 異常（>20%）")
 
         # ── 2. 殖利率從有到 0 ──
         prev_yld = yld_prev.get(code, 0)
