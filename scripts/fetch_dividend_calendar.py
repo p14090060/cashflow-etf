@@ -202,49 +202,66 @@ def main():
                 "amount_source": "TWSE" if row["amount"] > 0 else None,
             }
 
-    # Step 2: 補查金額為 0 的 ETF
-    no_amount = [c for c, d in candidates.items() if d.get("amount_source") is None]
-    if no_amount:
-        print(f"\n[DIV-CAL] {len(no_amount)} 支 TWSE 金額為 0，啟動補查…")
-        alerts = []
+    # Step 2: 距除息日 ≤ 14 天 → 強制雙源查詢（TWSE × FinMind）
+    DUAL_DAYS = 14
+    dual_targets = [
+        c for c, d in candidates.items()
+        if (datetime.date.fromisoformat(d["ex_dividend_date"]) - today).days <= DUAL_DAYS
+    ]
 
-        for code in no_amount:
+    alerts = []
+    if dual_targets:
+        print(f"\n[DIV-CAL] {len(dual_targets)} 支進入 {DUAL_DAYS} 天雙源核查視窗…")
+
+        for code in dual_targets:
             entry     = candidates[code]
             ex_date   = entry["ex_dividend_date"]
             days_left = (datetime.date.fromisoformat(ex_date) - today).days
+            twse_amt  = entry.get("amount") or 0.0
 
-            # 2a: TWSE per-ETF
-            time.sleep(0.5)
-            amt = fetch_twse_per_etf(code, today_str)
-            if amt > 0:
-                entry["amount"]        = amt
-                entry["amount_source"] = "TWSE"
-                print(f"  [TWSE-ETF] {code} 補到 {amt:.4f} 元")
-                continue
+            # 若 TWSE bulk 無金額，先試 TWSE per-ETF
+            if twse_amt == 0:
+                time.sleep(0.5)
+                twse_amt = fetch_twse_per_etf(code, today_str)
+                if twse_amt > 0:
+                    print(f"  [TWSE-ETF] {code} 補到 {twse_amt:.4f} 元")
 
-            # 2b: FinMind
+            # 一律查 FinMind（雙源核對）
             time.sleep(0.3)
-            amt = fetch_finmind_dividend(code)
-            if amt > 0:
-                entry["amount"]        = amt
+            fm_amt = fetch_finmind_dividend(code)
+
+            # 比對並設定來源
+            if twse_amt > 0 and fm_amt > 0:
+                diff = abs(twse_amt - fm_amt) / twse_amt
+                if diff <= 0.05:
+                    entry["amount"]        = twse_amt
+                    entry["amount_source"] = "TWSE × FinMind 核實"
+                    print(f"  [OK]  {code} TWSE={twse_amt} FM={fm_amt} 雙源吻合")
+                else:
+                    entry["amount"]        = twse_amt  # 以 TWSE 為準
+                    entry["amount_source"] = f"TWSE（FinMind 差異 {diff*100:.0f}%）"
+                    print(f"  [DIFF] {code} TWSE={twse_amt} vs FM={fm_amt} 差 {diff*100:.0f}%")
+            elif twse_amt > 0:
+                entry["amount"]        = twse_amt
+                entry["amount_source"] = "TWSE"
+                print(f"  [TWSE] {code} {twse_amt:.4f} 元（FinMind 無資料）")
+            elif fm_amt > 0:
+                entry["amount"]        = fm_amt
                 entry["amount_source"] = "FinMind（估算）"
-                print(f"  [FinMind]  {code} 補到 {amt:.4f} 元（估算）")
-                continue
+                print(f"  [FM]   {code} {fm_amt:.4f} 元（TWSE 無資料）")
+            else:
+                entry["amount"]        = None
+                entry["amount_source"] = None
+                print(f"  [NO DATA] {code} 除息日 {ex_date}，距今 {days_left} 天，所有來源查無金額")
+                if days_left <= ALERT_DAYS:
+                    alerts.append((code, entry.get("name", code), ex_date, days_left))
 
-            # 2c: 仍查無
-            entry["amount"]        = None   # 前端顯示「待公告」
-            entry["amount_source"] = None
-            print(f"  [NO DATA]  {code} 除息日 {ex_date}，距今 {days_left} 天，所有來源查無金額")
-
-            if days_left <= ALERT_DAYS:
-                alerts.append((code, entry.get("name", code), ex_date, days_left))
-
-        if alerts:
-            lines = ["⚠️ 配息金額查無通知"]
-            for code, name, ex_date, days_left in alerts:
-                lines.append(f"• {code} {name}\n  除息日 {ex_date}（距今 {days_left} 天）")
-            lines.append("TWSE ETFortune 及 FinMind 均查無配息金額，請人工確認")
-            notify_tg("\n".join(lines))
+    if alerts:
+        lines = ["⚠️ 配息金額查無通知"]
+        for code, name, ex_date, days_left in alerts:
+            lines.append(f"• {code} {name}\n  除息日 {ex_date}（距今 {days_left} 天）")
+        lines.append("TWSE ETFortune 及 FinMind 均查無配息金額，請人工確認")
+        notify_tg("\n".join(lines))
 
     # 印出結果
     print(f"\n[DIV-CAL] LAZY_WATCHLIST 有公告：{len(candidates)} 支")
