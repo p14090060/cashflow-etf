@@ -1285,6 +1285,16 @@
       "source": "yfinance"
     },
     {
+      "iso_date": "2026-07-22",
+      "mon": "7月",
+      "day": "22",
+      "code": "00928",
+      "name": "中信上櫃ESG 30",
+      "amt": 0.5,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
       "iso_date": "2026-07-23",
       "mon": "7月",
       "day": "23",
