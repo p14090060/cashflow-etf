@@ -1,8 +1,8 @@
 {
-  "updated": "2026-05-24 06:12",
+  "updated": "2026-05-25 05:06",
   "is_closed": true,
-  "is_holiday": true,
-  "last_trading_time": null,
+  "is_holiday": false,
+  "last_trading_time": "13:30",
   "market": {
     "change_pct": 2.17,
     "change_pt": 899.76,
@@ -3953,6 +3953,10 @@
       "heat": 54.66,
       "aum": 0,
       "div_frequency": "不配息",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "主題型",
+      "div_todo": false,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -4584,7 +4588,7 @@
       "yld": 4.6,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 2,
+      "days": 1,
       "est": 0.31,
       "div_next": "2026-07-21",
       "signal": "hot",
@@ -4879,7 +4883,7 @@
       "yld": 4.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 9,
+      "days": 8,
       "est": 0.07,
       "div_next": "2026-06-03",
       "signal": "dear",
@@ -6915,6 +6919,10 @@
       "heat": 55.78,
       "aum": 0,
       "div_frequency": "年配",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": false,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -6954,6 +6962,10 @@
       "heat": 76.51,
       "aum": 0,
       "div_frequency": "年配",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": false,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -7032,6 +7044,10 @@
       "heat": 70.82,
       "aum": 0,
       "div_frequency": "不配息",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": false,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -7071,6 +7087,13 @@
       "heat": 46.54,
       "aum": 0,
       "div_frequency": "半年配",
+      "div_months": [
+        6,
+        12
+      ],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": false,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -7110,6 +7133,15 @@
       "heat": 44.85,
       "aum": 0,
       "div_frequency": "季配",
+      "div_months": [
+        1,
+        4,
+        7,
+        10
+      ],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": false,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -7630,7 +7662,7 @@
       "mon": "5月",
       "amt": 0.31,
       "soon": true,
-      "days_until": 2,
+      "days_until": 1,
       "source": "official",
       "amount_source": "TWSE"
     },
@@ -7642,7 +7674,7 @@
       "mon": "6月",
       "amt": null,
       "soon": true,
-      "days_until": 9,
+      "days_until": 8,
       "source": "official",
       "amount_source": "official"
     },
@@ -7653,7 +7685,7 @@
       "mon": "6月",
       "amt": 0.04,
       "soon": true,
-      "days_until": 12,
+      "days_until": 11,
       "source": "estimate"
     },
     {
@@ -7663,7 +7695,7 @@
       "mon": "6月",
       "amt": 0.78,
       "soon": false,
-      "days_until": 23,
+      "days_until": 22,
       "source": "estimate"
     },
     {
@@ -7673,7 +7705,7 @@
       "mon": "6月",
       "amt": 0.41,
       "soon": false,
-      "days_until": 23,
+      "days_until": 22,
       "source": "estimate"
     },
     {
@@ -7683,7 +7715,7 @@
       "mon": "6月",
       "amt": 0.13,
       "soon": false,
-      "days_until": 26,
+      "days_until": 25,
       "source": "estimate"
     },
     {
@@ -7693,7 +7725,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 60,
+      "days_until": 59,
       "source": "estimate"
     },
     {
@@ -7703,7 +7735,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 63,
+      "days_until": 62,
       "source": "estimate"
     },
     {
@@ -7713,7 +7745,7 @@
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
-      "days_until": 86,
+      "days_until": 85,
       "source": "estimate"
     },
     {
@@ -7723,7 +7755,7 @@
       "mon": "8月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 89,
+      "days_until": 88,
       "source": "estimate"
     }
   ]
