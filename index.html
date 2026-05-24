@@ -1105,7 +1105,9 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
     badge.textContent = '今日休市';
   } else if (isClosed) {
     badge.className = 'status-badge status-closed';
-    badge.textContent = '收盤資料 · ' + (updatedAt || '').slice(0, 10);
+    const twMin = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes() + 480) % 1440;
+    const label = twMin < 9 * 60 ? '盤前資料' : '收盤資料';
+    badge.textContent = label + ' · ' + (updatedAt || '').slice(0, 10);
   } else {
     badge.className = 'status-badge status-live';
     badge.textContent = 'LIVE · 更新 ' + (updatedAt || '').slice(11, 16);
