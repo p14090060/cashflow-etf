@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-25 05:06",
+  "updated": "2026-05-25 05:20",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -7651,6 +7651,43 @@
       "div_frequency": "季配",
       "yld_source": "base",
       "yld_label": "fetch_etf 計算"
+    },
+    {
+      "code": "00928",
+      "name": "中信上櫃ESG 30",
+      "price": 36.62,
+      "yld": 1.4,
+      "yld_verified": false,
+      "new_listing": false,
+      "ret1y": null,
+      "div_frequency": "半年配",
+      "div_months": [
+        1,
+        7
+      ],
+      "div_avg_per_share": 0.5,
+      "div_category": "ESG",
+      "div_todo": false,
+      "signal": "dear",
+      "yld_source": "base",
+      "yld_label": "fetch_etf 計算"
+    },
+    {
+      "code": "006201",
+      "name": "元大富櫃50",
+      "price": 47.5,
+      "yld": 1.62,
+      "yld_verified": true,
+      "new_listing": false,
+      "ret1y": null,
+      "div_frequency": "年配",
+      "div_months": [],
+      "div_avg_per_share": 0.77,
+      "div_category": "指數型",
+      "div_todo": false,
+      "signal": "dear",
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
     }
   ],
   "calendar": [

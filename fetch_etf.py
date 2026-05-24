@@ -101,8 +101,13 @@ CURATED = [
     ("00940",  "元大台灣價值高息"),
     ("00929",  "復華台灣科技優息"),
     ("00850",  "元大ESG永續"),
+    ("00928",  "中信上櫃ESG 30"),
+    ("006201", "元大富櫃50"),
 ]
 CURATED_CODES = {code for code, _ in CURATED}
+
+# 上櫃 ETF 用 .TWO 後綴（TPEx），其餘用 .TW（TWSE）
+TWO_CODES = {"00928", "006201"}
 
 SUFFIX = ".TW"
 HIGH_DIV_KEYWORDS = ["高股息", "高息", "精選高息", "永續高息", "價值高息"]
@@ -512,7 +517,7 @@ ALL_ETFS  = build_pool()
 results = []
 for code, name in ALL_ETFS:
     curated = code in CURATED_CODES
-    ticker_code = code + SUFFIX
+    ticker_code = code + (".TWO" if code in TWO_CODES else SUFFIX)
     try:
         tk = yf.Ticker(ticker_code)
         hist = tk.history(period="1y", auto_adjust=False)
