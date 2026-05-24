@@ -19,6 +19,13 @@
       "ex_dividend_date": "2026-05-26",
       "amount": 0.31,
       "amount_source": "TWSE"
+    },
+    "00940": {
+      "code": "00940",
+      "name": "元大台灣價值高息",
+      "ex_dividend_date": "2027-06-11",
+      "amount": 0.045,
+      "amount_source": "TWSE"
     }
   }
 }
