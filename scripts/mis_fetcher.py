@@ -360,10 +360,12 @@ def main():
                 pass
 
         # 重算訊號（不靠 NAV，與 fetch_etf.py 同一套邏輯）
+        _ma60 = e.get("ma60") or 0
+        _price = e.get("price") or 0
         e["signal"] = calc_signal(
-            e.get("price",     0),
+            _price,
             e.get("ma20",      0),
-            e.get("ma60",      0),
+            _ma60,
             e.get("low52",     0),
             e.get("high52",    0),
             e.get("ret5d",     0),
@@ -372,6 +374,9 @@ def main():
             e.get("yld",       0),
             e.get("name",     ""),
         )
+        # 補寫 maD（_base.json 缺欄位時也能正常顯示）
+        if e.get("maD") is None and _ma60 > 0:
+            e["maD"] = round((_price - _ma60) / _ma60 * 100, 1)
         e.pop("premium", None)   # 移除 NAV 相關欄位
 
         # 殖利率：_base.json 有合理值（fetch_etf.py 用 TWSE 多筆平均算的）→ 直接沿用
