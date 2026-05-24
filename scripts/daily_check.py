@@ -186,7 +186,7 @@ def main():
         info       = info_map.get(code, {})
         stored_avg = info.get("avg_dividend_per_share")
         if cal and stored_avg and stored_avg > 0:
-            official_amt = cal.get("amount", 0)
+            official_amt = cal.get("amount") or 0
             if official_amt > 0:
                 diff = abs(official_amt - stored_avg) / stored_avg
                 if diff > 0.15:
