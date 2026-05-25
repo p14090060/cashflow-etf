@@ -402,6 +402,7 @@
   .rank-num      { width:82px; font-size:18px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
   .rank-yld      { width:72px; font-size:18px; font-family:var(--mono); font-weight:700; flex-shrink:0; text-align:right; }
   .mini-bars     { display:flex; align-items:center; gap:2px; height:26px; padding-left:6px; flex-shrink:0; }
+  .rank-tag      { font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; border:1px solid; white-space:nowrap; margin-left:8px; flex-shrink:0; letter-spacing:.02em; }
 
   /* ── 逆向計算機 ── */
 
@@ -1107,9 +1108,17 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
     badge.textContent = '今日休市';
   } else if (isClosed) {
     badge.className = 'status-badge status-closed';
-    const twMin = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes() + 480) % 1440;
-    const label = twMin < 9 * 60 ? '盤前資料' : '收盤資料';
-    badge.textContent = label + ' · ' + (updatedAt || '').slice(0, 10);
+    const twNow = new Date(new Date().getTime() + 8 * 3600000);
+    const todayStr = twNow.toISOString().slice(0, 10);
+    const dataDateStr = (updatedAt || '').slice(0, 10);
+    let label;
+    if (dataDateStr < todayStr) {
+      label = '盤後資料';
+    } else {
+      const twMin = twNow.getUTCHours() * 60 + twNow.getUTCMinutes();
+      label = twMin < 9 * 60 ? '盤前資料' : '收盤資料';
+    }
+    badge.textContent = label + ' · ' + dataDateStr;
   } else {
     badge.className = 'status-badge status-live';
     badge.textContent = 'LIVE · 更新 ' + (updatedAt || '').slice(11, 16);
@@ -1249,6 +1258,19 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
 }
 
 // ── Rank page ──────────────────────────────────────────────────────
+function getEtfTag(code, name) {
+  const c = code || '', n = name || '';
+  if (c.endsWith('L') || /正2|2倍/.test(n))
+    return { label:'槓桿', color:'#ef4444', border:'rgba(239,68,68,.35)', bg:'rgba(239,68,68,.08)' };
+  if (c.endsWith('R') || /反[12]|放空/.test(n))
+    return { label:'反向', color:'#f87171', border:'rgba(248,113,113,.35)', bg:'rgba(248,113,113,.08)' };
+  if (c.endsWith('B') || n.includes('債'))
+    return { label:'債券', color:'#60a5fa', border:'rgba(96,165,250,.35)', bg:'rgba(96,165,250,.08)' };
+  if (c.endsWith('U') || /黃金|原油|黃豆|農產|白銀|天然氣/.test(n))
+    return { label:'商品期貨', color:'#fb923c', border:'rgba(251,146,60,.35)', bg:'rgba(251,146,60,.08)' };
+  return null;
+}
+
 function renderRank() {
   const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
   const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c' };
@@ -1279,6 +1301,8 @@ function renderRank() {
                    : 'var(--dim)';
     const ret1y = fmtRet(e.ret1y);
     const y1C   = retClr(e.ret1y);
+    const _tag  = getEtfTag(e.code, e.name);
+    const tagHtml = _tag ? `<div class="rank-tag" style="color:${_tag.color};border-color:${_tag.border};background:${_tag.bg}">${_tag.label}</div>` : '';
     return `<div class="rank-row">
       <div class="rank-main">
         <div class="rank-no ${cls}">${rank}</div>
@@ -1294,6 +1318,7 @@ function renderRank() {
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>
+        ${tagHtml}
       </div>
     </div>`;
   }).join('');
