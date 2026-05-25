@@ -1266,13 +1266,13 @@ function renderRank() {
     const sigC  = SIG_COLOR[e.signal] || '#8b949e';
     const freq   = e.div_freq || e.div_frequency || '?';
     const noDiv  = freq === '不配息';
-    const yldTxt = noDiv         ? '不適用'
-                 : e.new_listing ? '未滿1歲'
-                 : e.yld_pending  ? '待公告'
-                 : e.yld_verified && e.yld > 0 ? e.yld.toFixed(1) + '%'
-                 : e.yld > 0    ? '~' + e.yld.toFixed(1) + '%'
+    const yldTxt = noDiv                          ? '不適用'
+                 : e.yld_verified && e.yld > 0   ? e.yld.toFixed(1) + '%'
+                 : (e.new_listing && !e.yld)      ? '未滿1歲'
+                 : e.yld_pending                  ? '待公告'
+                 : e.yld > 0                      ? '~' + e.yld.toFixed(1) + '%'
                  : '--';
-    const yldClr = (e.yld > 0 && !noDiv && !e.new_listing)
+    const yldClr = (e.yld > 0 && !noDiv)
                    ? (e.yld_verified ? '#f5c842' : '#8b7020')
                    : 'var(--dim)';
     const ret1y = fmtRet(e.ret1y);
