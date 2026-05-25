@@ -67,8 +67,25 @@ def fetch_mis_etfs(codes):
                 y    = item.get("y", "-")
                 v    = item.get("v", "-")
                 t    = item.get("t", "")
-                if not code or not z or z == "-":
+                if not code:
                     continue
+                # 當 z="-" 時，用最佳買賣價中點作 fallback
+                if not z or z == "-":
+                    a_str = item.get("a", "")  # ask: "29.40_29.41_..."
+                    b_str = item.get("b", "")  # bid: "29.39_29.38_..."
+                    try:
+                        best_ask = float(a_str.split("_")[0]) if a_str else 0
+                        best_bid = float(b_str.split("_")[0]) if b_str else 0
+                        if best_ask > 0 and best_bid > 0:
+                            z = str(round((best_ask + best_bid) / 2, 4))
+                        elif best_ask > 0:
+                            z = str(best_ask)
+                        elif best_bid > 0:
+                            z = str(best_bid)
+                        else:
+                            continue
+                    except (ValueError, IndexError):
+                        continue
                 try:
                     price = float(z)
                     prev  = float(y) if y and y != "-" else price
