@@ -224,14 +224,23 @@ def main():
     if new_entries:
         lines.append("🆕 新進成交量 TOP 100")
         for e in new_entries:
-            sig  = {"cheap":"便宜","fair":"合理","hot":"過熱","dear":"偏貴"}.get(e.get("signal",""), "?")
-            yld  = e.get("yld", 0)
-            ystr = f"殖利率 {yld}%" if yld else "無殖利率紀錄"
-            freq = e.get("div_freq") or e.get("div_frequency") or ""
+            sig     = {"cheap":"便宜","fair":"合理","hot":"過熱","dear":"偏貴"}.get(e.get("signal",""), "?")
+            yld     = e.get("yld", 0)
+            freq    = e.get("div_freq") or e.get("div_frequency") or ""
+            no_div  = freq == "不配息"
+            pending = e.get("yld_pending", False)
+            if no_div:
+                ystr = "不配息"
+            elif pending:
+                ystr = "待公告"
+            elif yld:
+                ystr = f"殖利率 {yld}%"
+            else:
+                ystr = "無殖利率紀錄"
             warn = []
             if freq in ("不明", "?", ""):
                 warn.append("配息頻率不明")
-            if not yld and not e.get("new_listing"):
+            if not yld and not e.get("new_listing") and not no_div and not pending:
                 warn.append("殖利率查無（非新上市）")
             warn_str = f"\n  ⚠️ {'、'.join(warn)}，請確認後更新" if warn else ""
             lines.append(f"• {e['code']} {e.get('name','')} · {sig} · {ystr}{warn_str}")
