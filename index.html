@@ -396,6 +396,7 @@
   .rank-etf      { flex:1; min-width:0; padding-right:6px; }
   .rank-code     { font-size:20px; font-weight:700; font-family:var(--mono); color:var(--bright); }
   .rank-name     { font-size:18px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-price    { font-family:var(--mono); font-size:16px; color:var(--bright); flex-shrink:0; text-align:right; margin-right:8px; min-width:44px; }
   .rank-sig      { font-size:18px; font-weight:600; flex-shrink:0; white-space:nowrap; }
   .rank-freq     { width:58px; font-size:18px; color:var(--dim); flex-shrink:0; }
   .rank-num      { width:82px; font-size:18px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
@@ -1284,6 +1285,7 @@ function renderRank() {
           <div class="rank-code">${e.code}</div>
           <div class="rank-name">${e.name}</div>
         </div>
+        <div class="rank-price">${e.price}</div>
         <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
       </div>
       <div class="rank-sub">
