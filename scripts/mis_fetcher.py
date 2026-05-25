@@ -396,6 +396,10 @@ def main():
             e["maD"] = round((_price - _ma60) / _ma60 * 100, 1)
         e.pop("premium", None)   # 移除 NAV 相關欄位
 
+        # 新上市 ETF：用 MIS 即時價和 NT$10 面額重算 ret1y，確保與即時價一致
+        if e.get("new_listing") and _price > 0:
+            e["ret1y"] = round((_price - 10.0) / 10.0 * 100, 1)
+
         # 殖利率：_base.json 有合理值（fetch_etf.py 用 TWSE 多筆平均算的）→ 直接沿用
         # 不靠 mis_fetcher 的 "單筆×頻率" 反算，那樣對變動配息 ETF 會嚴重失真
         base_yld = b.get("yld") or 0

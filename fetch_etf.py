@@ -564,6 +564,9 @@ for code, name in ALL_ETFS:
             return round(float((adj.iloc[e-1]/adj.iloc[s]-1)*100), 1)
         ret_months  = [_mr(k) for k in range(6, 0, -1)]
         new_listing = len(hist) < 240   # 上市未滿約1年（交易日 < 240）
+        # 新上市 ETF 以面額 NT$10 為基準計算報酬，反映申購成本
+        if new_listing and len(adj) >= 2:
+            ret1y = round((price - 10.0) / 10.0 * 100, 1)
         # yfinance 歷史資料異常防呆：adj close 高低比 > 4 代表拆分調整失效，ret1y 不可信
         # 用 adj（已做拆分調整）而非原始 Close，避免正常拆股的 ETF 被誤判為 0
         _adj_max = float(adj.max()) if len(adj) > 0 else 0
