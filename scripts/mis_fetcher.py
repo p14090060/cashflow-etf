@@ -103,14 +103,30 @@ def fetch_mis_etfs(codes):
             print(f"[MIS] batch {idx} 失敗: {e}", file=sys.stderr)
     return results
 
+def fetch_twii_prev_close():
+    """yfinance 抓 ^TWII 前一交易日收盤，作為漲跌基準（MIS API 的 y 欄位對指數不準確）"""
+    try:
+        import yfinance as yf
+        tw_today = tw_now().date()
+        hist = yf.Ticker("^TWII").history(period="5d")
+        if hist.empty:
+            return None
+        dates = [idx.date() if hasattr(idx, "date") else idx for idx in hist.index]
+        past = [float(hist["Close"].iloc[i]) for i, d in enumerate(dates) if d < tw_today]
+        return past[-1] if past else None
+    except Exception as e:
+        print(f"[yf] ^TWII prev_close 失敗: {e}", file=sys.stderr)
+    return None
+
 def fetch_mis_market():
-    """抓加權指數（tse_t00.tw）"""
+    """抓加權指數（tse_t00.tw），漲跌用 yfinance 前一日收盤計算"""
     try:
         d    = _fetch_url(f"{MIS_URL}?json=1&delay=0&ex_ch=tse_t00.tw")
         item = d.get("msgArray", [{}])[0]
-        z, y, t = item.get("z","-"), item.get("y","-"), item.get("t","")
+        z, t = item.get("z", "-"), item.get("t", "")
         if z and z != "-":
-            cur, prev = float(z), (float(y) if y and y != "-" else float(z))
+            cur  = float(z)
+            prev = fetch_twii_prev_close() or cur
             return {
                 "price":      round(cur, 2),
                 "change_pt":  round(cur - prev, 2),
