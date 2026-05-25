@@ -123,6 +123,16 @@
 - 只在 LAZY_WATCHLIST 有 `cheap` 訊號時發送
 - 15:00 收盤通知由 `daily_check.py` 的 cheap_alerts 覆蓋
 
+## daily_check.py TG 通知規則
+
+| 區塊 | 觸發條件 |
+|---|---|
+| 💚 監控清單便宜訊號 | LAZY_WATCHLIST 有 `cheap` 訊號 |
+| 🆕 新進 TOP 100 資料異常 | 新進榜 ETF 有以下**任一**問題：配息方式不明 / 殖利率查無（非新上市、非不配息、非待公告）/ 報酬率查無（非新上市） |
+
+- 配息 7 天通知：**已關閉**（2026-05-25 移除）
+- 新進榜正常 ETF：**不通知**，只在資料異常時通知
+
 ## 配息行事曆雙源查詢邏輯（fetch_dividend_calendar.py）
 
 排程：每個工作日 08:30（dividend-update.yml）
