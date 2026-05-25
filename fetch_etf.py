@@ -687,20 +687,55 @@ for code, name in ALL_ETFS:
         else:
             print(f"[SKIP] {code} {name} 失敗，略過: {e}")
 
-# ── 大盤加權指數（^TWII）────────────────────────────────────────────
+# ── 大盤加權指數：TWSE 官方 MI_INDEX（fallback yfinance）────────────
 market = {"change_pct": 0.0, "change_pt": 0.0, "price": 0.0}
-try:
+def _fetch_twse_market():
+    """TWSE MI_5MINS_INDEX 抓今日加權收盤，yfinance 提供前一日基準計算漲跌"""
+    import urllib.request as _ur, ssl as _ssl, json as _json
+    ctx = _ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=_ssl.CERT_NONE
+    url = "https://www.twse.com.tw/rwd/zh/TAIEX/MI_5MINS_INDEX?response=json"
+    req = _ur.Request(url, headers={"User-Agent":"Mozilla/5.0","Referer":"https://www.twse.com.tw/"})
+    with _ur.urlopen(req, timeout=10, context=ctx) as r:
+        d = _json.loads(r.read().decode("utf-8"))
+    rows = d.get("data", [])
+    if not rows:
+        return None
+    # 最後一筆（13:30:00）= 收盤，欄位 index 1 = 加權指數
+    last = rows[-1]
+    cur = float(str(last[1]).replace(",", ""))
+    if cur <= 0:
+        return None
+    # 前一日收盤用 yfinance iloc[-2]（歷史資料穩定）
     twii = yf.Ticker("^TWII")
     h = twii.history(period="5d")
-    if len(h) >= 2:
-        prev  = float(h["Close"].iloc[-2])
-        cur   = float(h["Close"].iloc[-1])
-        chg   = round(cur - prev, 2)
-        chg_p = round((cur - prev) / prev * 100, 2)
-        market = {"change_pct": chg_p, "change_pt": chg, "price": round(cur, 2)}
-        print(f"[OK] 大盤 {cur}  {chg:+.2f} ({chg_p:+.2f}%)")
+    if len(h) < 2:
+        return None
+    prev = float(h["Close"].iloc[-2])
+    chg_pt = round(cur - prev, 2)
+    chg_pc = round(chg_pt / prev * 100, 2) if prev else 0
+    return {"price": round(cur, 2), "change_pt": chg_pt, "change_pct": chg_pc}
+
+try:
+    m = _fetch_twse_market()
+    if m:
+        market = m
+        print(f"[OK] 大盤(TWSE) {m['price']}  {m['change_pt']:+.2f} ({m['change_pct']:+.2f}%)")
+    else:
+        raise ValueError("MI_INDEX 無法解析")
 except Exception as e:
-    print(f"[WARN] 大盤抓取失敗: {e}")
+    print(f"[WARN] TWSE 大盤失敗({e})，改用 yfinance")
+    try:
+        twii = yf.Ticker("^TWII")
+        h = twii.history(period="5d")
+        if len(h) >= 2:
+            prev  = float(h["Close"].iloc[-2])
+            cur   = float(h["Close"].iloc[-1])
+            chg   = round(cur - prev, 2)
+            chg_p = round((cur - prev) / prev * 100, 2)
+            market = {"change_pct": chg_p, "change_pt": chg, "price": round(cur, 2)}
+            print(f"[OK] 大盤(yfinance) {cur}  {chg:+.2f} ({chg_p:+.2f}%)")
+    except Exception as e2:
+        print(f"[WARN] 大盤抓取失敗: {e2}")
 
 curated_n = sum(1 for r in results if r.get("curated"))
 auto_n    = len(results) - curated_n
