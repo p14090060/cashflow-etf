@@ -221,29 +221,29 @@ def main():
     if cheap_alerts:
         lines.append("💚 監控清單 便宜訊號")
         lines.extend(cheap_alerts)
-    if new_entries:
-        lines.append("🆕 新進成交量 TOP 100")
-        for e in new_entries:
-            sig     = {"cheap":"便宜","fair":"合理","hot":"過熱","dear":"偏貴"}.get(e.get("signal",""), "?")
-            yld     = e.get("yld", 0)
-            freq    = e.get("div_freq") or e.get("div_frequency") or ""
-            no_div  = freq == "不配息"
-            pending = e.get("yld_pending", False)
-            if no_div:
-                ystr = "不配息"
-            elif pending:
-                ystr = "待公告"
-            elif yld:
-                ystr = f"殖利率 {yld}%"
-            else:
-                ystr = "無殖利率紀錄"
-            warn = []
-            if freq in ("不明", "?", ""):
-                warn.append("配息頻率不明")
-            if not yld and not e.get("new_listing") and not no_div and not pending:
-                warn.append("殖利率查無（非新上市）")
-            warn_str = f"\n  ⚠️ {'、'.join(warn)}，請確認後更新" if warn else ""
-            lines.append(f"• {e['code']} {e.get('name','')} · {sig} · {ystr}{warn_str}")
+    # 新進榜只在有資料問題時通知
+    problem_entries = []
+    for e in new_entries:
+        freq    = e.get("div_freq") or e.get("div_frequency") or ""
+        no_div  = freq == "不配息"
+        pending = e.get("yld_pending", False)
+        is_new  = e.get("new_listing", False)
+        yld     = e.get("yld", 0)
+        ret1y   = e.get("ret1y", 0)
+        warn = []
+        if freq in ("不明", "?", ""):
+            warn.append("配息方式不明")
+        if not yld and not is_new and not no_div and not pending:
+            warn.append("殖利率查無")
+        if not ret1y and not is_new:
+            warn.append("報酬率查無")
+        if warn:
+            problem_entries.append(
+                f"• {e['code']} {e.get('name','')}：{'、'.join(warn)}"
+            )
+    if problem_entries:
+        lines.append("🆕 新進 TOP 100 資料異常")
+        lines.extend(problem_entries)
 
     if lines:
         notify("\n".join(lines))
