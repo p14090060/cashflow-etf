@@ -556,7 +556,7 @@ for code, name in ALL_ETFS:
         rsi      = calc_rsi(c)
         ret5d    = round(float((adj.iloc[-1] / adj.iloc[-6]  - 1) * 100), 2) if len(adj) >= 6  else 0.0
         ret1m    = round(float((adj.iloc[-1] / adj.iloc[-22] - 1) * 100), 1) if len(adj) >= 22 else 0.0
-        ret1y    = round(float((adj.iloc[-1] / adj.iloc[0]   - 1) * 100), 1) if len(adj) >= 20 else 0.0
+        ret1y    = round(float((adj.iloc[-1] / adj.iloc[0]   - 1) * 100), 1) if len(adj) >= 2  else 0.0
         # 每月個別報酬（最近 6 個月，oldest→newest），k=6 最舊、k=1 最新
         def _mr(k):
             n = len(adj); e = n-(k-1)*22; s = n-k*22
