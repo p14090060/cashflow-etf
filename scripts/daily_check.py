@@ -221,9 +221,6 @@ def main():
     if cheap_alerts:
         lines.append("💚 監控清單 便宜訊號")
         lines.extend(cheap_alerts)
-    if div_alerts:
-        lines.append("🎁 配息即將到來（7天內）")
-        lines.extend(div_alerts)
     if new_entries:
         lines.append("🆕 新進成交量 TOP 100")
         for e in new_entries:
