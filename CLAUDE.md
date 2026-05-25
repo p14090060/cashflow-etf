@@ -16,7 +16,7 @@
 | `data/market.json` | mis_fetcher.py 產出，**前端讀這個** |
 | `data/dividend_calendar.json` | 配息行事曆資料 |
 | `.github/workflows/fetch.yml` | 每日 08:30 + 15:00 自動排程 |
-| `.github/workflows/update-data.yml` | 盤中每 10 分鐘更新 market.json |
+| `.github/workflows/update-data.yml` | 盤中每 10 分鐘更新 market.json（由 cron-job.org 觸發） |
 
 ## 兩階段 Action 架構
 
@@ -24,6 +24,16 @@
 2. `update-data.yml` → 跑 `mis_fetcher.py` → 合併 _base.json → 產出 `data/market.json` → 跑 `intraday_notify.py`
 
 **前端只讀 `data/market.json`**，改完 fetch_etf.py 要先觸發 fetch.yml，再觸發 update-data.yml 才會反映。
+
+## cron-job.org 觸發設定（2026-05-25）
+
+GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org 精確觸發：
+
+- **帳號**：p14090060（GitHub 帳號登入）
+- **Job**：ETF update-data 每10分
+- **排程**：`*/10 9-13 * * 1-5`（Asia/Taipei，台北 09:00～13:59，週一至週五）
+- **觸發方式**：POST `https://api.github.com/repos/p14090060/cashflow-etf/actions/workflows/update-data.yml/dispatches`
+- **is_trading_hour 邊界**：`scripts/mis_fetcher.py` 上限改為 13:35（`<= 815`），讓 13:35 那次能抓到收盤現價與大盤漲幅
 
 ## 文案規範
 
