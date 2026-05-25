@@ -1290,7 +1290,7 @@ function renderRank() {
         <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
       </div>
       <div class="rank-sub">
-        <div class="rank-freq">${freq}</div>
+        <div class="rank-freq" style="${noDiv ? '' : 'color:var(--bright)'}">${freq}</div>
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>
