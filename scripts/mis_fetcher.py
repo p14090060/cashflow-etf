@@ -420,11 +420,16 @@ def main():
         # 不靠 mis_fetcher 的 "單筆×頻率" 反算，那樣對變動配息 ETF 會嚴重失真
         base_yld = b.get("yld") or 0
         if 0 < base_yld <= 20:
+            # dividend_info.json 的 _todo:False 代表已人工核實，升格為 verified
+            div_confirmed = not div_etfs.get(code, {}).get("_todo", True)
+            is_verified   = b.get("yld_verified", False) or div_confirmed
             e["yld"]          = base_yld
-            e["yld_verified"] = b.get("yld_verified", False)
-            e["yld_source"]   = "base" if not b.get("yld_verified") else "verified"
+            e["yld_verified"] = is_verified
+            e["yld_source"]   = "verified" if is_verified else "base"
             e["yld_label"]    = ("雙源核對（FinMind × TWSE ETFortune）"
-                                 if b.get("yld_verified") else "fetch_etf 計算")
+                                 if b.get("yld_verified") else
+                                 "dividend_info 人工核實" if div_confirmed else
+                                 "fetch_etf 計算")
         else:
             # Fallback：_base.json 沒有 yld 才用 Plan C（官方公告 → 歷史平均）
             yld, yld_src, yld_lbl = calc_yield_with_source(
