@@ -39,7 +39,7 @@ def is_trading_hour(now=None):
     if n.weekday() >= 5:
         return False
     t = n.hour * 60 + n.minute
-    return 540 <= t <= 815          # 09:00 ~ 13:35
+    return 540 <= t <= 830          # 09:00 ~ 13:50（含收盤後緩衝）
 
 # ── MIS 資料抓取 ──────────────────────────────────────────
 def _fetch_url(url):
