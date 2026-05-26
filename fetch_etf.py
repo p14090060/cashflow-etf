@@ -480,21 +480,6 @@ def fetch_twse_etfortune_yld(code, price, div_freq):
         pass
     return 0.0
 
-def cross_verify_yld(yld_a, yld_b, tolerance=2.0):
-    """雙源核對殖利率。回傳 (final_yld, verified)。
-    兩源都有且差距在容許範圍內 → verified=True。
-    只有單源或差距過大 → verified=False（顯示為 '--'）。
-    """
-    if yld_a > 0 and yld_b > 0:
-        if abs(yld_a - yld_b) <= tolerance:
-            return yld_a, True
-        else:
-            return yld_a, False
-    elif yld_a > 0:
-        return yld_a, False
-    elif yld_b > 0:
-        return yld_b, False
-    return 0.0, False
 
 def fetch_nav_twse(code):
     try:
@@ -609,38 +594,26 @@ for code, name in ALL_ETFS:
         # 先偵測配息頻率，殖利率年化計算需要用到
         div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
 
-        # 殖利率雙源核對：FinMind（A）× TWSE ETFortune（B），兩源一致才 verified
-        fm_yld   = fetch_finmind_yld(code, price, div_freq)
+        # 殖利率單源串接：ETFortune（官方）→ FinMind → yfinance trailing 12M
+        yld, yld_verified = 0.0, False
         twse_yld = fetch_twse_etfortune_yld(code, price, div_freq)
-        yld, yld_verified = cross_verify_yld(fm_yld, twse_yld)
+        if twse_yld > 0:
+            yld, yld_verified = twse_yld, True
+        else:
+            fm_yld = fetch_finmind_yld(code, price, div_freq)
+            if fm_yld > 0:
+                yld, yld_verified = fm_yld, True
+            elif price > 0:
+                # yfinance 保底：取過去365天實際配息加總
+                try:
+                    cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=365)
+                    idx = divs.index.tz_convert('UTC') if divs.index.tz else divs.index.tz_localize('UTC')
+                    annual = float(divs[idx > cutoff].sum())
+                    if annual > 0:
+                        yld = round(annual / price * 100, 1)
+                except Exception:
+                    pass
 
-        # fallback：兩源都是 0 才啟用，一律標記 unverified
-        if yld == 0.0 and price > 0 and 'Dividends' in hist.columns:
-            try:
-                annual = float(hist['Dividends'].sum())
-                if annual > 0:
-                    yld = round(annual / price * 100, 1)
-                    yld_verified = False
-            except Exception:
-                pass
-        if yld == 0.0 and price > 0:
-            try:
-                _dy = getattr(info, "dividend_yield", None)
-                if _dy:
-                    yld = round(float(_dy) * 100, 1)
-                    yld_verified = False
-            except Exception:
-                pass
-        if yld == 0.0 and price > 0:
-            try:
-                cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=365)
-                idx = divs.index.tz_convert('UTC') if divs.index.tz else divs.index.tz_localize('UTC')
-                annual = float(divs[idx > cutoff].sum())
-                if annual > 0:
-                    yld = round(annual / price * 100, 1)
-                    yld_verified = False
-            except Exception:
-                pass
         # 手動覆寫：人工查證過的直接視為 verified
         if code in _YLD_OVERRIDE:
             yld = _YLD_OVERRIDE[code]
