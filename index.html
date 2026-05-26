@@ -1206,8 +1206,11 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
           <span class="wait-code" style="font-size:16px">${e.code}</span>
           <span class="wait-name">${e.name}</span>
         </div>
-        <div style="font-size:16px;color:var(--dim);margin-top:2px">
-          現價 ${e.price} · 年化殖利率 ${e.yld}%${e.new_listing && e.yld == 0 ? '（新上市）' : (e.div_freq||e.div_frequency)==='不配息' && e.yld == 0 ? '（不配息）' : yldBadge(e)}
+        <div style="font-size:16px;margin-top:2px">
+          <span style="color:#fb923c">現價 ${e.price}</span>
+          <span style="color:var(--dim)"> · 年化殖利率 </span>${e.new_listing && e.yld == 0
+            ? `<span style="color:#fbbf24">${e.yld}%（新上市）</span>`
+            : `<span style="color:var(--dim)">${(e.div_freq||e.div_frequency)==='不配息'&&e.yld==0?'（不配息）':yldBadge(e)}</span>`}
         </div>
       </div>
       <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
