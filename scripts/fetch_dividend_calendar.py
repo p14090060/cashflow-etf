@@ -25,6 +25,11 @@ LAZY_WATCHLIST = {
     '00646', '00662', '00679B', '00687B', '00772B',
 }
 
+# 人工確認的配息金額（僅在自動源查無時補入，自動源有資料則以官方為準）
+_MANUAL_OVERRIDE: dict = {
+    "00939": {"amount": 0.072, "amount_source": "Gavin 人工確認"},
+}
+
 ROC_DATE_RE = re.compile(r'(\d{3})年(\d{2})月(\d{2})日')
 TR_RE       = re.compile(r'<tr[^>]*>(.*?)</tr>', re.DOTALL | re.IGNORECASE)
 TD_RE       = re.compile(r'<t[dh][^>]*>(.*?)</t[dh]>', re.DOTALL | re.IGNORECASE)
@@ -262,6 +267,12 @@ def main():
             lines.append(f"• {code} {name}\n  除息日 {ex_date}（距今 {days_left} 天）")
         lines.append("TWSE ETFortune 及 FinMind 均查無配息金額，請人工確認")
         notify_tg("\n".join(lines))
+
+    # 套用人工確認值（僅在自動源查無時補入）
+    for code, override in _MANUAL_OVERRIDE.items():
+        if code in candidates and candidates[code].get("amount") is None:
+            candidates[code].update(override)
+            print(f"  [MANUAL] {code} 自動源查無，套用人工確認值 {override['amount']}")
 
     # 印出結果
     print(f"\n[DIV-CAL] LAZY_WATCHLIST 有公告：{len(candidates)} 支")
