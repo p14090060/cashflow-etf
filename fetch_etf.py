@@ -696,8 +696,8 @@ def _fetch_twse_market():
     url = "https://www.twse.com.tw/rwd/zh/TAIEX/MI_5MINS_INDEX?response=json"
     req = _ur.Request(url, headers={"User-Agent":"Mozilla/5.0","Referer":"https://www.twse.com.tw/"})
     with _ur.urlopen(req, timeout=10, context=ctx) as r:
-        d = _json.loads(r.read().decode("utf-8"))
-    rows = d.get("data", [])
+        resp = _json.loads(r.read().decode("utf-8"))
+    rows = resp.get("data", [])
     if not rows:
         return None
     # 最後一筆（13:30:00）= 收盤，欄位 index 1 = 加權指數
@@ -705,12 +705,24 @@ def _fetch_twse_market():
     cur = float(str(last[1]).replace(",", ""))
     if cur <= 0:
         return None
-    # 前一日收盤用 yfinance iloc[-2]（歷史資料穩定）
+    # 從 API date 欄位取得資料日期，再找「該日之前」最後一個交易日的 yfinance 收盤
+    # 避免盤前執行時 yfinance 尚未更新昨日資料導致 iloc[-2] 跳到錯誤的日期
+    date_str = resp.get("date", "")
+    try:
+        data_date = datetime.date(int(date_str[:4]), int(date_str[4:6]), int(date_str[6:8]))
+    except (ValueError, TypeError, IndexError):
+        now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+        data_date = (now_tw.date() - datetime.timedelta(days=1) if now_tw.hour < 9
+                     else now_tw.date())
     twii = yf.Ticker("^TWII")
     h = twii.history(period="5d")
-    if len(h) < 2:
+    if h.empty:
         return None
-    prev = float(h["Close"].iloc[-2])
+    dates = [idx.date() if hasattr(idx, "date") else idx for idx in h.index]
+    past = [float(h["Close"].iloc[i]) for i, d in enumerate(dates) if d < data_date]
+    if not past:
+        return None
+    prev = past[-1]
     chg_pt = round(cur - prev, 2)
     chg_pc = round(chg_pt / prev * 100, 2) if prev else 0
     return {"price": round(cur, 2), "change_pt": chg_pt, "change_pct": chg_pc}
