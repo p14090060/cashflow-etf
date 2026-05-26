@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-26 14:45",
+  "updated": "2026-05-26 15:07",
   "market": {
     "price": 43525.37,
     "change_pt": -119.03,
@@ -3642,7 +3642,7 @@
       "low52": 21.6,
       "high52": 28.22,
       "rsi": 85.8,
-      "yld": 4.9,
+      "yld": 4.4,
       "yld_verified": true,
       "yld_pending": false,
       "days": 19,
@@ -4271,7 +4271,7 @@
       "low52": 13.53,
       "high52": 19.78,
       "rsi": 85.5,
-      "yld": 4.1,
+      "yld": 3.9,
       "yld_verified": true,
       "yld_pending": false,
       "days": 7,
@@ -4419,7 +4419,7 @@
       "low52": 8.68,
       "high52": 14.32,
       "rsi": 84.4,
-      "yld": 3.7,
+      "yld": 4.2,
       "yld_verified": true,
       "yld_pending": false,
       "days": 9,
