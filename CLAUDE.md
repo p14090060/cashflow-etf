@@ -2,6 +2,15 @@
 
 靜態 PWA，每日從 TWSE + yfinance + FinMind 抓資料，GitHub Action 自動更新，GitHub Pages 自動部署。
 
+## 🚨 靜態資料填寫鐵則（Claude 必須遵守）
+
+> 適用範圍：`dividend_info.json`、`_YLD_OVERRIDE`、任何人工維護的靜態欄位
+
+1. **單源查無 → 必須 WebSearch 查證**：程式抓不到資料，不代表資料不存在。上網（goodinfo / moneydj / cmoney / 投信官網）查得到就填查到的，查不到才說查不到。
+2. **WebSearch 也查無 → TG 通知 Gavin，顯示 `--`**：不可用模型記憶、不可憑感覺估填、不可隨意寫預設值佔位。
+3. **填之前必須說明來源**：告訴 Gavin「從哪個網站查到什麼數字」，不能只說「已填入」。
+4. **查到資料才能設 `_todo: false`**：沒有實際查證就設 false 等於造假。
+
 ## 核心檔案
 
 | 檔案 | 用途 |
