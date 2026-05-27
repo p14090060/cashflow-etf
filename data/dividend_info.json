@@ -1255,6 +1255,19 @@
       "category": "主動型",
       "avg_dividend_per_share": null,
       "_todo": false
+    },
+    "009818": {
+      "name": "華南永昌NASDAQxT",
+      "frequency": "季配",
+      "months": [
+        3,
+        6,
+        9,
+        12
+      ],
+      "category": "指數型",
+      "avg_dividend_per_share": 0.62,
+      "_todo": false
     }
   },
   "calendar": [
