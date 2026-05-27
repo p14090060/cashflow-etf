@@ -9,7 +9,7 @@
     "00940": {
       "code": "00940",
       "name": "元大台灣價值高息",
-      "ex_dividend_date": "2026-06-01",
+      "ex_dividend_date": "2026-06-09",
       "amount": null,
       "amount_source": null
     },
@@ -20,11 +20,18 @@
       "amount": 0.072,
       "amount_source": "Gavin 人工確認"
     },
-    "00713": {
-      "code": "00713",
-      "name": "元大台灣高息低波",
-      "ex_dividend_date": "2026-12-20",
-      "amount": 0.78,
+    "00930": {
+      "code": "00930",
+      "name": "永豐ESG低碳高息",
+      "ex_dividend_date": "2026-12-26",
+      "amount": 0.31,
+      "amount_source": "TWSE"
+    },
+    "00929": {
+      "code": "00929",
+      "name": "復華台灣科技優息",
+      "ex_dividend_date": "2819-06-20",
+      "amount": 0.13,
       "amount_source": "TWSE"
     }
   }
