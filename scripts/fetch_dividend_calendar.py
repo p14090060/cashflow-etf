@@ -201,6 +201,10 @@ def main():
         iso = row["ex_dividend_date"]
         if iso < today_str:
             continue
+        max_future = (today + datetime.timedelta(days=730)).isoformat()
+        if iso > max_future:
+            print(f"[SKIP] {code} 除息日 {iso} 疑似 ROC 日期解析錯誤（超過2年），略過")
+            continue
         if code not in candidates or iso < candidates[code]["ex_dividend_date"]:
             candidates[code] = {
                 **row,

@@ -387,7 +387,7 @@ def main():
             try:
                 ex_date = datetime.date.fromisoformat(official["ex_dividend_date"])
                 days_left = (ex_date - today).days
-                if days_left >= 0:
+                if 0 <= days_left <= 730:
                     e["days"] = days_left
             except (ValueError, KeyError):
                 pass
