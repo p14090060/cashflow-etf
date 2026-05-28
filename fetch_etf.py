@@ -635,7 +635,7 @@ for code, name in ALL_ETFS:
             "est": div_est, "div_next": div_next,
             "signal": signal, "maD": safe(maD),
             "ret5d": safe(ret5d), "ret1m": safe(ret1m),
-            "ret1y": safe(ret1y), "ret_months": ret_months, "new_listing": new_listing,
+            "ret1y": safe(ret1y, default=None), "ret_months": ret_months, "new_listing": new_listing,
             "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat),
             "aum": safe(aum), "div_freq": div_freq,
@@ -652,7 +652,7 @@ for code, name in ALL_ETFS:
                 "rsi": 50,
                 "yld": 0, "yld_verified": False, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),
                 "div_next": None, "signal": "dear", "maD": 0,
-                "ret5d": 0, "ret1m": 0, "ret1y": 0, "ret_months": [0,0,0,0,0,0], "new_listing": False,
+                "ret5d": 0, "ret1m": 0, "ret1y": None, "ret_months": [0,0,0,0,0,0], "new_listing": False,
                 "avg_vol": 0, "cur_vol": 0, "vol_ratio": 0, "heat": 0,
                 "aum": 0, "div_freq": DIV_FREQ.get(code, "不明"),
             })

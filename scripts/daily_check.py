@@ -123,9 +123,9 @@ def main():
                 f"• {e['code']} {e.get('name','')}：近1年報酬 {ret1y:+.1f}%，"
                 f"數值異常（>300%），疑似拆分未修正，請人工確認"
             )
-        elif ret1y == 0 and not new_listing:
+        elif ret1y is None and not new_listing:
             issues.append(
-                f"• {e['code']} {e.get('name','')}：近1年報酬為 0%（非新上市），"
+                f"• {e['code']} {e.get('name','')}：近1年報酬無法計算（非新上市），"
                 f"疑似資料抓取失敗或拆分問題，請確認"
             )
 
