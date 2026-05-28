@@ -259,11 +259,16 @@ def main():
                 entry["amount_source"] = "FinMind（估算）"
                 print(f"  [FM]   {code} {fm_amt:.4f} 元（TWSE 無資料）")
             else:
-                entry["amount"]        = None
-                entry["amount_source"] = None
-                print(f"  [NO DATA] {code} 除息日 {ex_date}，距今 {days_left} 天，所有來源查無金額")
-                if days_left <= ALERT_DAYS:
-                    alerts.append((code, entry.get("name", code), ex_date, days_left))
+                # 先查人工確認值，有的話直接套用，不發 TG
+                if code in _MANUAL_OVERRIDE:
+                    entry.update(_MANUAL_OVERRIDE[code])
+                    print(f"  [MANUAL] {code} 自動源查無，套用人工確認值 {_MANUAL_OVERRIDE[code]['amount']}")
+                else:
+                    entry["amount"]        = None
+                    entry["amount_source"] = None
+                    print(f"  [NO DATA] {code} 除息日 {ex_date}，距今 {days_left} 天，所有來源查無金額")
+                    if days_left <= ALERT_DAYS:
+                        alerts.append((code, entry.get("name", code), ex_date, days_left))
 
     if alerts:
         lines = ["⚠️ 配息金額查無通知"]
