@@ -6,19 +6,26 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00939": {
+      "code": "00939",
+      "name": "統一台灣高息動能",
+      "ex_dividend_date": "2026-06-02",
+      "amount": 0.072,
+      "amount_source": "Gavin 人工確認"
+    },
+    "00850": {
+      "code": "00850",
+      "name": "元大臺灣ESG永續",
+      "ex_dividend_date": "2026-12-18",
+      "amount": 0.85,
+      "amount_source": "TWSE"
+    },
     "00940": {
       "code": "00940",
       "name": "元大台灣價值高息",
       "ex_dividend_date": "2026-06-09",
       "amount": null,
       "amount_source": null
-    },
-    "00939": {
-      "code": "00939",
-      "name": "統一台灣高息動能",
-      "ex_dividend_date": "2026-06-02",
-      "amount": 0.072,
-      "amount_source": "TWSE"
     }
   }
 }
