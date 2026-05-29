@@ -10,15 +10,15 @@
       "code": "00940",
       "name": "元大台灣價值高息",
       "ex_dividend_date": "2026-06-09",
-      "amount": null,
-      "amount_source": null
+      "amount": 0.045,
+      "amount_source": "TWSE"
     },
     "00939": {
       "code": "00939",
       "name": "統一台灣高息動能",
       "ex_dividend_date": "2026-06-02",
       "amount": 0.072,
-      "amount_source": "Gavin 人工確認"
+      "amount_source": "TWSE"
     }
   }
 }
