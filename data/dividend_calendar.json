@@ -38,8 +38,8 @@
       "code": "00940",
       "name": "元大台灣價值高息",
       "ex_dividend_date": "2026-06-09",
-      "amount": null,
-      "amount_source": null
+      "amount": 0.05,
+      "amount_source": "Gavin 人工確認 2026-06-04"
     }
   }
 }

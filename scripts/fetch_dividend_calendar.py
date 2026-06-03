@@ -283,6 +283,23 @@ def main():
             candidates[code].update(override)
             print(f"  [MANUAL] {code} 自動源查無，套用人工確認值 {override['amount']}")
 
+    # 保留前值：若本次查無（null）但舊檔已有有效金額，不倒退覆蓋
+    # 避免第二次執行因 TWSE 回傳空值而把已知正確金額洗掉
+    if OUT.exists():
+        try:
+            old_data = json.load(open(OUT, encoding="utf-8"))
+            old_etfs = old_data.get("etfs", {})
+            for code, entry in candidates.items():
+                if entry.get("amount") is None:
+                    old = old_etfs.get(code, {})
+                    old_amt = old.get("amount")
+                    if old_amt is not None and old_amt > 0:
+                        entry["amount"]        = old_amt
+                        entry["amount_source"] = (old.get("amount_source") or "") + "（保留前值）"
+                        print(f"  [KEEP] {code} 本次查無，保留前值 {old_amt}")
+        except Exception as e:
+            print(f"  [KEEP] 讀取舊檔失敗: {e}", file=sys.stderr)
+
     # 印出結果
     print(f"\n[DIV-CAL] LAZY_WATCHLIST 有公告：{len(candidates)} 支")
     for code, d in sorted(candidates.items(), key=lambda x: x[1]["ex_dividend_date"]):
