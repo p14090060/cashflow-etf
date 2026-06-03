@@ -3,8 +3,9 @@ import urllib.request as _ur
 from pathlib import Path
 import yfinance as yf
 
-OUT_BASE = Path(__file__).parent / "data" / "_base.json"
-OUT_DIV  = Path(__file__).parent / "data" / "dividend_info.json"
+OUT_BASE  = Path(__file__).parent / "data" / "_base.json"
+OUT_DIV   = Path(__file__).parent / "data" / "dividend_info.json"
+POOL_CACHE = Path(__file__).parent / "data" / "etf_pool_cache.json"
 
 # 啟動時載入 dividend_info.json，_todo:false 的條目作為最高優先來源
 def _load_confirmed_freq():
@@ -296,7 +297,9 @@ EXCLUDE_KW = [
 ]
 
 def fetch_twse_etf_pool():
-    """從 TWSE ISIN strMode=2 的 ETF 區段抓股票型 ETF 清單，回傳 [(code, name)]"""
+    """從 TWSE ISIN strMode=2 的 ETF 區段抓股票型 ETF 清單，回傳 [(code, name)]。
+    成功時同步更新 etf_pool_cache.json 作為 fallback 備份。
+    """
     try:
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
@@ -323,14 +326,33 @@ def fetch_twse_etf_pool():
             seen.add(code)
             results.append((code, name))
         print(f"[POOL] TWSE 股票型 ETF: {len(results)} 支")
+        # 成功時更新 cache，供下次 TWSE 失敗時 fallback
+        if results:
+            try:
+                with open(POOL_CACHE, "w", encoding="utf-8") as f:
+                    json.dump(results, f, ensure_ascii=False, indent=2)
+            except Exception:
+                pass
         return results
     except Exception as e:
-        print(f"[POOL] TWSE 抓取失敗，僅用精選清單: {e}")
+        print(f"[POOL] TWSE 抓取失敗: {e}")
         return []
 
 def build_pool():
-    """精選池 + TWSE 自動發現池合併，精選碼不重複"""
+    """精選池 + TWSE 自動發現池合併，精選碼不重複。
+    TWSE 失敗時 fallback etf_pool_cache.json（上次成功的清單），避免縮水成 13 支精選。
+    """
     auto = fetch_twse_etf_pool()
+
+    if not auto:
+        if POOL_CACHE.exists():
+            try:
+                cached = json.load(open(POOL_CACHE, encoding="utf-8"))
+                auto = [(c, n) for c, n in cached if c and n]
+                print(f"[POOL] TWSE 失敗，從 etf_pool_cache.json fallback 取得 {len(auto)} 支")
+            except Exception as fb_err:
+                print(f"[POOL] fallback 讀取 cache 失敗: {fb_err}")
+
     pool = list(CURATED)
     added = 0
     for code, name in auto:

@@ -104,6 +104,11 @@ def main():
     info_map = div_info.get("etfs", {})
     cal_map  = (div_cal or {}).get("etfs", {})
 
+    # ── 0b. ETF 筆數異常（TWSE ISIN 抓取失敗時縮水到精選清單 13 支）──
+    if len(etfs) < 50:
+        notify(f"🚨 ETF清單異常：market.json 只有 {len(etfs)} 支（正常應 >100），\n"
+               f"TWSE ISIN 頁面可能抓取失敗，_base.json 已 fallback，請確認")
+
     # ── 載入跨日狀態 ──
     state      = load(DAILY_STATE) or {}
     yld_prev   = state.get("yld_prev", {})
