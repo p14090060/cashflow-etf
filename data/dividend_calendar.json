@@ -17,8 +17,8 @@
       "code": "00929",
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-06-17",
-      "amount": null,
-      "amount_source": null
+      "amount": 0.13,
+      "amount_source": "TWSE"
     },
     "00919": {
       "code": "00919",
