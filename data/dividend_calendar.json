@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-06-03",
+    "last_updated": "2026-06-04",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -38,8 +38,8 @@
       "code": "00940",
       "name": "元大台灣價值高息",
       "ex_dividend_date": "2026-06-09",
-      "amount": 0.05,
-      "amount_source": "Gavin 人工確認 2026-06-04"
+      "amount": 0.045,
+      "amount_source": "TWSE"
     }
   }
 }
