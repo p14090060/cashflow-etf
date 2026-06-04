@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-04 17:59",
+  "updated": "2026-06-04 18:50",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -3294,7 +3294,7 @@
       "low52": 15.93,
       "high52": 36.75,
       "rsi": 66.3,
-      "yld": 8.3,
+      "yld": 6.2,
       "yld_verified": true,
       "yld_pending": false,
       "days": 74,
@@ -7782,7 +7782,7 @@
       "soon": true,
       "days_until": 5,
       "source": "official",
-      "amount_source": "TWSE（保留前值）"
+      "amount_source": "TWSE（保留前值）（保留前值）"
     },
     {
       "code": "00936",
