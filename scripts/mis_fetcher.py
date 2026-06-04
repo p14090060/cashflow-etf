@@ -119,14 +119,21 @@ def fetch_twii_prev_close():
     return None
 
 def fetch_mis_market():
-    """抓加權指數（tse_t00.tw），漲跌用 yfinance 前一日收盤計算"""
+    """抓加權指數（tse_t00.tw），漲跌用 yfinance 前一日收盤計算（fallback: MIS y 欄位）"""
     try:
         d    = _fetch_url(f"{MIS_URL}?json=1&delay=0&ex_ch=tse_t00.tw")
         item = d.get("msgArray", [{}])[0]
-        z, t = item.get("z", "-"), item.get("t", "")
+        z, y, t = item.get("z", "-"), item.get("y", "-"), item.get("t", "")
         if z and z != "-":
             cur  = float(z)
-            prev = fetch_twii_prev_close() or cur
+            prev = fetch_twii_prev_close()
+            if not prev and y and y != "-":
+                try:
+                    prev = float(y)
+                except (ValueError, TypeError):
+                    pass
+            if not prev:
+                prev = cur
             return {
                 "price":      round(cur, 2),
                 "change_pt":  round(cur - prev, 2),
