@@ -1,8 +1,9 @@
 """
 scripts/fetch_dividend_calendar.py
-多源除息行事曆抓取：TWSE ETFortune（主）→ FinMind（副）
+多源除息行事曆抓取：TWSE ETFortune（主）→ FinMind（副）→ MoneyDJ（三源）
 - TWSE 金額為 0 時自動向 FinMind 補查
-- 距除息日 ≤ 7 天且所有來源均查無金額 → TG 通知
+- TWSE + FinMind 都查無時，再試 MoneyDJ HTML 解析
+- 三源全無且距除息日 ≤ 7 天 → TG 通知
 - amount=null 代表真正查無，前端顯示「待公告」
 輸出 data/dividend_calendar.json
 """
@@ -142,6 +143,7 @@ def fetch_twse_per_etf(code: str, today_str: str) -> float:
 
 # ── Source 3: FinMind TaiwanStockDividend ──────────────────────────
 
+
 def fetch_finmind_dividend(code: str) -> float:
     """從 FinMind 取最近 90 天的最新一筆現金配息金額。"""
     if not FINMIND_TOKEN:
@@ -176,6 +178,85 @@ def fetch_finmind_dividend(code: str) -> float:
                     pass
     except Exception as e:
         print(f"[FinMind] {code} 失敗：{e}", file=sys.stderr)
+    return 0.0
+
+
+
+# ── Source 4: MoneyDJ ETF 頁面 HTML 解析 ───────────────────────────
+
+_MDJ_HEADERS = {
+    "User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept-Language": "zh-TW,zh;q=0.9",
+    "Referer":         "https://www.moneydj.com/",
+}
+# MoneyDJ ETF 配息表格：col01=除息基準日，col07=每單位配息
+_MDJ_DATE_COL_RE = re.compile(r'<td[^>]*class="col01"[^>]*>(\d{4}/\d{1,2}/\d{1,2})</td>')
+_MDJ_AMT_COL_RE  = re.compile(r'<td[^>]*class="col07"[^>]*>([\d.]+)</td>')
+
+
+def fetch_moneydj_dividend(code: str, ex_date_str: str) -> float:
+    """
+    從 MoneyDJ ETF 基本資料頁解析配息金額。
+    以 CSS class col01（除息日）配對 col07（配息金額），不依賴中文關鍵字。
+    ex_date_str: 預期除息日 (YYYY-MM-DD)，用來選最接近的紀錄。
+    回傳 > 0 表示找到；0.0 表示無資料或解析失敗。
+    """
+    url = f"https://www.moneydj.com/etf/x/basic/basic0005.xdjhtm?etfid={code}.tw"
+    try:
+        req = urllib.request.Request(url, headers=_MDJ_HEADERS)
+        with urllib.request.urlopen(req, timeout=15, context=ssl_ctx()) as r:
+            raw = r.read()
+        # 頁面是 Big5，但日期/數字是 ASCII，用 replace 不影響定位
+        html = raw.decode("utf-8", errors="replace")
+
+        # 收集所有 col01 日期（位置, 日期）
+        dates = [
+            (m.start(), datetime.date(*map(int, m.group(1).split("/"))))
+            for m in _MDJ_DATE_COL_RE.finditer(html)
+        ]
+        # 收集所有 col07 金額（位置, 金額）—— 只取 ETF 配息合理範圍 0.005~9.99
+        amts = []
+        for m in _MDJ_AMT_COL_RE.finditer(html):
+            try:
+                a = float(m.group(1))
+                if 0.005 < a < 10.0:
+                    amts.append((m.start(), a))
+            except ValueError:
+                pass
+
+        if not dates or not amts:
+            print(f"  [MoneyDJ] {code} col01/col07 未找到資料", file=sys.stderr)
+            return 0.0
+
+        # 每個 col01 日期，配對其後最近的 col07 金額（同一 row）
+        pairs = []
+        for d_pos, d_date in dates:
+            after = [(p, a) for p, a in amts if p > d_pos]
+            if not after:
+                continue
+            nearest_pos, nearest_amt = min(after, key=lambda x: x[0] - d_pos)
+            # 確保是同一 <tr>：金額在日期後 1500 bytes 內（一個 row 通常 < 500 bytes，留 buffer）
+            if nearest_pos - d_pos < 1500:
+                pairs.append((d_date, nearest_amt))
+
+        if not pairs:
+            print(f"  [MoneyDJ] {code} 日期金額配對失敗", file=sys.stderr)
+            return 0.0
+
+        # 優先找與預期除息日 ±45 天內的紀錄
+        try:
+            ex_dt = datetime.date.fromisoformat(ex_date_str)
+            close = [(d, a) for d, a in pairs if abs((d - ex_dt).days) <= 45]
+            if close:
+                return min(close, key=lambda x: abs((x[0] - ex_dt).days))[1]
+        except ValueError:
+            pass
+
+        # fallback：最新一筆（清單通常從新到舊排）
+        return max(pairs, key=lambda x: x[0])[1]
+
+    except Exception as e:
+        print(f"  [MoneyDJ] {code} 失敗：{e}", file=sys.stderr)
     return 0.0
 
 
@@ -264,11 +345,19 @@ def main():
                     entry.update(_MANUAL_OVERRIDE[code])
                     print(f"  [MANUAL] {code} 自動源查無，套用人工確認值 {_MANUAL_OVERRIDE[code]['amount']}")
                 else:
-                    entry["amount"]        = None
-                    entry["amount_source"] = None
-                    print(f"  [NO DATA] {code} 除息日 {ex_date}，距今 {days_left} 天，所有來源查無金額")
-                    if days_left <= ALERT_DAYS:
-                        alerts.append((code, entry.get("name", code), ex_date, days_left))
+                    # Source 4: MoneyDJ HTML 解析
+                    time.sleep(0.5)
+                    mj_amt = fetch_moneydj_dividend(code, ex_date)
+                    if mj_amt > 0:
+                        entry["amount"]        = mj_amt
+                        entry["amount_source"] = "MoneyDJ"
+                        print(f"  [MoneyDJ] {code} {mj_amt:.4f} 元")
+                    else:
+                        entry["amount"]        = None
+                        entry["amount_source"] = None
+                        print(f"  [NO DATA] {code} 除息日 {ex_date}，距今 {days_left} 天，所有來源查無金額")
+                        if days_left <= ALERT_DAYS:
+                            alerts.append((code, entry.get("name", code), ex_date, days_left))
 
     if alerts:
         lines = ["⚠️ 配息金額查無通知"]
@@ -311,7 +400,7 @@ def main():
     output = {
         "_meta": {
             "last_updated": today_str,
-            "sources":      "TWSE ETFortune → TWSE per-ETF → FinMind",
+            "sources":      "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
             "source_url":   BASE_URL,
             "license":      "政府開放資料 (data.gov.tw/license)",
         },
