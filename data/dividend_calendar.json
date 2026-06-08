@@ -1,7 +1,7 @@
 {
   "_meta": {
     "last_updated": "2026-06-08",
-    "sources": "TWSE ETFortune → TWSE per-ETF → FinMind",
+    "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
   },
@@ -11,28 +11,28 @@
       "name": "元大台灣高息低波",
       "ex_dividend_date": "2026-06-22",
       "amount": 1.0,
-      "amount_source": "Yahoo 股市核實（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     "00929": {
       "code": "00929",
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-06-17",
       "amount": 0.26,
-      "amount_source": "MoneyDJ（Gavin 確認）（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     "00919": {
       "code": "00919",
       "name": "群益台灣精選高息",
       "ex_dividend_date": "2026-06-16",
       "amount": 1.0,
-      "amount_source": "Yahoo 股市核實（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     "00936": {
       "code": "00936",
       "name": "台新永續高息中小",
       "ex_dividend_date": "2026-06-15",
       "amount": 0.12,
-      "amount_source": "MoneyDJ × 玩股網核實（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     "00940": {
       "code": "00940",
