@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-08 19:48",
+  "updated": "2026-06-08 20:04",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -5486,7 +5486,7 @@
       "low52": 13.3,
       "high52": 18.46,
       "rsi": 57.5,
-      "yld": 4.9,
+      "yld": 4.6,
       "yld_verified": true,
       "yld_pending": false,
       "days": 19,
@@ -5680,7 +5680,7 @@
       "low52": 9.86,
       "high52": 14.71,
       "rsi": 45.7,
-      "yld": 6.3,
+      "yld": 6.4,
       "yld_verified": true,
       "yld_pending": false,
       "days": 9,
@@ -5808,7 +5808,7 @@
       "low52": 14.37,
       "high52": 21.08,
       "rsi": 46.4,
-      "yld": 1.8,
+      "yld": 2.8,
       "yld_verified": true,
       "yld_pending": false,
       "days": 7,
@@ -7802,7 +7802,7 @@
       "soon": true,
       "days_until": 7,
       "source": "official",
-      "amount_source": "MoneyDJ × 玩股網核實（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     {
       "code": "00919",
@@ -7814,7 +7814,7 @@
       "soon": true,
       "days_until": 8,
       "source": "official",
-      "amount_source": "Yahoo 股市核實（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     {
       "code": "00981A",
@@ -7836,7 +7836,7 @@
       "soon": true,
       "days_until": 9,
       "source": "official",
-      "amount_source": "MoneyDJ（Gavin 確認）（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     {
       "code": "00713",
@@ -7848,7 +7848,7 @@
       "soon": true,
       "days_until": 14,
       "source": "official",
-      "amount_source": "Yahoo 股市核實（保留前值）"
+      "amount_source": "MoneyDJ"
     },
     {
       "code": "00928",
