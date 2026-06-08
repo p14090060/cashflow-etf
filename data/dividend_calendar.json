@@ -10,29 +10,29 @@
       "code": "00713",
       "name": "元大台灣高息低波",
       "ex_dividend_date": "2026-06-22",
-      "amount": null,
-      "amount_source": null
+      "amount": 1.00,
+      "amount_source": "Yahoo 股市核實"
     },
     "00929": {
       "code": "00929",
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-06-17",
-      "amount": null,
-      "amount_source": null
+      "amount": 0.26,
+      "amount_source": "MoneyDJ（Gavin 確認）"
     },
     "00919": {
       "code": "00919",
       "name": "群益台灣精選高息",
       "ex_dividend_date": "2026-06-16",
-      "amount": null,
-      "amount_source": null
+      "amount": 1.00,
+      "amount_source": "Yahoo 股市核實"
     },
     "00936": {
       "code": "00936",
       "name": "台新永續高息中小",
       "ex_dividend_date": "2026-06-15",
-      "amount": null,
-      "amount_source": null
+      "amount": 0.12,
+      "amount_source": "MoneyDJ × 玩股網核實"
     },
     "00940": {
       "code": "00940",
