@@ -1268,6 +1268,22 @@
       "category": "指數型",
       "avg_dividend_per_share": 0.62,
       "_todo": false
+    },
+    "00994A": {
+      "name": "主動第一金台股優",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00916": {
+      "name": "國泰全球品牌50",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
