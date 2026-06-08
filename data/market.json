@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-08 19:20",
+  "updated": "2026-06-08 19:45",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -71,7 +71,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 14,
-      "est": 0.78,
+      "est": 1.0,
       "div_next": "2026-06-19",
       "signal": "dear",
       "maD": 6.7,
@@ -99,7 +99,7 @@
         8,
         11
       ],
-      "div_avg_per_share": 0.78,
+      "div_avg_per_share": 1.0,
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
@@ -165,7 +165,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 8,
-      "est": 0.78,
+      "est": 1.0,
       "div_next": "2026-06-16",
       "signal": "dear",
       "maD": 18.6,
@@ -193,7 +193,7 @@
         9,
         12
       ],
-      "div_avg_per_share": 0.63,
+      "div_avg_per_share": 1.0,
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
@@ -459,7 +459,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 9,
-      "est": 0.13,
+      "est": 0.26,
       "div_next": "2026-06-19",
       "signal": "dear",
       "maD": 20.3,
@@ -495,7 +495,7 @@
         11,
         12
       ],
-      "div_avg_per_share": 0.1,
+      "div_avg_per_share": 0.26,
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
@@ -3676,7 +3676,7 @@
       "low52": 12.73,
       "high52": 20.24,
       "rsi": 59.7,
-      "yld": 5.6,
+      "yld": 5.5,
       "yld_verified": true,
       "yld_pending": false,
       "days": 8,
@@ -4886,7 +4886,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 7,
-      "est": 0.1,
+      "est": 0.12,
       "div_next": "2026-06-17",
       "signal": "dear",
       "maD": 7.4,
@@ -4922,7 +4922,7 @@
         11,
         12
       ],
-      "div_avg_per_share": 0.092,
+      "div_avg_per_share": 0.12,
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
@@ -5680,7 +5680,7 @@
       "low52": 9.86,
       "high52": 14.71,
       "rsi": 45.7,
-      "yld": 6.7,
+      "yld": 6.3,
       "yld_verified": true,
       "yld_pending": false,
       "days": 9,
@@ -5808,7 +5808,7 @@
       "low52": 14.37,
       "high52": 21.08,
       "rsi": 46.4,
-      "yld": 2.8,
+      "yld": 1.8,
       "yld_verified": true,
       "yld_pending": false,
       "days": 7,
@@ -7798,11 +7798,11 @@
       "iso_date": "2026-06-15",
       "day": "15",
       "mon": "6月",
-      "amt": null,
+      "amt": 0.12,
       "soon": true,
       "days_until": 7,
       "source": "official",
-      "amount_source": "official"
+      "amount_source": "MoneyDJ × 玩股網核實（保留前值）"
     },
     {
       "code": "00919",
@@ -7810,11 +7810,11 @@
       "iso_date": "2026-06-16",
       "day": "16",
       "mon": "6月",
-      "amt": null,
+      "amt": 1.0,
       "soon": true,
       "days_until": 8,
       "source": "official",
-      "amount_source": "official"
+      "amount_source": "Yahoo 股市核實（保留前值）"
     },
     {
       "code": "00981A",
@@ -7832,11 +7832,11 @@
       "iso_date": "2026-06-17",
       "day": "17",
       "mon": "6月",
-      "amt": null,
+      "amt": 0.26,
       "soon": true,
       "days_until": 9,
       "source": "official",
-      "amount_source": "official"
+      "amount_source": "MoneyDJ（Gavin 確認）（保留前值）"
     },
     {
       "code": "00713",
@@ -7844,11 +7844,11 @@
       "iso_date": "2026-06-22",
       "day": "22",
       "mon": "6月",
-      "amt": null,
+      "amt": 1.0,
       "soon": true,
       "days_until": 14,
       "source": "official",
-      "amount_source": "official"
+      "amount_source": "Yahoo 股市核實（保留前值）"
     },
     {
       "code": "00928",
