@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-09 18:49",
+  "updated": "2026-06-10 08:24",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -70,7 +70,7 @@
       "yld": 5.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 13,
+      "days": 12,
       "est": 1.0,
       "div_next": "2026-06-19",
       "signal": "dear",
@@ -164,7 +164,7 @@
       "yld": 8.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 7,
+      "days": 6,
       "est": 1.0,
       "div_next": "2026-06-16",
       "signal": "dear",
@@ -402,7 +402,7 @@
       "yld": 4.67,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 0,
+      "days": 24,
       "est": 0.05,
       "div_next": "2026-07-04",
       "signal": "dear",
@@ -458,7 +458,7 @@
       "yld": 3.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 8,
+      "days": 7,
       "est": 0.26,
       "div_next": "2026-06-19",
       "signal": "dear",
@@ -4885,7 +4885,7 @@
       "yld": 3.7,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 6,
+      "days": 5,
       "est": 0.12,
       "div_next": "2026-06-17",
       "signal": "dear",
@@ -7781,18 +7781,6 @@
   ],
   "calendar": [
     {
-      "code": "00940",
-      "name": "元大台灣價值高息",
-      "iso_date": "2026-06-09",
-      "day": "9",
-      "mon": "6月",
-      "amt": 0.05,
-      "soon": true,
-      "days_until": 0,
-      "source": "official",
-      "amount_source": "TWSE"
-    },
-    {
       "code": "00936",
       "name": "台新永續高息中小",
       "iso_date": "2026-06-15",
@@ -7800,7 +7788,7 @@
       "mon": "6月",
       "amt": 0.12,
       "soon": true,
-      "days_until": 6,
+      "days_until": 5,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -7812,7 +7800,7 @@
       "mon": "6月",
       "amt": 1.0,
       "soon": true,
-      "days_until": 7,
+      "days_until": 6,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -7823,7 +7811,7 @@
       "mon": "6月",
       "amt": 0.41,
       "soon": true,
-      "days_until": 7,
+      "days_until": 6,
       "source": "estimate"
     },
     {
@@ -7834,7 +7822,7 @@
       "mon": "6月",
       "amt": 0.26,
       "soon": true,
-      "days_until": 8,
+      "days_until": 7,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -7846,9 +7834,19 @@
       "mon": "6月",
       "amt": 1.0,
       "soon": true,
-      "days_until": 13,
+      "days_until": 12,
       "source": "official",
       "amount_source": "MoneyDJ"
+    },
+    {
+      "code": "00940",
+      "name": "元大台灣價值高息",
+      "day": "4",
+      "mon": "7月",
+      "amt": 0.04,
+      "soon": false,
+      "days_until": 24,
+      "source": "estimate"
     },
     {
       "code": "00928",
@@ -7857,7 +7855,7 @@
       "mon": "7月",
       "amt": 0.5,
       "soon": false,
-      "days_until": 43,
+      "days_until": 42,
       "source": "estimate"
     },
     {
@@ -7867,7 +7865,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 44,
+      "days_until": 43,
       "source": "estimate"
     },
     {
@@ -7877,7 +7875,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 47,
+      "days_until": 46,
       "source": "estimate"
     },
     {
@@ -7887,7 +7885,7 @@
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
-      "days_until": 70,
+      "days_until": 69,
       "source": "estimate"
     },
     {
@@ -7897,7 +7895,7 @@
       "mon": "8月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 73,
+      "days_until": 72,
       "source": "estimate"
     }
   ]
