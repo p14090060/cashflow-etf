@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-10 19:04",
+  "updated": "2026-06-10 21:00",
   "market": {
     "price": 43225.54,
     "change_pt": -277.24,
@@ -596,7 +596,7 @@
       "vol_ratio": 4.73,
       "heat": 82,
       "aum": 0,
-      "div_freq": "不明"
+      "div_freq": "年配"
     },
     {
       "code": "00404A",
@@ -633,7 +633,7 @@
       "vol_ratio": 5.7,
       "heat": 82,
       "aum": 0,
-      "div_freq": "不明"
+      "div_freq": "季配"
     },
     {
       "code": "00405A",
@@ -4530,7 +4530,7 @@
       "low52": 8.81,
       "high52": 15.54,
       "rsi": 60.7,
-      "yld": 4.2,
+      "yld": 4.3,
       "yld_verified": true,
       "yld_pending": false,
       "days": 20,
@@ -4752,13 +4752,13 @@
       "low52": 9.02,
       "high52": 13.39,
       "rsi": 40.3,
-      "yld": 5.0,
+      "yld": 5.7,
       "yld_verified": true,
       "yld_pending": false,
       "days": 39,
       "est": 0.2,
       "div_next": "2026-07-20",
-      "signal": "dear",
+      "signal": "fair",
       "maD": -1.9,
       "ret5d": -2.44,
       "ret1m": -2.8,
@@ -4826,7 +4826,7 @@
       "low52": 8.9,
       "high52": 13.47,
       "rsi": 66.7,
-      "yld": 5.0,
+      "yld": 5.6,
       "yld_verified": true,
       "yld_pending": false,
       "days": 7,
@@ -5159,7 +5159,7 @@
       "low52": 9.41,
       "high52": 21.04,
       "rsi": 54.1,
-      "yld": 2.1,
+      "yld": 2.0,
       "yld_verified": true,
       "yld_pending": false,
       "days": 5,
