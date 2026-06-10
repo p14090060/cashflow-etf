@@ -2051,7 +2051,7 @@
       "code": "00678",
       "name": "群益那斯達克生技",
       "curated": false,
-      "price": 35.73,
+      "price": 35.725,
       "ma60": 35.65,
       "ma20": 35.62,
       "low52": 24.07,
@@ -2396,7 +2396,7 @@
       "aum": 0,
       "change_pt": 0.14,
       "change_pct": 0.61,
-      "mis_time": "11:28",
+      "mis_time": "11:40",
       "div_frequency": "年配",
       "div_months": [
         1,
