@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-06-10",
+    "last_updated": "2026-06-11",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -31,8 +31,8 @@
       "code": "00936",
       "name": "台新永續高息中小",
       "ex_dividend_date": "2026-06-15",
-      "amount": 0.12,
-      "amount_source": "MoneyDJ"
+      "amount": 0.06,
+      "amount_source": "TWSE"
     }
   }
 }
