@@ -381,14 +381,15 @@ def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, na
     if pos52 > 0.78 or price > ma60 * 1.06:
         return "dear", maD60
 
+    if pos52 < 0.40 and maD60 < -2:
+        return "cheap", maD60
+
     conds = [price <= ma60 * 1.03, ret5d < 5, vol_ratio <= 3.0, rsi < 75]
     if is_high_div(name, yld):
         conds.append(yld > 5)
     if all(conds):
         return "fair", maD60
 
-    if pos52 < 0.40 and maD60 < -2:
-        return "cheap", maD60
     return "dear", maD60
 
 def fetch_finmind_yld(code, price, div_freq="不明"):
