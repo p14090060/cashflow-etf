@@ -373,7 +373,15 @@ def main():
             e["cur_vol"]    = m["vol"]
             e["mis_time"]   = m["mis_time"]
             avg = e.get("avg_vol", 0)
-            e["vol_ratio"]  = round(m["vol"] / avg, 2) if avg > 0 else 1.0
+            # MIS v 單位是「張」，yfinance avg_vol 單位是「股」，1張=1000股
+            live_vr = round(m["vol"] * 1000 / avg, 2) if avg > 0 else 1.0
+            e["vol_ratio"] = live_vr
+
+            # 即時重算 heat：score_vol + score_chg 用當下值，score_cont 繼承 base
+            score_cont = b.get("score_cont", 0) or 0
+            new_sv     = min(live_vr * 20, 40)
+            new_sc     = min(abs(m.get("change_pct", 0)) * 10, 30)
+            e["heat"]  = round(new_sv + new_sc + score_cont, 2)
 
         # 疊上配息靜態資料
         d = div_etfs.get(code, {})

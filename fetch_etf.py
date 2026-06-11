@@ -284,15 +284,16 @@ def calc_div_forecast(divs, code, div_freq):
         return fallback_days, fallback_est, None
 
 def calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated=False):
-    """複合熱度指數：量比(0-40) + 漲跌幅(0-30) + 連續性(0-30)，規模 <500億歸零"""
+    """複合熱度指數：量比(0-40) + 漲跌幅(0-30) + 連續性(0-30)，規模 <500億歸零
+    回傳 (heat, score_cont)，score_cont 供 mis_fetcher 即時重算 heat 時繼承。"""
     if not curated and aum > 0 and aum < 50_000_000_000:
-        return 0
+        return 0, 0
     vol_ratio   = cur_vol / avg_vol if avg_vol > 0 else 0
     score_vol   = min(vol_ratio * 20, 40)
     score_chg   = min(abs(today_chg) * 10, 30)
     days_above  = sum(1 for v in recent_vols if avg_vol > 0 and v > avg_vol)
     score_cont  = days_above * 6
-    return round(score_vol + score_chg + score_cont, 2)
+    return round(score_vol + score_chg + score_cont, 2), round(score_cont, 2)
 
 # ── 自動發現：排除非股票型 ETF 的關鍵字 ────────────────────────────
 EXCLUDE_KW = [
@@ -652,7 +653,7 @@ for code, name in ALL_ETFS:
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    ret5d, vol_ratio, rsi, yld, name)
-        heat     = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
+        heat, score_cont = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
         div_days, div_est, div_next = calc_div_forecast(divs, code, div_freq)
 
         results.append({
@@ -666,7 +667,7 @@ for code, name in ALL_ETFS:
             "ret5d": safe(ret5d), "ret1m": safe(ret1m),
             "ret1y": safe(ret1y, default=None), "ret_months": ret_months, "new_listing": new_listing,
             "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
-            "vol_ratio": safe(vol_ratio), "heat": safe(heat),
+            "vol_ratio": safe(vol_ratio), "heat": safe(heat), "score_cont": safe(score_cont),
             "aum": safe(aum), "div_freq": div_freq,
         })
         tag = "精選" if curated else "自動"
