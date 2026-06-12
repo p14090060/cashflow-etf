@@ -40,25 +40,39 @@ HEADERS = {
     "Referer":    "https://www.twse.com.tw/",
 }
 
-# ── 取得 ETF 成分股 ─────────────────────────────────────────
+# ── 取得大型個股清單（ETF 成分股代理）─────────────────────────
 def get_etf_components():
-    """從 FinMind TaiwanETFStockInfo 取各 ETF 成分股，回傳不重複的 (代碼, 名稱) dict。"""
+    """
+    抓 TWSE 全市場當日成交資料，取成交金額前 MAX_STOCKS 名的個股。
+    這些高流動性個股幾乎涵蓋 0050/0056/00878 等主力 ETF 的全部成分股。
+    不需要任何 token，用 openapi.twse.com.tw 公開端點。
+    """
     stocks = {}
-    for etf in TARGET_ETFS:
-        try:
-            url  = (f"https://api.finmindtrade.com/api/v4/data"
-                    f"?dataset=TaiwanETFStockInfo&data_id={etf}")
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            rows = resp.json().get("data", [])
-            for row in rows:
-                code = str(row.get("component_stock_id", "")).strip()
-                name = str(row.get("component_stock_name", code)).strip()
-                if code and code.isdigit() and len(code) in (4, 5, 6):
-                    stocks[code] = name
-            print(f"  [{etf}] {len(rows)} 筆成分股", flush=True)
-            time.sleep(0.5)
-        except Exception as e:
-            print(f"  [{etf}] 抓取失敗: {e}", flush=True)
+    try:
+        url  = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+        resp = requests.get(url, headers=HEADERS, timeout=20)
+        rows = resp.json()
+        # 篩選：純數字代碼（個股），排除權證/ETF/ETN（6碼字母結尾）
+        candidates = []
+        for r in rows:
+            code = str(r.get("Code", "")).strip()
+            name = str(r.get("Name", "")).strip()
+            # 只留 4 位數字個股（台股主板）
+            if not (code.isdigit() and len(code) == 4):
+                continue
+            # 成交金額（去掉逗號後轉數字）
+            try:
+                val = float(str(r.get("TradeValue", "0")).replace(",", "") or 0)
+            except ValueError:
+                val = 0
+            candidates.append((code, name, val))
+        # 依成交金額降序，取前 MAX_STOCKS 檔
+        candidates.sort(key=lambda x: x[2], reverse=True)
+        for code, name, _ in candidates[:MAX_STOCKS]:
+            stocks[code] = name
+        print(f"  TWSE 全市場個股 → 取成交金額前 {len(stocks)} 名", flush=True)
+    except Exception as e:
+        print(f"  TWSE STOCK_DAY_ALL 失敗: {e}", flush=True)
     return stocks
 
 # ── 取得過去 N 個交易日日期 ──────────────────────────────────
