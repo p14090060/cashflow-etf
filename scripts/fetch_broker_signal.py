@@ -42,20 +42,20 @@ HEADERS = {
 
 # ── 取得 ETF 成分股 ─────────────────────────────────────────
 def get_etf_components():
-    """從 TWSE 取多檔 ETF 成分股，回傳不重複的 (代碼, 名稱) dict。"""
+    """從 FinMind TaiwanETFStockInfo 取各 ETF 成分股，回傳不重複的 (代碼, 名稱) dict。"""
     stocks = {}
     for etf in TARGET_ETFS:
         try:
-            url  = (f"https://www.twse.com.tw/rwd/zh/ETF/getETFComponentStocks"
-                    f"?stockNo={etf}&response=json")
-            resp = requests.get(url, headers=HEADERS, timeout=10)
-            data = resp.json()
-            for row in data.get("data", []):
-                code = str(row[0]).strip()
-                name = str(row[1]).strip() if len(row) > 1 else code
+            url  = (f"https://api.finmindtrade.com/api/v4/data"
+                    f"?dataset=TaiwanETFStockInfo&data_id={etf}")
+            resp = requests.get(url, headers=HEADERS, timeout=15)
+            rows = resp.json().get("data", [])
+            for row in rows:
+                code = str(row.get("component_stock_id", "")).strip()
+                name = str(row.get("component_stock_name", code)).strip()
                 if code and code.isdigit() and len(code) in (4, 5, 6):
                     stocks[code] = name
-            print(f"  [{etf}] {len(data.get('data', []))} 檔成分股", flush=True)
+            print(f"  [{etf}] {len(rows)} 筆成分股", flush=True)
             time.sleep(0.5)
         except Exception as e:
             print(f"  [{etf}] 抓取失敗: {e}", flush=True)
