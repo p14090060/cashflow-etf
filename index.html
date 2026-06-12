@@ -513,6 +513,18 @@
       <div class="joke-day" id="jokeDay"></div>
     </div>
 
+    <!-- ══ 隱藏彩蛋：分點均價篩選器 ══ -->
+    <div id="broker-signal-section" style="margin-top:48px;padding-top:32px;border-top:1px dashed rgba(255,255,255,0.06)">
+      <div style="font-size:11px;color:rgba(255,255,255,0.12);text-align:center;letter-spacing:3px;margin-bottom:20px">· · ·</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.18);text-align:center;margin-bottom:18px;letter-spacing:1px">
+        目前低於分點 120 日均價的 ETF 成分股
+      </div>
+      <div id="broker-signal-list" style="font-size:13px;font-family:var(--mono)">
+        <div style="color:rgba(255,255,255,0.15);text-align:center;padding:12px">載入中...</div>
+      </div>
+      <div id="broker-signal-footer" style="font-size:11px;color:rgba(255,255,255,0.12);text-align:center;margin-top:14px"></div>
+    </div>
+
   </div>
 
   <!-- ══ PAGE 4: 健診 ══ -->
@@ -1384,6 +1396,34 @@ const JOKES = [
   const nth   = day % JOKES.length + 1;
   document.getElementById('jokeBody').textContent = joke;
   document.getElementById('jokeDay').textContent  = `第 ${nth} / ${JOKES.length} 則`;
+})();
+
+// ── 分點均價彩蛋 ──
+(async function loadBrokerSignal() {
+  const listEl   = document.getElementById('broker-signal-list');
+  const footerEl = document.getElementById('broker-signal-footer');
+  try {
+    const resp = await fetch('data/broker_signal.json?_=' + Date.now());
+    if (!resp.ok) throw new Error('no data');
+    const json = await resp.json();
+    const data = json.data || [];
+    if (!data.length) {
+      listEl.innerHTML = '<div style="color:rgba(255,255,255,0.15);text-align:center;padding:12px">目前沒有低於分點均價的成分股</div>';
+      return;
+    }
+    listEl.innerHTML = data.map(r => {
+      const disc = r.discount.toFixed(1);
+      return `<div style="display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <span style="color:rgba(255,255,255,0.55);min-width:80px">${r.name}</span>
+        <span style="color:rgba(255,255,255,0.4);min-width:70px;text-align:right">${r.price}</span>
+        <span style="color:rgba(255,255,255,0.3);min-width:70px;text-align:right">${r.avg}</span>
+        <span style="color:#00e5a0;min-width:55px;text-align:right">-${disc}%</span>
+      </div>`;
+    }).join('');
+    if (footerEl) footerEl.textContent = `${json.updated} 更新・${json.lookback_days} 日分點資料・${data.length} 檔`;
+  } catch(e) {
+    listEl.innerHTML = '<div style="color:rgba(255,255,255,0.1);text-align:center;padding:12px">資料準備中</div>';
+  }
 })();
 </script>
 

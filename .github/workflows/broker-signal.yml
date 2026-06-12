@@ -1,0 +1,36 @@
+name: Broker Signal
+
+on:
+  schedule:
+    - cron: "30 7 * * 1-5"   # 台灣時間 15:30 收盤後跑（UTC+8 → UTC 07:30）
+  workflow_dispatch:           # 手動觸發（初次建立快取用）
+
+permissions:
+  contents: write
+
+jobs:
+  broker-signal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30        # 每日增量抓取應在 5 分鐘內完成
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install yfinance requests
+
+      - name: Run broker signal fetcher
+        run: python scripts/fetch_broker_signal.py
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/broker_signal.json data/_broker_cache.json
+          git diff --cached --quiet || git commit -m "chore: update broker signal $(date +'%Y-%m-%d')"
+          git pull --rebase origin main
+          git push
