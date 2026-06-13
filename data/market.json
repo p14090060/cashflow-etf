@@ -1,8 +1,8 @@
 {
-  "updated": "2026-06-12 19:09",
+  "updated": "2026-06-13 13:10",
   "is_closed": true,
-  "is_holiday": false,
-  "last_trading_time": "13:30",
+  "is_holiday": true,
+  "last_trading_time": null,
   "market": {
     "price": 44169.04,
     "change_pt": 1019.58,
@@ -71,7 +71,7 @@
       "yld": 5.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 1.0,
       "div_next": "2026-06-19",
       "signal": "dear",
@@ -167,7 +167,7 @@
       "yld": 9.5,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 4,
+      "days": 3,
       "est": 1.0,
       "div_next": "2026-06-16",
       "signal": "dear",
@@ -263,8 +263,8 @@
       "yld": 6.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
-      "est": 0.41,
+      "days": 2,
+      "est": 0.63,
       "div_next": "2026-06-16",
       "signal": "dear",
       "maD": 14.5,
@@ -293,7 +293,7 @@
         9,
         12
       ],
-      "div_avg_per_share": 0.4,
+      "div_avg_per_share": 0.63,
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
@@ -467,7 +467,7 @@
       "yld": 3.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 5,
+      "days": 4,
       "est": 0.26,
       "div_next": "2026-06-19",
       "signal": "dear",
@@ -5118,7 +5118,7 @@
       "yld": 4.2,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
+      "days": 2,
       "est": 0.12,
       "div_next": "2026-06-17",
       "signal": "dear",
@@ -8088,9 +8088,21 @@
       "mon": "6月",
       "amt": 0.12,
       "soon": true,
-      "days_until": 3,
+      "days_until": 2,
       "source": "official",
       "amount_source": "TWSE"
+    },
+    {
+      "code": "00981A",
+      "name": "統一台股增長",
+      "iso_date": "2026-06-15",
+      "day": "15",
+      "mon": "6月",
+      "amt": 0.63,
+      "soon": true,
+      "days_until": 2,
+      "source": "official",
+      "amount_source": "用戶提供"
     },
     {
       "code": "00919",
@@ -8100,19 +8112,9 @@
       "mon": "6月",
       "amt": 1.0,
       "soon": true,
-      "days_until": 4,
+      "days_until": 3,
       "source": "official",
       "amount_source": "TWSE"
-    },
-    {
-      "code": "00981A",
-      "name": "統一台股增長",
-      "day": "16",
-      "mon": "6月",
-      "amt": 0.41,
-      "soon": true,
-      "days_until": 4,
-      "source": "estimate"
     },
     {
       "code": "00929",
@@ -8122,7 +8124,7 @@
       "mon": "6月",
       "amt": 0.26,
       "soon": true,
-      "days_until": 5,
+      "days_until": 4,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -8134,7 +8136,7 @@
       "mon": "6月",
       "amt": 1.0,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -8145,7 +8147,7 @@
       "mon": "7月",
       "amt": 0.05,
       "soon": false,
-      "days_until": 28,
+      "days_until": 27,
       "source": "estimate"
     },
     {
@@ -8155,7 +8157,7 @@
       "mon": "7月",
       "amt": 0.5,
       "soon": false,
-      "days_until": 40,
+      "days_until": 39,
       "source": "estimate"
     },
     {
@@ -8165,7 +8167,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 41,
+      "days_until": 40,
       "source": "estimate"
     },
     {
@@ -8175,7 +8177,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 44,
+      "days_until": 43,
       "source": "estimate"
     },
     {
@@ -8185,7 +8187,7 @@
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
-      "days_until": 67,
+      "days_until": 66,
       "source": "estimate"
     },
     {
@@ -8195,7 +8197,7 @@
       "mon": "8月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 70,
+      "days_until": 69,
       "source": "estimate"
     }
   ]
