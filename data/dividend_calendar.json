@@ -33,6 +33,13 @@
       "ex_dividend_date": "2026-06-15",
       "amount": 0.12,
       "amount_source": "TWSE"
+    },
+    "00981A": {
+      "code": "00981A",
+      "name": "統一台股增長",
+      "ex_dividend_date": "2026-06-15",
+      "amount": 0.63,
+      "amount_source": "用戶提供"
     }
   }
 }

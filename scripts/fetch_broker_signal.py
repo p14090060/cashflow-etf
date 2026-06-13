@@ -26,7 +26,7 @@ import yfinance as yf
 
 # ── 設定 ──────────────────────────────────────────────────
 TARGET_ETFS = ["0050", "006208", "0056", "00878", "00919", "00929"]
-LOOKBACK    = 120           # 分析天數（交易日）
+LOOKBACK    = 60            # 分析天數（交易日）；TWT44U 約保留 3 個月資料
 DELAY       = 0.6           # TWSE 每次請求間隔（秒），避免被擋
 MAX_STOCKS  = 150           # 最多處理幾檔（防 Action 超時）
 MIN_DISCOUNT = 0.0          # 只輸出折扣 > 0% 的個股（低於均價才算）
@@ -103,9 +103,12 @@ def fetch_broker_day(code, date_str):
             body = resp.json()
             if body.get("stat") != "OK":
                 return None
+            rows_data = body.get("data", [])
+            if not rows_data:
+                return None  # stat=OK 但無資料（該日 TWSE 未保留），不快取
             total_buy  = 0
             total_sell = 0
-            for row in body.get("data", []):
+            for row in rows_data:
                 # fields: 券商代號, 券商名稱, 買進股數, 賣出股數, 買賣差股數
                 try:
                     b = int(str(row[2]).replace(",", "") or 0)
@@ -157,10 +160,11 @@ def main():
     print("[3/4] 抓分點資料（有快取的跳過）...", flush=True)
     cache = {} if force_full else load_cache()
 
-    # 清除快取中超出 120 日範圍的舊資料
+    # 清除快取中：超出範圍的舊資料，以及 b=0,s=0 的無效快取（舊版誤存空回應）
     cutoff = trade_dates[0]
     for c in list(cache.keys()):
-        cache[c] = {d: v for d, v in cache[c].items() if d >= cutoff}
+        cache[c] = {d: v for d, v in cache[c].items()
+                    if d >= cutoff and not (v.get("b", 0) == 0 and v.get("s", 0) == 0)}
 
     fetched = 0
     for ci, code in enumerate(codes):
@@ -241,7 +245,7 @@ def main():
             except Exception:
                 pass
 
-        if total_buy_shares < 1000:   # 資料太少跳過
+        if total_buy_shares < 500:    # 資料太少跳過（60 日門檻放寬）
             continue
 
         avg_cost = total_buy_value / total_buy_shares
