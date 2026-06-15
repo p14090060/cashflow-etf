@@ -40,6 +40,13 @@
       "ex_dividend_date": "2026-06-15",
       "amount": 0.63,
       "amount_source": "用戶提供"
+    },
+    "00918": {
+      "code": "00918",
+      "name": "大華優利高填息30",
+      "ex_dividend_date": "2026-06-18",
+      "amount": 1.26,
+      "amount_source": "大華銀投信官網（預估）"
     }
   }
 }

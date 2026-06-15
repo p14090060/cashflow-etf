@@ -406,13 +406,15 @@
     },
     "00918": {
       "name": "大華優利高填息30",
-      "frequency": "年配",
+      "frequency": "季配",
       "months": [
         3,
-        8
+        6,
+        9,
+        12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.62,
+      "avg_dividend_per_share": 1.26,
       "_todo": false
     },
     "00921": {
