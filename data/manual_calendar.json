@@ -1,5 +1,19 @@
 {
   "_note": "人工核實的除息日。優先於 yfinance 估算，但低於 TWSE 官方公告。fetch_etf.py 不會覆蓋此檔。",
   "etfs": {
+    "00981A": {
+      "code": "00981A",
+      "name": "統一台股增長",
+      "ex_dividend_date": "2026-06-16",
+      "amount": 0.63,
+      "amount_source": "用戶提供（2026-06-13）"
+    },
+    "00918": {
+      "code": "00918",
+      "name": "大華優利高填息30",
+      "ex_dividend_date": "2026-06-18",
+      "amount": 1.26,
+      "amount_source": "大華銀投信官網預估（2026-06-15）"
+    }
   }
 }
