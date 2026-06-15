@@ -301,6 +301,7 @@ EXCLUDE_KW = [
     '正2', '反1', '公債', '公司債', '高收益', '不動產',
     'REITs', '基礎建設', '優先股', '可轉換', '黃金', '原油',
     '石油', '天然氣', '白銀', '農產',
+    'R1', 'R2',   # 受益憑證（01xxxT），非 ETF
 ]
 
 def fetch_twse_etf_pool():
@@ -327,6 +328,8 @@ def fetch_twse_etf_pool():
             if not code or not name or code in seen:
                 continue
             if not code.startswith('0'):   # 排除台灣存託憑證（9xxx）
+                continue
+            if code.endswith('T'):         # 排除受益憑證（01004T, 01007T 等）
                 continue
             if any(kw in name for kw in EXCLUDE_KW):
                 continue
