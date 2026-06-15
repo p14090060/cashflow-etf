@@ -345,6 +345,11 @@
   .broker-disc  { color:#00e5a0; font-weight:700; min-width:55px; text-align:right; }
   .broker-empty { color:var(--dim); text-align:center; padding:20px 0; font-size:13px; }
   .broker-footer{ font-size:11px; color:var(--dim); text-align:center; margin-top:12px; }
+  .broker-tabs  { display:flex; gap:6px; margin-bottom:12px; }
+  .broker-tab   { background:rgba(255,255,255,0.06); border:1px solid var(--border);
+                  border-radius:20px; padding:4px 14px; font-size:12px; color:var(--dim);
+                  cursor:pointer; }
+  .broker-tab.active { background:rgba(0,229,160,0.15); border-color:#00e5a0; color:#00e5a0; }
 
 
 
@@ -524,8 +529,12 @@
     <!-- ══ 分點均價篩選器 ══ -->
     <div id="broker-signal-section" class="broker-card">
       <div class="broker-hdr">
-        <span class="broker-title">分點 120 日均價以下個股</span>
+        <span class="broker-title">分點均價以下個股</span>
         <span class="broker-badge" id="broker-count"></span>
+      </div>
+      <div class="broker-tabs">
+        <button class="broker-tab active" data-window="120" onclick="switchBrokerTab(this)">120 日</button>
+        <button class="broker-tab" data-window="60" onclick="switchBrokerTab(this)">60 日</button>
       </div>
       <div class="broker-col-hdr">
         <span>名稱</span><span>現價</span><span>分點均</span><span>折扣</span>
@@ -1364,31 +1373,49 @@ function fetchData() {
 fetchData();
 
 // ── 分點均價篩選器 ──
-(async function loadBrokerSignal() {
+let _brokerJson = null;
+let _brokerWindow = 120;
+
+function renderBrokerList() {
   const listEl   = document.getElementById('broker-signal-list');
   const footerEl = document.getElementById('broker-signal-footer');
   const countEl  = document.getElementById('broker-count');
+  if (!_brokerJson) return;
+  const data = _brokerWindow === 60
+    ? (_brokerJson.data_60 || [])
+    : (_brokerJson.data    || []);
+  if (countEl) countEl.textContent = data.length ? `${data.length} 檔` : '';
+  if (!data.length) {
+    listEl.innerHTML = '<div class="broker-empty">目前大盤偏強，無個股低於分點均價</div>';
+    if (footerEl) footerEl.textContent = `${_brokerJson.updated} 更新・${_brokerWindow} 日分點資料`;
+    return;
+  }
+  listEl.innerHTML = data.map(r => {
+    const disc = r.discount.toFixed(1);
+    return `<div class="broker-row">
+      <span class="broker-name">${r.name}</span>
+      <span class="broker-price">${r.price}</span>
+      <span class="broker-avg">${r.avg}</span>
+      <span class="broker-disc">-${disc}%</span>
+    </div>`;
+  }).join('');
+  if (footerEl) footerEl.textContent = `${_brokerJson.updated} 更新・${_brokerWindow} 日分點資料・${data.length} 檔`;
+}
+
+function switchBrokerTab(btn) {
+  _brokerWindow = parseInt(btn.dataset.window);
+  document.querySelectorAll('.broker-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBrokerList();
+}
+
+(async function loadBrokerSignal() {
+  const listEl = document.getElementById('broker-signal-list');
   try {
     const resp = await fetch('data/broker_signal.json?_=' + Date.now());
     if (!resp.ok) throw new Error('no data');
-    const json = await resp.json();
-    const data = json.data || [];
-    if (countEl) countEl.textContent = data.length ? `${data.length} 檔` : '';
-    if (!data.length) {
-      listEl.innerHTML = '<div class="broker-empty">目前大盤偏強，無個股低於分點均價</div>';
-      if (footerEl) footerEl.textContent = `${json.updated} 更新・${json.lookback_days} 日分點資料`;
-      return;
-    }
-    listEl.innerHTML = data.map(r => {
-      const disc = r.discount.toFixed(1);
-      return `<div class="broker-row">
-        <span class="broker-name">${r.name}</span>
-        <span class="broker-price">${r.price}</span>
-        <span class="broker-avg">${r.avg}</span>
-        <span class="broker-disc">-${disc}%</span>
-      </div>`;
-    }).join('');
-    if (footerEl) footerEl.textContent = `${json.updated} 更新・${json.lookback_days} 日分點資料・${data.length} 檔`;
+    _brokerJson = await resp.json();
+    renderBrokerList();
   } catch(e) {
     listEl.innerHTML = '<div class="broker-empty">資料準備中</div>';
   }

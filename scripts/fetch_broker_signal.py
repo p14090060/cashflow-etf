@@ -197,86 +197,93 @@ def main():
         print(f"  ⚠ yfinance 批次下載失敗: {e}", flush=True)
         close_all = None
 
-    results = []
-    for code in codes:
-        name = stocks.get(code, code)
-        cdata = cache.get(code, {})
+    # 預先建立日期→收盤價索引（加速查詢）
+    date_price_idx = {}
+    if close_all is not None:
+        idx_strs = close_all.index.strftime("%Y-%m-%d").tolist()
+        date_price_idx = {s: i for i, s in enumerate(idx_strs)}
 
-        # 取最新現價
-        cur_price = None
-        try:
-            col = f"{code}.TW"
-            if close_all is not None and col in close_all.columns:
-                series = close_all[col].dropna()
-                if not series.empty:
-                    cur_price = float(series.iloc[-1])
-        except Exception:
-            pass
-        if not cur_price:
+    def calc_results(dates_window):
+        """用指定交易日視窗計算分點均價，回傳結果列表。"""
+        out_list = []
+        for code in codes:
+            name   = stocks.get(code, code)
+            cdata  = cache.get(code, {})
+            col    = f"{code}.TW"
+
+            # 取最新現價
+            cur_price = None
             try:
-                tk = yf.Ticker(f"{code}.TW")
-                cur_price = tk.fast_info.last_price
+                if close_all is not None and col in close_all.columns:
+                    series = close_all[col].dropna()
+                    if not series.empty:
+                        cur_price = float(series.iloc[-1])
             except Exception:
                 pass
-        if not cur_price:
-            continue
+            if not cur_price:
+                try:
+                    tk = yf.Ticker(f"{code}.TW")
+                    cur_price = tk.fast_info.last_price
+                except Exception:
+                    pass
+            if not cur_price:
+                continue
 
-        # 計算 120 日分點加權均價
-        # 公式：所有買方買進股數加權，以當日收盤價為代理成本
-        total_buy_shares = 0
-        total_buy_value  = 0.0
-        for d in trade_dates:
-            if d not in cdata:
-                continue
-            buy_s = cdata[d].get("b", 0)
-            if buy_s <= 0:
-                continue
-            # 找對應日期的收盤價
-            try:
-                dt_str = f"{d[:4]}-{d[4:6]}-{d[6:]}"
-                col = f"{code}.TW"
-                if close_all is not None and col in close_all.columns:
-                    if dt_str in close_all.index.strftime("%Y-%m-%d"):
-                        idx = close_all.index.strftime("%Y-%m-%d").tolist().index(dt_str)
-                        day_price = float(close_all[col].iloc[idx])
+            # 計算分點加權均價
+            total_buy_shares = 0
+            total_buy_value  = 0.0
+            for d in dates_window:
+                if d not in cdata:
+                    continue
+                buy_s = cdata[d].get("b", 0)
+                if buy_s <= 0:
+                    continue
+                try:
+                    dt_str = f"{d[:4]}-{d[4:6]}-{d[6:]}"
+                    if close_all is not None and col in close_all.columns and dt_str in date_price_idx:
+                        day_price = float(close_all[col].iloc[date_price_idx[dt_str]])
                         if day_price > 0:
                             total_buy_shares += buy_s
                             total_buy_value  += buy_s * day_price
-            except Exception:
-                pass
+                except Exception:
+                    pass
 
-        if total_buy_shares < 500:    # 資料太少跳過（60 日門檻放寬）
-            continue
+            if total_buy_shares < 500:
+                continue
 
-        avg_cost = total_buy_value / total_buy_shares
+            avg_cost = total_buy_value / total_buy_shares
+            if cur_price >= avg_cost:
+                continue
 
-        if cur_price >= avg_cost:     # 現價高於均價，不列入
-            continue
+            discount_pct = (avg_cost - cur_price) / avg_cost * 100
+            if discount_pct < MIN_DISCOUNT:
+                continue
 
-        discount_pct = (avg_cost - cur_price) / avg_cost * 100
+            out_list.append({
+                "code":     code,
+                "name":     name,
+                "price":    round(cur_price, 1),
+                "avg":      round(avg_cost, 1),
+                "discount": round(discount_pct, 1),
+            })
 
-        if discount_pct < MIN_DISCOUNT:
-            continue
+        out_list.sort(key=lambda x: x["discount"], reverse=True)
+        return out_list
 
-        results.append({
-            "code":     code,
-            "name":     name,
-            "price":    round(cur_price, 1),
-            "avg":      round(avg_cost, 1),
-            "discount": round(discount_pct, 1),
-        })
-
-    # 依折扣由大到小排序
-    results.sort(key=lambda x: x["discount"], reverse=True)
+    results_120 = calc_results(trade_dates)           # 完整 120 日
+    results_60  = calc_results(trade_dates[-60:])     # 近 60 日
 
     out = {
-        "updated": date.today().strftime("%Y-%m-%d"),
+        "updated":      date.today().strftime("%Y-%m-%d"),
         "lookback_days": LOOKBACK,
-        "count": len(results),
-        "data": results,
+        "count":        len(results_120),
+        "data":         results_120,
+        "count_60":     len(results_60),
+        "data_60":      results_60,
     }
     OUTPUT.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n✅ 完成：{len(results)} 檔低於分點均價 → {OUTPUT}", flush=True)
+    print(f"\n✅ 完成：120日 {len(results_120)} 檔 / 60日 {len(results_60)} 檔 → {OUTPUT}", flush=True)
+    results = results_120
     for r in results[:10]:
         print(f"  {r['name']:12s}  現:{r['price']:>8.1f}  均:{r['avg']:>8.1f}  -{r['discount']:.1f}%",
               flush=True)
