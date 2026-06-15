@@ -324,13 +324,27 @@
   .yt-stat .n { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); }
   .yt-stat .l { font-size:16px; color:var(--dim); margin-top:2px; }
 
-  .joke-card {
+  .broker-card {
     background:var(--card); border:1px solid var(--border);
-    border-radius:12px; padding:18px 16px; margin-bottom:12px;
+    border-radius:12px; padding:16px; margin-bottom:12px;
   }
-  .joke-hdr  { font-size:16px; color:#e8607a; font-weight:600; margin-bottom:10px; letter-spacing:.04em; }
-  .joke-body { font-size:16px; color:var(--bright); line-height:1.8; white-space:pre-line; }
-  .joke-day  { font-size:14px; color:var(--dim); margin-top:10px; text-align:right; }
+  .broker-hdr   { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .broker-title { font-size:15px; color:var(--bright); font-weight:600; letter-spacing:.04em; }
+  .broker-badge { font-size:12px; background:rgba(0,229,160,0.12); color:#00e5a0;
+                  border-radius:20px; padding:2px 9px; }
+  .broker-col-hdr { display:flex; justify-content:space-between;
+                    font-size:11px; color:var(--dim); padding:0 4px 8px;
+                    border-bottom:1px solid var(--border); margin-bottom:4px; }
+  .broker-row   { display:flex; justify-content:space-between; align-items:center;
+                  padding:9px 4px; border-bottom:1px solid rgba(255,255,255,0.04);
+                  font-size:13px; font-family:var(--mono); }
+  .broker-row:last-child { border-bottom:none; }
+  .broker-name  { color:var(--text); min-width:90px; }
+  .broker-price { color:var(--dim); min-width:60px; text-align:right; }
+  .broker-avg   { color:var(--dim); min-width:60px; text-align:right; }
+  .broker-disc  { color:#00e5a0; font-weight:700; min-width:55px; text-align:right; }
+  .broker-empty { color:var(--dim); text-align:center; padding:20px 0; font-size:13px; }
+  .broker-footer{ font-size:11px; color:var(--dim); text-align:center; margin-top:12px; }
 
 
 
@@ -507,22 +521,17 @@
       </div>
     </div>
 
-    <div class="joke-card">
-      <div class="joke-hdr">😄 今日股市笑話</div>
-      <div class="joke-body" id="jokeBody"></div>
-      <div class="joke-day" id="jokeDay"></div>
-    </div>
-
-    <!-- ══ 隱藏彩蛋：分點均價篩選器 ══ -->
-    <div id="broker-signal-section" style="margin-top:48px;padding-top:32px;border-top:1px dashed rgba(255,255,255,0.06)">
-      <div style="font-size:11px;color:rgba(255,255,255,0.12);text-align:center;letter-spacing:3px;margin-bottom:20px">· · ·</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.18);text-align:center;margin-bottom:18px;letter-spacing:1px">
-        目前低於分點 120 日均價的 ETF 成分股
+    <!-- ══ 分點均價篩選器 ══ -->
+    <div id="broker-signal-section" class="broker-card">
+      <div class="broker-hdr">
+        <span class="broker-title">分點 60 日均價以下個股</span>
+        <span class="broker-badge" id="broker-count"></span>
       </div>
-      <div id="broker-signal-list" style="font-size:13px;font-family:var(--mono)">
-        <div style="color:rgba(255,255,255,0.15);text-align:center;padding:12px">載入中...</div>
+      <div class="broker-col-hdr">
+        <span>名稱</span><span>現價</span><span>分點均</span><span>折扣</span>
       </div>
-      <div id="broker-signal-footer" style="font-size:11px;color:rgba(255,255,255,0.12);text-align:center;margin-top:14px"></div>
+      <div id="broker-signal-list"></div>
+      <div id="broker-signal-footer" class="broker-footer"></div>
     </div>
 
   </div>
@@ -1354,75 +1363,34 @@ function fetchData() {
 }
 fetchData();
 
-// ── 每日股市笑話 ──
-const JOKES = [
-  `分析師預測這支股票明年會翻倍。\n結果真的翻了——帳面損失翻了一倍。`,
-  `存股最難的不是選股，\n是看著它跌停還要裝作沒事繼續上班。`,
-  `我的投資策略很簡單：\n高點買進，低點哭泣，然後等它回來。`,
-  `朋友問我 ETF 是什麼意思。\n我說是「每天費心」的縮寫。`,
-  `股市有句名言：不要把雞蛋放在同一個籃子。\n結果我把雞蛋分成十個籃子，同一天全部打翻了。`,
-  `技術分析說這裡是支撐。\n支撐了三秒，跌破了。`,
-  `長期投資是什麼？\n就是短期套牢沒賣掉，然後說自己在長期投資。`,
-  `買 ETF 的好處是分散風險。\n壞處是當大盤跌，你的每一支都跌。`,
-  `我老婆問我為什麼一直盯著手機。\n我說在看新聞。\n只有我知道那是台股 APP。`,
-  `股神說要在別人恐懼時貪婪。\n但他沒說當你恐懼時，別人也在恐懼。`,
-  `存股這件事，\n最考驗的不是耐心，\n是假裝自己沒看到帳戶的能力。`,
-  `法人在買，散戶跟進。\n法人賣出，散戶：……我繼續持有。`,
-  `有人問我停損點在哪。\n我說我沒有停損點。\n「為什麼？」\n「因為我一直相信它會漲回來。」`,
-  `ETF 除息了！配了 5 塊。\n股價跌了 8 塊。\n理財成功！`,
-  `今天跌 3% 不用怕，\n明天還有 3% 可以跌。`,
-  `我研究了三個月的財報，選了一支好股票。\n結果被一條不知道哪來的新聞跌停。`,
-  `朋友說他選股靠直覺。\n我說我靠技術分析。\n我們都在賠錢，但我賠得比較有學問。`,
-  `股市就像電梯：\n上去很慢，下來很快。\n而且常常沒有你要去的樓層。`,
-  `存股 20 年，複利讓你財富自由。\n前提是你先活過這 20 年的漲跌。`,
-  `分析師：強烈買進。\n隔天：強烈後悔。`,
-  `大盤今天跌了。\n理由是：美國、中國、通膨、Fed、地緣政治、還有天氣。\n反正一定有理由。`,
-  `我的 ETF 健診 APP 說今天合理價是 0 支。\n看來今天可以安心去睡覺了。`,
-  `投資達人說：要有紀律。\n我很有紀律——每天準時看跌。`,
-  `什麼是價值投資？\n買了之後跌很久，然後說自己在做價值投資。`,
-  `00929 一個月配一次息，\n代表一個月提醒你一次它在跌。`,
-  `股市格言：漲時重勢，跌時重質。\n白話文：漲的時候亂買，跌的時候找理由不賣。`,
-  `基金公司說：過去績效不代表未來表現。\n就是說：我們不保證，但你的錢我們保證收。`,
-  `今天大盤 +1%。\n我的股票：-2%。\n「個股表現和大盤不一定相關。」\n學到了。`,
-  `存股的最高境界，\n是看到除息跌價還能說「好，又便宜了」。`,
-  `我買了 10 支 ETF，完全分散風險。\n今天它們一起下跌，\n非常有默契。`,
-];
-
-(function renderJoke() {
-  const now   = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const day   = Math.floor((now - start) / 86400000);
-  const joke  = JOKES[day % JOKES.length];
-  const nth   = day % JOKES.length + 1;
-  document.getElementById('jokeBody').textContent = joke;
-  document.getElementById('jokeDay').textContent  = `第 ${nth} / ${JOKES.length} 則`;
-})();
-
-// ── 分點均價彩蛋 ──
+// ── 分點均價篩選器 ──
 (async function loadBrokerSignal() {
   const listEl   = document.getElementById('broker-signal-list');
   const footerEl = document.getElementById('broker-signal-footer');
+  const countEl  = document.getElementById('broker-count');
   try {
     const resp = await fetch('data/broker_signal.json?_=' + Date.now());
     if (!resp.ok) throw new Error('no data');
     const json = await resp.json();
     const data = json.data || [];
+    if (countEl) countEl.textContent = data.length ? `${data.length} 檔` : '';
     if (!data.length) {
-      listEl.innerHTML = '<div style="color:rgba(255,255,255,0.15);text-align:center;padding:12px">目前沒有低於分點均價的成分股</div>';
+      listEl.innerHTML = '<div class="broker-empty">目前大盤偏強，無個股低於分點均價</div>';
+      if (footerEl) footerEl.textContent = `${json.updated} 更新・${json.lookback_days} 日分點資料`;
       return;
     }
     listEl.innerHTML = data.map(r => {
       const disc = r.discount.toFixed(1);
-      return `<div style="display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,0.05)">
-        <span style="color:rgba(255,255,255,0.55);min-width:80px">${r.name}</span>
-        <span style="color:rgba(255,255,255,0.4);min-width:70px;text-align:right">${r.price}</span>
-        <span style="color:rgba(255,255,255,0.3);min-width:70px;text-align:right">${r.avg}</span>
-        <span style="color:#00e5a0;min-width:55px;text-align:right">-${disc}%</span>
+      return `<div class="broker-row">
+        <span class="broker-name">${r.name}</span>
+        <span class="broker-price">${r.price}</span>
+        <span class="broker-avg">${r.avg}</span>
+        <span class="broker-disc">-${disc}%</span>
       </div>`;
     }).join('');
     if (footerEl) footerEl.textContent = `${json.updated} 更新・${json.lookback_days} 日分點資料・${data.length} 檔`;
   } catch(e) {
-    listEl.innerHTML = '<div style="color:rgba(255,255,255,0.1);text-align:center;padding:12px">資料準備中</div>';
+    listEl.innerHTML = '<div class="broker-empty">資料準備中</div>';
   }
 })();
 </script>
