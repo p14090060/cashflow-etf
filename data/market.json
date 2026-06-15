@@ -8070,7 +8070,7 @@
       "maD": 8.1,
       "ret5d": -0.67,
       "ret1m": 0.8,
-      "ret1y": 38.0,
+      "ret1y": 37.7,
       "ret_months": [
         null,
         null,
@@ -8436,7 +8436,7 @@
       "aum": 19543789628.02887,
       "change_pt": -0.04,
       "change_pct": -0.29,
-      "mis_time": "09:00",
+      "mis_time": "09:10",
       "div_frequency": "半年配",
       "yld_source": "base",
       "yld_label": "fetch_etf 計算"
