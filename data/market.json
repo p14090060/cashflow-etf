@@ -748,7 +748,7 @@
       "maD": 11.5,
       "ret5d": 3.4,
       "ret1m": 10.7,
-      "ret1y": 37.7,
+      "ret1y": 37.8,
       "ret_months": [
         null,
         null,
@@ -1043,7 +1043,7 @@
       "code": "0055",
       "name": "元大MSCI金融",
       "curated": false,
-      "price": 41.965,
+      "price": 41.98,
       "ma60": 34.34,
       "ma20": 36.82,
       "low52": 28.4,
