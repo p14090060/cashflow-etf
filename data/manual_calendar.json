@@ -14,6 +14,13 @@
       "ex_dividend_date": "2026-06-18",
       "amount": 1.26,
       "amount_source": "大華銀投信官網預估（2026-06-15）"
+    },
+    "00916": {
+      "code": "00916",
+      "name": "國泰全球品牌50",
+      "ex_dividend_date": "2026-06-16",
+      "amount": 0.25,
+      "amount_source": "yfinance 估算（待核實）"
     }
   }
 }
