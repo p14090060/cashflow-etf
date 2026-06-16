@@ -1300,26 +1300,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-06-16",
-      "mon": "6月",
-      "day": "16",
-      "code": "00919",
-      "name": "群益台灣精選高息",
-      "amt": 0.78,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-06-16",
-      "mon": "6月",
-      "day": "16",
-      "code": "00981A",
-      "name": "統一台股增長",
-      "amt": 0.41,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-06-19",
       "mon": "6月",
       "day": "19",
@@ -1396,6 +1376,26 @@
       "code": "00850",
       "name": "元大ESG永續",
       "amt": 0.85,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-09-15",
+      "mon": "9月",
+      "day": "15",
+      "code": "00919",
+      "name": "群益台灣精選高息",
+      "amt": 0.78,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-09-15",
+      "mon": "9月",
+      "day": "15",
+      "code": "00981A",
+      "name": "統一台股增長",
+      "amt": 0.41,
       "soon": false,
       "source": "yfinance"
     }
