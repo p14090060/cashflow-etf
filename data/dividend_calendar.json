@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-06-15",
+    "last_updated": "2026-06-16",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -18,35 +18,14 @@
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-06-17",
       "amount": 0.26,
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     },
     "00919": {
       "code": "00919",
       "name": "群益台灣精選高息",
       "ex_dividend_date": "2026-06-16",
       "amount": 1.0,
-      "amount_source": "TWSE"
-    },
-    "00936": {
-      "code": "00936",
-      "name": "台新永續高息中小",
-      "ex_dividend_date": "2026-06-15",
-      "amount": 0.12,
-      "amount_source": "TWSE"
-    },
-    "00701": {
-      "code": "00701",
-      "name": "國泰股利精選30",
-      "ex_dividend_date": "2026-12-18",
-      "amount": 0.7,
-      "amount_source": "TWSE"
-    },
-    "00930": {
-      "code": "00930",
-      "name": "永豐ESG低碳高息",
-      "ex_dividend_date": "2026-12-18",
-      "amount": 0.141,
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     }
   }
 }
