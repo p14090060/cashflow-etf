@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-16 13:40",
+  "updated": "2026-06-16 13:50",
   "is_closed": false,
   "is_holiday": false,
   "last_trading_time": null,
@@ -2374,7 +2374,7 @@
       "yld": 7.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 185,
+      "days": 27,
       "est": 0.7,
       "div_next": "2026-07-13",
       "signal": "hot",
@@ -5259,8 +5259,8 @@
       "yld": 4.2,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 185,
-      "est": 0.141,
+      "days": 40,
+      "est": 0.31,
       "div_next": "2026-07-26",
       "signal": "dear",
       "maD": 20.4,
@@ -5469,7 +5469,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 1,
-      "est": 0.12,
+      "est": 0.1,
       "div_next": "2026-06-17",
       "signal": "dear",
       "maD": 7.1,
@@ -8291,7 +8291,7 @@
       "soon": true,
       "days_until": 0,
       "source": "official",
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     },
     {
       "code": "00981A",
@@ -8327,7 +8327,7 @@
       "soon": true,
       "days_until": 1,
       "source": "official",
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     },
     {
       "code": "00918",
@@ -8412,30 +8412,6 @@
       "soon": false,
       "days_until": 66,
       "source": "estimate"
-    },
-    {
-      "code": "00701",
-      "name": "國泰股利精選30",
-      "iso_date": "2026-12-18",
-      "day": "18",
-      "mon": "12月",
-      "amt": 0.7,
-      "soon": false,
-      "days_until": 185,
-      "source": "official",
-      "amount_source": "TWSE"
-    },
-    {
-      "code": "00930",
-      "name": "永豐ESG低碳高息",
-      "iso_date": "2026-12-18",
-      "day": "18",
-      "mon": "12月",
-      "amt": 0.141,
-      "soon": false,
-      "days_until": 185,
-      "source": "official",
-      "amount_source": "TWSE"
     }
   ]
 }
