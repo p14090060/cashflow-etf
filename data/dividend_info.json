@@ -1286,11 +1286,16 @@
     },
     "00916": {
       "name": "國泰全球品牌50",
-      "frequency": "不明",
-      "months": [],
+      "frequency": "季配",
+      "months": [
+        3,
+        6,
+        9,
+        12
+      ],
       "category": "高股息",
-      "avg_dividend_per_share": null,
-      "_todo": true
+      "avg_dividend_per_share": 1.92,
+      "_todo": false
     }
   },
   "calendar": [
