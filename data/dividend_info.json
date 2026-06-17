@@ -1385,7 +1385,7 @@
       "day": "15",
       "code": "00919",
       "name": "群益台灣精選高息",
-      "amt": 0.78,
+      "amt": 1.0,
       "soon": false,
       "source": "yfinance"
     },
@@ -1395,7 +1395,7 @@
       "day": "15",
       "code": "00981A",
       "name": "統一台股增長",
-      "amt": 0.41,
+      "amt": 0.63,
       "soon": false,
       "source": "yfinance"
     }
