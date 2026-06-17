@@ -1281,8 +1281,8 @@
         12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": null,
-      "_todo": true
+      "avg_dividend_per_share": 0.462,
+      "_todo": false
     },
     "00916": {
       "name": "國泰全球品牌50",
@@ -1296,9 +1296,40 @@
       "category": "高股息",
       "avg_dividend_per_share": 1.92,
       "_todo": false
+    },
+    "00406A": {
+      "name": "中信台灣收益成長",
+      "frequency": "月配",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "category": "主動型",
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
+    {
+      "iso_date": "2026-06-18",
+      "mon": "6月",
+      "day": "18",
+      "code": "00994A",
+      "name": "主動第一金台股優",
+      "amt": 0.462,
+      "soon": true,
+      "source": "Gavin 人工確認"
+    },
     {
       "iso_date": "2026-06-19",
       "mon": "6月",
