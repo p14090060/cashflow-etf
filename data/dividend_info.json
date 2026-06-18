@@ -1341,14 +1341,14 @@
       "source": "yfinance"
     },
     {
-      "iso_date": "2026-06-19",
+      "iso_date": "2026-06-17",
       "mon": "6月",
-      "day": "19",
+      "day": "17",
       "code": "00929",
       "name": "復華台灣科技優息",
-      "amt": 0.13,
-      "soon": true,
-      "source": "yfinance"
+      "amt": 0.26,
+      "soon": false,
+      "source": "Gavin 人工確認"
     },
     {
       "iso_date": "2026-07-02",
