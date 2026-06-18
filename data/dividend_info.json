@@ -105,7 +105,7 @@
       "_todo": false
     },
     "00939": {
-      "name": "統一台灣科技優息",
+      "name": "統一台灣高息動能",
       "frequency": "月配",
       "months": [
         1,
@@ -122,7 +122,7 @@
         12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.072,
+      "avg_dividend_per_share": 0.125,
       "_todo": false
     },
     "00936": {
@@ -1349,6 +1349,16 @@
       "amt": 0.13,
       "soon": true,
       "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-07-02",
+      "mon": "7月",
+      "day": "02",
+      "code": "00939",
+      "name": "統一台灣高息動能",
+      "amt": 0.125,
+      "soon": false,
+      "source": "Gavin 人工確認"
     },
     {
       "iso_date": "2026-07-10",
