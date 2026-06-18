@@ -1331,14 +1331,14 @@
       "source": "Gavin 人工確認"
     },
     {
-      "iso_date": "2026-06-19",
+      "iso_date": "2026-06-22",
       "mon": "6月",
-      "day": "19",
+      "day": "22",
       "code": "00713",
       "name": "台灣高息低波",
-      "amt": 0.78,
+      "amt": 1.0,
       "soon": true,
-      "source": "yfinance"
+      "source": "moneydj 核實"
     },
     {
       "iso_date": "2026-06-17",
@@ -1361,84 +1361,14 @@
       "source": "Gavin 人工確認"
     },
     {
-      "iso_date": "2026-07-10",
-      "mon": "7月",
-      "day": "10",
+      "iso_date": "2026-06-09",
+      "mon": "6月",
+      "day": "09",
       "code": "00940",
       "name": "元大台灣價值高息",
       "amt": 0.05,
       "soon": false,
-      "source": "yfinance"
+      "source": "moneydj 核實"
     },
-    {
-      "iso_date": "2026-07-22",
-      "mon": "7月",
-      "day": "22",
-      "code": "00928",
-      "name": "中信上櫃ESG 30",
-      "amt": 0.5,
-      "soon": false,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-07-23",
-      "mon": "7月",
-      "day": "23",
-      "code": "0056",
-      "name": "元大高股息",
-      "amt": 1.0,
-      "soon": false,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-07-26",
-      "mon": "7月",
-      "day": "26",
-      "code": "0050",
-      "name": "元大台灣50",
-      "amt": 1.0,
-      "soon": false,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-08-18",
-      "mon": "8月",
-      "day": "18",
-      "code": "00878",
-      "name": "國泰永續高息",
-      "amt": 0.66,
-      "soon": false,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-08-21",
-      "mon": "8月",
-      "day": "21",
-      "code": "00850",
-      "name": "元大ESG永續",
-      "amt": 0.85,
-      "soon": false,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-09-15",
-      "mon": "9月",
-      "day": "15",
-      "code": "00919",
-      "name": "群益台灣精選高息",
-      "amt": 1.0,
-      "soon": false,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-09-15",
-      "mon": "9月",
-      "day": "15",
-      "code": "00981A",
-      "name": "統一台股增長",
-      "amt": 0.63,
-      "soon": false,
-      "source": "yfinance"
-    }
   ]
 }
