@@ -1,9 +1,9 @@
 {
-  "updated": "2026-06-19 14:22",
+  "updated": "2026-06-19 19:28",
   "market": {
-    "change_pct": 0.15,
-    "change_pt": 68.2,
-    "price": 45877.39
+    "price": 46465.2,
+    "change_pt": 587.81,
+    "change_pct": 1.28
   },
   "etfs": [
     {
@@ -3436,7 +3436,7 @@
       "low52": 12.73,
       "high52": 20.24,
       "rsi": 63.9,
-      "yld": 5.2,
+      "yld": 5.1,
       "yld_verified": true,
       "yld_pending": false,
       "days": 23,
@@ -3626,7 +3626,7 @@
       "low52": 13.19,
       "high52": 28.42,
       "rsi": 66.8,
-      "yld": 11.9,
+      "yld": 11.3,
       "yld_verified": true,
       "yld_pending": false,
       "days": 30,
@@ -5108,7 +5108,7 @@
       "low52": 9.86,
       "high52": 14.78,
       "rsi": 55.8,
-      "yld": 6.9,
+      "yld": 6.7,
       "yld_verified": true,
       "yld_pending": false,
       "days": 23,
