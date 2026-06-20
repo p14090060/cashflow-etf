@@ -1,8 +1,8 @@
 {
-  "updated": "2026-06-19 19:29",
+  "updated": "2026-06-20 13:01",
   "is_closed": true,
-  "is_holiday": false,
-  "last_trading_time": "13:30",
+  "is_holiday": true,
+  "last_trading_time": null,
   "market": {
     "price": 46465.2,
     "change_pt": 587.81,
@@ -62,7 +62,7 @@
       "yld": 5.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
+      "days": 2,
       "est": 1.0,
       "div_next": "2026-09-18",
       "signal": "dear",
@@ -4782,7 +4782,7 @@
       "yld": 3.9,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 13,
+      "days": 12,
       "est": 0.072,
       "div_next": "2026-07-02",
       "signal": "hot",
@@ -7099,7 +7099,7 @@
       "mon": "6月",
       "amt": 1.0,
       "soon": true,
-      "days_until": 3,
+      "days_until": 2,
       "source": "official",
       "amount_source": "TWSE"
     },
@@ -7111,7 +7111,7 @@
       "mon": "7月",
       "amt": 0.072,
       "soon": true,
-      "days_until": 13,
+      "days_until": 12,
       "source": "official",
       "amount_source": "Gavin 人工確認"
     }
