@@ -315,7 +315,7 @@
       "code": "00878",
       "name": "國泰永續高息",
       "curated": true,
-      "price": 34.115,
+      "price": 34.11,
       "ma60": 27.16,
       "ma20": 31.63,
       "low52": 20.18,
@@ -669,7 +669,7 @@
       "maD": 1.0,
       "ret5d": 5.63,
       "ret1m": 0.0,
-      "ret1y": 0.1,
+      "ret1y": 0.2,
       "ret_months": [
         null,
         null,
