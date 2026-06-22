@@ -1,12 +1,12 @@
 {
-  "updated": "2026-06-22 20:09",
+  "updated": "2026-06-22 20:55",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
   "market": {
-    "change_pct": 2.75,
+    "price": 47741.51,
     "change_pt": 1276.31,
-    "price": 47741.51
+    "change_pct": 2.75
   },
   "etfs": [
     {
@@ -99,7 +99,7 @@
       "low52": 46.64,
       "high52": 111.15,
       "rsi": 70.4,
-      "yld": 2.8,
+      "yld": 1.2,
       "yld_verified": true,
       "yld_pending": false,
       "days": 33,
@@ -419,7 +419,7 @@
       "low52": 42.33,
       "high52": 95.0,
       "rsi": 69.7,
-      "yld": 2.8,
+      "yld": 3.2,
       "yld_verified": true,
       "yld_pending": false,
       "days": 59,
@@ -4579,10 +4579,10 @@
       "low52": 13.64,
       "high52": 17.98,
       "rsi": 66.4,
-      "yld": 4.6,
+      "yld": 3.9,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 56,
+      "days": 187,
       "est": 0.22,
       "div_next": "2026-08-18",
       "signal": "dear",
@@ -4619,7 +4619,7 @@
       "low52": 17.83,
       "high52": 29.22,
       "rsi": 64.9,
-      "yld": 5.3,
+      "yld": 5.7,
       "yld_verified": true,
       "yld_pending": false,
       "days": 20,
@@ -4859,7 +4859,7 @@
       "low52": 13.27,
       "high52": 23.37,
       "rsi": 68.0,
-      "yld": 3.3,
+      "yld": 3.7,
       "yld_verified": true,
       "yld_pending": false,
       "days": 20,
@@ -5179,7 +5179,7 @@
       "low52": 9.02,
       "high52": 13.39,
       "rsi": 49.4,
-      "yld": 5.9,
+      "yld": 5.6,
       "yld_verified": true,
       "yld_pending": false,
       "days": 27,
@@ -5299,7 +5299,7 @@
       "low52": 9.14,
       "high52": 16.38,
       "rsi": 61.1,
-      "yld": 2.9,
+      "yld": 2.8,
       "yld_verified": true,
       "yld_pending": false,
       "days": 19,
@@ -7114,6 +7114,18 @@
       "days_until": 10,
       "source": "official",
       "amount_source": "Gavin 人工確認"
+    },
+    {
+      "code": "00932",
+      "name": "兆豐永續高息等權",
+      "iso_date": "2026-12-26",
+      "day": "26",
+      "mon": "12月",
+      "amt": 0.22,
+      "soon": false,
+      "days_until": 187,
+      "source": "official",
+      "amount_source": "TWSE"
     }
   ]
 }
