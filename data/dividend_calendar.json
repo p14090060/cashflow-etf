@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-06-22",
+    "last_updated": "2026-06-23",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -12,20 +12,6 @@
       "ex_dividend_date": "2026-07-02",
       "amount": 0.072,
       "amount_source": "Gavin 人工確認"
-    },
-    "00713": {
-      "code": "00713",
-      "name": "元大台灣高息低波",
-      "ex_dividend_date": "2026-06-22",
-      "amount": 1.0,
-      "amount_source": "TWSE"
-    },
-    "00932": {
-      "code": "00932",
-      "name": "兆豐永續高息等權",
-      "ex_dividend_date": "2026-12-26",
-      "amount": 0.22,
-      "amount_source": "TWSE"
     }
   }
 }
