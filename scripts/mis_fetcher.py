@@ -485,6 +485,24 @@ def main():
         "calendar":          calendar,
     }
 
+    # 非交易時段：若現有 market.json 已有今日 MIS 收盤資料，保留價格不覆蓋
+    # 防止本機 post-close 的 _base.json 盤中快照蓋掉 13:30 正確收盤價
+    if not trading and OUT.exists():
+        prev = load_json(OUT)
+        if prev and prev.get("updated", "")[:10] == today.strftime("%Y-%m-%d"):
+            prev_map = {e["code"]: e for e in prev.get("etfs", [])}
+            if any(e.get("mis_time") for e in prev.get("etfs", [])):
+                for e in etfs_out:
+                    p = prev_map.get(e["code"])
+                    if p and p.get("mis_time"):
+                        e["price"]      = p["price"]
+                        e["mis_time"]   = p["mis_time"]
+                        e["change_pt"]  = p.get("change_pt",  e.get("change_pt"))
+                        e["change_pct"] = p.get("change_pct", e.get("change_pct"))
+                        e["cur_vol"]    = p.get("cur_vol",    e.get("cur_vol"))
+                        e["vol_ratio"]  = p.get("vol_ratio",  e.get("vol_ratio"))
+                        e["heat"]       = p.get("heat",       e.get("heat"))
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
