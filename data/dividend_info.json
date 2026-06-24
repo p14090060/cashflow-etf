@@ -122,7 +122,7 @@
         12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.125,
+      "avg_dividend_per_share": 0.072,
       "_todo": false
     },
     "00936": {
@@ -1329,54 +1329,104 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-06-18",
-      "mon": "6月",
-      "day": "18",
-      "code": "00994A",
-      "name": "主動第一金台股優",
-      "amt": 0.462,
-      "soon": true,
-      "source": "Gavin 人工確認"
-    },
-    {
-      "iso_date": "2026-06-22",
-      "mon": "6月",
-      "day": "22",
-      "code": "00713",
-      "name": "台灣高息低波",
-      "amt": 1.0,
-      "soon": true,
-      "source": "moneydj 核實"
-    },
-    {
-      "iso_date": "2026-06-17",
-      "mon": "6月",
-      "day": "17",
-      "code": "00929",
-      "name": "復華台灣科技優息",
-      "amt": 0.26,
-      "soon": false,
-      "source": "Gavin 人工確認"
-    },
-    {
-      "iso_date": "2026-07-02",
+      "iso_date": "2026-07-10",
       "mon": "7月",
-      "day": "02",
-      "code": "00939",
-      "name": "統一台灣高息動能",
-      "amt": 0.125,
-      "soon": false,
-      "source": "Gavin 人工確認"
-    },
-    {
-      "iso_date": "2026-06-09",
-      "mon": "6月",
-      "day": "09",
+      "day": "10",
       "code": "00940",
       "name": "元大台灣價值高息",
       "amt": 0.05,
       "soon": false,
-      "source": "moneydj 核實"
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-07-13",
+      "mon": "7月",
+      "day": "13",
+      "code": "00929",
+      "name": "復華台灣科技優息",
+      "amt": 0.26,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-07-22",
+      "mon": "7月",
+      "day": "22",
+      "code": "00928",
+      "name": "中信上櫃ESG 30",
+      "amt": 0.5,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-07-23",
+      "mon": "7月",
+      "day": "23",
+      "code": "0056",
+      "name": "元大高股息",
+      "amt": 1.0,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-07-26",
+      "mon": "7月",
+      "day": "26",
+      "code": "0050",
+      "name": "元大台灣50",
+      "amt": 1.0,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-08-18",
+      "mon": "8月",
+      "day": "18",
+      "code": "00878",
+      "name": "國泰永續高息",
+      "amt": 0.66,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-08-21",
+      "mon": "8月",
+      "day": "21",
+      "code": "00850",
+      "name": "元大ESG永續",
+      "amt": 0.85,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-09-15",
+      "mon": "9月",
+      "day": "15",
+      "code": "00919",
+      "name": "群益台灣精選高息",
+      "amt": 1.0,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-09-15",
+      "mon": "9月",
+      "day": "15",
+      "code": "00981A",
+      "name": "統一台股增長",
+      "amt": 0.63,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-09-21",
+      "mon": "9月",
+      "day": "21",
+      "code": "00713",
+      "name": "台灣高息低波",
+      "amt": 1.0,
+      "soon": false,
+      "source": "yfinance"
     }
   ]
 }
