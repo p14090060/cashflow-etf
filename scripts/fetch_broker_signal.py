@@ -282,7 +282,7 @@ def main():
         "data_60":      results_60,
     }
     OUTPUT.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n✅ 完成：120日 {len(results_120)} 檔 / 60日 {len(results_60)} 檔 → {OUTPUT}", flush=True)
+    print(f"\n[OK] 完成：120日 {len(results_120)} 檔 / 60日 {len(results_60)} 檔 → {OUTPUT}", flush=True)
     results = results_120
     for r in results[:10]:
         print(f"  {r['name']:12s}  現:{r['price']:>8.1f}  均:{r['avg']:>8.1f}  -{r['discount']:.1f}%",
