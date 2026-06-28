@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-27 12:41",
+  "updated": "2026-06-28 13:08",
   "is_closed": true,
   "is_holiday": true,
   "last_trading_time": null,
@@ -410,7 +410,7 @@
       "yld": 4.67,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 12,
+      "days": 11,
       "est": 0.05,
       "div_next": "2026-07-10",
       "signal": "dear",
@@ -5283,7 +5283,7 @@
       "yld": 4.0,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 5,
+      "days": 4,
       "est": 0.072,
       "div_next": "2026-07-02",
       "signal": "dear",
@@ -7867,7 +7867,7 @@
       "mon": "7月",
       "amt": 0.072,
       "soon": true,
-      "days_until": 5,
+      "days_until": 4,
       "source": "official",
       "amount_source": "Gavin 人工確認"
     },
@@ -7879,7 +7879,7 @@
       "mon": "7月",
       "amt": 0.05,
       "soon": true,
-      "days_until": 12,
+      "days_until": 11,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -7890,7 +7890,7 @@
       "mon": "7月",
       "amt": 0.26,
       "soon": false,
-      "days_until": 16,
+      "days_until": 15,
       "source": "estimate"
     },
     {
@@ -7900,7 +7900,7 @@
       "mon": "7月",
       "amt": 0.5,
       "soon": false,
-      "days_until": 25,
+      "days_until": 24,
       "source": "estimate"
     },
     {
@@ -7910,7 +7910,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 26,
+      "days_until": 25,
       "source": "estimate"
     },
     {
@@ -7920,7 +7920,7 @@
       "mon": "7月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 29,
+      "days_until": 28,
       "source": "estimate"
     },
     {
@@ -7930,7 +7930,7 @@
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
-      "days_until": 52,
+      "days_until": 51,
       "source": "estimate"
     },
     {
@@ -7940,7 +7940,7 @@
       "mon": "8月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 55,
+      "days_until": 54,
       "source": "estimate"
     },
     {
@@ -7950,7 +7950,7 @@
       "mon": "9月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 80,
+      "days_until": 79,
       "source": "estimate"
     },
     {
@@ -7960,7 +7960,7 @@
       "mon": "9月",
       "amt": 0.63,
       "soon": false,
-      "days_until": 80,
+      "days_until": 79,
       "source": "estimate"
     }
   ]
