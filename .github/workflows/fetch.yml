@@ -26,6 +26,9 @@ jobs:
       - name: Fetch ETF base data
         run: python fetch_etf.py
 
+      - name: Fetch broker signal (分點均價篩選)
+        run: python scripts/fetch_broker_signal.py
+
       - name: Fetch dividend calendar (TWSE official)
         run: python scripts/fetch_dividend_calendar.py
 
@@ -39,7 +42,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json data/daily_state.json data/etf_pool_cache.json
+          git add data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json data/daily_state.json data/etf_pool_cache.json data/broker_signal.json data/_broker_cache.json
           git diff --cached --quiet || git commit -m "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')"
           git pull --rebase origin main
           git push
