@@ -69,7 +69,7 @@ def fetch_mis_etfs(codes):
                 t    = item.get("t", "")
                 if not code:
                     continue
-                # 當 z="-" 時，用最佳買賣價中點作 fallback
+                # 當 z="-" 時，依序 fallback：買賣報價中點 → MIS 昨收(y)
                 if not z or z == "-":
                     a_str = item.get("a", "")  # ask: "29.40_29.41_..."
                     b_str = item.get("b", "")  # bid: "29.39_29.38_..."
@@ -82,6 +82,8 @@ def fetch_mis_etfs(codes):
                             z = str(best_ask)
                         elif best_bid > 0:
                             z = str(best_bid)
+                        elif y and y != "-":
+                            z = y  # 昨收作最終 fallback，比 yfinance 基線準
                         else:
                             continue
                     except (ValueError, IndexError):
