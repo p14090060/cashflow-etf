@@ -1362,7 +1362,7 @@ function reloadData() {
 }
 let _pollTimer = null;
 function fetchData() {
-  fetch('data/market.json?t=' + Date.now())
+  fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/market.json?t=' + Date.now())
     .then(r => r.json())
     .then(d => renderAll(d.etfs, d.calendar || STATIC_CAL, d.updated, d.market, d.is_closed, d.is_holiday))
     .catch(() => renderAll(STATIC_ETFS, STATIC_CAL, '示範資料', null, true, false));
@@ -1412,7 +1412,7 @@ function switchBrokerTab(btn) {
 (async function loadBrokerSignal() {
   const listEl = document.getElementById('broker-signal-list');
   try {
-    const resp = await fetch('data/broker_signal.json?_=' + Date.now());
+    const resp = await fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/broker_signal.json?_=' + Date.now());
     if (!resp.ok) throw new Error('no data');
     _brokerJson = await resp.json();
     renderBrokerList();
