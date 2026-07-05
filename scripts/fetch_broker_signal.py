@@ -143,8 +143,8 @@ def main():
     print("[1/4] 取 ETF 成分股...", flush=True)
     stocks = get_etf_components()
     if not stocks:
-        print("  ❌ 無成分股，中止", flush=True)
-        sys.exit(1)
+        print("  ⚠ 無成分股（TWSE API 可能尚未更新，盤前常見），略過本次分點更新", flush=True)
+        sys.exit(0)
     codes = list(stocks.keys())[:MAX_STOCKS]
     print(f"  共 {len(codes)} 檔（最多 {MAX_STOCKS} 檔）", flush=True)
 
