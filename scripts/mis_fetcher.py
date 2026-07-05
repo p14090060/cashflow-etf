@@ -311,6 +311,32 @@ def load_json(path):
         print(f"[LOAD] {path} 失敗: {e}", file=sys.stderr)
         return None
 
+# ── 監測：_base.json 過期警報（獨立於 fetch.yml，確保 fetch 掛掉時也能通知）──
+def check_base_staleness():
+    import os
+    TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not TG_TOKEN or not TG_CHAT_ID:
+        return
+    if not BASE.exists():
+        return
+    age_hours = (time.time() - BASE.stat().st_mtime) / 3600
+    if age_hours > 25:
+        msg = (f"🚨 _base.json 已 {age_hours:.0f} 小時未更新\n"
+               f"fetch.yml 可能持續失敗，ETF 基線資料（均線/RSI/殖利率）已過期\n"
+               f"請至 GitHub Actions 確認 Fetch ETF Data 最近執行狀況")
+        try:
+            data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg}).encode()
+            req  = _ur.Request(
+                f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+                data=data, headers={"Content-Type": "application/json"},
+            )
+            _ur.urlopen(req, timeout=10)
+            print(f"[STALE ALERT] _base.json 已 {age_hours:.0f} 小時未更新，TG 已通知")
+        except Exception as e:
+            print(f"[STALE ALERT ERROR] {e}", file=sys.stderr)
+
+
 # ── 主流程 ────────────────────────────────────────────────
 def main():
     now      = tw_now()
@@ -318,6 +344,9 @@ def main():
     trading  = is_trading_hour(now)
     weekday  = is_weekday(now)
     holiday  = not weekday
+
+    # 每次執行都檢查 _base.json 是否過期
+    check_base_staleness()
 
     # 讀基線
     base = load_json(BASE)
