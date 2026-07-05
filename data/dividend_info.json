@@ -59,7 +59,7 @@
         11
       ],
       "category": "指數型",
-      "avg_dividend_per_share": 2.1,
+      "avg_dividend_per_share": 4.75,
       "_todo": false
     },
     "00929": {
@@ -1339,7 +1339,20 @@
     "00400A": {
       "name": "主動國泰動能高息",
       "frequency": "月配",
-      "months": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "category": "高股息",
       "avg_dividend_per_share": 0.12,
       "_todo": false
@@ -1347,7 +1360,12 @@
     "00997A": {
       "name": "主動群益美國增長",
       "frequency": "季配",
-      "months": [1, 4, 7, 10],
+      "months": [
+        1,
+        4,
+        7,
+        10
+      ],
       "category": "高股息",
       "avg_dividend_per_share": 0.37,
       "_todo": false
