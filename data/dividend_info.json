@@ -1369,6 +1369,14 @@
       "category": "高股息",
       "avg_dividend_per_share": 0.37,
       "_todo": false
+    },
+    "009805": {
+      "name": "新光美國電力基建",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
