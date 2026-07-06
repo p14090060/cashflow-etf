@@ -4,10 +4,10 @@
   "is_holiday": false,
   "last_trading_time": null,
   "market": {
-    "price": 46881.76,
-    "change_pt": 101.14,
-    "change_pct": 0.22,
-    "mis_time": "12:00"
+    "price": 46846.39,
+    "change_pt": 65.77,
+    "change_pct": 0.14,
+    "mis_time": "12:01"
   },
   "etfs": [
     {
