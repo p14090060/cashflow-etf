@@ -337,6 +337,77 @@ def check_base_staleness():
             print(f"[STALE ALERT ERROR] {e}", file=sys.stderr)
 
 
+# ── 自驗：寫完 market.json 後立刻核對 signal 與價格是否合理 ──────────────
+def verify_output():
+    import os
+    TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+    if not OUT.exists():
+        return
+
+    try:
+        data = json.loads(OUT.read_text(encoding="utf-8"))
+    except Exception:
+        return
+
+    errors = []
+    for e in data.get("etfs", []):
+        code       = e.get("code", "")
+        price      = e.get("price", 0)
+        stored_sig = e.get("signal", "")
+
+        # 1. 價格異常（0 或負值）
+        if price <= 0:
+            errors.append(f"❌ {code} 價格={price}（異常）")
+            continue
+
+        # 2. 價格偏離前收超過 15%（停牌或新上市可能觸發，仍需留意）
+        chg_pct = e.get("change_pct")
+        if chg_pct is not None:
+            try:
+                if abs(float(chg_pct)) > 15:
+                    errors.append(f"⚠️ {code} 漲跌幅={chg_pct}%（超過15%，請確認）")
+            except (TypeError, ValueError):
+                pass
+
+        # 3. signal 與實際資料不符
+        expected = calc_signal(
+            price,
+            e.get("ma20", 0), e.get("ma60", 0),
+            e.get("low52", 0), e.get("high52", 0),
+            e.get("ret5d", 0), e.get("vol_ratio", 1),
+            e.get("rsi", 50), e.get("yld", 0), e.get("name", ""),
+        )
+        if expected != stored_sig:
+            errors.append(
+                f"🔴 {code}({e.get('name','')}) signal 應為「{expected}」，"
+                f"實存「{stored_sig}」"
+                f"（price={price}, ma60={e.get('ma60',0)}, "
+                f"low52={e.get('low52',0)}, high52={e.get('high52',0)}）"
+            )
+
+    if not errors:
+        print(f"[VERIFY] market.json 自驗通過（{len(data.get('etfs', []))} 支）")
+        return
+
+    report = "🚨 market.json 資料異常，請確認：\n" + "\n".join(errors)
+    print(f"[VERIFY ERROR]\n{report}", file=sys.stderr)
+
+    if not TG_TOKEN or not TG_CHAT_ID:
+        return
+    try:
+        body = json.dumps({"chat_id": TG_CHAT_ID, "text": report}).encode()
+        req  = _ur.Request(
+            f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+            data=body, headers={"Content-Type": "application/json"},
+        )
+        _ur.urlopen(req, timeout=10)
+        print(f"[VERIFY] 已發 TG 通知（{len(errors)} 項異常）")
+    except Exception as ex:
+        print(f"[VERIFY TG ERROR] {ex}", file=sys.stderr)
+
+
 # ── 主流程 ────────────────────────────────────────────────
 def main():
     now      = tw_now()
@@ -549,6 +620,8 @@ def main():
 
     status = "盤中 MIS" if mis_ok else ("收盤" if weekday else "假日")
     print(f"[OK] data/market.json 完成（{status}，ETF {len(etfs_out)} 支）")
+
+    verify_output()
 
 
 if __name__ == "__main__":
