@@ -27,12 +27,15 @@ jobs:
         run: python fetch_etf.py
 
       - name: Fetch broker signal (分點均價篩選)
+        continue-on-error: true
         run: python scripts/fetch_broker_signal.py
 
       - name: Fetch dividend calendar (TWSE official)
+        continue-on-error: true
         run: python scripts/fetch_dividend_calendar.py
 
       - name: Daily check & auto-fix avg
+        continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
