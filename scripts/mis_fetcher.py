@@ -533,6 +533,15 @@ def main():
                         e["cur_vol"]    = p.get("cur_vol",    e.get("cur_vol"))
                         e["vol_ratio"]  = p.get("vol_ratio",  e.get("vol_ratio"))
                         e["heat"]       = p.get("heat",       e.get("heat"))
+                        # 價格已更新，重算訊號確保正確（base.json 舊價可能與收盤價差距大）
+                        e["signal"] = calc_signal(
+                            e["price"], e.get("ma20", 0), e.get("ma60", 0),
+                            e.get("low52", 0), e.get("high52", 0),
+                            e.get("ret5d", 0), e.get("vol_ratio", 1),
+                            e.get("rsi", 50), e.get("yld", 0), e.get("name", ""),
+                        )
+                        if e.get("ma60", 0) > 0:
+                            e["maD"] = round((e["price"] - e["ma60"]) / e["ma60"] * 100, 1)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
