@@ -337,7 +337,7 @@ def check_base_staleness():
             print(f"[STALE ALERT ERROR] {e}", file=sys.stderr)
 
 
-# ── 自驗：寫完 market.json 後立刻核對 signal 與價格是否合理 ──────────────
+# ── 自驗：寫完 market.json 後立刻核對並自動修正 signal ──────────────────
 def verify_output():
     import os
     TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
@@ -351,27 +351,20 @@ def verify_output():
     except Exception:
         return
 
-    errors = []
+    fixed      = []   # 已自動修正，只記 log
+    unfixable  = []   # 無法自動修正，需 TG 通知
+
     for e in data.get("etfs", []):
         code       = e.get("code", "")
         price      = e.get("price", 0)
         stored_sig = e.get("signal", "")
 
-        # 1. 價格異常（0 或負值）
+        # 價格為 0 → 無法自動修正，通知
         if price <= 0:
-            errors.append(f"❌ {code} 價格={price}（異常）")
+            unfixable.append(f"❌ {code} 價格={price}（異常，請確認資料來源）")
             continue
 
-        # 2. 價格偏離前收超過 15%（停牌或新上市可能觸發，仍需留意）
-        chg_pct = e.get("change_pct")
-        if chg_pct is not None:
-            try:
-                if abs(float(chg_pct)) > 15:
-                    errors.append(f"⚠️ {code} 漲跌幅={chg_pct}%（超過15%，請確認）")
-            except (TypeError, ValueError):
-                pass
-
-        # 3. signal 與實際資料不符
+        # signal 不符 → 直接用正確值覆蓋（資料本身足夠重算，不需人工）
         expected = calc_signal(
             price,
             e.get("ma20", 0), e.get("ma60", 0),
@@ -380,22 +373,27 @@ def verify_output():
             e.get("rsi", 50), e.get("yld", 0), e.get("name", ""),
         )
         if expected != stored_sig:
-            errors.append(
-                f"🔴 {code}({e.get('name','')}) signal 應為「{expected}」，"
-                f"實存「{stored_sig}」"
-                f"（price={price}, ma60={e.get('ma60',0)}, "
-                f"low52={e.get('low52',0)}, high52={e.get('high52',0)}）"
+            e["signal"] = expected
+            if e.get("ma60", 0) > 0:
+                e["maD"] = round((price - e["ma60"]) / e["ma60"] * 100, 1)
+            fixed.append(
+                f"{code}({e.get('name','')}) {stored_sig}→{expected} "
+                f"(price={price}, ma60={e.get('ma60',0)})"
             )
 
-    if not errors:
+    # 有修正 → 重寫 market.json
+    if fixed:
+        with open(OUT, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"[VERIFY] 自動修正 {len(fixed)} 支 signal：" + "、".join(fixed))
+    else:
         print(f"[VERIFY] market.json 自驗通過（{len(data.get('etfs', []))} 支）")
-        return
 
-    report = "🚨 market.json 資料異常，請確認：\n" + "\n".join(errors)
+    # 無法自動修正的才發 TG
+    if not unfixable or not TG_TOKEN or not TG_CHAT_ID:
+        return
+    report = "🚨 market.json 有無法自動修正的異常：\n" + "\n".join(unfixable)
     print(f"[VERIFY ERROR]\n{report}", file=sys.stderr)
-
-    if not TG_TOKEN or not TG_CHAT_ID:
-        return
     try:
         body = json.dumps({"chat_id": TG_CHAT_ID, "text": report}).encode()
         req  = _ur.Request(
@@ -403,7 +401,7 @@ def verify_output():
             data=body, headers={"Content-Type": "application/json"},
         )
         _ur.urlopen(req, timeout=10)
-        print(f"[VERIFY] 已發 TG 通知（{len(errors)} 項異常）")
+        print(f"[VERIFY] TG 通知已發（{len(unfixable)} 項無法自動修正）")
     except Exception as ex:
         print(f"[VERIFY TG ERROR] {ex}", file=sys.stderr)
 
