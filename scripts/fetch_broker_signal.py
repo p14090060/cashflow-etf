@@ -26,9 +26,9 @@ import yfinance as yf
 
 # ── 設定 ──────────────────────────────────────────────────
 TARGET_ETFS = ["0050", "006208", "0056", "00878", "00919", "00929"]
-LOOKBACK    = 120           # 分析天數（交易日）
-DELAY       = 0.6           # TWSE 每次請求間隔（秒），避免被擋
-MAX_STOCKS  = 150           # 最多處理幾檔（防 Action 超時）
+LOOKBACK    = 60            # 分析天數（交易日）；120 太慢，60 天均價已足夠參考
+DELAY       = 0.5           # TWSE 每次請求間隔（秒），避免被擋
+MAX_STOCKS  = 100           # 最多處理幾檔（防 Action 超時）
 MIN_DISCOUNT = 0.0          # 只輸出折扣 > 0% 的個股（低於均價才算）
 
 ROOT   = Path(__file__).parent.parent
@@ -270,21 +270,20 @@ def main():
         out_list.sort(key=lambda x: x["discount"], reverse=True)
         return out_list
 
-    results_120 = calc_results(trade_dates)           # 完整 120 日
-    results_60  = calc_results(trade_dates[-60:])     # 近 60 日
+    results_main = calc_results(trade_dates)             # 完整 60 日
+    results_30   = calc_results(trade_dates[-30:])       # 近 30 日
 
     out = {
         "updated":      date.today().strftime("%Y-%m-%d"),
         "lookback_days": LOOKBACK,
-        "count":        len(results_120),
-        "data":         results_120,
-        "count_60":     len(results_60),
-        "data_60":      results_60,
+        "count":        len(results_main),
+        "data":         results_main,
+        "count_60":     len(results_30),
+        "data_60":      results_30,
     }
     OUTPUT.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n[OK] 完成：120日 {len(results_120)} 檔 / 60日 {len(results_60)} 檔 → {OUTPUT}", flush=True)
-    results = results_120
-    for r in results[:10]:
+    print(f"\n[OK] 完成：{LOOKBACK}日 {len(results_main)} 檔 / 30日 {len(results_30)} 檔 → {OUTPUT}", flush=True)
+    for r in results_main[:10]:
         print(f"  {r['name']:12s}  現:{r['price']:>8.1f}  均:{r['avg']:>8.1f}  -{r['discount']:.1f}%",
               flush=True)
 

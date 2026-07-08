@@ -11,7 +11,7 @@ permissions:
 jobs:
   broker-signal:
     runs-on: ubuntu-latest
-    timeout-minutes: 30        # 每日增量抓取應在 5 分鐘內完成
+    timeout-minutes: 90        # 初次建立快取約 50 分鐘，之後每日 < 1 分鐘
 
     steps:
       - uses: actions/checkout@v4
