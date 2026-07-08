@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-08 08:39",
+  "updated": "2026-07-08 08:46",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -832,7 +832,7 @@
       "code": "00405A",
       "name": "主動富邦台灣龍耀",
       "curated": false,
-      "price": 9.15,
+      "price": 8.65,
       "ma60": 9.45,
       "ma20": 9.32,
       "low52": 8.9,
@@ -845,10 +845,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -3.2,
+      "maD": -8.5,
       "ret5d": 2.81,
       "ret1m": -4.1,
-      "ret1y": -8.5,
+      "ret1y": -13.5,
       "ret_months": [
         null,
         null,
