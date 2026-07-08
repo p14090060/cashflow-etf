@@ -1415,7 +1415,7 @@
       "code": "00928",
       "name": "中信上櫃ESG 30",
       "amt": 0.5,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
