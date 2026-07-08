@@ -9,7 +9,7 @@
         7
       ],
       "category": "指數型",
-      "avg_dividend_per_share": 1.0,
+      "avg_dividend_per_share": 0.6,
       "_todo": false
     },
     "0056": {
@@ -22,7 +22,7 @@
         10
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.93,
+      "avg_dividend_per_share": 1.35,
       "_todo": false
     },
     "00878": {
@@ -80,7 +80,7 @@
         12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.26,
+      "avg_dividend_per_share": 0.38,
       "_todo": false
     },
     "00940": {
@@ -1425,7 +1425,7 @@
       "code": "0056",
       "name": "元大高股息",
       "amt": 1.0,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
