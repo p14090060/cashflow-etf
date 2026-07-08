@@ -109,6 +109,11 @@ def main():
         notify(f"🚨 ETF清單異常：market.json 只有 {len(etfs)} 支（正常應 >100），\n"
                f"TWSE ISIN 頁面可能抓取失敗，_base.json 已 fallback，請確認")
 
+    # ── 0c. TWSE 官方收盤核對來源抓取失敗（price 僅靠 yfinance，可能有整批 NaN 延遲風險）──
+    if not market.get("twse_price_check_date"):
+        notify("⚠ ETF健診：本次 fetch_etf.py 未能取得 TWSE 官方收盤核對來源，\n"
+               "price 僅來自 yfinance，若當天 yfinance 剛好整批延遲/NaN 將無法自動修正，請人工確認現價")
+
     # ── 載入跨日狀態 ──
     state      = load(DAILY_STATE) or {}
     yld_prev   = state.get("yld_prev", {})

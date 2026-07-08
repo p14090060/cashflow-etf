@@ -520,6 +520,55 @@ def fetch_twse_etfortune_yld(code, price, div_freq):
     return 0.0
 
 
+def fetch_twse_official_closes(max_lookback=6):
+    """從今日往回找最近一個有完整收盤資料的交易日，回傳 (date_str, {code: close_or_None})。
+
+    2026-07-08 發現：yfinance 對台股上市 ETF 偶發整批回傳最新交易日 Close=NaN，
+    dropna() 會悄悄退回前一日舊價，且無任何警報（158/179 支 ETF 曾同時中招）。
+    改用 TWSE 官方 MI_INDEX 全市場收盤行情一次性核對/覆蓋 price，徹底避免此類 yfinance 資料延遲問題。
+
+    close_or_None: None 代表當日零成交量（TWSE 顯示 "--"），呼叫端應保留原價，不覆蓋。
+    找不到任何資料（連假、TWSE 暫時性故障）時回傳 (None, {})，呼叫端應 fallback 純用 yfinance。
+    """
+    import urllib.request as _ur3, ssl as _ssl3
+    ctx = _ssl3.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = _ssl3.CERT_NONE
+    now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    for delta in range(max_lookback):
+        d = now_tw.date() - datetime.timedelta(days=delta)
+        if d.weekday() >= 5:   # 跳過週末
+            continue
+        date_str = d.strftime('%Y%m%d')
+        try:
+            url = (f"https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX"
+                   f"?date={date_str}&type=ALLBUT0999&response=json")
+            req = _ur3.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with _ur3.urlopen(req, timeout=15, context=ctx) as r:
+                resp = json.loads(r.read().decode("utf-8"))
+            if resp.get("stat") != "OK":
+                continue
+            tables = resp.get("tables", [])
+            if len(tables) < 9 or not tables[8].get("data"):
+                continue
+            mapping = {}
+            for row in tables[8]["data"]:
+                code = row[0].strip()
+                try:
+                    mapping[code] = float(str(row[8]).replace(",", ""))
+                except (ValueError, IndexError):
+                    mapping[code] = None
+            print(f"[TWSE] 官方收盤核對來源：{date_str}（{len(mapping)} 檔）")
+            return date_str, mapping
+        except Exception as e:
+            print(f"[TWSE] {date_str} 抓取失敗: {e}")
+            continue
+    print("[TWSE] 官方收盤核對來源抓取失敗，本次改用 yfinance 原始價格（無交叉核對）")
+    return None, {}
+
+_TWSE_PRICE_DATE, _TWSE_OFFICIAL_CLOSES = fetch_twse_official_closes()
+_twse_override_count = 0
+
 def fetch_nav_twse(code):
     try:
         clean = ''.join(c for c in code if c.isdigit())
@@ -581,6 +630,18 @@ for code, name in ALL_ETFS:
         price    = round(float(c.iloc[-1]), 2)
         low52    = round(float(c.min()), 2)
         high52   = round(float(c.max()), 2)
+
+        # TWSE 官方收盤價覆蓋（上市 ETF 適用；上櫃 .TWO 無此 yfinance NaN 問題，略過）
+        # 徹底避免 yfinance 整批延遲/NaN 導致 price 悄悄停留在前一交易日
+        if code not in TWO_CODES and code in _TWSE_OFFICIAL_CLOSES:
+            official_price = _TWSE_OFFICIAL_CLOSES[code]
+            if official_price is not None and official_price > 0 and abs(official_price - price) > 0.011:
+                print(f"[TWSE-OVERRIDE] {code} yfinance={price} → TWSE官方({_TWSE_PRICE_DATE})={official_price}")
+                price  = official_price
+                low52  = round(min(low52, price), 2)
+                high52 = round(max(high52, price), 2)
+                _twse_override_count += 1
+
         ma60     = round(float(c.tail(60).mean()), 2)
         ma20     = round(float(c.tail(20).mean()), 2)
         rsi      = calc_rsi(c)
@@ -793,6 +854,7 @@ output = {
     "market": market,
     "etfs": results,
     "calendar": calendar,
+    "twse_price_check_date": _TWSE_PRICE_DATE,   # None 代表本次 TWSE 官方核對來源抓取失敗
 }
 
 OUT_BASE.parent.mkdir(parents=True, exist_ok=True)
@@ -812,3 +874,7 @@ if calendar and OUT_DIV.exists():
         print(f"[WARN] dividend_info.json 更新失敗: {e}")
 
 print(f"\n✓ data/_base.json 完成：精選 {curated_n} + 自動發現 {auto_n} = {len(results)} 支 ETF")
+if _TWSE_PRICE_DATE:
+    print(f"✓ TWSE 官方收盤核對（{_TWSE_PRICE_DATE}）：覆蓋 {_twse_override_count} 支價格")
+else:
+    print("⚠ 本次未能取得 TWSE 官方收盤核對來源，price 僅來自 yfinance")

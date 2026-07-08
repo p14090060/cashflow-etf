@@ -583,6 +583,7 @@ def main():
         "market":            market_out,
         "etfs":              etfs_out,
         "calendar":          calendar,
+        "twse_price_check_date": base.get("twse_price_check_date"),
     }
 
     # 非交易時段：若現有 market.json 已有今日 MIS 收盤資料，保留價格不覆蓋
