@@ -1,7 +1,15 @@
-import json, math, datetime, ssl, re, requests
+import json, math, datetime, ssl, re, requests, sys
 import urllib.request as _ur
 from pathlib import Path
 import yfinance as yf
+
+# Windows 本機主控台常是 cp950，print() 遇到 ✓/⚠ 等符號會 UnicodeEncodeError 整支腳本崩潰
+# （GitHub Actions 的 Ubuntu 預設 UTF-8 不受影響，但本機手動執行會中招，2026-07-08 發現）
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 OUT_BASE  = Path(__file__).parent / "data" / "_base.json"
 OUT_DIV   = Path(__file__).parent / "data" / "dividend_info.json"

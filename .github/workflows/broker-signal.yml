@@ -11,7 +11,11 @@ permissions:
 jobs:
   broker-signal:
     runs-on: ubuntu-latest
-    timeout-minutes: 90        # 初次建立快取約 50 分鐘，之後每日 < 1 分鐘
+    # fetch_broker_signal.py 內建 5 分鐘抓取時間預算（FETCH_TIME_BUDGET），
+    # 保證一定會在時間內跑完並讓下面的 commit 步驟正常執行，15 分鐘已含充裕緩衝。
+    # 2026-07-08：原本 90 分鐘的做法會讓落後太多天時整次執行被 timeout 砍掉、
+    # 進度全部遺失、隔天從同一點重來，永遠追不上、永遠沒有新資料。
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4

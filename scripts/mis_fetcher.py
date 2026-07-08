@@ -10,6 +10,13 @@ import json, sys, time, ssl, datetime
 import urllib.request as _ur
 from pathlib import Path
 
+# Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 # ── 路徑 ────────────────────────────────────────────────
 ROOT        = Path(__file__).parent.parent
 BASE        = ROOT / "data" / "_base.json"

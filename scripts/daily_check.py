@@ -6,6 +6,13 @@ scripts/daily_check.py
 import json, os, sys, time, urllib.request
 from pathlib import Path
 
+# Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 ROOT        = Path(__file__).parent.parent
 MARKET      = ROOT / "data" / "market.json"
 DIV_INFO    = ROOT / "data" / "dividend_info.json"

@@ -24,12 +24,28 @@ from pathlib import Path
 import requests
 import yfinance as yf
 
+# Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
+# （GitHub Actions 的 Ubuntu 預設 UTF-8 不受影響，但本機手動執行會中招，2026-07-08 發現）
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 # ── 設定 ──────────────────────────────────────────────────
 TARGET_ETFS = ["0050", "006208", "0056", "00878", "00919", "00929"]
 LOOKBACK    = 60            # 分析天數（交易日）；120 太慢，60 天均價已足夠參考
 DELAY       = 0.5           # TWSE 每次請求間隔（秒），避免被擋
 MAX_STOCKS  = 100           # 最多處理幾檔（防 Action 超時）
 MIN_DISCOUNT = 0.0          # 只輸出折扣 > 0% 的個股（低於均價才算）
+
+# 單次執行「抓分點資料」步驟的時間預算（秒）。
+# 2026-07-08 發現：cache 落後太多天時，這一步可能需要數小時才抓得完，
+# 但 workflow 是「整個腳本跑完才 commit」，一旦被 job timeout 砍掉，
+# 這次抓到的進度全部消失，隔天又從同一個起點重來 → 永遠追不上、永遠沒有新資料。
+# 超過預算就停止抓新資料，直接用目前已有的快取算出結果並讓後續 commit 正常執行，
+# 確保每次執行一定會有進度被存下來，多天之後自然追上。
+FETCH_TIME_BUDGET = 300
 
 ROOT   = Path(__file__).parent.parent
 CACHE  = ROOT / "data" / "_broker_cache.json"
@@ -166,8 +182,13 @@ def main():
         cache[c] = {d: v for d, v in cache[c].items()
                     if d >= cutoff and not (v.get("b", 0) == 0 and v.get("s", 0) == 0)}
 
+    fetch_deadline = time.monotonic() + FETCH_TIME_BUDGET
     fetched = 0
     for ci, code in enumerate(codes):
+        if time.monotonic() > fetch_deadline:
+            print(f"  ⏱ 已達 {FETCH_TIME_BUDGET}s 時間預算，停止抓新資料"
+                  f"（剩餘 {len(codes) - ci} 檔留到下次執行繼續補）", flush=True)
+            break
         need = [d for d in trade_dates if d not in cache.get(code, {})]
         if not need:
             continue
@@ -179,6 +200,8 @@ def main():
                 cache[code][d] = {"b": result[0], "s": result[1]}
             fetched += 1
             time.sleep(DELAY)
+            if time.monotonic() > fetch_deadline:
+                break
         if ci % 10 == 0:
             save_cache(cache)      # 每 10 檔存一次，防止中途崩潰
             print(f"  進度 {ci+1}/{len(codes)}，已抓 {fetched} 筆", flush=True)
