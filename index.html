@@ -526,7 +526,12 @@
       </div>
     </div>
 
-    <!-- ══ 分點均價篩選器 ══ -->
+    <!-- ══ 分點均價篩選器 ══
+         2026-07-08 下架：資料源查證發現 fetch_broker_signal.py 抓的 TWSE TWT44U
+         其實是「投信買賣超彙總表」（市場整體統計，忽略 stockNo 參數），不是真正的
+         個股券商分點資料，快取因此長期都是無效的 0 筆。真正的個股分點日報需要
+         驗證碼，非付費 API 無法穩定取得，暫時下架避免顯示誤導性的「無便宜個股」。
+         詳見 project_etf_app.md 記憶。若之後找到可靠資料源再解除下面的註解。
     <div id="broker-signal-section" class="broker-card">
       <div class="broker-hdr">
         <span class="broker-title">分點均價以下個股</span>
@@ -542,6 +547,7 @@
       <div id="broker-signal-list"></div>
       <div id="broker-signal-footer" class="broker-footer"></div>
     </div>
+    -->
 
   </div>
 
@@ -1409,17 +1415,19 @@ function switchBrokerTab(btn) {
   renderBrokerList();
 }
 
-(async function loadBrokerSignal() {
-  const listEl = document.getElementById('broker-signal-list');
-  try {
-    const resp = await fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/broker_signal.json?_=' + Date.now());
-    if (!resp.ok) throw new Error('no data');
-    _brokerJson = await resp.json();
-    renderBrokerList();
-  } catch(e) {
-    listEl.innerHTML = '<div class="broker-empty">資料準備中</div>';
-  }
-})();
+// 2026-07-08 下架：分點均價區塊已從 HTML 移除（資料源查證失敗，見上方註解），
+// 停用這個 fetch 避免對已下架的 DOM 元素操作、也省一次無意義的網路請求。
+// (async function loadBrokerSignal() {
+//   const listEl = document.getElementById('broker-signal-list');
+//   try {
+//     const resp = await fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/broker_signal.json?_=' + Date.now());
+//     if (!resp.ok) throw new Error('no data');
+//     _brokerJson = await resp.json();
+//     renderBrokerList();
+//   } catch(e) {
+//     listEl.innerHTML = '<div class="broker-empty">資料準備中</div>';
+//   }
+// })();
 </script>
 
 </body>

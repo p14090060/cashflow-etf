@@ -1,9 +1,12 @@
 name: Broker Signal
 
+# 2026-07-08 下架：fetch_broker_signal.py 抓的 TWSE TWT44U 其實是「投信買賣超
+# 彙總表」（市場整體統計，忽略 stockNo 參數），不是真正的個股券商分點資料，
+# 快取因此長期都是無效的 0 筆。真正的個股分點日報有驗證碼保護，非付費 API
+# 無法穩定取得。停用每日排程，避免浪費 Action 額度產生沒有意義的資料；
+# 保留 workflow_dispatch 供之後找到可靠資料源時手動測試用。
 on:
-  schedule:
-    - cron: "30 7 * * 1-5"   # 台灣時間 15:30 收盤後跑（UTC+8 → UTC 07:30）
-  workflow_dispatch:           # 手動觸發（初次建立快取用）
+  workflow_dispatch:
 
 permissions:
   contents: write
