@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-07-08",
+    "last_updated": "2026-07-09",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -53,7 +53,7 @@
       "name": "元大台灣價值高息",
       "ex_dividend_date": "2026-07-09",
       "amount": 0.05,
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     }
   }
 }
