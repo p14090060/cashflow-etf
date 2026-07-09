@@ -1,13 +1,13 @@
 {
-  "updated": "2026-07-09 09:00",
+  "updated": "2026-07-09 09:01",
   "is_closed": false,
   "is_holiday": false,
   "last_trading_time": null,
   "market": {
-    "price": 45819.67,
-    "change_pt": 85.26,
+    "price": 45821.87,
+    "change_pt": 87.46,
     "change_pct": 0.19,
-    "mis_time": "09:00"
+    "mis_time": "09:01"
   },
   "etfs": [
     {
