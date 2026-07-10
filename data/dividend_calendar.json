@@ -6,13 +6,6 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
-    "00930": {
-      "code": "00930",
-      "name": "永豐ESG低碳高息",
-      "ex_dividend_date": "2026-07-27",
-      "amount": 0.0,
-      "amount_source": null
-    },
     "0050": {
       "code": "0050",
       "name": "元大台灣50",
@@ -47,6 +40,13 @@
       "ex_dividend_date": "2026-07-15",
       "amount": 0.12,
       "amount_source": "MoneyDJ"
+    },
+    "00930": {
+      "code": "00930",
+      "name": "永豐ESG低碳高息",
+      "ex_dividend_date": "2026-07-27",
+      "amount": 0.0,
+      "amount_source": null
     }
   }
 }
