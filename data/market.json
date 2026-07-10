@@ -5380,8 +5380,8 @@
       "yld": 4.2,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 8,
-      "est": 0.25,
+      "days": 17,
+      "est": 0.31,
       "div_next": "2026-07-26",
       "signal": "dear",
       "maD": 7.7,
@@ -8549,18 +8549,6 @@
       "amount_source": "MoneyDJ"
     },
     {
-      "code": "00930",
-      "name": "永豐ESG低碳高息",
-      "iso_date": "2026-07-18",
-      "day": "18",
-      "mon": "7月",
-      "amt": 0.25,
-      "soon": true,
-      "days_until": 8,
-      "source": "official",
-      "amount_source": "MoneyDJ"
-    },
-    {
       "code": "0050",
       "name": "元大台灣50",
       "iso_date": "2026-07-21",
@@ -8605,6 +8593,18 @@
       "soon": true,
       "days_until": 12,
       "source": "estimate"
+    },
+    {
+      "code": "00930",
+      "name": "永豐ESG低碳高息",
+      "iso_date": "2026-07-27",
+      "day": "27",
+      "mon": "7月",
+      "amt": 0,
+      "soon": false,
+      "days_until": 17,
+      "source": "official",
+      "amount_source": "official"
     },
     {
       "code": "00878",
