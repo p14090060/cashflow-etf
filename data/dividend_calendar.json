@@ -1,11 +1,18 @@
 {
   "_meta": {
-    "last_updated": "2026-07-10",
+    "last_updated": "2026-07-13",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00930": {
+      "code": "00930",
+      "name": "永豐ESG低碳高息",
+      "ex_dividend_date": "2026-07-27",
+      "amount": 0.25,
+      "amount_source": "MoneyDJ"
+    },
     "0050": {
       "code": "0050",
       "name": "元大台灣50",
@@ -40,13 +47,6 @@
       "ex_dividend_date": "2026-07-15",
       "amount": 0.12,
       "amount_source": "MoneyDJ"
-    },
-    "00930": {
-      "code": "00930",
-      "name": "永豐ESG低碳高息",
-      "ex_dividend_date": "2026-07-27",
-      "amount": 0.25,
-      "amount_source": "MoneyDJ + 用戶提供核實（2026-07-13）；TWSE/FinMind 官方尚未公告"
     }
   }
 }
