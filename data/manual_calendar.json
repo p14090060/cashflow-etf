@@ -21,6 +21,13 @@
       "ex_dividend_date": "2026-06-16",
       "amount": 1.92,
       "amount_source": "用戶提供（2026-06-16）"
+    },
+    "00930": {
+      "code": "00930",
+      "name": "永豐ESG低碳高息",
+      "ex_dividend_date": "2026-07-27",
+      "amount": 0.25,
+      "amount_source": "用戶提供 + MoneyDJ 核實（2026-07-13）；TWSE/FinMind 官方尚未公告金額，待正式公告後這筆可移除"
     }
   }
 }
