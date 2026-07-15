@@ -39,14 +39,14 @@
       "name": "富邦台50",
       "ex_dividend_date": "2026-07-16",
       "amount": 4.75,
-      "amount_source": "TWSE × FinMind 核實"
+      "amount_source": "TWSE"
     },
     "00936": {
       "code": "00936",
       "name": "台新永續高息中小",
       "ex_dividend_date": "2026-07-15",
       "amount": 0.12,
-      "amount_source": "TWSE × FinMind 核實"
+      "amount_source": "TWSE"
     }
   }
 }
