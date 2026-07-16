@@ -6,6 +6,13 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00939": {
+      "code": "00939",
+      "name": "統一台灣高息動能",
+      "ex_dividend_date": "2026-07-31",
+      "amount": 0.0,
+      "amount_source": null
+    },
     "00930": {
       "code": "00930",
       "name": "永豐ESG低碳高息",
