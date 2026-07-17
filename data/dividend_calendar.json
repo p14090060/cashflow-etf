@@ -25,21 +25,21 @@
       "name": "元大台灣50",
       "ex_dividend_date": "2026-07-21",
       "amount": 0.6,
-      "amount_source": "MoneyDJ"
+      "amount_source": "TWSE"
     },
     "0056": {
       "code": "0056",
       "name": "元大高股息",
       "ex_dividend_date": "2026-07-21",
       "amount": 1.35,
-      "amount_source": "MoneyDJ"
+      "amount_source": "TWSE"
     },
     "00929": {
       "code": "00929",
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-07-21",
       "amount": 0.38,
-      "amount_source": "MoneyDJ"
+      "amount_source": "TWSE"
     }
   }
 }
