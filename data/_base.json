@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-17 15:17",
+  "updated": "2026-07-17 17:20",
   "market": {
     "price": 42671.27,
     "change_pt": -2953.71,
@@ -79,7 +79,7 @@
       "vol_ratio": 1.56,
       "heat": 65.94,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 0.0,
       "div_freq": "季配"
     },
     {
@@ -3157,7 +3157,7 @@
       "vol_ratio": 1.77,
       "heat": 51.3,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 0.0,
       "div_freq": "不配息"
     },
     {
@@ -4677,7 +4677,7 @@
       "vol_ratio": 1.57,
       "heat": 79.36,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 0.0,
       "div_freq": "不配息"
     },
     {
@@ -5551,7 +5551,7 @@
       "vol_ratio": 1.78,
       "heat": 71.58,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 0.0,
       "div_freq": "年配"
     },
     {
@@ -5969,7 +5969,7 @@
       "vol_ratio": 0.4,
       "heat": 37.97,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 0.0,
       "div_freq": "不配息"
     },
     {
@@ -6539,7 +6539,7 @@
       "vol_ratio": 1.94,
       "heat": 80.76,
       "score_cont": 12,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "季配"
     },
     {
@@ -6577,7 +6577,7 @@
       "vol_ratio": 1.78,
       "heat": 77.52,
       "score_cont": 12,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "年配"
     },
     {
@@ -6615,7 +6615,7 @@
       "vol_ratio": 1.8,
       "heat": 77.94,
       "score_cont": 12,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "季配"
     },
     {
@@ -6653,7 +6653,7 @@
       "vol_ratio": 1.67,
       "heat": 75.32,
       "score_cont": 12,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "季配"
     },
     {
@@ -6691,7 +6691,7 @@
       "vol_ratio": 1.73,
       "heat": 76.6,
       "score_cont": 12,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "季配"
     },
     {
@@ -6729,7 +6729,7 @@
       "vol_ratio": 1.03,
       "heat": 56.6,
       "score_cont": 6,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "季配"
     },
     {
@@ -6767,7 +6767,7 @@
       "vol_ratio": 1.61,
       "heat": 68.3,
       "score_cont": 6,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "季配"
     },
     {
@@ -6805,7 +6805,7 @@
       "vol_ratio": 0.22,
       "heat": 34.37,
       "score_cont": 0,
-      "aum": 0.0,
+      "aum": 0,
       "div_freq": "不明"
     }
   ],
