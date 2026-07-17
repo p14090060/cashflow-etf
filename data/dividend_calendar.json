@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-07-16",
+    "last_updated": "2026-07-17",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -10,8 +10,8 @@
       "code": "00939",
       "name": "統一台灣高息動能",
       "ex_dividend_date": "2026-07-31",
-      "amount": 0.0,
-      "amount_source": null
+      "amount": 0.072,
+      "amount_source": "Gavin 人工確認"
     },
     "00930": {
       "code": "00930",
@@ -40,13 +40,6 @@
       "ex_dividend_date": "2026-07-21",
       "amount": 0.38,
       "amount_source": "MoneyDJ"
-    },
-    "006208": {
-      "code": "006208",
-      "name": "富邦台50",
-      "ex_dividend_date": "2026-07-16",
-      "amount": 4.75,
-      "amount_source": "TWSE"
     }
   }
 }
