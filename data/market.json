@@ -1,13 +1,12 @@
 {
-  "updated": "2026-07-17 13:50",
-  "is_closed": false,
+  "updated": "2026-07-17 14:00",
+  "is_closed": true,
   "is_holiday": false,
-  "last_trading_time": null,
+  "last_trading_time": "13:30",
   "market": {
-    "price": 42671.27,
-    "change_pt": -2953.71,
-    "change_pct": -6.47,
-    "mis_time": "13:33"
+    "price": 45624.98,
+    "change_pt": -6.61,
+    "change_pct": -0.01
   },
   "etfs": [
     {
@@ -27,7 +26,7 @@
       "est": 1.35,
       "div_next": "2026-07-23",
       "signal": "dear",
-      "maD": 8.1,
+      "maD": 4.2,
       "ret5d": -3.13,
       "ret1m": -1.1,
       "ret1y": 57.7,
@@ -46,9 +45,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.9,
-      "change_pct": -3.61,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -60,7 +56,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.9,
+      "change_pct": -3.61
     },
     {
       "code": "00713",
@@ -79,7 +78,7 @@
       "est": 1.0,
       "div_next": "2026-09-21",
       "signal": "dear",
-      "maD": 5.6,
+      "maD": 4.5,
       "ret5d": 0.5,
       "ret1m": 1.8,
       "ret1y": 26.3,
@@ -98,9 +97,6 @@
       "heat": 54.5,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.65,
-      "change_pct": -1.07,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -112,7 +108,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.65,
+      "change_pct": -1.07
     },
     {
       "code": "0050",
@@ -131,7 +130,7 @@
       "est": 0.6,
       "div_next": "2026-07-26",
       "signal": "dear",
-      "maD": 5.3,
+      "maD": -0.8,
       "ret5d": -4.06,
       "ret1m": -4.2,
       "ret1y": 104.5,
@@ -150,9 +149,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -6.25,
-      "change_pct": -5.87,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "div_months": [
         1,
@@ -162,7 +158,10 @@
       "div_category": "指數型",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -6.25,
+      "change_pct": -5.87
     },
     {
       "code": "00919",
@@ -181,7 +180,7 @@
       "est": 1.0,
       "div_next": "2026-09-15",
       "signal": "dear",
-      "maD": 5.5,
+      "maD": 3.3,
       "ret5d": -2.67,
       "ret1m": -2.7,
       "ret1y": 50.6,
@@ -200,9 +199,6 @@
       "heat": 57.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.62,
-      "change_pct": -2.1,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -214,7 +210,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.62,
+      "change_pct": -2.1
     },
     {
       "code": "006208",
@@ -233,7 +232,7 @@
       "est": 4.75,
       "div_next": "2027-02-02",
       "signal": "dear",
-      "maD": 3.7,
+      "maD": -2.7,
       "ret5d": -4.03,
       "ret1m": -3.9,
       "ret1y": 105.5,
@@ -252,9 +251,6 @@
       "heat": 88,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -14.75,
-      "change_pct": -6.08,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "div_months": [
         7,
@@ -264,7 +260,10 @@
       "div_category": "指數型",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -14.75,
+      "change_pct": -6.08
     },
     {
       "code": "00981A",
@@ -283,7 +282,7 @@
       "est": 0.63,
       "div_next": "2026-09-15",
       "signal": "fair",
-      "maD": -3.4,
+      "maD": -11.8,
       "ret5d": -9.78,
       "ret1m": -12.3,
       "ret1y": 143.6,
@@ -302,9 +301,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -2.52,
-      "change_pct": -8.7,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -316,7 +312,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.52,
+      "change_pct": -8.7
     },
     {
       "code": "00403A",
@@ -335,10 +334,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -1.6,
+      "maD": -8.9,
       "ret5d": -7.63,
       "ret1m": -9.5,
-      "ret1y": -4.8,
+      "ret1y": 2.8,
       "ret_months": [
         null,
         null,
@@ -354,9 +353,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.76,
-      "change_pct": -7.39,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -368,7 +364,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.76,
+      "change_pct": -7.39
     },
     {
       "code": "00878",
@@ -387,7 +386,7 @@
       "est": 0.66,
       "div_next": "2026-08-18",
       "signal": "dear",
-      "maD": 8.3,
+      "maD": 4.5,
       "ret5d": -3.13,
       "ret1m": -2.3,
       "ret1y": 64.1,
@@ -406,9 +405,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.14,
-      "change_pct": -3.46,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -420,7 +416,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.14,
+      "change_pct": -3.46
     },
     {
       "code": "00940",
@@ -439,7 +438,7 @@
       "est": 0.05,
       "div_next": "2026-08-08",
       "signal": "dear",
-      "maD": 4.0,
+      "maD": 0.6,
       "ret5d": -4.07,
       "ret1m": -2.4,
       "ret1y": 38.2,
@@ -458,9 +457,6 @@
       "heat": 63.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.4,
-      "change_pct": -3.26,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -480,7 +476,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.4,
+      "change_pct": -3.26
     },
     {
       "code": "00929",
@@ -499,7 +498,7 @@
       "est": 0.38,
       "div_next": "2026-08-08",
       "signal": "dear",
-      "maD": 6.4,
+      "maD": 1.5,
       "ret5d": -3.91,
       "ret1m": -4.5,
       "ret1y": 73.9,
@@ -518,9 +517,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.38,
-      "change_pct": -4.62,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -540,7 +536,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.38,
+      "change_pct": -4.62
     },
     {
       "code": "00850",
@@ -559,7 +558,7 @@
       "est": 0.85,
       "div_next": "2026-08-21",
       "signal": "fair",
-      "maD": 4.3,
+      "maD": -2.4,
       "ret5d": -4.68,
       "ret1m": -6.0,
       "ret1y": 97.6,
@@ -578,9 +577,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -5.75,
-      "change_pct": -6.4,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -592,7 +588,10 @@
       "div_category": "ESG",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -5.75,
+      "change_pct": -6.4
     },
     {
       "code": "00928",
@@ -702,10 +701,10 @@
       "est": 0.12,
       "div_next": "2026-08-08",
       "signal": "fair",
-      "maD": -0.9,
+      "maD": -7.9,
       "ret5d": -7.58,
       "ret1m": -9.8,
-      "ret1y": 29.9,
+      "ret1y": 39.9,
       "ret_months": [
         null,
         null,
@@ -721,9 +720,6 @@
       "heat": 62.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.0,
-      "change_pct": -7.15,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -743,7 +739,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.0,
+      "change_pct": -7.15
     },
     {
       "code": "00401A",
@@ -762,10 +761,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.4,
+      "maD": -4.8,
       "ret5d": -5.31,
       "ret1m": -8.0,
-      "ret1y": 25.0,
+      "ret1y": 33.2,
       "ret_months": [
         null,
         null,
@@ -781,12 +780,12 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.82,
-      "change_pct": -6.16,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.82,
+      "change_pct": -6.16
     },
     {
       "code": "00402A",
@@ -805,10 +804,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": 0.3,
+      "maD": -4.2,
       "ret5d": -2.56,
       "ret1m": -5.3,
-      "ret1y": -5.7,
+      "ret1y": -1.3,
       "ret_months": [
         null,
         null,
@@ -824,12 +823,12 @@
       "heat": 51.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.44,
-      "change_pct": -4.46,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.44,
+      "change_pct": -4.46
     },
     {
       "code": "00404A",
@@ -848,10 +847,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -1.8,
+      "maD": -8.1,
       "ret5d": -5.76,
       "ret1m": -7.6,
-      "ret1y": -8.4,
+      "ret1y": -2.1,
       "ret_months": [
         null,
         null,
@@ -867,12 +866,12 @@
       "heat": 54.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.63,
-      "change_pct": -6.44,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.63,
+      "change_pct": -6.44
     },
     {
       "code": "00405A",
@@ -891,10 +890,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -8.9,
+      "maD": -16.3,
       "ret5d": -9.92,
       "ret1m": -15.7,
-      "ret1y": -22.5,
+      "ret1y": -15.6,
       "ret_months": [
         null,
         null,
@@ -910,12 +909,12 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.69,
-      "change_pct": -8.18,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.69,
+      "change_pct": -8.18
     },
     {
       "code": "00406A",
@@ -934,10 +933,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -3.5,
+      "maD": -11.7,
       "ret5d": -8.01,
       "ret1m": -10.0,
-      "ret1y": -11.8,
+      "ret1y": -3.6,
       "ret_months": [
         null,
         null,
@@ -953,9 +952,6 @@
       "heat": 76,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.82,
-      "change_pct": -8.51,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -975,7 +971,10 @@
       "div_category": "主動型",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.82,
+      "change_pct": -8.51
     },
     {
       "code": "00407A",
@@ -994,10 +993,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -4.8,
+      "maD": -11.4,
       "ret5d": -7.32,
       "ret1m": -12.7,
-      "ret1y": -14.2,
+      "ret1y": -7.8,
       "ret_months": [
         null,
         null,
@@ -1013,16 +1012,16 @@
       "heat": 60.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.64,
-      "change_pct": -6.94,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "div_months": [],
       "div_avg_per_share": 0,
       "div_category": "主動型",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.64,
+      "change_pct": -6.94
     },
     {
       "code": "00408A",
@@ -1041,10 +1040,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": 0.4,
+      "maD": -3.9,
       "ret5d": 0.0,
       "ret1m": 0.0,
-      "ret1y": -3.5,
+      "ret1y": 0.8,
       "ret_months": [
         null,
         null,
@@ -1060,12 +1059,12 @@
       "heat": 56.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.43,
-      "change_pct": -4.27,
-      "mis_time": "13:30",
       "div_frequency": "不明",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.43,
+      "change_pct": -4.27
     },
     {
       "code": "0051",
@@ -1084,7 +1083,7 @@
       "est": 3.0,
       "div_next": "2026-11-24",
       "signal": "dear",
-      "maD": 3.1,
+      "maD": -2.1,
       "ret5d": -4.85,
       "ret1m": -4.3,
       "ret1y": 84.8,
@@ -1103,16 +1102,16 @@
       "heat": 88,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -7.2,
-      "change_pct": -5.04,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "指數型",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -7.2,
+      "change_pct": -5.04
     },
     {
       "code": "0052",
@@ -1131,7 +1130,7 @@
       "est": 1.2,
       "div_next": "2027-04-21",
       "signal": "cheap",
-      "maD": 4.9,
+      "maD": -2.3,
       "ret5d": -4.6,
       "ret1m": -4.4,
       "ret1y": 115.0,
@@ -1150,9 +1149,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -4.3,
-      "change_pct": -6.91,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         4
@@ -1161,7 +1157,10 @@
       "div_category": "科技",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -4.3,
+      "change_pct": -6.91
     },
     {
       "code": "0053",
@@ -1180,7 +1179,7 @@
       "est": 3.0,
       "div_next": "2026-11-24",
       "signal": "dear",
-      "maD": 2.9,
+      "maD": -4.1,
       "ret5d": -4.3,
       "ret1m": -6.2,
       "ret1y": 116.3,
@@ -1199,12 +1198,12 @@
       "heat": 88,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -16.25,
-      "change_pct": -6.83,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -16.25,
+      "change_pct": -6.83
     },
     {
       "code": "0055",
@@ -1223,7 +1222,7 @@
       "est": 1.25,
       "div_next": "2026-11-24",
       "signal": "dear",
-      "maD": 11.7,
+      "maD": 10.5,
       "ret5d": -1.36,
       "ret1m": 0.2,
       "ret1y": 47.0,
@@ -1242,9 +1241,6 @@
       "heat": 21.1,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.47,
-      "change_pct": -1.11,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         11
@@ -1253,7 +1249,10 @@
       "div_category": "指數型",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.47,
+      "change_pct": -1.11
     },
     {
       "code": "0057",
@@ -1272,7 +1271,7 @@
       "est": 1.69,
       "div_next": "2026-09-09",
       "signal": "dear",
-      "maD": 5.1,
+      "maD": -0.9,
       "ret5d": -3.93,
       "ret1m": -3.9,
       "ret1y": 102.0,
@@ -1291,12 +1290,12 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -17.92,
-      "change_pct": -5.69,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -17.92,
+      "change_pct": -5.69
     },
     {
       "code": "0061",
@@ -1315,7 +1314,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 0.4,
+      "maD": -3.6,
       "ret5d": -3.28,
       "ret1m": -4.4,
       "ret1y": 31.9,
@@ -1334,12 +1333,12 @@
       "heat": 51.4,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.98,
-      "change_pct": -3.91,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.98,
+      "change_pct": -3.91
     },
     {
       "code": "006203",
@@ -1358,7 +1357,7 @@
       "est": 1.8,
       "div_next": "2026-07-25",
       "signal": "dear",
-      "maD": 5.1,
+      "maD": -1.7,
       "ret5d": -4.06,
       "ret1m": -3.4,
       "ret1y": 103.3,
@@ -1377,9 +1376,6 @@
       "heat": 71.6,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -12.4,
-      "change_pct": -6.42,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1,
@@ -1389,7 +1385,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -12.4,
+      "change_pct": -6.42
     },
     {
       "code": "006204",
@@ -1408,7 +1407,7 @@
       "est": 3.26,
       "div_next": "2026-10-24",
       "signal": "dear",
-      "maD": 5.3,
+      "maD": -0.3,
       "ret5d": 0.83,
       "ret1m": 1.3,
       "ret1y": 98.9,
@@ -1427,12 +1426,12 @@
       "heat": 60.2,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -12.1,
-      "change_pct": -5.28,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -12.1,
+      "change_pct": -5.28
     },
     {
       "code": "006205",
@@ -1451,7 +1450,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -0.1,
+      "maD": -3.2,
       "ret5d": -2.97,
       "ret1m": -3.0,
       "ret1y": 26.8,
@@ -1470,12 +1469,12 @@
       "heat": 62.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.28,
-      "change_pct": -3.12,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.28,
+      "change_pct": -3.12
     },
     {
       "code": "006206",
@@ -1494,7 +1493,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 2.6,
+      "maD": -0.8,
       "ret5d": -1.96,
       "ret1m": -0.1,
       "ret1y": 22.7,
@@ -1513,12 +1512,12 @@
       "heat": 47.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.25,
-      "change_pct": -3.28,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.25,
+      "change_pct": -3.28
     },
     {
       "code": "006207",
@@ -1537,7 +1536,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 0.0,
+      "maD": -3.7,
       "ret5d": -3.12,
       "ret1m": -4.3,
       "ret1y": 34.7,
@@ -1556,12 +1555,12 @@
       "heat": 87.6,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -1.26,
-      "change_pct": -3.77,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.26,
+      "change_pct": -3.77
     },
     {
       "code": "00625K",
@@ -1580,7 +1579,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -4.3,
+      "maD": -5.3,
       "ret5d": -1.51,
       "ret1m": -4.1,
       "ret1y": 9.1,
@@ -1599,12 +1598,12 @@
       "heat": 42.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.32,
-      "change_pct": -3.68,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.32,
+      "change_pct": -3.68
     },
     {
       "code": "00636",
@@ -1623,7 +1622,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 0.3,
+      "maD": -2.9,
       "ret5d": -2.46,
       "ret1m": -4.2,
       "ret1y": 26.4,
@@ -1642,12 +1641,12 @@
       "heat": 83.0,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -0.91,
-      "change_pct": -3.17,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.91,
+      "change_pct": -3.17
     },
     {
       "code": "00636K",
@@ -1666,7 +1665,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": -1.1,
+      "maD": -5.2,
       "ret5d": 1.79,
       "ret1m": 0.2,
       "ret1y": 21.2,
@@ -1685,12 +1684,12 @@
       "heat": 70,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.38,
-      "change_pct": -4.18,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.38,
+      "change_pct": -4.18
     },
     {
       "code": "00639",
@@ -1709,7 +1708,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -1.2,
+      "maD": -6.2,
       "ret5d": -4.94,
       "ret1m": -7.5,
       "ret1y": 51.2,
@@ -1728,12 +1727,12 @@
       "heat": 57.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.9,
-      "change_pct": -5.08,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.9,
+      "change_pct": -5.08
     },
     {
       "code": "00643",
@@ -1752,7 +1751,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -0.3,
+      "maD": -6.1,
       "ret5d": -4.78,
       "ret1m": -4.7,
       "ret1y": 48.9,
@@ -1771,12 +1770,12 @@
       "heat": 60.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.17,
-      "change_pct": -5.86,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.17,
+      "change_pct": -5.86
     },
     {
       "code": "00643K",
@@ -1795,7 +1794,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -2.1,
+      "maD": -7.2,
       "ret5d": -2.85,
       "ret1m": -2.4,
       "ret1y": 49.3,
@@ -1814,12 +1813,12 @@
       "heat": 44.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.22,
-      "change_pct": -5.18,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.22,
+      "change_pct": -5.18
     },
     {
       "code": "00645",
@@ -1838,7 +1837,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 3.5,
+      "maD": -0.4,
       "ret5d": -2.03,
       "ret1m": -1.2,
       "ret1y": 41.9,
@@ -1857,12 +1856,12 @@
       "heat": 82.0,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -2.15,
-      "change_pct": -3.77,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -2.15,
+      "change_pct": -3.77
     },
     {
       "code": "00646",
@@ -1881,7 +1880,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 4.1,
+      "maD": 3.0,
       "ret5d": 0.53,
       "ret1m": 1.7,
       "ret1y": 32.2,
@@ -1900,16 +1899,16 @@
       "heat": 38.6,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.8,
-      "change_pct": -1.04,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "div_months": [],
       "div_avg_per_share": 0,
       "div_category": "海外",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.8,
+      "change_pct": -1.04
     },
     {
       "code": "00652",
@@ -1928,7 +1927,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.7,
+      "maD": 2.1,
       "ret5d": 0.0,
       "ret1m": 1.5,
       "ret1y": -7.8,
@@ -1947,12 +1946,12 @@
       "heat": 30.3,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": 0.13,
-      "change_pct": 0.39,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": 0.13,
+      "change_pct": 0.39
     },
     {
       "code": "00657",
@@ -1971,7 +1970,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 2.5,
+      "maD": -2.6,
       "ret5d": -5.11,
       "ret1m": -7.2,
       "ret1y": 62.1,
@@ -1990,12 +1989,12 @@
       "heat": 48.2,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -3.9,
-      "change_pct": -4.97,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -3.9,
+      "change_pct": -4.97
     },
     {
       "code": "00657K",
@@ -2014,7 +2013,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 1.4,
+      "maD": -4.7,
       "ret5d": 0.56,
       "ret1m": 1.7,
       "ret1y": 58.4,
@@ -2033,12 +2032,12 @@
       "heat": 94,
       "score_cont": 24,
       "aum": 0,
-      "change_pt": -1.47,
-      "change_pct": -6.0,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.47,
+      "change_pct": -6.0
     },
     {
       "code": "00660",
@@ -2057,7 +2056,7 @@
       "est": 0.36,
       "div_next": "2026-09-27",
       "signal": "dear",
-      "maD": 4.1,
+      "maD": 2.4,
       "ret5d": -0.31,
       "ret1m": 0.9,
       "ret1y": 17.5,
@@ -2076,12 +2075,12 @@
       "heat": 18.9,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.75,
-      "change_pct": -1.63,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.75,
+      "change_pct": -1.63
     },
     {
       "code": "00661",
@@ -2100,7 +2099,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 2.9,
+      "maD": -2.5,
       "ret5d": -4.82,
       "ret1m": -7.6,
       "ret1y": 64.0,
@@ -2119,12 +2118,12 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -4.6,
-      "change_pct": -5.3,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -4.6,
+      "change_pct": -5.3
     },
     {
       "code": "00662",
@@ -2143,7 +2142,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 2.9,
+      "maD": 0.0,
       "ret5d": -1.16,
       "ret1m": -3.5,
       "ret1y": 37.9,
@@ -2162,16 +2161,16 @@
       "heat": 56.6,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -3.4,
-      "change_pct": -2.78,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "div_months": [],
       "div_avg_per_share": 0,
       "div_category": "海外",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -3.4,
+      "change_pct": -2.78
     },
     {
       "code": "00668",
@@ -2190,7 +2189,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 5.5,
+      "maD": 4.6,
       "ret5d": 0.33,
       "ret1m": 3.5,
       "ret1y": 29.9,
@@ -2209,12 +2208,12 @@
       "heat": 14.3,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.5,
-      "change_pct": -0.81,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.5,
+      "change_pct": -0.81
     },
     {
       "code": "00668K",
@@ -2233,7 +2232,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 3.7,
+      "maD": 3.4,
       "ret5d": -0.72,
       "ret1m": 3.4,
       "ret1y": 19.3,
@@ -2252,12 +2251,12 @@
       "heat": 66.6,
       "score_cont": 24,
       "aum": 0,
-      "change_pt": -0.05,
-      "change_pct": -0.26,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.05,
+      "change_pct": -0.26
     },
     {
       "code": "00678",
@@ -2276,7 +2275,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 9.5,
+      "maD": 8.8,
       "ret5d": -3.43,
       "ret1m": 12.0,
       "ret1y": 58.3,
@@ -2295,12 +2294,12 @@
       "heat": 22.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.26,
-      "change_pct": -0.64,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.26,
+      "change_pct": -0.64
     },
     {
       "code": "00682U",
@@ -2319,7 +2318,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 0.5,
+      "maD": 1.2,
       "ret5d": -0.14,
       "ret1m": 1.9,
       "ret1y": 3.5,
@@ -2338,12 +2337,12 @@
       "heat": 12.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": 0.14,
-      "change_pct": 0.68,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": 0.14,
+      "change_pct": 0.68
     },
     {
       "code": "00690",
@@ -2362,7 +2361,7 @@
       "est": 1.4,
       "div_next": "2026-08-18",
       "signal": "fair",
-      "maD": 1.5,
+      "maD": -4.8,
       "ret5d": -6.39,
       "ret1m": -9.7,
       "ret1y": 119.3,
@@ -2381,9 +2380,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -4.8,
-      "change_pct": -6.21,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -2393,7 +2389,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -4.8,
+      "change_pct": -6.21
     },
     {
       "code": "00692",
@@ -2412,7 +2411,7 @@
       "est": 1.92,
       "div_next": "2027-01-14",
       "signal": "dear",
-      "maD": 3.2,
+      "maD": -2.9,
       "ret5d": -3.66,
       "ret1m": -3.7,
       "ret1y": 97.1,
@@ -2431,16 +2430,16 @@
       "heat": 88,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -5.4,
-      "change_pct": -5.97,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "ESG",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -5.4,
+      "change_pct": -5.97
     },
     {
       "code": "00693U",
@@ -2459,7 +2458,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.4,
+      "maD": 0.4,
       "ret5d": 0.18,
       "ret1m": 6.2,
       "ret1y": 10.3,
@@ -2478,12 +2477,12 @@
       "heat": 56.6,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.22,
-      "change_pct": -1.0,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.22,
+      "change_pct": -1.0
     },
     {
       "code": "00700",
@@ -2502,7 +2501,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 3.3,
+      "maD": 0.1,
       "ret5d": 2.92,
       "ret1m": 1.7,
       "ret1y": -0.4,
@@ -2521,12 +2520,12 @@
       "heat": 57.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.54,
-      "change_pct": -3.11,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.54,
+      "change_pct": -3.11
     },
     {
       "code": "00701",
@@ -2545,7 +2544,7 @@
       "est": 0.7,
       "div_next": "2027-01-03",
       "signal": "dear",
-      "maD": 11.4,
+      "maD": 8.5,
       "ret5d": -1.79,
       "ret1m": 0.4,
       "ret1y": 44.1,
@@ -2564,9 +2563,6 @@
       "heat": 49.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.01,
-      "change_pct": -2.58,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "div_months": [
         1,
@@ -2576,7 +2572,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.01,
+      "change_pct": -2.58
     },
     {
       "code": "00702",
@@ -2595,7 +2594,7 @@
       "est": 0.68,
       "div_next": "2027-01-14",
       "signal": "dear",
-      "maD": 2.2,
+      "maD": 2.7,
       "ret5d": 0.85,
       "ret1m": 3.8,
       "ret1y": 22.0,
@@ -2614,9 +2613,6 @@
       "heat": 34.2,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": 0.11,
-      "change_pct": 0.46,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1,
@@ -2626,7 +2622,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": 0.11,
+      "change_pct": 0.46
     },
     {
       "code": "00703",
@@ -2645,7 +2644,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": 1.9,
+      "maD": -2.1,
       "ret5d": 0.16,
       "ret1m": 0.4,
       "ret1y": 1.4,
@@ -2664,12 +2663,12 @@
       "heat": 33.2,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.78,
-      "change_pct": -3.94,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.78,
+      "change_pct": -3.94
     },
     {
       "code": "00709",
@@ -2688,7 +2687,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 4.1,
+      "maD": 3.9,
       "ret5d": 0.95,
       "ret1m": 2.9,
       "ret1y": 28.7,
@@ -2707,12 +2706,12 @@
       "heat": 54.2,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.09,
-      "change_pct": -0.22,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.09,
+      "change_pct": -0.22
     },
     {
       "code": "00714",
@@ -2731,7 +2730,7 @@
       "est": 0.12,
       "div_next": "2026-10-15",
       "signal": "dear",
-      "maD": 2.5,
+      "maD": 5.2,
       "ret5d": 3.8,
       "ret1m": 5.0,
       "ret1y": 22.2,
@@ -2750,9 +2749,6 @@
       "heat": 78.6,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": 0.59,
-      "change_pct": 2.66,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -2762,7 +2758,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": 0.59,
+      "change_pct": 2.66
     },
     {
       "code": "00717",
@@ -2781,7 +2780,7 @@
       "est": 0.14,
       "div_next": "2026-10-15",
       "signal": "fair",
-      "maD": -0.9,
+      "maD": -1.5,
       "ret5d": 0.14,
       "ret1m": -1.2,
       "ret1y": 9.6,
@@ -2800,9 +2799,6 @@
       "heat": 37.9,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.09,
-      "change_pct": -0.61,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -2812,7 +2808,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.09,
+      "change_pct": -0.61
     },
     {
       "code": "00728",
@@ -2831,7 +2830,7 @@
       "est": 0.66,
       "div_next": "2026-09-17",
       "signal": "dear",
-      "maD": 6.0,
+      "maD": -1.8,
       "ret5d": -4.13,
       "ret1m": -4.1,
       "ret1y": 103.6,
@@ -2850,9 +2849,6 @@
       "heat": 66.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -4.75,
-      "change_pct": -7.38,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         3
@@ -2861,7 +2857,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -4.75,
+      "change_pct": -7.38
     },
     {
       "code": "00730",
@@ -2880,7 +2879,7 @@
       "est": 0.11,
       "div_next": "2026-08-15",
       "signal": "dear",
-      "maD": 1.8,
+      "maD": -2.0,
       "ret5d": -3.22,
       "ret1m": -3.4,
       "ret1y": 27.1,
@@ -2899,9 +2898,6 @@
       "heat": 74.4,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -1.07,
-      "change_pct": -3.77,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -2915,7 +2911,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.07,
+      "change_pct": -3.77
     },
     {
       "code": "00731",
@@ -2934,7 +2933,7 @@
       "est": 0.75,
       "div_next": "2026-08-19",
       "signal": "dear",
-      "maD": 8.6,
+      "maD": 7.4,
       "ret5d": -0.45,
       "ret1m": -0.7,
       "ret1y": 35.7,
@@ -2953,9 +2952,6 @@
       "heat": 36.7,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.95,
-      "change_pct": -1.07,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -2965,7 +2961,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.95,
+      "change_pct": -1.07
     },
     {
       "code": "00733",
@@ -2984,7 +2983,7 @@
       "est": 0.58,
       "div_next": "2026-10-20",
       "signal": "fair",
-      "maD": -1.8,
+      "maD": -9.7,
       "ret5d": -11.13,
       "ret1m": -12.7,
       "ret1y": 69.2,
@@ -3003,9 +3002,6 @@
       "heat": 62.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -5.6,
-      "change_pct": -8.01,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         4,
@@ -3015,7 +3011,10 @@
       "div_category": "指數型",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -5.6,
+      "change_pct": -8.01
     },
     {
       "code": "00735",
@@ -3034,7 +3033,7 @@
       "est": 3.0,
       "div_next": "2027-01-14",
       "signal": "fair",
-      "maD": -2.8,
+      "maD": -10.8,
       "ret5d": -8.84,
       "ret1m": -14.7,
       "ret1y": 180.9,
@@ -3053,9 +3052,6 @@
       "heat": 87.0,
       "score_cont": 24,
       "aum": 0,
-      "change_pt": -8.25,
-      "change_pct": -8.14,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1,
@@ -3065,7 +3061,10 @@
       "div_category": "指數型",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -8.25,
+      "change_pct": -8.14
     },
     {
       "code": "00736",
@@ -3084,7 +3083,7 @@
       "est": 0.25,
       "div_next": "2027-01-14",
       "signal": "dear",
-      "maD": 3.0,
+      "maD": 0.0,
       "ret5d": 1.27,
       "ret1m": 2.5,
       "ret1y": 35.0,
@@ -3103,9 +3102,6 @@
       "heat": 63.3,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -0.9,
-      "change_pct": -2.85,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1,
@@ -3115,7 +3111,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.9,
+      "change_pct": -2.85
     },
     {
       "code": "00737",
@@ -3134,7 +3133,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 2.3,
+      "maD": -0.1,
       "ret5d": -1.5,
       "ret1m": -1.7,
       "ret1y": 22.1,
@@ -3153,12 +3152,12 @@
       "heat": 69.6,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.9,
-      "change_pct": -2.32,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.9,
+      "change_pct": -2.32
     },
     {
       "code": "00739",
@@ -3177,7 +3176,7 @@
       "est": 0.9,
       "div_next": "2027-04-26",
       "signal": "fair",
-      "maD": -0.3,
+      "maD": -4.6,
       "ret5d": -4.02,
       "ret1m": -5.3,
       "ret1y": 32.8,
@@ -3196,12 +3195,12 @@
       "heat": 65.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.25,
-      "change_pct": -4.34,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.25,
+      "change_pct": -4.34
     },
     {
       "code": "00752",
@@ -3220,7 +3219,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 3.4,
+      "maD": -0.7,
       "ret5d": 2.0,
       "ret1m": 2.2,
       "ret1y": -0.2,
@@ -3239,12 +3238,12 @@
       "heat": 65.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.94,
-      "change_pct": -3.97,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.94,
+      "change_pct": -3.97
     },
     {
       "code": "00757",
@@ -3263,7 +3262,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 5.9,
+      "maD": 2.0,
       "ret5d": 0.23,
       "ret1m": 0.1,
       "ret1y": 25.8,
@@ -3282,16 +3281,16 @@
       "heat": 82.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -5.0,
-      "change_pct": -3.69,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "div_months": [],
       "div_avg_per_share": 0,
       "div_category": "海外",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -5.0,
+      "change_pct": -3.69
     },
     {
       "code": "00762",
@@ -3310,7 +3309,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.0,
+      "maD": -5.3,
       "ret5d": -5.7,
       "ret1m": -12.3,
       "ret1y": 51.6,
@@ -3329,12 +3328,12 @@
       "heat": 74.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -7.0,
-      "change_pct": -6.19,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -7.0,
+      "change_pct": -6.19
     },
     {
       "code": "00763U",
@@ -3353,7 +3352,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.7,
+      "maD": -1.3,
       "ret5d": 2.06,
       "ret1m": -3.9,
       "ret1y": 8.2,
@@ -3372,12 +3371,12 @@
       "heat": 55.5,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.02,
-      "change_pct": -2.99,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.02,
+      "change_pct": -2.99
     },
     {
       "code": "00770",
@@ -3396,7 +3395,7 @@
       "est": 4.2,
       "div_next": "2027-01-17",
       "signal": "fair",
-      "maD": 4.2,
+      "maD": 0.4,
       "ret5d": -1.92,
       "ret1m": -4.0,
       "ret1y": 53.3,
@@ -3415,9 +3414,6 @@
       "heat": 71.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -2.5,
-      "change_pct": -3.66,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1,
@@ -3427,7 +3423,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.5,
+      "change_pct": -3.66
     },
     {
       "code": "00771",
@@ -3446,7 +3445,7 @@
       "est": 0.21,
       "div_next": "2026-08-21",
       "signal": "dear",
-      "maD": 0.1,
+      "maD": -0.1,
       "ret5d": 0.38,
       "ret1m": 0.6,
       "ret1y": 10.2,
@@ -3465,9 +3464,6 @@
       "heat": 32.1,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.04,
-      "change_pct": -0.25,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         2
@@ -3476,7 +3472,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.04,
+      "change_pct": -0.25
     },
     {
       "code": "00783",
@@ -3495,7 +3494,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -2.6,
+      "maD": -7.5,
       "ret5d": -7.17,
       "ret1m": -6.8,
       "ret1y": 46.8,
@@ -3514,12 +3513,12 @@
       "heat": 48.4,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -1.46,
-      "change_pct": -5.01,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.46,
+      "change_pct": -5.01
     },
     {
       "code": "00830",
@@ -3538,7 +3537,7 @@
       "est": 9.0,
       "div_next": "2027-01-17",
       "signal": "fair",
-      "maD": 2.1,
+      "maD": -4.7,
       "ret5d": -6.44,
       "ret1m": -14.5,
       "ret1y": 126.8,
@@ -3557,9 +3556,6 @@
       "heat": 65.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -5.95,
-      "change_pct": -6.68,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1
@@ -3568,7 +3564,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -5.95,
+      "change_pct": -6.68
     },
     {
       "code": "00851",
@@ -3587,7 +3586,7 @@
       "est": 1.7,
       "div_next": "2028-04-14",
       "signal": "fair",
-      "maD": 5.4,
+      "maD": -0.6,
       "ret5d": -2.23,
       "ret1m": -5.2,
       "ret1y": 49.2,
@@ -3606,12 +3605,12 @@
       "heat": 52.6,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -4.1,
-      "change_pct": -5.68,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -4.1,
+      "change_pct": -5.68
     },
     {
       "code": "00861",
@@ -3630,7 +3629,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.2,
+      "maD": -3.4,
       "ret5d": -5.03,
       "ret1m": -11.1,
       "ret1y": 97.3,
@@ -3649,12 +3648,12 @@
       "heat": 66.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -4.05,
-      "change_pct": -4.57,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -4.05,
+      "change_pct": -4.57
     },
     {
       "code": "00875",
@@ -3673,7 +3672,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 14.7,
+      "maD": 12.8,
       "ret5d": 0.96,
       "ret1m": 11.5,
       "ret1y": 44.4,
@@ -3692,12 +3691,12 @@
       "heat": 31.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.88,
-      "change_pct": -1.64,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.88,
+      "change_pct": -1.64
     },
     {
       "code": "00876",
@@ -3716,7 +3715,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 3.8,
+      "maD": -3.5,
       "ret5d": -6.66,
       "ret1m": -11.8,
       "ret1y": 135.7,
@@ -3735,12 +3734,12 @@
       "heat": 76.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -6.55,
-      "change_pct": -6.98,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -6.55,
+      "change_pct": -6.98
     },
     {
       "code": "00881",
@@ -3759,7 +3758,7 @@
       "est": 2.65,
       "div_next": "2027-01-03",
       "signal": "fair",
-      "maD": 1.8,
+      "maD": -5.0,
       "ret5d": -5.63,
       "ret1m": -8.3,
       "ret1y": 121.3,
@@ -3778,9 +3777,6 @@
       "heat": 79.8,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -3.52,
-      "change_pct": -6.64,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1
@@ -3789,7 +3785,10 @@
       "div_category": "科技",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -3.52,
+      "change_pct": -6.64
     },
     {
       "code": "00882",
@@ -3808,7 +3807,7 @@
       "est": 0.55,
       "div_next": "2027-01-14",
       "signal": "dear",
-      "maD": -4.6,
+      "maD": -6.4,
       "ret5d": 1.41,
       "ret1m": -4.9,
       "ret1y": 19.9,
@@ -3827,9 +3826,6 @@
       "heat": 49.3,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.28,
-      "change_pct": -1.89,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1
@@ -3838,7 +3834,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.28,
+      "change_pct": -1.89
     },
     {
       "code": "00885",
@@ -3857,7 +3856,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -4.1,
+      "maD": -3.1,
       "ret5d": -3.13,
       "ret1m": -0.6,
       "ret1y": 30.4,
@@ -3876,12 +3875,12 @@
       "heat": 51.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": 0.18,
-      "change_pct": 1.0,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": 0.18,
+      "change_pct": 1.0
     },
     {
       "code": "00891",
@@ -3900,7 +3899,7 @@
       "est": 1.25,
       "div_next": "2026-08-18",
       "signal": "fair",
-      "maD": 3.1,
+      "maD": -4.5,
       "ret5d": -7.27,
       "ret1m": -7.6,
       "ret1y": 115.9,
@@ -3919,9 +3918,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -2.66,
-      "change_pct": -7.39,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -3933,7 +3929,10 @@
       "div_category": "科技",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.66,
+      "change_pct": -7.39
     },
     {
       "code": "00892",
@@ -3952,7 +3951,7 @@
       "est": 2.46,
       "div_next": "2027-02-02",
       "signal": "fair",
-      "maD": -5.8,
+      "maD": -12.4,
       "ret5d": -8.72,
       "ret1m": -10.1,
       "ret1y": 132.6,
@@ -3971,9 +3970,6 @@
       "heat": 73.4,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -2.84,
-      "change_pct": -7.03,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "div_months": [
         7,
@@ -3983,7 +3979,10 @@
       "div_category": "科技",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.84,
+      "change_pct": -7.03
     },
     {
       "code": "00893",
@@ -4002,7 +4001,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 2.0,
+      "maD": -2.8,
       "ret5d": -2.81,
       "ret1m": -7.5,
       "ret1y": 77.0,
@@ -4021,12 +4020,12 @@
       "heat": 64.6,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -2.18,
-      "change_pct": -4.75,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -2.18,
+      "change_pct": -4.75
     },
     {
       "code": "00894",
@@ -4045,7 +4044,7 @@
       "est": 0.6,
       "div_next": "2026-08-18",
       "signal": "fair",
-      "maD": -1.8,
+      "maD": -9.2,
       "ret5d": -7.37,
       "ret1m": -11.0,
       "ret1y": 123.3,
@@ -4064,9 +4063,6 @@
       "heat": 88,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -3.52,
-      "change_pct": -7.53,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -4078,7 +4074,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -3.52,
+      "change_pct": -7.53
     },
     {
       "code": "00895",
@@ -4097,7 +4096,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 2.4,
+      "maD": -2.1,
       "ret5d": -2.27,
       "ret1m": -5.9,
       "ret1y": 57.7,
@@ -4116,12 +4115,12 @@
       "heat": 66.0,
       "score_cont": 12,
       "aum": 0.0,
-      "change_pt": -2.26,
-      "change_pct": -4.4,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -2.26,
+      "change_pct": -4.4
     },
     {
       "code": "00896",
@@ -4140,7 +4139,7 @@
       "est": 1.25,
       "div_next": "2026-09-15",
       "signal": "fair",
-      "maD": 0.8,
+      "maD": -5.2,
       "ret5d": -4.32,
       "ret1m": -5.3,
       "ret1y": 85.0,
@@ -4159,9 +4158,6 @@
       "heat": 64.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.63,
-      "change_pct": -5.95,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         3
@@ -4170,7 +4166,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.63,
+      "change_pct": -5.95
     },
     {
       "code": "00897",
@@ -4189,7 +4188,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 10.2,
+      "maD": 8.0,
       "ret5d": -4.0,
       "ret1m": 11.7,
       "ret1y": 66.2,
@@ -4208,12 +4207,12 @@
       "heat": 42.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.22,
-      "change_pct": -1.96,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.22,
+      "change_pct": -1.96
     },
     {
       "code": "00898",
@@ -4232,7 +4231,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 11.2,
+      "maD": 8.3,
       "ret5d": -3.04,
       "ret1m": 9.6,
       "ret1y": 45.4,
@@ -4251,12 +4250,12 @@
       "heat": 41.0,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.24,
-      "change_pct": -2.54,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.24,
+      "change_pct": -2.54
     },
     {
       "code": "00899",
@@ -4275,7 +4274,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -6.1,
+      "maD": -8.5,
       "ret5d": -2.88,
       "ret1m": -8.5,
       "ret1y": 65.9,
@@ -4294,12 +4293,12 @@
       "heat": 37.4,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.64,
-      "change_pct": -2.54,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.64,
+      "change_pct": -2.54
     },
     {
       "code": "00900",
@@ -4318,7 +4317,7 @@
       "est": 0.07,
       "div_next": "2026-08-15",
       "signal": "fair",
-      "maD": 4.3,
+      "maD": -0.6,
       "ret5d": -3.83,
       "ret1m": -5.8,
       "ret1y": 47.9,
@@ -4337,9 +4336,6 @@
       "heat": 79.2,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.88,
-      "change_pct": -4.66,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -4354,7 +4350,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.88,
+      "change_pct": -4.66
     },
     {
       "code": "00901",
@@ -4373,7 +4372,7 @@
       "est": 2.6,
       "div_next": "2026-11-30",
       "signal": "fair",
-      "maD": 3.1,
+      "maD": -4.3,
       "ret5d": -6.3,
       "ret1m": -8.8,
       "ret1y": 125.7,
@@ -4392,12 +4391,12 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -3.25,
-      "change_pct": -7.17,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -3.25,
+      "change_pct": -7.17
     },
     {
       "code": "00902",
@@ -4416,7 +4415,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -18.4,
+      "maD": -21.6,
       "ret5d": -4.98,
       "ret1m": -22.6,
       "ret1y": 53.9,
@@ -4435,12 +4434,12 @@
       "heat": 61.6,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.51,
-      "change_pct": -3.99,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.51,
+      "change_pct": -3.99
     },
     {
       "code": "00903",
@@ -4459,7 +4458,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 2.2,
+      "maD": -2.2,
       "ret5d": -2.27,
       "ret1m": -5.9,
       "ret1y": 36.5,
@@ -4478,12 +4477,12 @@
       "heat": 81.4,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -0.93,
-      "change_pct": -4.34,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.93,
+      "change_pct": -4.34
     },
     {
       "code": "00904",
@@ -4502,7 +4501,7 @@
       "est": 0.68,
       "div_next": "2026-10-13",
       "signal": "fair",
-      "maD": 1.8,
+      "maD": -5.7,
       "ret5d": -6.78,
       "ret1m": -7.3,
       "ret1y": 135.6,
@@ -4521,9 +4520,6 @@
       "heat": 62.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -3.0,
-      "change_pct": -7.32,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -4533,7 +4529,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -3.0,
+      "change_pct": -7.32
     },
     {
       "code": "00905",
@@ -4552,7 +4551,7 @@
       "est": 1.06,
       "div_next": "2026-10-15",
       "signal": "fair",
-      "maD": 0.4,
+      "maD": -6.2,
       "ret5d": -5.41,
       "ret1m": -6.2,
       "ret1y": 96.4,
@@ -4571,9 +4570,6 @@
       "heat": 94,
       "score_cont": 24,
       "aum": 0,
-      "change_pt": -1.74,
-      "change_pct": -6.6,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -4583,7 +4579,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.74,
+      "change_pct": -6.6
     },
     {
       "code": "00907",
@@ -4602,7 +4601,7 @@
       "est": 0.2,
       "div_next": "2026-08-24",
       "signal": "dear",
-      "maD": 5.8,
+      "maD": 4.6,
       "ret5d": 0.18,
       "ret1m": 1.4,
       "ret1y": 15.7,
@@ -4621,9 +4620,6 @@
       "heat": 38.7,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.19,
-      "change_pct": -1.15,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -4633,7 +4629,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.19,
+      "change_pct": -1.15
     },
     {
       "code": "00909",
@@ -4652,7 +4651,7 @@
       "est": 2.75,
       "div_next": "2027-10-19",
       "signal": "fair",
-      "maD": -3.6,
+      "maD": -9.5,
       "ret5d": -5.41,
       "ret1m": -14.9,
       "ret1y": 31.5,
@@ -4671,9 +4670,6 @@
       "heat": 71.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -2.84,
-      "change_pct": -6.19,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         4
@@ -4682,7 +4678,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.84,
+      "change_pct": -6.19
     },
     {
       "code": "00910",
@@ -4701,7 +4700,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -18.0,
+      "maD": -23.2,
       "ret5d": -12.68,
       "ret1m": -21.5,
       "ret1y": 60.6,
@@ -4720,16 +4719,16 @@
       "heat": 51.6,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -3.6,
-      "change_pct": -6.32,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "主題型",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -3.6,
+      "change_pct": -6.32
     },
     {
       "code": "00911",
@@ -4748,7 +4747,7 @@
       "est": 3.5,
       "div_next": "2027-01-14",
       "signal": "fair",
-      "maD": -3.2,
+      "maD": -9.1,
       "ret5d": -7.09,
       "ret1m": -14.5,
       "ret1y": 138.8,
@@ -4767,9 +4766,6 @@
       "heat": 83.6,
       "score_cont": 24,
       "aum": 0,
-      "change_pt": -3.5,
-      "change_pct": -6.13,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1
@@ -4778,7 +4774,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -3.5,
+      "change_pct": -6.13
     },
     {
       "code": "00912",
@@ -4797,7 +4796,7 @@
       "est": 1.0,
       "div_next": "2026-10-15",
       "signal": "fair",
-      "maD": 2.9,
+      "maD": -3.4,
       "ret5d": -4.66,
       "ret1m": -4.7,
       "ret1y": 86.3,
@@ -4816,9 +4815,6 @@
       "heat": 58.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -2.02,
-      "change_pct": -6.1,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -4828,7 +4824,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.02,
+      "change_pct": -6.1
     },
     {
       "code": "00913",
@@ -4847,7 +4846,7 @@
       "est": 1.6,
       "div_next": "2026-08-26",
       "signal": "fair",
-      "maD": 9.0,
+      "maD": -0.4,
       "ret5d": -6.68,
       "ret1m": -7.0,
       "ret1y": 159.8,
@@ -4866,9 +4865,6 @@
       "heat": 68.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -4.54,
-      "change_pct": -8.67,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         2,
@@ -4878,7 +4874,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -4.54,
+      "change_pct": -8.67
     },
     {
       "code": "00915",
@@ -4897,7 +4896,7 @@
       "est": 0.45,
       "div_next": "2026-09-15",
       "signal": "dear",
-      "maD": 8.6,
+      "maD": 5.0,
       "ret5d": -3.03,
       "ret1m": -1.1,
       "ret1y": 44.6,
@@ -4916,9 +4915,6 @@
       "heat": 63.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.05,
-      "change_pct": -3.31,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -4930,7 +4926,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.05,
+      "change_pct": -3.31
     },
     {
       "code": "00916",
@@ -4949,7 +4948,7 @@
       "est": 1.92,
       "div_next": "2027-06-14",
       "signal": "fair",
-      "maD": -1.5,
+      "maD": -2.2,
       "ret5d": 2.53,
       "ret1m": 3.0,
       "ret1y": 23.1,
@@ -4968,9 +4967,6 @@
       "heat": 38.5,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.19,
-      "change_pct": -0.71,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         6
@@ -4979,7 +4975,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.19,
+      "change_pct": -0.71
     },
     {
       "code": "00917",
@@ -4998,7 +4997,7 @@
       "est": 3.5,
       "div_next": "2026-09-21",
       "signal": "hot",
-      "maD": 8.7,
+      "maD": 8.0,
       "ret5d": 3.65,
       "ret1m": 6.5,
       "ret1y": 40.8,
@@ -5017,9 +5016,6 @@
       "heat": 49.3,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.17,
-      "change_pct": -0.71,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         1
@@ -5028,7 +5024,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.17,
+      "change_pct": -0.71
     },
     {
       "code": "00918",
@@ -5047,7 +5046,7 @@
       "est": 1.26,
       "div_next": "2026-09-17",
       "signal": "dear",
-      "maD": 10.4,
+      "maD": 7.8,
       "ret5d": -1.88,
       "ret1m": 1.5,
       "ret1y": 60.4,
@@ -5066,9 +5065,6 @@
       "heat": 41.7,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.76,
-      "change_pct": -2.39,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -5080,7 +5076,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.76,
+      "change_pct": -2.39
     },
     {
       "code": "00920",
@@ -5099,7 +5098,7 @@
       "est": 0.21,
       "div_next": "2027-01-17",
       "signal": "fair",
-      "maD": -4.7,
+      "maD": -8.9,
       "ret5d": -4.2,
       "ret1m": -9.1,
       "ret1y": 83.3,
@@ -5118,12 +5117,12 @@
       "heat": 63.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.1,
-      "change_pct": -4.42,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.1,
+      "change_pct": -4.42
     },
     {
       "code": "00921",
@@ -5142,7 +5141,7 @@
       "est": 0.32,
       "div_next": "2026-09-15",
       "signal": "dear",
-      "maD": 5.8,
+      "maD": 1.8,
       "ret5d": -0.82,
       "ret1m": 0.2,
       "ret1y": 41.9,
@@ -5161,9 +5160,6 @@
       "heat": 32.6,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.88,
-      "change_pct": -3.74,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         3,
@@ -5173,7 +5169,10 @@
       "div_category": "科技",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.88,
+      "change_pct": -3.74
     },
     {
       "code": "00922",
@@ -5192,7 +5191,7 @@
       "est": 2.0,
       "div_next": "2026-09-15",
       "signal": "fair",
-      "maD": 5.3,
+      "maD": -1.2,
       "ret5d": -4.68,
       "ret1m": -4.9,
       "ret1y": 99.9,
@@ -5211,9 +5210,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -2.49,
-      "change_pct": -6.16,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         3
@@ -5222,7 +5218,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.49,
+      "change_pct": -6.16
     },
     {
       "code": "00923",
@@ -5241,7 +5240,7 @@
       "est": 1.71,
       "div_next": "2026-08-27",
       "signal": "fair",
-      "maD": 3.9,
+      "maD": -2.9,
       "ret5d": -5.35,
       "ret1m": -6.8,
       "ret1y": 99.2,
@@ -5260,9 +5259,6 @@
       "heat": 75.8,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -2.74,
-      "change_pct": -6.55,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         2
@@ -5271,7 +5267,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.74,
+      "change_pct": -6.55
     },
     {
       "code": "00924",
@@ -5290,7 +5289,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 4.0,
+      "maD": 1.6,
       "ret5d": -0.06,
       "ret1m": 0.0,
       "ret1y": 32.5,
@@ -5309,12 +5308,12 @@
       "heat": 63.7,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.76,
-      "change_pct": -2.29,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.76,
+      "change_pct": -2.29
     },
     {
       "code": "00926",
@@ -5333,7 +5332,7 @@
       "est": 1.47,
       "div_next": "2026-12-15",
       "signal": "dear",
-      "maD": 3.7,
+      "maD": 2.1,
       "ret5d": 1.11,
       "ret1m": 1.5,
       "ret1y": 31.0,
@@ -5352,12 +5351,12 @@
       "heat": 56.1,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.39,
-      "change_pct": -1.51,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.39,
+      "change_pct": -1.51
     },
     {
       "code": "00927",
@@ -5376,7 +5375,7 @@
       "est": 1.88,
       "div_next": "2026-10-15",
       "signal": "fair",
-      "maD": 2.7,
+      "maD": -5.4,
       "ret5d": -8.47,
       "ret1m": -4.6,
       "ret1y": 132.4,
@@ -5395,9 +5394,6 @@
       "heat": 75.6,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -3.02,
-      "change_pct": -7.8,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -5408,7 +5404,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -3.02,
+      "change_pct": -7.8
     },
     {
       "code": "00930",
@@ -5427,7 +5426,7 @@
       "est": 0.25,
       "div_next": "2026-07-26",
       "signal": "dear",
-      "maD": 5.1,
+      "maD": 0.9,
       "ret5d": -3.06,
       "ret1m": -4.4,
       "ret1y": 44.3,
@@ -5446,9 +5445,6 @@
       "heat": 56.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.97,
-      "change_pct": -3.98,
-      "mis_time": "13:30",
       "div_frequency": "雙月配",
       "div_months": [
         1,
@@ -5462,7 +5458,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.97,
+      "change_pct": -3.98
     },
     {
       "code": "00932",
@@ -5481,7 +5480,7 @@
       "est": 0.22,
       "div_next": "2026-08-18",
       "signal": "dear",
-      "maD": 3.5,
+      "maD": 0.0,
       "ret5d": -3.37,
       "ret1m": -1.3,
       "ret1y": 25.9,
@@ -5500,9 +5499,6 @@
       "heat": 38.4,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.6,
-      "change_pct": -3.4,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -5514,7 +5510,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.6,
+      "change_pct": -3.4
     },
     {
       "code": "00934",
@@ -5533,7 +5532,7 @@
       "est": 0.3,
       "div_next": "2026-08-15",
       "signal": "fair",
-      "maD": 1.9,
+      "maD": -2.7,
       "ret5d": -4.89,
       "ret1m": -6.0,
       "ret1y": 53.5,
@@ -5552,9 +5551,6 @@
       "heat": 80.4,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -1.24,
-      "change_pct": -4.54,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -5568,7 +5564,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.24,
+      "change_pct": -4.54
     },
     {
       "code": "00935",
@@ -5587,7 +5586,7 @@
       "est": 1.2,
       "div_next": "2026-09-14",
       "signal": "fair",
-      "maD": 1.0,
+      "maD": -6.9,
       "ret5d": -7.97,
       "ret1m": -11.6,
       "ret1y": 152.0,
@@ -5606,9 +5605,6 @@
       "heat": 81.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -4.55,
-      "change_pct": -7.85,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         3
@@ -5617,7 +5613,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -4.55,
+      "change_pct": -7.85
     },
     {
       "code": "00936",
@@ -5636,7 +5635,7 @@
       "est": 0.12,
       "div_next": "2026-08-14",
       "signal": "dear",
-      "maD": 1.0,
+      "maD": -2.7,
       "ret5d": -4.03,
       "ret1m": -2.2,
       "ret1y": 40.5,
@@ -5655,9 +5654,6 @@
       "heat": 45.2,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.76,
-      "change_pct": -3.72,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -5677,7 +5673,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.76,
+      "change_pct": -3.72
     },
     {
       "code": "00938",
@@ -5696,7 +5695,7 @@
       "est": 0.22,
       "div_next": "2026-08-18",
       "signal": "dear",
-      "maD": 9.1,
+      "maD": 5.4,
       "ret5d": -1.99,
       "ret1m": -0.4,
       "ret1y": 67.8,
@@ -5715,9 +5714,6 @@
       "heat": 70.6,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.84,
-      "change_pct": -3.41,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -5727,7 +5723,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.84,
+      "change_pct": -3.41
     },
     {
       "code": "00939",
@@ -5746,7 +5745,7 @@
       "est": 0.072,
       "div_next": "2026-07-30",
       "signal": "dear",
-      "maD": 8.4,
+      "maD": 6.3,
       "ret5d": -0.98,
       "ret1m": -0.4,
       "ret1y": 61.5,
@@ -5765,9 +5764,6 @@
       "heat": 56.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.42,
-      "change_pct": -1.96,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -5787,7 +5783,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.42,
+      "change_pct": -1.96
     },
     {
       "code": "00941",
@@ -5806,7 +5805,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 5.3,
+      "maD": 1.1,
       "ret5d": -2.09,
       "ret1m": -6.3,
       "ret1y": 96.0,
@@ -5825,12 +5824,12 @@
       "heat": 69.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.11,
-      "change_pct": -4.0,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.11,
+      "change_pct": -4.0
     },
     {
       "code": "00943",
@@ -5849,7 +5848,7 @@
       "est": 0.12,
       "div_next": "2026-08-15",
       "signal": "dear",
-      "maD": 5.1,
+      "maD": 0.4,
       "ret5d": -4.57,
       "ret1m": -1.3,
       "ret1y": 59.0,
@@ -5868,9 +5867,6 @@
       "heat": 48.6,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.98,
-      "change_pct": -4.46,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -5884,7 +5880,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.98,
+      "change_pct": -4.46
     },
     {
       "code": "00944",
@@ -5903,7 +5902,7 @@
       "est": 0.11,
       "div_next": "2026-08-15",
       "signal": "dear",
-      "maD": 6.6,
+      "maD": 2.1,
       "ret5d": -4.15,
       "ret1m": -2.9,
       "ret1y": 53.0,
@@ -5922,9 +5921,6 @@
       "heat": 61.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.91,
-      "change_pct": -4.24,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -5937,7 +5933,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.91,
+      "change_pct": -4.24
     },
     {
       "code": "00946",
@@ -5956,7 +5955,7 @@
       "est": 0.06,
       "div_next": "2026-08-04",
       "signal": "dear",
-      "maD": 4.6,
+      "maD": 0.8,
       "ret5d": -6.23,
       "ret1m": -2.1,
       "ret1y": 62.4,
@@ -5975,9 +5974,6 @@
       "heat": 53.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.53,
-      "change_pct": -3.59,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -5991,7 +5987,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.53,
+      "change_pct": -3.59
     },
     {
       "code": "00947",
@@ -6010,7 +6009,7 @@
       "est": 0.3,
       "div_next": "2026-10-14",
       "signal": "fair",
-      "maD": -3.8,
+      "maD": -11.7,
       "ret5d": -10.85,
       "ret1m": -15.9,
       "ret1y": 145.4,
@@ -6029,9 +6028,6 @@
       "heat": 57.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -2.9,
-      "change_pct": -8.23,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -6041,7 +6037,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.9,
+      "change_pct": -8.23
     },
     {
       "code": "00949",
@@ -6060,7 +6059,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 2.2,
+      "maD": -0.6,
       "ret5d": -1.79,
       "ret1m": -0.8,
       "ret1y": 35.3,
@@ -6079,12 +6078,12 @@
       "heat": 48.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.57,
-      "change_pct": -2.76,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.57,
+      "change_pct": -2.76
     },
     {
       "code": "00951",
@@ -6103,7 +6102,7 @@
       "est": 0.16,
       "div_next": "2026-11-17",
       "signal": "fair",
-      "maD": 8.6,
+      "maD": -2.2,
       "ret5d": -9.7,
       "ret1m": -9.7,
       "ret1y": 109.1,
@@ -6122,12 +6121,12 @@
       "heat": 80.8,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.94,
-      "change_pct": -9.93,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.94,
+      "change_pct": -9.93
     },
     {
       "code": "00952",
@@ -6146,7 +6145,7 @@
       "est": 0.12,
       "div_next": "2026-08-15",
       "signal": "fair",
-      "maD": 2.2,
+      "maD": -4.2,
       "ret5d": -4.97,
       "ret1m": -3.8,
       "ret1y": 88.3,
@@ -6165,9 +6164,6 @@
       "heat": 58.6,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.14,
-      "change_pct": -6.21,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -6180,7 +6176,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.14,
+      "change_pct": -6.21
     },
     {
       "code": "00954",
@@ -6199,7 +6198,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 8.8,
+      "maD": -2.2,
       "ret5d": -9.71,
       "ret1m": -9.7,
       "ret1y": 108.8,
@@ -6218,12 +6217,12 @@
       "heat": 65.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -2.1,
-      "change_pct": -10.06,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -2.1,
+      "change_pct": -10.06
     },
     {
       "code": "00956",
@@ -6242,7 +6241,7 @@
       "est": 0.3,
       "div_next": "2026-10-15",
       "signal": "fair",
-      "maD": 1.9,
+      "maD": 0.7,
       "ret5d": 1.59,
       "ret1m": 3.4,
       "ret1y": 48.0,
@@ -6261,9 +6260,6 @@
       "heat": 37.0,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.15,
-      "change_pct": -1.2,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -6273,7 +6269,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.15,
+      "change_pct": -1.2
     },
     {
       "code": "00960",
@@ -6292,7 +6291,7 @@
       "est": 0.23,
       "div_next": "2026-09-21",
       "signal": "dear",
-      "maD": 2.6,
+      "maD": 2.8,
       "ret5d": 2.91,
       "ret1m": 2.6,
       "ret1y": 43.9,
@@ -6311,9 +6310,6 @@
       "heat": 56.6,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": 0.04,
-      "change_pct": 0.22,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -6323,7 +6319,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": 0.04,
+      "change_pct": 0.22
     },
     {
       "code": "00961",
@@ -6342,7 +6341,7 @@
       "est": 0.19,
       "div_next": "2026-08-15",
       "signal": "fair",
-      "maD": 4.2,
+      "maD": 2.7,
       "ret5d": -0.57,
       "ret1m": -1.1,
       "ret1y": 45.2,
@@ -6361,9 +6360,6 @@
       "heat": 57.2,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -0.18,
-      "change_pct": -1.44,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -6376,7 +6372,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.18,
+      "change_pct": -1.44
     },
     {
       "code": "00962",
@@ -6395,7 +6394,7 @@
       "est": 0.08,
       "div_next": "2026-08-14",
       "signal": "fair",
-      "maD": 2.7,
+      "maD": -2.1,
       "ret5d": -4.13,
       "ret1m": -3.4,
       "ret1y": 52.8,
@@ -6414,9 +6413,6 @@
       "heat": 61.8,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.69,
-      "change_pct": -4.72,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -6430,7 +6426,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.69,
+      "change_pct": -4.72
     },
     {
       "code": "00963",
@@ -6449,7 +6448,7 @@
       "est": 0.1,
       "div_next": "2026-08-15",
       "signal": "hot",
-      "maD": 2.1,
+      "maD": 2.8,
       "ret5d": 3.34,
       "ret1m": 4.1,
       "ret1y": 39.2,
@@ -6468,9 +6467,6 @@
       "heat": 71.7,
       "score_cont": 24,
       "aum": 0,
-      "change_pt": 0.1,
-      "change_pct": 0.77,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -6483,7 +6479,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": 0.1,
+      "change_pct": 0.77
     },
     {
       "code": "00964",
@@ -6502,7 +6501,7 @@
       "est": 0.12,
       "div_next": "2026-08-15",
       "signal": "fair",
-      "maD": -1.1,
+      "maD": -3.5,
       "ret5d": -1.64,
       "ret1m": -4.7,
       "ret1y": 43.3,
@@ -6521,9 +6520,6 @@
       "heat": 41.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.34,
-      "change_pct": -2.42,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -6537,7 +6533,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.34,
+      "change_pct": -2.42
     },
     {
       "code": "00965",
@@ -6556,7 +6555,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -0.6,
+      "maD": -3.6,
       "ret5d": -0.85,
       "ret1m": -4.0,
       "ret1y": 26.2,
@@ -6575,12 +6574,12 @@
       "heat": 45.7,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.75,
-      "change_pct": -2.99,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.75,
+      "change_pct": -2.99
     },
     {
       "code": "00971",
@@ -6599,7 +6598,7 @@
       "est": 1.0,
       "div_next": "2026-12-16",
       "signal": "dear",
-      "maD": 4.2,
+      "maD": 2.3,
       "ret5d": 0.47,
       "ret1m": 2.0,
       "ret1y": 27.7,
@@ -6618,12 +6617,12 @@
       "heat": 52.8,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -0.32,
-      "change_pct": -1.84,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.32,
+      "change_pct": -1.84
     },
     {
       "code": "009800",
@@ -6642,7 +6641,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 3.0,
+      "maD": 0.0,
       "ret5d": -1.3,
       "ret1m": -3.4,
       "ret1y": 37.7,
@@ -6661,12 +6660,12 @@
       "heat": 71.1,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.38,
-      "change_pct": -2.87,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.38,
+      "change_pct": -2.87
     },
     {
       "code": "009801",
@@ -6685,7 +6684,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 3.8,
+      "maD": 0.0,
       "ret5d": -1.29,
       "ret1m": -2.8,
       "ret1y": 27.2,
@@ -6704,12 +6703,12 @@
       "heat": 60.6,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.46,
-      "change_pct": -3.65,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.46,
+      "change_pct": -3.65
     },
     {
       "code": "009802",
@@ -6728,7 +6727,7 @@
       "est": 0.2,
       "div_next": "2026-09-15",
       "signal": "fair",
-      "maD": 0.9,
+      "maD": -5.2,
       "ret5d": -6.22,
       "ret1m": -10.5,
       "ret1y": 84.2,
@@ -6747,9 +6746,6 @@
       "heat": 63.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.13,
-      "change_pct": -6.03,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -6761,7 +6757,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.13,
+      "change_pct": -6.03
     },
     {
       "code": "009803",
@@ -6780,7 +6779,7 @@
       "est": 0.5,
       "div_next": "2026-09-14",
       "signal": "fair",
-      "maD": 1.7,
+      "maD": -4.5,
       "ret5d": -5.07,
       "ret1m": -6.1,
       "ret1y": 103.0,
@@ -6799,9 +6798,6 @@
       "heat": 88,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -1.3,
-      "change_pct": -6.1,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -6813,7 +6809,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.3,
+      "change_pct": -6.1
     },
     {
       "code": "009804",
@@ -6832,7 +6831,7 @@
       "est": 1.53,
       "div_next": "2027-01-14",
       "signal": "fair",
-      "maD": -1.4,
+      "maD": -8.0,
       "ret5d": -5.21,
       "ret1m": -6.5,
       "ret1y": 99.3,
@@ -6851,9 +6850,6 @@
       "heat": 79.6,
       "score_cont": 18,
       "aum": 0.0,
-      "change_pt": -1.46,
-      "change_pct": -6.62,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "div_months": [
         4,
@@ -6863,7 +6859,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.46,
+      "change_pct": -6.62
     },
     {
       "code": "009805",
@@ -6882,7 +6881,7 @@
       "est": 0.1,
       "div_next": "2026-10-14",
       "signal": "dear",
-      "maD": -1.0,
+      "maD": -3.9,
       "ret5d": -2.36,
       "ret1m": -1.6,
       "ret1y": 51.9,
@@ -6901,16 +6900,16 @@
       "heat": 55.3,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.48,
-      "change_pct": -2.91,
-      "mis_time": "13:30",
       "div_frequency": "不明",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.48,
+      "change_pct": -2.91
     },
     {
       "code": "009808",
@@ -6929,7 +6928,7 @@
       "est": 0.57,
       "div_next": "2026-08-17",
       "signal": "fair",
-      "maD": 4.5,
+      "maD": -1.8,
       "ret5d": -4.49,
       "ret1m": -5.5,
       "ret1y": 95.6,
@@ -6948,9 +6947,6 @@
       "heat": 65.6,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -1.88,
-      "change_pct": -6.04,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         2,
@@ -6961,7 +6957,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.88,
+      "change_pct": -6.04
     },
     {
       "code": "009809",
@@ -6980,10 +6979,10 @@
       "est": 0.1,
       "div_next": "2026-09-15",
       "signal": "dear",
-      "maD": 9.0,
+      "maD": 3.0,
       "ret5d": -2.92,
       "ret1m": -0.7,
-      "ret1y": 70.4,
+      "ret1y": 80.4,
       "ret_months": [
         14.9,
         -0.8,
@@ -6999,16 +6998,16 @@
       "heat": 53.2,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.0,
-      "change_pct": -5.54,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [],
       "div_avg_per_share": 0.1,
       "div_category": "ESG",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.0,
+      "change_pct": -5.54
     },
     {
       "code": "00980A",
@@ -7027,7 +7026,7 @@
       "est": 0.48,
       "div_next": "2026-08-18",
       "signal": "fair",
-      "maD": -2.2,
+      "maD": -9.3,
       "ret5d": -8.12,
       "ret1m": -11.7,
       "ret1y": 98.7,
@@ -7046,9 +7045,6 @@
       "heat": 80.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.69,
-      "change_pct": -7.32,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -7060,7 +7056,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.69,
+      "change_pct": -7.32
     },
     {
       "code": "009810",
@@ -7079,7 +7078,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 3.3,
+      "maD": 2.2,
       "ret5d": 0.87,
       "ret1m": 1.7,
       "ret1y": 37.4,
@@ -7098,12 +7097,12 @@
       "heat": 30.9,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.23,
-      "change_pct": -1.09,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.23,
+      "change_pct": -1.09
     },
     {
       "code": "009811",
@@ -7122,7 +7121,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 4.4,
+      "maD": 2.5,
       "ret5d": 0.54,
       "ret1m": 1.3,
       "ret1y": 31.2,
@@ -7141,12 +7140,12 @@
       "heat": 46.6,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.24,
-      "change_pct": -1.8,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.24,
+      "change_pct": -1.8
     },
     {
       "code": "009812",
@@ -7165,10 +7164,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 3.5,
+      "maD": -0.2,
       "ret5d": -1.77,
       "ret1m": -0.7,
-      "ret1y": 21.1,
+      "ret1y": 25.6,
       "ret_months": [
         5.9,
         1.9,
@@ -7184,12 +7183,12 @@
       "heat": 67.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.45,
-      "change_pct": -3.58,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.45,
+      "change_pct": -3.58
     },
     {
       "code": "009813",
@@ -7208,10 +7207,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 2.3,
+      "maD": 0.6,
       "ret5d": 0.36,
       "ret1m": 0.3,
-      "ret1y": 11.6,
+      "ret1y": 13.5,
       "ret_months": [
         -1.4,
         -3.0,
@@ -7227,12 +7226,12 @@
       "heat": 37.9,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.19,
-      "change_pct": -1.67,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.19,
+      "change_pct": -1.67
     },
     {
       "code": "009816",
@@ -7251,10 +7250,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 4.4,
+      "maD": -2.5,
       "ret5d": -4.46,
       "ret1m": -6.2,
-      "ret1y": 42.8,
+      "ret1y": 52.9,
       "ret_months": [
         null,
         5.2,
@@ -7270,12 +7269,12 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.01,
-      "change_pct": -6.61,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.01,
+      "change_pct": -6.61
     },
     {
       "code": "009818",
@@ -7287,17 +7286,17 @@
       "low52": 14.17,
       "high52": 20.38,
       "rsi": 48.7,
-      "yld": 12.64,
+      "yld": 12.22,
       "yld_verified": false,
       "yld_pending": false,
       "days": 90,
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 6.0,
+      "maD": 2.5,
       "ret5d": -0.65,
       "ret1m": -1.4,
-      "ret1y": 96.2,
+      "ret1y": 102.9,
       "ret_months": [
         null,
         null,
@@ -7313,9 +7312,6 @@
       "heat": 64.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.67,
-      "change_pct": -3.3,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -7327,7 +7323,10 @@
       "div_category": "指數型",
       "div_todo": false,
       "yld_source": "historical",
-      "yld_label": "歷史平均估算"
+      "yld_label": "歷史平均估算",
+      "mis_time": "13:30",
+      "change_pt": -0.67,
+      "change_pct": -3.3
     },
     {
       "code": "009819",
@@ -7346,10 +7345,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -2.2,
+      "maD": -5.4,
       "ret5d": -3.74,
       "ret1m": -6.1,
-      "ret1y": -2.6,
+      "ret1y": 0.7,
       "ret_months": [
         null,
         null,
@@ -7365,12 +7364,12 @@
       "heat": 76,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.33,
-      "change_pct": -3.28,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.33,
+      "change_pct": -3.28
     },
     {
       "code": "009820",
@@ -7389,10 +7388,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": 0.5,
+      "maD": -3.8,
       "ret5d": -1.22,
       "ret1m": -5.1,
-      "ret1y": -3.2,
+      "ret1y": 1.1,
       "ret_months": [
         null,
         null,
@@ -7408,12 +7407,12 @@
       "heat": 71.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -0.43,
-      "change_pct": -4.25,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.43,
+      "change_pct": -4.25
     },
     {
       "code": "009821",
@@ -7432,10 +7431,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -9.4,
+      "maD": -13.7,
       "ret5d": -5.54,
       "ret1m": -18.0,
-      "ret1y": 25.1,
+      "ret1y": 31.3,
       "ret_months": [
         null,
         null,
@@ -7451,16 +7450,16 @@
       "heat": 37.6,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.62,
-      "change_pct": -4.72,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "主題型",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.62,
+      "change_pct": -4.72
     },
     {
       "code": "009824",
@@ -7479,10 +7478,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 2.7,
+      "maD": -0.7,
       "ret5d": -0.5,
       "ret1m": 0.0,
-      "ret1y": -0.6,
+      "ret1y": 2.8,
       "ret_months": [
         null,
         null,
@@ -7498,9 +7497,6 @@
       "heat": 42.8,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.34,
-      "change_pct": -3.31,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -7512,7 +7508,10 @@
       "div_category": "海外",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.34,
+      "change_pct": -3.31
     },
     {
       "code": "00982A",
@@ -7531,7 +7530,7 @@
       "est": 0.64,
       "div_next": "2026-08-18",
       "signal": "fair",
-      "maD": 1.4,
+      "maD": -7.8,
       "ret5d": -8.91,
       "ret1m": -8.7,
       "ret1y": 112.6,
@@ -7550,9 +7549,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -2.14,
-      "change_pct": -9.08,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         2,
@@ -7563,7 +7559,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -2.14,
+      "change_pct": -9.08
     },
     {
       "code": "00982D",
@@ -7582,10 +7581,10 @@
       "est": 0.05,
       "div_next": "2026-08-15",
       "signal": "fair",
-      "maD": -0.3,
+      "maD": -0.1,
       "ret5d": 0.22,
       "ret1m": 0.5,
-      "ret1y": -0.6,
+      "ret1y": -0.8,
       "ret_months": [
         0.4,
         1.8,
@@ -7601,9 +7600,6 @@
       "heat": 29.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": 0.02,
-      "change_pct": 0.2,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -7617,7 +7613,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": 0.02,
+      "change_pct": 0.2
     },
     {
       "code": "00983A",
@@ -7636,7 +7635,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 3.3,
+      "maD": -1.2,
       "ret5d": -4.08,
       "ret1m": -1.7,
       "ret1y": 7.3,
@@ -7655,12 +7654,12 @@
       "heat": 44.4,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.53,
-      "change_pct": -4.35,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.53,
+      "change_pct": -4.35
     },
     {
       "code": "00983D",
@@ -7698,9 +7697,6 @@
       "heat": 47.5,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": 0.01,
-      "change_pct": 0.15,
-      "mis_time": "13:30",
       "div_frequency": "月配",
       "div_months": [
         1,
@@ -7713,7 +7709,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": 0.01,
+      "change_pct": 0.15
     },
     {
       "code": "00984A",
@@ -7732,7 +7731,7 @@
       "est": 0.41,
       "div_next": "2026-10-13",
       "signal": "dear",
-      "maD": -0.3,
+      "maD": -5.5,
       "ret5d": -6.07,
       "ret1m": -5.8,
       "ret1y": 60.3,
@@ -7751,9 +7750,6 @@
       "heat": 81.4,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -0.82,
-      "change_pct": -5.25,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "div_months": [
         1,
@@ -7764,7 +7760,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.82,
+      "change_pct": -5.25
     },
     {
       "code": "00984D",
@@ -7783,10 +7782,10 @@
       "est": 0.09,
       "div_next": "2026-08-01",
       "signal": "dear",
-      "maD": 1.1,
+      "maD": 1.2,
       "ret5d": 0.69,
       "ret1m": 2.1,
-      "ret1y": 2.1,
+      "ret1y": 2.0,
       "ret_months": [
         null,
         -0.3,
@@ -7802,9 +7801,6 @@
       "heat": 40.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": 0.01,
-      "change_pct": 0.1,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [
         5
@@ -7813,7 +7809,10 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": 0.01,
+      "change_pct": 0.1
     },
     {
       "code": "00985A",
@@ -7832,7 +7831,7 @@
       "est": 0.3,
       "div_next": null,
       "signal": "dear",
-      "maD": 0.7,
+      "maD": -5.5,
       "ret5d": -5.44,
       "ret1m": -7.1,
       "ret1y": 105.3,
@@ -7851,12 +7850,12 @@
       "heat": 65.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.32,
-      "change_pct": -6.11,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.32,
+      "change_pct": -6.11
     },
     {
       "code": "00986A",
@@ -7875,10 +7874,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.5,
+      "maD": -3.7,
       "ret5d": -4.02,
       "ret1m": -6.9,
-      "ret1y": 41.9,
+      "ret1y": 49.6,
       "ret_months": [
         1.1,
         -0.5,
@@ -7894,12 +7893,12 @@
       "heat": 73.8,
       "score_cont": 18,
       "aum": 0,
-      "change_pt": -0.77,
-      "change_pct": -5.15,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.77,
+      "change_pct": -5.15
     },
     {
       "code": "00987A",
@@ -7918,10 +7917,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -9.7,
+      "maD": -17.4,
       "ret5d": -11.71,
       "ret1m": -17.9,
-      "ret1y": 39.5,
+      "ret1y": 52.4,
       "ret_months": [
         1.6,
         5.3,
@@ -7937,16 +7936,16 @@
       "heat": 62.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.29,
-      "change_pct": -8.46,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "主動型",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.29,
+      "change_pct": -8.46
     },
     {
       "code": "00988A",
@@ -7965,10 +7964,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -9.6,
+      "maD": -19.4,
       "ret5d": -13.88,
       "ret1m": -27.2,
-      "ret1y": 62.4,
+      "ret1y": 82.1,
       "ret_months": [
         10.5,
         5.2,
@@ -7984,16 +7983,16 @@
       "heat": 71.2,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.97,
-      "change_pct": -10.82,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "主動型",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.97,
+      "change_pct": -10.82
     },
     {
       "code": "00989A",
@@ -8012,10 +8011,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 1.5,
+      "maD": -3.7,
       "ret5d": -4.3,
       "ret1m": -8.0,
-      "ret1y": 67.8,
+      "ret1y": 77.0,
       "ret_months": [
         -0.8,
         -7.7,
@@ -8031,12 +8030,12 @@
       "heat": 55.6,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -0.92,
-      "change_pct": -5.2,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.92,
+      "change_pct": -5.2
     },
     {
       "code": "00990A",
@@ -8055,10 +8054,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -7.6,
+      "maD": -16.7,
       "ret5d": -12.92,
       "ret1m": -25.1,
-      "ret1y": 54.9,
+      "ret1y": 71.9,
       "ret_months": [
         2.3,
         4.6,
@@ -8074,16 +8073,16 @@
       "heat": 78.2,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.7,
-      "change_pct": -9.89,
-      "mis_time": "13:30",
       "div_frequency": "不配息",
       "div_months": [],
       "div_avg_per_share": null,
       "div_category": "主動型",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.7,
+      "change_pct": -9.89
     },
     {
       "code": "00991A",
@@ -8102,10 +8101,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -1.4,
+      "maD": -10.5,
       "ret5d": -11.89,
       "ret1m": -13.4,
-      "ret1y": 68.2,
+      "ret1y": 85.3,
       "ret_months": [
         12.1,
         -2.0,
@@ -8121,9 +8120,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.71,
-      "change_pct": -9.23,
-      "mis_time": "13:30",
       "div_frequency": "半年配",
       "div_months": [
         6,
@@ -8133,7 +8129,10 @@
       "div_category": "主動型",
       "div_todo": false,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.71,
+      "change_pct": -9.23
     },
     {
       "code": "00992A",
@@ -8152,10 +8151,10 @@
       "est": 0.47,
       "div_next": "2026-10-15",
       "signal": "fair",
-      "maD": -6.8,
+      "maD": -15.3,
       "ret5d": -10.49,
       "ret1m": -13.8,
-      "ret1y": 52.2,
+      "ret1y": 67.5,
       "ret_months": [
         13.1,
         0.8,
@@ -8171,9 +8170,6 @@
       "heat": 82,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.53,
-      "change_pct": -9.13,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -8185,7 +8181,10 @@
       "div_category": "主動型",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.53,
+      "change_pct": -9.13
     },
     {
       "code": "00993A",
@@ -8204,10 +8203,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -2.5,
+      "maD": -10.7,
       "ret5d": -9.6,
       "ret1m": -13.4,
-      "ret1y": 19.0,
+      "ret1y": 30.0,
       "ret_months": [
         null,
         -0.4,
@@ -8223,12 +8222,12 @@
       "heat": 76.2,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.1,
-      "change_pct": -8.46,
-      "mis_time": "13:30",
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.1,
+      "change_pct": -8.46
     },
     {
       "code": "00994A",
@@ -8247,10 +8246,10 @@
       "est": 0.46,
       "div_next": "2026-09-17",
       "signal": "fair",
-      "maD": -5.3,
+      "maD": -13.5,
       "ret5d": -10.36,
       "ret1m": -13.8,
-      "ret1y": 51.3,
+      "ret1y": 65.8,
       "ret_months": [
         null,
         2.7,
@@ -8266,9 +8265,6 @@
       "heat": 77.0,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.45,
-      "change_pct": -8.75,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         3,
@@ -8280,7 +8276,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -1.45,
+      "change_pct": -8.75
     },
     {
       "code": "00995A",
@@ -8299,10 +8298,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -2.7,
+      "maD": -10.7,
       "ret5d": -9.65,
       "ret1m": -13.0,
-      "ret1y": 53.9,
+      "ret1y": 67.7,
       "ret_months": [
         null,
         3.9,
@@ -8318,12 +8317,12 @@
       "heat": 69.4,
       "score_cont": 6,
       "aum": 0,
-      "change_pt": -1.38,
-      "change_pct": -8.23,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.38,
+      "change_pct": -8.23
     },
     {
       "code": "00996A",
@@ -8342,10 +8341,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": -1.4,
+      "maD": -10.0,
       "ret5d": -11.44,
       "ret1m": -13.5,
-      "ret1y": 31.7,
+      "ret1y": 44.2,
       "ret_months": [
         null,
         null,
@@ -8361,12 +8360,12 @@
       "heat": 75.4,
       "score_cont": 12,
       "aum": 0,
-      "change_pt": -1.25,
-      "change_pct": -8.67,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -1.25,
+      "change_pct": -8.67
     },
     {
       "code": "00997A",
@@ -8385,10 +8384,10 @@
       "est": 0.37,
       "div_next": "2026-10-05",
       "signal": "cheap",
-      "maD": -7.0,
+      "maD": -13.9,
       "ret5d": -8.4,
       "ret1m": -18.6,
-      "ret1y": 10.0,
+      "ret1y": 18.9,
       "ret_months": [
         null,
         null,
@@ -8404,9 +8403,6 @@
       "heat": 51.0,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.89,
-      "change_pct": -7.49,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "div_months": [
         1,
@@ -8418,7 +8414,10 @@
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
-      "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
+      "mis_time": "13:30",
+      "change_pt": -0.89,
+      "change_pct": -7.49
     },
     {
       "code": "00999A",
@@ -8437,10 +8436,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "cheap",
-      "maD": -1.2,
+      "maD": -6.7,
       "ret5d": -5.7,
       "ret1m": -9.3,
-      "ret1y": -0.4,
+      "ret1y": 5.4,
       "ret_months": [
         null,
         null,
@@ -8456,12 +8455,12 @@
       "heat": 61.2,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.58,
-      "change_pct": -5.5,
-      "mis_time": "13:30",
       "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.58,
+      "change_pct": -5.5
     },
     {
       "code": "020032",
@@ -8480,10 +8479,10 @@
       "est": 0.3,
       "div_next": null,
       "signal": "fair",
-      "maD": 0.6,
+      "maD": -5.0,
       "ret5d": -2.65,
       "ret1m": -2.3,
-      "ret1y": -2.8,
+      "ret1y": 2.9,
       "ret_months": [
         -3.0,
         8.9,
@@ -8499,12 +8498,12 @@
       "heat": 34.0,
       "score_cont": 0,
       "aum": 0,
-      "change_pt": -0.63,
-      "change_pct": -6.09,
-      "mis_time": "13:30",
       "div_frequency": "不明",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "mis_time": "13:30",
+      "change_pt": -0.63,
+      "change_pct": -6.09
     }
   ],
   "calendar": [
