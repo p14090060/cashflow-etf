@@ -261,9 +261,11 @@
     "00692": {
       "name": "富邦公司治理",
       "frequency": "季配",
-      "months": [],
+      "months": [
+        7
+      ],
       "category": "ESG",
-      "avg_dividend_per_share": null,
+      "avg_dividend_per_share": 1.92,
       "_todo": true
     },
     "00701": {
@@ -1234,7 +1236,7 @@
         12
       ],
       "category": "主動型",
-      "avg_dividend_per_share": null,
+      "avg_dividend_per_share": 0.77,
       "_todo": false
     },
     "00992A": {
@@ -1247,7 +1249,7 @@
         10
       ],
       "category": "主動型",
-      "avg_dividend_per_share": null,
+      "avg_dividend_per_share": 0.47,
       "_todo": false
     },
     "00987A": {
@@ -1381,9 +1383,11 @@
     "009805": {
       "name": "新光美國電力基建",
       "frequency": "不明",
-      "months": [],
+      "months": [
+        7
+      ],
       "category": "高股息",
-      "avg_dividend_per_share": null,
+      "avg_dividend_per_share": 0.1,
       "_todo": true
     }
   },
