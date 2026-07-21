@@ -5490,7 +5490,7 @@
       "rsi": 45.0,
       "yld": 2.5,
       "yld_verified": true,
-      "yld_pending": true,
+      "yld_pending": false,
       "days": 84,
       "est": 0.1,
       "div_next": "2026-10-14",
@@ -6790,7 +6790,7 @@
       "maD": -5.2,
       "ret5d": -9.49,
       "ret1m": -12.0,
-      "ret1y": -2.7,
+      "ret1y": 65.2,
       "ret_months": [
         -2.6,
         10.2,
@@ -6799,7 +6799,7 @@
         5.5,
         -12.0
       ],
-      "new_listing": true,
+      "new_listing": false,
       "avg_vol": 7450.0,
       "cur_vol": 6000.0,
       "vol_ratio": 0.81,

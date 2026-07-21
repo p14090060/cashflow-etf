@@ -1394,14 +1394,17 @@
       "_todo": false
     },
     "009805": {
-      "name": "新光美國電力基建",
-      "frequency": "不明",
+      "name": "台新美國電力基建",
+      "frequency": "季配",
       "months": [
-        7
+        1,
+        4,
+        7,
+        10
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.1,
-      "_todo": true
+      "_todo": false
     }
   },
   "calendar": [
