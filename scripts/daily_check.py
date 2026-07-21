@@ -188,7 +188,8 @@ def main():
         yld_prev[code] = yld
 
         # ── 4. 訊號變便宜 ──
-        if e.get("signal") == "cheap":
+        # 00403A 長期處於 cheap 訊號每天狂發通知，2026-07-21 Gavin 要求靜音（其他檢查仍照常）
+        if e.get("signal") == "cheap" and code != "00403A":
             cheap_alerts.append(f"• {code} {name}：訊號轉為便宜，目前位置偏低")
 
         # ── 5. 配息 7 天內 ──
