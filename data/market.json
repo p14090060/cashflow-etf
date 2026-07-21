@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-21 16:32",
+  "updated": "2026-07-21 17:07",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -1035,7 +1035,7 @@
       "rsi": 50.0,
       "yld": 0.0,
       "yld_verified": false,
-      "yld_pending": false,
+      "yld_pending": true,
       "days": 90,
       "est": 0.3,
       "div_next": null,
@@ -1059,7 +1059,16 @@
       "heat": 63.7,
       "score_cont": 24,
       "aum": 0,
-      "div_frequency": "不明",
+      "div_frequency": "季配",
+      "div_months": [
+        1,
+        4,
+        7,
+        10
+      ],
+      "div_avg_per_share": null,
+      "div_category": "高股息",
+      "div_todo": true,
       "yld_source": "none",
       "yld_label": "無配息紀錄",
       "mis_time": "13:30",

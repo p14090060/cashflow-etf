@@ -778,7 +778,7 @@
       "rsi": 50.0,
       "yld": 0.0,
       "yld_verified": false,
-      "yld_pending": false,
+      "yld_pending": true,
       "days": 90,
       "est": 0.3,
       "div_next": null,
@@ -802,7 +802,7 @@
       "heat": 62.96,
       "score_cont": 24,
       "aum": 0,
-      "div_freq": "不明"
+      "div_freq": "季配"
     },
     {
       "code": "0051",

@@ -1317,6 +1317,19 @@
       "avg_dividend_per_share": null,
       "_todo": true
     },
+    "00408A": {
+      "name": "主動第一金優股息",
+      "frequency": "季配",
+      "months": [
+        1,
+        4,
+        7,
+        10
+      ],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
     "00406A": {
       "name": "中信台灣收益成長",
       "frequency": "月配",
