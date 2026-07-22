@@ -1409,26 +1409,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-07-23",
-      "mon": "7月",
-      "day": "23",
-      "code": "0056",
-      "name": "元大高股息",
-      "amt": 1.0,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-07-26",
-      "mon": "7月",
-      "day": "26",
-      "code": "0050",
-      "name": "元大台灣50",
-      "amt": 1.0,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-08-08",
       "mon": "8月",
       "day": "8",
@@ -1439,22 +1419,22 @@
       "source": "yfinance"
     },
     {
-      "iso_date": "2026-08-08",
-      "mon": "8月",
-      "day": "8",
-      "code": "00929",
-      "name": "復華台灣科技優息",
-      "amt": 0.26,
-      "soon": false,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-08-18",
       "mon": "8月",
       "day": "18",
       "code": "00878",
       "name": "國泰永續高息",
       "amt": 0.66,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-08-21",
+      "mon": "8月",
+      "day": "21",
+      "code": "00929",
+      "name": "復華台灣科技優息",
+      "amt": 0.38,
       "soon": false,
       "source": "yfinance"
     },
@@ -1495,6 +1475,16 @@
       "code": "00713",
       "name": "台灣高息低波",
       "amt": 1.0,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-10-20",
+      "mon": "10月",
+      "day": "20",
+      "code": "0056",
+      "name": "元大高股息",
+      "amt": 1.35,
       "soon": false,
       "source": "yfinance"
     }
