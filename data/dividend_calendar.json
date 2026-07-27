@@ -6,6 +6,13 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00940": {
+      "code": "00940",
+      "name": "元大台灣價值高息",
+      "ex_dividend_date": "2026-08-11",
+      "amount": 0.0,
+      "amount_source": null
+    },
     "00939": {
       "code": "00939",
       "name": "統一台灣高息動能",
