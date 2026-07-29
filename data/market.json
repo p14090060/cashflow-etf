@@ -1,12 +1,12 @@
 {
-  "updated": "2026-07-29 16:43",
+  "updated": "2026-07-29 17:49",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
   "market": {
     "price": 40039.18,
-    "change_pt": -3595.01,
-    "change_pct": -8.24
+    "change_pt": -1564.18,
+    "change_pct": -3.76
   },
   "etfs": [
     {
@@ -926,8 +926,8 @@
       "low52": 8.03,
       "high52": 10.6,
       "rsi": 28.3,
-      "yld": 0.0,
-      "yld_verified": false,
+      "yld": 1.6,
+      "yld_verified": true,
       "yld_pending": false,
       "days": 90,
       "est": 0.3,
@@ -970,8 +970,8 @@
       "div_avg_per_share": null,
       "div_category": "主動型",
       "div_todo": true,
-      "yld_source": "none",
-      "yld_label": "無配息紀錄",
+      "yld_source": "verified",
+      "yld_label": "雙源核對（FinMind × TWSE ETFortune）",
       "mis_time": "13:30",
       "change_pt": -0.5,
       "change_pct": -5.86
