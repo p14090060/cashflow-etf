@@ -1405,6 +1405,25 @@
       "category": "高股息",
       "avg_dividend_per_share": 0.1,
       "_todo": false
+    },
+    "00985A": {
+      "name": "主動野村台灣50",
+      "frequency": "半年配",
+      "months": [],
+      "category": "主動型",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "009811": {
+      "name": "統一美國50",
+      "frequency": "半年配",
+      "months": [
+        4,
+        10
+      ],
+      "category": "海外",
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
