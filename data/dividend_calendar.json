@@ -6,6 +6,27 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00701": {
+      "code": "00701",
+      "name": "國泰股利精選30",
+      "ex_dividend_date": "2026-08-18",
+      "amount": 0.0,
+      "amount_source": null
+    },
+    "00878": {
+      "code": "00878",
+      "name": "國泰永續高股息",
+      "ex_dividend_date": "2026-08-18",
+      "amount": 0.0,
+      "amount_source": null
+    },
+    "00932": {
+      "code": "00932",
+      "name": "兆豐永續高息等權",
+      "ex_dividend_date": "2026-08-18",
+      "amount": 0.0,
+      "amount_source": null
+    },
     "00940": {
       "code": "00940",
       "name": "元大台灣價值高息",
