@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-31 16:52",
+  "updated": "2026-07-31 17:54",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -382,7 +382,7 @@
       "yld": 5.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 17,
+      "days": 18,
       "est": 0.66,
       "div_next": "2026-08-18",
       "signal": "dear",
@@ -2548,7 +2548,7 @@
       "yld": 7.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 155,
+      "days": 18,
       "est": 0.7,
       "div_next": "2027-01-03",
       "signal": "dear",
@@ -5484,7 +5484,7 @@
       "yld": 4.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 17,
+      "days": 18,
       "est": 0.22,
       "div_next": "2026-08-18",
       "signal": "dear",
@@ -8556,14 +8556,40 @@
       "amount_source": "MoneyDJ"
     },
     {
+      "code": "00701",
+      "name": "國泰股利精選30",
+      "iso_date": "2026-08-18",
+      "day": "18",
+      "mon": "8月",
+      "amt": 0,
+      "soon": false,
+      "days_until": 18,
+      "source": "official",
+      "amount_source": "official"
+    },
+    {
       "code": "00878",
-      "name": "國泰永續高息",
+      "name": "國泰永續高股息",
+      "iso_date": "2026-08-18",
       "day": "18",
       "mon": "8月",
       "amt": 0.66,
       "soon": false,
       "days_until": 18,
-      "source": "estimate"
+      "source": "official",
+      "amount_source": "official"
+    },
+    {
+      "code": "00932",
+      "name": "兆豐永續高息等權",
+      "iso_date": "2026-08-18",
+      "day": "18",
+      "mon": "8月",
+      "amt": 0,
+      "soon": false,
+      "days_until": 18,
+      "source": "official",
+      "amount_source": "official"
     },
     {
       "code": "00929",
