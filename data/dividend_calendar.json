@@ -34,6 +34,13 @@
       "amount": 0.0,
       "amount_source": null
     },
+    "00936": {
+      "code": "00936",
+      "name": "台新永續高息中小",
+      "ex_dividend_date": "2026-08-17",
+      "amount": 0.12,
+      "amount_source": "MoneyDJ"
+    },
     "00940": {
       "code": "00940",
       "name": "元大台灣價值高息",
