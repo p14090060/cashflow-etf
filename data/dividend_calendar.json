@@ -6,6 +6,13 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00850": {
+      "code": "00850",
+      "name": "元大臺灣ESG永續",
+      "ex_dividend_date": "2026-08-21",
+      "amount": 0.0,
+      "amount_source": null
+    },
     "00701": {
       "code": "00701",
       "name": "國泰股利精選30",
