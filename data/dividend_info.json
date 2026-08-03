@@ -1444,7 +1444,7 @@
       "code": "00878",
       "name": "國泰永續高息",
       "amt": 0.66,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
