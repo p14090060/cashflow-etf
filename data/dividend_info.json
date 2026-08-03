@@ -1348,7 +1348,7 @@
         12
       ],
       "category": "主動型",
-      "avg_dividend_per_share": null,
+      "avg_dividend_per_share": 0.128,
       "_todo": true
     },
     "00407A": {
@@ -1422,6 +1422,14 @@
         10
       ],
       "category": "海外",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00401A": {
+      "name": "主動摩根台灣鑫收",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
       "avg_dividend_per_share": null,
       "_todo": true
     }
