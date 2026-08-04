@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-08-03",
+    "last_updated": "2026-08-04",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -17,22 +17,22 @@
       "code": "00701",
       "name": "國泰股利精選30",
       "ex_dividend_date": "2026-08-18",
-      "amount": 0.0,
-      "amount_source": null
+      "amount": 1.6,
+      "amount_source": "MoneyDJ"
     },
     "00878": {
       "code": "00878",
       "name": "國泰永續高股息",
       "ex_dividend_date": "2026-08-18",
-      "amount": 0.0,
-      "amount_source": null
+      "amount": 1.01,
+      "amount_source": "MoneyDJ"
     },
     "00932": {
       "code": "00932",
       "name": "兆豐永續高息等權",
       "ex_dividend_date": "2026-08-18",
-      "amount": 0.0,
-      "amount_source": null
+      "amount": 0.23,
+      "amount_source": "MoneyDJ"
     },
     "00936": {
       "code": "00936",
