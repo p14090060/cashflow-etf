@@ -1427,11 +1427,52 @@
     },
     "00401A": {
       "name": "主動摩根台灣鑫收",
-      "frequency": "不明",
-      "months": [],
+      "frequency": "月配",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "category": "高股息",
+      "avg_dividend_per_share": 0.121,
+      "_todo": false
+    },
+    "009810": {
+      "name": "玉山全球藍籌100",
+      "frequency": "年配",
+      "months": [
+        12
+      ],
+      "category": "海外",
       "avg_dividend_per_share": null,
       "_todo": true
+    },
+    "00986A": {
+      "name": "主動台新龍頭成長",
+      "frequency": "年配",
+      "months": [
+        11
+      ],
+      "category": "主動型",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "009826": {
+      "name": "貝萊德世界股票",
+      "frequency": "不配息",
+      "months": [],
+      "category": "海外",
+      "avg_dividend_per_share": 0,
+      "_todo": false
     }
   },
   "calendar": [
