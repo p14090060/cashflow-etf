@@ -780,11 +780,24 @@
       "heat": 58.1,
       "score_cont": 18,
       "aum": 0,
-      "div_frequency": "不明",
-      "div_months": [],
-      "div_avg_per_share": null,
+      "div_frequency": "月配",
+      "div_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "div_avg_per_share": 0.121,
       "div_category": "高股息",
-      "div_todo": true,
+      "div_todo": false,
       "yld_source": "none",
       "yld_label": "無配息紀錄",
       "mis_time": "13:30",
@@ -7093,7 +7106,7 @@
       "rsi": 71.8,
       "yld": 0.0,
       "yld_verified": false,
-      "yld_pending": false,
+      "yld_pending": true,
       "days": 90,
       "est": 0.3,
       "div_next": null,
@@ -7122,7 +7135,13 @@
       "yld_label": "無配息紀錄",
       "mis_time": "13:30",
       "change_pt": -0.05,
-      "change_pct": -0.23
+      "change_pct": -0.23,
+      "div_months": [
+        12
+      ],
+      "div_avg_per_share": null,
+      "div_category": "海外",
+      "div_todo": true
     },
     {
       "code": "009811",
@@ -7576,9 +7595,13 @@
       "heat": 36.32,
       "score_cont": 18,
       "aum": 0,
-      "div_frequency": "不明",
+      "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "div_months": [],
+      "div_avg_per_share": 0,
+      "div_category": "海外",
+      "div_todo": false
     },
     {
       "code": "00982A",
@@ -7940,7 +7963,7 @@
       "rsi": 55.5,
       "yld": 0.0,
       "yld_verified": false,
-      "yld_pending": false,
+      "yld_pending": true,
       "days": 90,
       "est": 0.3,
       "div_next": null,
@@ -7969,7 +7992,13 @@
       "yld_label": "無配息紀錄",
       "mis_time": "13:30",
       "change_pt": -0.15,
-      "change_pct": -1.0
+      "change_pct": -1.0,
+      "div_months": [
+        11
+      ],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": true
     },
     {
       "code": "00987A",

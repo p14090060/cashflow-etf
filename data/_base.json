@@ -574,7 +574,24 @@
       "heat": 51.74,
       "score_cont": 18,
       "aum": 0,
-      "div_freq": "月配"
+      "div_frequency": "月配",
+      "div_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "div_avg_per_share": 0.121,
+      "div_category": "高股息",
+      "div_todo": false
     },
     {
       "code": "00402A",
@@ -5642,7 +5659,7 @@
       "rsi": 71.8,
       "yld": 0.0,
       "yld_verified": false,
-      "yld_pending": false,
+      "yld_pending": true,
       "days": 90,
       "est": 0.3,
       "div_next": null,
@@ -5666,7 +5683,13 @@
       "heat": 35.79,
       "score_cont": 18,
       "aum": 0,
-      "div_freq": "年配"
+      "div_frequency": "年配",
+      "div_months": [
+        12
+      ],
+      "div_avg_per_share": null,
+      "div_category": "海外",
+      "div_todo": true
     },
     {
       "code": "009811",
@@ -6046,7 +6069,11 @@
       "heat": 36.32,
       "score_cont": 18,
       "aum": 0,
-      "div_freq": "不明"
+      "div_frequency": "不配息",
+      "div_months": [],
+      "div_avg_per_share": 0,
+      "div_category": "海外",
+      "div_todo": false
     },
     {
       "code": "00982A",
@@ -6326,7 +6353,7 @@
       "rsi": 55.5,
       "yld": 0.0,
       "yld_verified": false,
-      "yld_pending": false,
+      "yld_pending": true,
       "days": 90,
       "est": 0.3,
       "div_next": null,
@@ -6350,7 +6377,13 @@
       "heat": 49.9,
       "score_cont": 18,
       "aum": 0,
-      "div_freq": "年配"
+      "div_frequency": "年配",
+      "div_months": [
+        11
+      ],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": true
     },
     {
       "code": "00987A",
