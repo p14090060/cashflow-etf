@@ -5418,7 +5418,7 @@
       ],
       "new_listing": false,
       "avg_vol": 1061724.65,
-      "cur_vol": 75.0,
+      "cur_vol": 76.0,
       "vol_ratio": 0.07,
       "heat": 26.1,
       "score_cont": 18,
@@ -7571,7 +7571,7 @@
       "maD": 1.8,
       "ret5d": 2.83,
       "ret1m": 1.4,
-      "ret1y": 2.8,
+      "ret1y": 2.9,
       "ret_months": [
         null,
         null,
