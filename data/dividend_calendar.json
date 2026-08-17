@@ -25,28 +25,28 @@
       "name": "國泰股利精選30",
       "ex_dividend_date": "2026-08-18",
       "amount": 1.6,
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     },
     "00878": {
       "code": "00878",
       "name": "國泰永續高股息",
       "ex_dividend_date": "2026-08-18",
       "amount": 1.01,
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     },
     "00932": {
       "code": "00932",
       "name": "兆豐永續高息等權",
       "ex_dividend_date": "2026-08-18",
       "amount": 0.23,
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     },
     "00936": {
       "code": "00936",
       "name": "台新永續高息中小",
       "ex_dividend_date": "2026-08-17",
       "amount": 0.12,
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     }
   }
 }
