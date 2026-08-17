@@ -6,6 +6,13 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00939": {
+      "code": "00939",
+      "name": "統一台灣高息動能",
+      "ex_dividend_date": "2026-09-01",
+      "amount": 0.0,
+      "amount_source": null
+    },
     "00850": {
       "code": "00850",
       "name": "元大臺灣ESG永續",
@@ -18,7 +25,7 @@
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-08-19",
       "amount": 0.38,
-      "amount_source": "MoneyDJ"
+      "amount_source": "TWSE"
     },
     "00701": {
       "code": "00701",
