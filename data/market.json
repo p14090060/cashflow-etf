@@ -1132,9 +1132,13 @@
       "change_pt": -0.23,
       "change_pct": -2.03,
       "mis_time": "13:29",
-      "div_frequency": "不明",
+      "div_frequency": "半年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": true
     },
     {
       "code": "0051",
@@ -6778,13 +6782,13 @@
       "change_pt": -0.12,
       "change_pct": -1.04,
       "mis_time": "13:30",
-      "div_frequency": "不明",
+      "div_frequency": "年配",
       "div_months": [
         8
       ],
       "div_avg_per_share": 1.0,
-      "div_category": "高股息",
-      "div_todo": true,
+      "div_category": "海外",
+      "div_todo": false,
       "yld_source": "error",
       "yld_label": "資料異常（殖利率>20%）"
     },

@@ -840,7 +840,11 @@
       "heat": 18.91,
       "score_cont": 0,
       "aum": 0,
-      "div_freq": "不明"
+      "div_frequency": "半年配",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "主動型",
+      "div_todo": true
     },
     {
       "code": "0051",
@@ -5400,7 +5404,13 @@
       "heat": 63.29,
       "score_cont": 18,
       "aum": 0,
-      "div_freq": "不配息"
+      "div_frequency": "年配",
+      "div_months": [
+        8
+      ],
+      "div_avg_per_share": 1.0,
+      "div_category": "海外",
+      "div_todo": false
     },
     {
       "code": "009802",
