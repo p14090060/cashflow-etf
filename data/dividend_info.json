@@ -122,7 +122,7 @@
         12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.125,
+      "avg_dividend_per_share": 0.072,
       "_todo": false
     },
     "00936": {
@@ -1487,16 +1487,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-08-18",
-      "mon": "8月",
-      "day": "18",
-      "code": "00878",
-      "name": "國泰永續高息",
-      "amt": 0.66,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-08-21",
       "mon": "8月",
       "day": "21",
@@ -1563,6 +1553,16 @@
       "code": "0056",
       "name": "元大高股息",
       "amt": 1.35,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-11-17",
+      "mon": "11月",
+      "day": "17",
+      "code": "00878",
+      "name": "國泰永續高息",
+      "amt": 0.66,
       "soon": false,
       "source": "yfinance"
     }
