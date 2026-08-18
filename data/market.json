@@ -689,7 +689,7 @@
       "code": "00400A",
       "name": "主動國泰動能高息",
       "curated": false,
-      "price": 15.05,
+      "price": 15.045,
       "ma60": 14.2,
       "ma20": 13.5,
       "low52": 9.95,
@@ -705,7 +705,7 @@
       "maD": 6.0,
       "ret5d": 7.64,
       "ret1m": 6.7,
-      "ret1y": 50.5,
+      "ret1y": 50.4,
       "ret_months": [
         null,
         null,
@@ -8540,7 +8540,7 @@
       "maD": -5.9,
       "ret5d": 2.69,
       "ret1m": 7.7,
-      "ret1y": 18.5,
+      "ret1y": 18.4,
       "ret_months": [
         null,
         null,
