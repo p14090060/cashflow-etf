@@ -1498,16 +1498,6 @@
       "iso_date": "2026-08-21",
       "mon": "8月",
       "day": "21",
-      "code": "00929",
-      "name": "復華台灣科技優息",
-      "amt": 0.38,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
-      "iso_date": "2026-08-21",
-      "mon": "8月",
-      "day": "21",
       "code": "00850",
       "name": "元大ESG永續",
       "amt": 0.85,
@@ -1541,6 +1531,16 @@
       "code": "00981A",
       "name": "統一台股增長",
       "amt": 0.63,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-09-18",
+      "mon": "9月",
+      "day": "18",
+      "code": "00929",
+      "name": "復華台灣科技優息",
+      "amt": 0.38,
       "soon": false,
       "source": "yfinance"
     },
