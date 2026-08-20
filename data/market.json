@@ -4,9 +4,10 @@
   "is_holiday": false,
   "last_trading_time": null,
   "market": {
-    "price": 44719.35,
-    "change_pt": -589.33,
-    "change_pct": -1.3
+    "price": 45105.96,
+    "change_pt": 386.61,
+    "change_pct": 0.86,
+    "mis_time": "09:01"
   },
   "etfs": [
     {
@@ -3685,7 +3686,7 @@
       "code": "00861",
       "name": "元大全球未來通訊",
       "curated": false,
-      "price": 85.7,
+      "price": 85.625,
       "ma60": 89.95,
       "ma20": 86.35,
       "low52": 44.47,
@@ -5154,7 +5155,7 @@
       "code": "00920",
       "name": "富邦ESG綠色電力",
       "curated": false,
-      "price": 24.32,
+      "price": 24.4,
       "ma60": 25.45,
       "ma20": 24.3,
       "low52": 14.61,
@@ -5186,6 +5187,9 @@
       "heat": 53.03,
       "score_cont": 18,
       "aum": 0,
+      "change_pt": 0.08,
+      "change_pct": 0.33,
+      "mis_time": "09:00",
       "div_frequency": "年配",
       "yld_source": "verified",
       "yld_label": "雙源核對（FinMind × TWSE ETFortune）"
