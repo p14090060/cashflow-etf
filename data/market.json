@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-22 10:05",
+  "updated": "2026-08-23 10:14",
   "is_closed": true,
   "is_holiday": true,
   "last_trading_time": null,
@@ -5456,7 +5456,7 @@
       "yld": 4.3,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 0.072,
       "div_next": "2026-08-30",
       "signal": "dear",
@@ -8134,7 +8134,7 @@
       "mon": "9月",
       "amt": 0.072,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "Gavin 人工確認"
     },
@@ -8145,7 +8145,7 @@
       "mon": "9月",
       "amt": 0.05,
       "soon": false,
-      "days_until": 20,
+      "days_until": 19,
       "source": "estimate"
     },
     {
@@ -8155,7 +8155,7 @@
       "mon": "9月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 24,
+      "days_until": 23,
       "source": "estimate"
     },
     {
@@ -8165,7 +8165,7 @@
       "mon": "9月",
       "amt": 0.63,
       "soon": false,
-      "days_until": 24,
+      "days_until": 23,
       "source": "estimate"
     },
     {
@@ -8175,7 +8175,7 @@
       "mon": "9月",
       "amt": 0.38,
       "soon": false,
-      "days_until": 27,
+      "days_until": 26,
       "source": "estimate"
     },
     {
@@ -8185,7 +8185,7 @@
       "mon": "10月",
       "amt": 1.35,
       "soon": false,
-      "days_until": 59,
+      "days_until": 58,
       "source": "estimate"
     },
     {
@@ -8195,7 +8195,7 @@
       "mon": "11月",
       "amt": 1.01,
       "soon": false,
-      "days_until": 87,
+      "days_until": 86,
       "source": "estimate"
     },
     {
@@ -8205,7 +8205,7 @@
       "mon": "11月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 90,
+      "days_until": 89,
       "source": "estimate"
     }
   ],
