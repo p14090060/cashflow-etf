@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-24 15:16",
+  "updated": "2026-08-24 16:04",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -434,7 +434,7 @@
       "yld": 4.67,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 17,
+      "days": 15,
       "est": 0.05,
       "div_next": "2026-09-11",
       "signal": "dear",
@@ -8678,12 +8678,14 @@
     {
       "code": "00940",
       "name": "元大台灣價值高息",
-      "day": "11",
+      "iso_date": "2026-09-08",
+      "day": "8",
       "mon": "9月",
       "amt": 0.05,
       "soon": false,
-      "days_until": 18,
-      "source": "estimate"
+      "days_until": 15,
+      "source": "official",
+      "amount_source": "official"
     },
     {
       "code": "00919",
