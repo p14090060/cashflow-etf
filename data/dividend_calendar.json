@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-08-21",
+    "last_updated": "2026-08-24",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -12,13 +12,6 @@
       "ex_dividend_date": "2026-09-01",
       "amount": 0.072,
       "amount_source": "Gavin 人工確認"
-    },
-    "00850": {
-      "code": "00850",
-      "name": "元大臺灣ESG永續",
-      "ex_dividend_date": "2026-08-21",
-      "amount": 0.85,
-      "amount_source": "TWSE"
     }
   }
 }
