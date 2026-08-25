@@ -1573,6 +1573,16 @@
       "amt": 0.85,
       "soon": false,
       "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-11-24",
+      "mon": "11月",
+      "day": "24",
+      "code": "006201",
+      "name": "元大富櫃50",
+      "amt": 0.77,
+      "soon": false,
+      "source": "yfinance"
     }
   ]
 }
