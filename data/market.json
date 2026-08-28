@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-28 15:14",
+  "updated": "2026-08-28 20:16",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -5817,7 +5817,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 4,
-      "est": 0.072,
+      "est": 0.125,
       "div_next": "2026-08-30",
       "signal": "dear",
       "maD": 5.1,
@@ -8712,11 +8712,11 @@
       "iso_date": "2026-09-01",
       "day": "1",
       "mon": "9月",
-      "amt": 0.072,
+      "amt": 0.125,
       "soon": true,
       "days_until": 4,
       "source": "official",
-      "amount_source": "Gavin 人工確認"
+      "amount_source": "TWSE × FinMind 核實"
     },
     {
       "code": "00940",
