@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-28 20:24",
+  "updated": "2026-08-28 20:38",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -5813,7 +5813,7 @@
       "low52": 13.6,
       "high52": 22.79,
       "rsi": 62.6,
-      "yld": 4.2,
+      "yld": 4.5,
       "yld_verified": true,
       "yld_pending": false,
       "days": 4,
@@ -5854,7 +5854,7 @@
         11,
         12
       ],
-      "div_avg_per_share": 0.072,
+      "div_avg_per_share": 0.125,
       "div_category": "高股息",
       "div_todo": false,
       "yld_source": "verified",
@@ -8716,7 +8716,7 @@
       "soon": true,
       "days_until": 4,
       "source": "official",
-      "amount_source": "TWSE × FinMind 核實"
+      "amount_source": "TWSE"
     },
     {
       "code": "00940",
