@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-29 03:21",
+  "updated": "2026-08-29 15:28",
   "is_closed": true,
   "is_holiday": true,
   "last_trading_time": null,
@@ -8174,7 +8174,7 @@
       "mon": "9月",
       "amt": 0.125,
       "soon": true,
-      "days_until": 4,
+      "days_until": 3,
       "source": "official",
       "amount_source": "TWSE"
     },
@@ -8186,7 +8186,7 @@
       "mon": "9月",
       "amt": 0.055,
       "soon": true,
-      "days_until": 11,
+      "days_until": 10,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -8197,7 +8197,7 @@
       "mon": "9月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 18,
+      "days_until": 17,
       "source": "estimate"
     },
     {
@@ -8207,7 +8207,7 @@
       "mon": "9月",
       "amt": 0.63,
       "soon": false,
-      "days_until": 18,
+      "days_until": 17,
       "source": "estimate"
     },
     {
@@ -8217,7 +8217,7 @@
       "mon": "9月",
       "amt": 0.38,
       "soon": false,
-      "days_until": 21,
+      "days_until": 20,
       "source": "estimate"
     },
     {
@@ -8227,7 +8227,7 @@
       "mon": "10月",
       "amt": 1.35,
       "soon": false,
-      "days_until": 53,
+      "days_until": 52,
       "source": "estimate"
     },
     {
@@ -8237,7 +8237,7 @@
       "mon": "11月",
       "amt": 1.01,
       "soon": false,
-      "days_until": 81,
+      "days_until": 80,
       "source": "estimate"
     },
     {
@@ -8247,7 +8247,7 @@
       "mon": "11月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 84,
+      "days_until": 83,
       "source": "estimate"
     },
     {
@@ -8257,7 +8257,7 @@
       "mon": "11月",
       "amt": 0.77,
       "soon": false,
-      "days_until": 88,
+      "days_until": 87,
       "source": "estimate"
     }
   ],
