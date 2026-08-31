@@ -66,7 +66,7 @@
       "code": "00713",
       "name": "台灣高息低波",
       "curated": true,
-      "price": 61.375,
+      "price": 61.425,
       "ma60": 60.57,
       "ma20": 61.08,
       "low52": 49.62,
@@ -8639,7 +8639,7 @@
       "maD": 5.7,
       "ret5d": 1.07,
       "ret1m": 14.6,
-      "ret1y": 13.1,
+      "ret1y": 13.0,
       "ret_months": [
         null,
         null,
