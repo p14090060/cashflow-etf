@@ -6759,7 +6759,7 @@
       "days": 351,
       "est": 1.0,
       "div_next": "2027-08-18",
-      "signal": "fair",
+      "signal": "cheap",
       "maD": -8.5,
       "ret5d": -0.8,
       "ret1m": 2.2,
@@ -8167,7 +8167,7 @@
       "maD": -12.9,
       "ret5d": 0.12,
       "ret1m": 15.2,
-      "ret1y": 58.5,
+      "ret1y": 58.6,
       "ret_months": [
         13.1,
         27.0,
