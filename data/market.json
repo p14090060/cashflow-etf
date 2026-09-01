@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-01 14:15",
+  "updated": "2026-09-01 15:20",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -74,7 +74,7 @@
       "yld": 5.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 19,
+      "days": 20,
       "est": 1.0,
       "div_next": "2026-09-21",
       "signal": "dear",
@@ -8731,6 +8731,18 @@
       "amount_source": "MoneyDJ"
     },
     {
+      "code": "00936",
+      "name": "台新永續高息中小",
+      "iso_date": "2026-09-15",
+      "day": "15",
+      "mon": "9月",
+      "amt": 0.12,
+      "soon": true,
+      "days_until": 14,
+      "source": "official",
+      "amount_source": "MoneyDJ"
+    },
+    {
       "code": "00981A",
       "name": "統一台股增長",
       "day": "15",
@@ -8761,6 +8773,18 @@
       "soon": false,
       "days_until": 17,
       "source": "estimate"
+    },
+    {
+      "code": "00713",
+      "name": "元大台灣高息低波",
+      "iso_date": "2026-09-21",
+      "day": "21",
+      "mon": "9月",
+      "amt": 1.0,
+      "soon": false,
+      "days_until": 20,
+      "source": "official",
+      "amount_source": "official"
     },
     {
       "code": "0056",
