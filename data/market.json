@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02 18:52",
+  "updated": "2026-09-02 20:09",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -275,7 +275,7 @@
       "low52": 12.95,
       "high52": 32.26,
       "rsi": 50.3,
-      "yld": 7.0,
+      "yld": 7.5,
       "yld_verified": true,
       "yld_pending": false,
       "days": 12,
