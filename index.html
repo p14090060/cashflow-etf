@@ -1315,9 +1315,14 @@ function renderRank() {
   const fmtRet = v => (v == null) ? '--' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const retClr = v => (v == null) ? 'var(--dim)' : v >= 0 ? '#ff6b6b' : '#00e5a0';
 
-  const sorted = [...ETFS]
-    .filter(e => (e.cur_vol || 0) > 0 && e.price > 0)
-    .sort((a, b) => (b.cur_vol || 0) - (a.cur_vol || 0))
+  // 開盤初期多數 ETF 當日成交量還是 0，只靠 cur_vol 過濾會只剩 20 幾支。
+  // 有量的不足 100 支時放寬條件補滿，並以 avg_vol 當次要排序（未成交者依平時量排）。
+  const byVol   = (a, b) => (b.cur_vol || 0) - (a.cur_vol || 0)
+                         || (b.avg_vol || 0) - (a.avg_vol || 0);
+  const withVol = [...ETFS].filter(e => (e.cur_vol || 0) > 0 && e.price > 0);
+  const sorted  = (withVol.length >= 100 ? withVol
+                                         : [...ETFS].filter(e => e.price > 0))
+    .sort(byVol)
     .slice(0, 100);
 
   document.getElementById('rankTotal').textContent = sorted.length;

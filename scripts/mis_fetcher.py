@@ -490,6 +490,14 @@ def main():
             new_sc     = min(abs(m.get("change_pct", 0)) * 10, 30)
             e["heat"]  = round(new_sv + new_sc + score_cont, 2)
 
+        elif mis_ok:
+            # MIS 沒有這支（上櫃 ETF 00928/006201 不在 MIS 報價範圍）。
+            # 其餘 ETF 的 cur_vol 上面已換成 MIS 的「張」，這支仍是 _base.json 的
+            # yfinance「股」，不換算會以 1000 倍虛胖霸佔成交量排行前兩名。
+            cv = e.get("cur_vol") or 0
+            if cv > 0:
+                e["cur_vol"] = round(cv / 1000, 1)
+
         # 疊上配息靜態資料
         d = div_etfs.get(code, {})
         if d:
