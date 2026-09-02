@@ -6122,7 +6122,11 @@
       "heat": 18.38,
       "score_cont": 6,
       "aum": 0,
-      "div_freq": "不明"
+      "div_frequency": "半年配",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "海外",
+      "div_todo": true
     },
     {
       "code": "00982A",
