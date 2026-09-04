@@ -2,3 +2,10 @@ __pycache__/
 *.pyc
 .env
 logs/
+
+# 臨時檢查腳本與輸出（session 用完即丟，不進版控）
+_*.txt
+_*.py
+data/verify_run.log
+data/dividend_audit_report.txt
+data/yld_verify_report.json

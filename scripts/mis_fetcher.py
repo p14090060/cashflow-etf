@@ -490,10 +490,13 @@ def main():
             new_sc     = min(abs(m.get("change_pct", 0)) * 10, 30)
             e["heat"]  = round(new_sv + new_sc + score_cont, 2)
 
-        elif mis_ok:
-            # MIS 沒有這支（上櫃 ETF 00928/006201 不在 MIS 報價範圍）。
-            # 其餘 ETF 的 cur_vol 上面已換成 MIS 的「張」，這支仍是 _base.json 的
-            # yfinance「股」，不換算會以 1000 倍虛胖霸佔成交量排行前兩名。
+        else:
+            # 這支沒有 MIS 即時資料（上櫃 ETF 00928/006201 不在 MIS 報價範圍，
+            # 或整批盤後/假日沒有），cur_vol 仍是 _base.json 的 yfinance「股」。
+            # 上市 ETF 的 cur_vol 盤中直接來自 MIS「張」、盤後由下方保留邏輯還原成
+            # 「張」，不換算會以 1000 倍虛胖霸佔成交量排行前兩名。
+            # 2026-09-05：原本是 elif mis_ok，盤後 mis_ok=False 時整段跳過，
+            # 上市 ETF 卻被保留邏輯還原成「張」，上櫃兩支就又變成 1000 倍虛胖。
             cv = e.get("cur_vol") or 0
             if cv > 0:
                 e["cur_vol"] = round(cv / 1000, 1)

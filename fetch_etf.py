@@ -59,6 +59,7 @@ _YLD_PENDING = {
     "009811",   # 統一美國50，半年配(評價日3月底/9月底，配息月4/10)，2025-07-29 上市，首次評價2026-03底但至今未配（2026-07-29 用戶提供+WebSearch核實）
     "009810",   # 玉山全球藍籌100，年配(12月)，2025-07-16 上市，首次評價日為成立後180日，首次除息預計2026-12（2026-08-07 用戶提供+WebSearch核實）
     "00986A",   # 主動台新龍頭成長，年配(評價日10/31，除息11月，發放12月)，2025-08-27 上市，首配預計2026-11（2026-08-07 用戶提供+WebSearch核實）
+    "00409A",   # 主動復華全球50，年配（收益評價日 10 月底），2026-08-20 成立、2026-09-02 上市，尚未配息（2026-09-05 用戶提供 + MoneyDJ basic0004 核實）
 }
 
 # 手動覆蓋 yld：yfinance 12 個月加總失真的 ETF，填真實年化殖利率
@@ -239,11 +240,24 @@ def detect_div_freq(tk, code, name="", hist_days=0):
             # 有 1 年以上交易紀錄卻從未配息 → 確認不配
             return "不配息" if hist_days >= 200 else "不明"
         cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=1095)
-        n = len(divs[divs.index > cutoff])
-        if n >= 10: return "月配"
-        if n >= 5:  return "季配"
-        if n >= 3:  return "半年配"
-        if n >= 1:  return "年配"
+        recent = divs[divs.index > cutoff]
+        n = len(recent)
+        if n >= 1:
+            # 2026-09-05 修正：原本純看 3 年內配息「筆數」（n>=3 → 半年配、
+            # n>=5 → 季配），但年配 ETF 只要有 3 年歷史就必然有 3 筆，
+            # 必被誤判（實例 00917 中信特選金融，三年都在 1 月配息卻被判半年配，
+            # 導致前端出現不存在的「9/21 除息」）。
+            # 改用「一年配幾次」判斷：實際涵蓋年數算平均次數，再用「配息落在
+            # 幾個不同月份」交叉驗證，兩個訊號取較保守（次數少）的那個。
+            span_days = (recent.index[-1] - recent.index[0]).days
+            per_year  = n / max(span_days / 365.0, 1.0)
+            months    = len({d.month for d in recent.index})
+            est       = min(per_year, months)
+            if est >= 10:  return "月配"
+            if est >= 5:   return "雙月配"
+            if est >= 3:   return "季配"
+            if est >= 1.5: return "半年配"
+            return "年配"
     except Exception:
         pass
     return "不明"

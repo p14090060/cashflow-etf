@@ -126,7 +126,7 @@
       "_todo": false
     },
     "00936": {
-      "name": "台新台灣永續高息",
+      "name": "台新永續高息中小",
       "frequency": "月配",
       "months": [
         1,
@@ -162,7 +162,7 @@
       "_todo": false
     },
     "00713": {
-      "name": "元大台灣高息低波",
+      "name": "台灣高息低波",
       "frequency": "季配",
       "months": [
         2,
@@ -214,7 +214,7 @@
       "_todo": true
     },
     "00881": {
-      "name": "國泰台灣5G+",
+      "name": "國泰台灣科技龍頭",
       "frequency": "季配",
       "months": [
         1
@@ -280,7 +280,7 @@
       "_todo": false
     },
     "00733": {
-      "name": "富邦台灣中小",
+      "name": "富邦臺灣中小",
       "frequency": "年配",
       "months": [
         4,
@@ -302,7 +302,7 @@
       "_todo": false
     },
     "006201": {
-      "name": "元大MSCI台灣",
+      "name": "元大富櫃50",
       "frequency": "年配",
       "months": [],
       "category": "指數型",
@@ -394,7 +394,7 @@
       "_todo": false
     },
     "00894": {
-      "name": "中信小資高價",
+      "name": "中信小資高價30",
       "frequency": "季配",
       "months": [
         2,
@@ -420,18 +420,21 @@
       "_todo": false
     },
     "00921": {
-      "name": "兆豐台灣電子科技",
-      "frequency": "年配",
+      "name": "兆豐龍頭等權重",
+      "frequency": "季配",
       "months": [
         3,
+        6,
+        9,
         12
       ],
       "category": "科技",
-      "avg_dividend_per_share": 0.27,
-      "_todo": true
+      "avg_dividend_per_share": 0.53,
+      "_todo": false,
+      "_source": "CMoney 配息紀錄（2026-09-05 查證）：2026 Q3 09/16 1.00、Q2 06/16 0.32、Q1 03/17 0.27"
     },
     "00932": {
-      "name": "兆豐永續高息",
+      "name": "兆豐永續高息等權",
       "frequency": "季配",
       "months": [
         2,
@@ -856,7 +859,7 @@
       "_todo": true
     },
     "00905": {
-      "name": "FT臺灣Smart",
+      "name": "FT臺灣SMART",
       "frequency": "季配",
       "months": [
         1,
@@ -944,7 +947,7 @@
       "_todo": false
     },
     "00904": {
-      "name": "新光臺灣半導體30",
+      "name": "台新臺灣半導體30",
       "frequency": "季配",
       "months": [
         1,
@@ -967,13 +970,17 @@
     },
     "00728": {
       "name": "第一金工業30",
-      "frequency": "年配",
+      "frequency": "季配",
       "months": [
-        3
+        3,
+        6,
+        9,
+        12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.52,
-      "_todo": true
+      "avg_dividend_per_share": 0.58,
+      "_todo": false,
+      "_source": "CMoney 配息紀錄（2026-09-05 查證）：2026 Q3 09/18 0.77、Q2 06/18 0.66、Q1 03/19 0.52、2025 Q4 12/18 0.367"
     },
     "00710B": {
       "name": "復華彭博非投等債",
@@ -1008,23 +1015,27 @@
     },
     "00922": {
       "name": "國泰台灣領袖50",
-      "frequency": "年配",
+      "frequency": "半年配",
       "months": [
-        3
+        3,
+        10
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 2.0,
-      "_todo": true
+      "avg_dividend_per_share": 1.63,
+      "_todo": false,
+      "_source": "CMoney 配息紀錄（2026-09-05 查證）：2026 H1 03/17 2.00、2025 H2 10/20 1.25、2025 H1 03/18 0.63"
     },
     "00935": {
       "name": "野村臺灣新科技50",
-      "frequency": "年配",
+      "frequency": "半年配",
       "months": [
-        3
+        3,
+        9
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 1.2,
-      "_todo": true
+      "avg_dividend_per_share": 1.52,
+      "_todo": false,
+      "_source": "CMoney 配息紀錄（2026-09-05 查證）：2026 H2 09/16 1.83、H1 03/17 1.20、2025 H2 09/16 0.75"
     },
     "00972": {
       "name": "野村日本動能高息",
@@ -1050,7 +1061,7 @@
       "_todo": false
     },
     "009803": {
-      "name": "保德信市值動能50",
+      "name": "玉山市值動能50",
       "frequency": "季配",
       "months": [
         3,
@@ -1155,17 +1166,22 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 3.5,
-      "_todo": true
+      "_todo": false,
+      "_source": "CMoney 配息紀錄（2026-09-05 查證）：2026/01/19 3.50、2025/01/17 2.00、2024/01/17 0.29 都在1月"
     },
     "00896": {
       "name": "中信綠能及電動車",
-      "frequency": "年配",
+      "frequency": "季配",
       "months": [
-        3
+        3,
+        6,
+        9,
+        12
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 0.7,
-      "_todo": true
+      "avg_dividend_per_share": 1.0,
+      "_todo": false,
+      "_source": "CMoney 配息紀錄（2026-09-05 查證）：2026 Q3 09/16 1.45、Q2 06/16 1.25、Q1 03/17 0.70、2025 Q4 12/16 0.60"
     },
     "00882": {
       "name": "中信中國高股息",
@@ -1297,7 +1313,7 @@
       "_todo": false
     },
     "009821": {
-      "name": "野村全球稀土與關鍵資源",
+      "name": "野村稀土關鍵資源",
       "frequency": "不配息",
       "months": [],
       "category": "主題型",
@@ -1331,7 +1347,7 @@
       "_todo": true
     },
     "00406A": {
-      "name": "中信台灣收益成長",
+      "name": "主動中信台灣收益",
       "frequency": "月配",
       "months": [
         1,
@@ -1499,6 +1515,17 @@
       "category": "海外",
       "avg_dividend_per_share": null,
       "_todo": true
+    },
+    "00409A": {
+      "name": "主動復華全球50",
+      "frequency": "年配",
+      "months": [
+        11
+      ],
+      "category": "主動型",
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "_source": "MoneyDJ basic0004「年配」+ 用戶提供（收益分配評價日 10 月底）；2026-08-20 成立、2026-09-02 上市，尚未配息"
     }
   },
   "calendar": [
