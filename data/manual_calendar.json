@@ -28,6 +28,34 @@
       "ex_dividend_date": "2026-07-27",
       "amount": 0.25,
       "amount_source": "用戶提供 + MoneyDJ 核實（2026-07-13）；TWSE/FinMind 官方尚未公告金額，待正式公告後這筆可移除"
+    },
+    "00921": {
+      "code": "00921",
+      "name": "兆豐龍頭等權重",
+      "ex_dividend_date": "2026-09-16",
+      "amount": 1.0,
+      "amount_source": "CMoney 配息紀錄（2026-09-05 查證）"
+    },
+    "00935": {
+      "code": "00935",
+      "name": "野村臺灣新科技50",
+      "ex_dividend_date": "2026-09-16",
+      "amount": 1.83,
+      "amount_source": "CMoney 配息紀錄（2026-09-05 查證）"
+    },
+    "00896": {
+      "code": "00896",
+      "name": "中信綠能及電動車",
+      "ex_dividend_date": "2026-09-16",
+      "amount": 1.45,
+      "amount_source": "CMoney 配息紀錄（2026-09-05 查證）"
+    },
+    "00728": {
+      "code": "00728",
+      "name": "第一金工業30",
+      "ex_dividend_date": "2026-09-18",
+      "amount": 0.77,
+      "amount_source": "CMoney 配息紀錄（2026-09-05 查證）"
     }
   }
 }
