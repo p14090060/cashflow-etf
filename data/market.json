@@ -1,12 +1,12 @@
 {
-  "updated": "2026-09-04 18:50",
+  "updated": "2026-09-04 20:08",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
   "market": {
     "price": 46551.13,
-    "change_pt": 386.41,
-    "change_pct": 0.84
+    "change_pt": 693.47,
+    "change_pct": 1.51
   },
   "etfs": [
     {
@@ -8760,7 +8760,7 @@
       "soon": true,
       "days_until": 4,
       "source": "official",
-      "amount_source": "MoneyDJ"
+      "amount_source": "TWSE"
     },
     {
       "code": "00936",
