@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-05 12:58",
+  "updated": "2026-09-06 13:09",
   "is_closed": true,
   "is_holiday": true,
   "last_trading_time": null,
@@ -71,7 +71,7 @@
       "yld": 5.3,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 16,
+      "days": 15,
       "est": 1.0,
       "div_next": "2026-09-21",
       "signal": "hot",
@@ -167,7 +167,7 @@
       "yld": 8.7,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 11,
+      "days": 10,
       "est": 1.1,
       "div_next": "2026-09-15",
       "signal": "hot",
@@ -410,7 +410,7 @@
       "yld": 4.67,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
+      "days": 2,
       "est": 0.055,
       "div_next": "2026-09-11",
       "signal": "dear",
@@ -467,7 +467,7 @@
       "yld": 6.6,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 12,
+      "days": 11,
       "est": 0.38,
       "div_next": "2026-09-18",
       "signal": "dear",
@@ -5210,7 +5210,7 @@
       "yld": 4.5,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 18,
+      "days": 17,
       "est": 0.25,
       "div_next": "2026-09-26",
       "signal": "dear",
@@ -5408,7 +5408,7 @@
       "yld": 4.9,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 0.16,
       "div_next": "2026-09-16",
       "signal": "dear",
@@ -8234,7 +8234,7 @@
       "mon": "9月",
       "amt": 0.055,
       "soon": true,
-      "days_until": 3,
+      "days_until": 2,
       "source": "official",
       "amount_source": "TWSE"
     },
@@ -8246,7 +8246,7 @@
       "mon": "9月",
       "amt": 0.16,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -8257,7 +8257,7 @@
       "mon": "9月",
       "amt": 0.63,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "estimate"
     },
     {
@@ -8268,7 +8268,7 @@
       "mon": "9月",
       "amt": 1.1,
       "soon": true,
-      "days_until": 11,
+      "days_until": 10,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -8280,7 +8280,7 @@
       "mon": "9月",
       "amt": 1.0,
       "soon": true,
-      "days_until": 11,
+      "days_until": 10,
       "source": "manual",
       "amount_source": "manual"
     },
@@ -8292,7 +8292,7 @@
       "mon": "9月",
       "amt": 1.83,
       "soon": true,
-      "days_until": 11,
+      "days_until": 10,
       "source": "manual",
       "amount_source": "manual"
     },
@@ -8304,7 +8304,7 @@
       "mon": "9月",
       "amt": 1.45,
       "soon": true,
-      "days_until": 11,
+      "days_until": 10,
       "source": "manual",
       "amount_source": "manual"
     },
@@ -8316,7 +8316,7 @@
       "mon": "9月",
       "amt": 0.38,
       "soon": true,
-      "days_until": 12,
+      "days_until": 11,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -8328,7 +8328,7 @@
       "mon": "9月",
       "amt": 0.77,
       "soon": true,
-      "days_until": 13,
+      "days_until": 12,
       "source": "manual",
       "amount_source": "manual"
     },
@@ -8340,7 +8340,7 @@
       "mon": "9月",
       "amt": 1.0,
       "soon": false,
-      "days_until": 16,
+      "days_until": 15,
       "source": "official",
       "amount_source": "official"
     },
@@ -8352,7 +8352,7 @@
       "mon": "9月",
       "amt": 0.25,
       "soon": false,
-      "days_until": 18,
+      "days_until": 17,
       "source": "official",
       "amount_source": "official"
     },
@@ -8363,7 +8363,7 @@
       "mon": "10月",
       "amt": 1.35,
       "soon": false,
-      "days_until": 45,
+      "days_until": 44,
       "source": "estimate"
     },
     {
@@ -8373,7 +8373,7 @@
       "mon": "11月",
       "amt": 1.01,
       "soon": false,
-      "days_until": 73,
+      "days_until": 72,
       "source": "estimate"
     },
     {
@@ -8383,7 +8383,7 @@
       "mon": "11月",
       "amt": 0.85,
       "soon": false,
-      "days_until": 76,
+      "days_until": 75,
       "source": "estimate"
     },
     {
@@ -8393,7 +8393,7 @@
       "mon": "11月",
       "amt": 0.77,
       "soon": false,
-      "days_until": 80,
+      "days_until": 79,
       "source": "estimate"
     }
   ],
