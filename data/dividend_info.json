@@ -171,7 +171,7 @@
         11
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 1.0,
+      "avg_dividend_per_share": 1.25,
       "_todo": false
     },
     "00850": {
@@ -1576,7 +1576,7 @@
       "code": "00713",
       "name": "台灣高息低波",
       "amt": 1.0,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
