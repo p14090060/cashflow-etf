@@ -1526,6 +1526,30 @@
       "avg_dividend_per_share": null,
       "_todo": true,
       "_source": "MoneyDJ basic0004「年配」+ 用戶提供（收益分配評價日 10 月底）；2026-08-20 成立、2026-09-02 上市，尚未配息"
+    },
+    "00404A": {
+      "name": "主動聯博動能50",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00982T": {
+      "name": "平衡兆豐台美動能",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00999A": {
+      "name": "主動野村臺灣高息",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
