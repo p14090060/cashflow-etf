@@ -2001,7 +2001,7 @@
       "code": "00646",
       "name": "元大S&P500",
       "curated": false,
-      "price": 75.725,
+      "price": 75.75,
       "ma60": 76.3,
       "ma20": 77.07,
       "low52": 62.15,
@@ -7871,7 +7871,7 @@
       "maD": 5.7,
       "ret5d": 9.02,
       "ret1m": 0.0,
-      "ret1y": 8.1,
+      "ret1y": 7.9,
       "ret_months": [
         null,
         null,
