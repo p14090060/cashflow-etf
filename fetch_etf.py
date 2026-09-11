@@ -30,6 +30,21 @@ def _load_confirmed_freq():
 
 _CONFIRMED_FREQ = _load_confirmed_freq()
 
+def _load_confirmed_months():
+    """dividend_info.json 裡 _todo:false（人工核實過）的除息月份清單。"""
+    try:
+        with open(OUT_DIV, encoding="utf-8") as f:
+            info = json.load(f)
+        return {
+            code: meta["months"]
+            for code, meta in info.get("etfs", {}).items()
+            if not meta.get("_todo", True) and meta.get("months")
+        }
+    except Exception:
+        return {}
+
+_CONFIRMED_MONTHS = _load_confirmed_months()
+
 # ETF 拆分紀錄（備查，供未來防呆與進榜時核對）
 # 格式：代碼 → [(拆分日, 拆分比例)]，比例 = 拆後張數 / 拆前張數
 SPLIT_RECORDS = {
@@ -60,6 +75,9 @@ _YLD_PENDING = {
     "009810",   # 玉山全球藍籌100，年配(12月)，2025-07-16 上市，首次評價日為成立後180日，首次除息預計2026-12（2026-08-07 用戶提供+WebSearch核實）
     "00986A",   # 主動台新龍頭成長，年配(評價日10/31，除息11月，發放12月)，2025-08-27 上市，首配預計2026-11（2026-08-07 用戶提供+WebSearch核實）
     "00409A",   # 主動復華全球50，年配（收益評價日 10 月底），2026-08-20 成立、2026-09-02 上市，尚未配息（2026-09-05 用戶提供 + MoneyDJ basic0004 核實）
+    "00403A",   # 統一台股升級50（MoneyDJ 主動統一升級50），季配，MoneyDJ basic0005「查無配息資料」上市後從未配息（2026-09-05 查證）
+    "00410A",   # 主動永豐科技趨勢，半年配，2026-07-23 成立、08-03 上市，MoneyDJ basic0005「查無配息資料」（2026-09-05 查證）
+    "009829",   # 大華韓國KOSPI50，半年配，2026-08-12 成立、08-21 上市，MoneyDJ basic0005「查無配息資料」（2026-09-05 查證）
 }
 
 # 手動覆蓋 yld：yfinance 12 個月加總失真的 ETF，填真實年化殖利率
@@ -281,6 +299,21 @@ _FREQ_DAYS = {"月配": 30, "雙月配": 60, "季配": 91, "半年配": 182, "�
 # 每種配息頻率一年應配幾次（用於殖利率年化計算）
 _FREQ_N = {"月配": 12, "雙月配": 6, "季配": 4, "半年配": 2, "年配": 1}
 
+def _next_ex_date_from_months(months, last_date, today):
+    """依已核實的除息月份，推「今天之後、且不是上次那個月」的最近一次除息日。
+    日期沿用上次除息的日號（月底不足則退到 28 號）。找不到回 None。"""
+    day = min(last_date.day, 28)
+    y, m = today.year, today.month
+    for _ in range(26):
+        if m in months:
+            cand = datetime.datetime(y, m, day)
+            if cand > today and (cand.year, cand.month) != (last_date.year, last_date.month):
+                return cand
+        m += 1
+        if m > 12:
+            m, y = 1, y + 1
+    return None
+
 def calc_div_forecast(divs, code, div_freq):
     """從 yfinance 股利歷史推算下次配息日與預估金額。
     回傳 (days_left, est_amt, next_date_str or None)
@@ -311,6 +344,15 @@ def calc_div_forecast(divs, code, div_freq):
         next_date = last_date + datetime.timedelta(days=freq_days)
         while next_date <= today:
             next_date += datetime.timedelta(days=freq_days)
+
+        # 2026-09-05：已人工核實除息月份的，改用月份清單推下一次，不用平均間隔。
+        # 間隔法只要歷史有缺漏（停配一期、評價日改期）就會整個偏掉——實測
+        # 00692 實際 [7,11] 卻推成 2027-02、00911 實際 [1,7] 卻推成 2026-11。
+        months = _CONFIRMED_MONTHS.get(code)
+        if months:
+            by_month = _next_ex_date_from_months(months, last_date, today)
+            if by_month:
+                next_date = by_month
 
         days_left = (next_date - today).days
         return days_left, last_amt, next_date.strftime("%Y-%m-%d")

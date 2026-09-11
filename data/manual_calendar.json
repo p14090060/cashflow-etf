@@ -56,6 +56,27 @@
       "ex_dividend_date": "2026-09-18",
       "amount": 0.77,
       "amount_source": "CMoney 配息紀錄（2026-09-05 查證）"
+    },
+    "00999A": {
+      "code": "00999A",
+      "name": "主動野村臺灣高息",
+      "ex_dividend_date": "2026-09-16",
+      "amount": 0.29,
+      "amount_source": "用戶提供 + CMoney 已公告（2026-09-11 查證），發放日 10/15"
+    },
+    "00404A": {
+      "code": "00404A",
+      "name": "主動聯博動能50",
+      "ex_dividend_date": "2026-09-16",
+      "amount": 0.36,
+      "amount_source": "CMoney 已公告 2026Q3（2026-09-11 查證），發放日 10/13"
+    },
+    "00982T": {
+      "code": "00982T",
+      "name": "平衡兆豐台美動能",
+      "ex_dividend_date": "2026-09-16",
+      "amount": 1.0,
+      "amount_source": "CMoney 已公告 2026H2（2026-09-11 查證），發放日 10/07"
     }
   }
 }
