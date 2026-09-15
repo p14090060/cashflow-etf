@@ -32,14 +32,14 @@
       "name": "群益台灣精選高息",
       "ex_dividend_date": "2026-09-16",
       "amount": 1.1,
-      "amount_source": "TWSE × FinMind 核實"
+      "amount_source": "TWSE"
     },
     "00936": {
       "code": "00936",
       "name": "台新永續高息中小",
       "ex_dividend_date": "2026-09-15",
       "amount": 0.16,
-      "amount_source": "TWSE × FinMind 核實"
+      "amount_source": "TWSE"
     }
   }
 }
