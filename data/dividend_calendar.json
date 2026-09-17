@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-09-16",
+    "last_updated": "2026-09-17",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -32,13 +32,6 @@
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-09-17",
       "amount": 0.38,
-      "amount_source": "TWSE"
-    },
-    "00919": {
-      "code": "00919",
-      "name": "群益台灣精選高息",
-      "ex_dividend_date": "2026-09-16",
-      "amount": 1.1,
       "amount_source": "TWSE"
     }
   }
