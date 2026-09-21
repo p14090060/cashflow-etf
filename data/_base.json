@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-21 15:13",
+  "updated": "2026-09-21 21:45",
   "market": {
     "price": 47718.84,
     "change_pt": 538.09,
@@ -1898,11 +1898,11 @@
         -2.0
       ],
       "new_listing": false,
-      "avg_vol": 200.0,
-      "cur_vol": 200.0,
-      "vol_ratio": 1.0,
-      "heat": 22.1,
-      "score_cont": 0,
+      "avg_vol": 200.35,
+      "cur_vol": 207.0,
+      "vol_ratio": 1.03,
+      "heat": 28.76,
+      "score_cont": 6,
       "aum": 0,
       "div_freq": "不配息"
     },
@@ -3588,7 +3588,7 @@
       "low52": 12.87,
       "high52": 20.24,
       "rsi": 66.5,
-      "yld": 4.7,
+      "yld": 4.9,
       "yld_verified": true,
       "yld_pending": false,
       "days": 85,
