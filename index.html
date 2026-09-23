@@ -381,7 +381,9 @@
   .rank-row      { padding:14px 10px; border-bottom:1px solid rgba(255,255,255,.04); }
   .rank-row.tappable { cursor:pointer; }
   .rank-row.tappable:active { background:rgba(255,255,255,.04); }
-  .rank-flow     { font-size:11px; font-weight:700; color:#00c87a; white-space:nowrap;
+  /* 用金色而非紅綠——這個標記是「可點」的提示，不是漲跌方向，
+     擺在報酬率（紅正綠負）旁邊用紅綠會被讀成方向 */
+  .rank-flow     { font-size:11px; font-weight:700; color:var(--fair); white-space:nowrap;
                    margin-left:8px; flex-shrink:0; }
   .rank-main     { display:flex; align-items:center; }
   .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
@@ -413,8 +415,8 @@
                  padding:8px 10px; display:flex; align-items:baseline; justify-content:space-between; }
   .flow-tot span { font-size:15px; color:var(--dim); }
   .flow-tot b    { font-size:20px; font-family:var(--mono); font-weight:700; }
-  .flow-tot b.buy  { color:#00c87a; }
-  .flow-tot b.sell { color:#ff3f5e; }
+  .flow-tot b.buy  { color:#ff3f5e; }   /* 加碼＝紅（台股慣例，同 --up） */
+  .flow-tot b.sell { color:#00c87a; }   /* 減碼＝綠（同 --dn） */
   /* 一行 4 顆、滿了自動換到下一行；不用橫向捲動，避免超出手機畫面 */
   .flow-chips  { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;
                  padding:0 14px 8px; }
@@ -565,7 +567,7 @@
 
     <div class="flow-note">
       ⚠ 金額為<b>兩份公開 PCF 快照相減的推估值</b>，不等同基金實際成交；
-      除權息、股票分割、成分股調整都可能造成假訊號。面積＝金額，綠加碼、紅減碼。
+      除權息、股票分割、成分股調整都可能造成假訊號。面積＝金額，<b>紅加碼、綠減碼</b>（台股慣例）。
     </div>
     <div class="flow-cover" id="flowCover"></div>
 
@@ -887,9 +889,11 @@ function renderFlow(code) {
     _flowCells = cells.map(c => c.d);          // 點擊時用索引查回原始資料
     box.innerHTML = cells.map((c, idx) => {
       const s = c.d, big = Math.min(c.w, c.h);
+      // 台股慣例：紅=加碼(正)、綠=減碼(負)。與 App 其他頁的 --up/--dn、retClr 一致，
+      // 不要改成歐美的綠漲紅跌，同一個 App 用兩套相反的顏色語言會讓人讀反。
       const bg = c.side === 'buy'
-        ? 'rgba(0,200,122,' + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')'
-        : 'rgba(255,63,94,'  + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')';
+        ? 'rgba(255,63,94,'  + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')'
+        : 'rgba(0,200,122,' + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')';
       const fs   = Math.max(11, Math.min(19, big / 4.0));   // 手機上 9px 太小，下限拉到 11
       const show = c.w > 42 && c.h > 26;
       const sub  = c.w > 58 && c.h > 46;
