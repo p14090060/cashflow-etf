@@ -6,9 +6,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ETF健診">
+<meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
-<title>ETF 存股健診 v2</title>
+<title>ETF 存股雷達 v2</title>
 <style>
   :root {
     --bg:    #0d1117;
@@ -324,33 +324,6 @@
   .yt-stat .n { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); }
   .yt-stat .l { font-size:16px; color:var(--dim); margin-top:2px; }
 
-  .broker-card {
-    background:var(--card); border:1px solid var(--border);
-    border-radius:12px; padding:16px; margin-bottom:12px;
-  }
-  .broker-hdr   { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-  .broker-title { font-size:15px; color:var(--bright); font-weight:600; letter-spacing:.04em; }
-  .broker-badge { font-size:12px; background:rgba(0,229,160,0.12); color:#00e5a0;
-                  border-radius:20px; padding:2px 9px; }
-  .broker-col-hdr { display:flex; justify-content:space-between;
-                    font-size:11px; color:var(--dim); padding:0 4px 8px;
-                    border-bottom:1px solid var(--border); margin-bottom:4px; }
-  .broker-row   { display:flex; justify-content:space-between; align-items:center;
-                  padding:9px 4px; border-bottom:1px solid rgba(255,255,255,0.04);
-                  font-size:13px; font-family:var(--mono); }
-  .broker-row:last-child { border-bottom:none; }
-  .broker-name  { color:var(--text); min-width:90px; }
-  .broker-price { color:var(--dim); min-width:60px; text-align:right; }
-  .broker-avg   { color:var(--dim); min-width:60px; text-align:right; }
-  .broker-disc  { color:#00e5a0; font-weight:700; min-width:55px; text-align:right; }
-  .broker-empty { color:var(--dim); text-align:center; padding:20px 0; font-size:13px; }
-  .broker-footer{ font-size:11px; color:var(--dim); text-align:center; margin-top:12px; }
-  .broker-tabs  { display:flex; gap:6px; margin-bottom:12px; }
-  .broker-tab   { background:rgba(255,255,255,0.06); border:1px solid var(--border);
-                  border-radius:20px; padding:4px 14px; font-size:12px; color:var(--dim);
-                  cursor:pointer; }
-  .broker-tab.active { background:rgba(0,229,160,0.15); border-color:#00e5a0; color:#00e5a0; }
-
 
 
   /* ── Check page ── */
@@ -406,6 +379,10 @@
   .rank-hdr-main { display:flex; align-items:center; margin-bottom:5px; }
   .rank-hdr-sub  { display:flex; align-items:center; gap:0; padding-left:36px; }
   .rank-row      { padding:14px 10px; border-bottom:1px solid rgba(255,255,255,.04); }
+  .rank-row.tappable { cursor:pointer; }
+  .rank-row.tappable:active { background:rgba(255,255,255,.04); }
+  .rank-flow     { font-size:11px; font-weight:700; color:#00c87a; white-space:nowrap;
+                   margin-left:8px; flex-shrink:0; }
   .rank-main     { display:flex; align-items:center; }
   .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
   .rank-no       { width:36px; text-align:center; font-size:18px; font-weight:700; color:var(--dim); flex-shrink:0; }
@@ -426,6 +403,45 @@
   /* ── 逆向計算機 ── */
 
   /* ── 月月領息組合 ── */
+
+  /* ── 主動式 ETF 買賣超 treemap ── */
+  .flow-head   { padding:14px 14px 6px; }
+  .flow-title  { font-size:19px; font-weight:700; letter-spacing:.02em; }
+  .flow-meta   { font-size:13px; color:var(--dim); margin-top:3px; }
+  .flow-totals { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:6px 14px 10px; }
+  .flow-tot    { background:var(--card); border:1px solid var(--border); border-radius:8px;
+                 padding:8px 10px; display:flex; align-items:baseline; justify-content:space-between; }
+  .flow-tot span { font-size:13px; color:var(--dim); }
+  .flow-tot b    { font-size:18px; font-family:var(--mono); }
+  .flow-tot b.buy  { color:#00c87a; }
+  .flow-tot b.sell { color:#ff3f5e; }
+  .flow-chips  { display:flex; gap:6px; overflow-x:auto; padding:0 14px 8px;
+                 -webkit-overflow-scrolling:touch; }
+  .flow-chips::-webkit-scrollbar { display:none; }
+  .flow-chip   { flex:0 0 auto; background:var(--card); border:1px solid var(--border);
+                 border-radius:18px; padding:6px 13px; font-size:13px; color:var(--dim);
+                 font-family:var(--mono); cursor:pointer; white-space:nowrap; }
+  .flow-chip.active { background:rgba(0,200,122,.14); border-color:#00c87a; color:#00c87a; }
+
+  .treemap     { position:relative; width:100%; height:520px; margin:0 auto;
+                 background:var(--card); border-top:1px solid var(--border);
+                 border-bottom:1px solid var(--border); overflow:hidden; }
+  .tm-cell     { position:absolute; overflow:hidden; border:1px solid rgba(13,17,23,.85);
+                 display:flex; flex-direction:column; align-items:center; justify-content:center;
+                 text-align:center; padding:2px; cursor:pointer; }
+  .tm-name     { font-weight:700; line-height:1.15; word-break:break-all; }
+  .tm-amt      { font-family:var(--mono); line-height:1.2; opacity:.95; }
+  .tm-etf      { font-family:var(--mono); opacity:.8; line-height:1.2; }
+  .tm-empty    { display:flex; align-items:center; justify-content:center; height:100%;
+                 color:var(--dim); font-size:15px; text-align:center; padding:0 24px; }
+
+  .flow-tip    { min-height:22px; padding:8px 14px 0; font-size:13px; color:var(--dim);
+                 font-family:var(--mono); }
+  .flow-note   { margin:10px 14px; padding:10px 12px; background:var(--card2);
+                 border:1px solid var(--border); border-left:3px solid var(--fair);
+                 border-radius:6px; font-size:13px; color:var(--dim); line-height:1.6; }
+  .flow-note b { color:var(--bright); }
+  .flow-cover  { margin:0 14px 18px; font-size:12px; color:var(--dim); line-height:1.7; }
 </style>
 </head>
 <body>
@@ -433,7 +449,7 @@
 <!-- Top bar -->
 <div class="topbar">
   <div>
-    <div class="topbar-title">ETF 存股健診</div>
+    <div class="topbar-title">ETF 存股雷達</div>
     <div id="statusBadge" class="status-badge status-closed">載入中…</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="reloadData()">↻</button>
@@ -526,35 +542,36 @@
       </div>
     </div>
 
-    <!-- ══ 分點均價篩選器 ══
-         2026-07-08 下架：資料源查證發現 fetch_broker_signal.py 抓的 TWSE TWT44U
-         其實是「投信買賣超彙總表」（市場整體統計，忽略 stockNo 參數），不是真正的
-         個股券商分點資料，快取因此長期都是無效的 0 筆。真正的個股分點日報需要
-         驗證碼，非付費 API 無法穩定取得，暫時下架避免顯示誤導性的「無便宜個股」。
-         詳見 project_etf_app.md 記憶。若之後找到可靠資料源再解除下面的註解。
-    <div id="broker-signal-section" class="broker-card">
-      <div class="broker-hdr">
-        <span class="broker-title">分點均價以下個股</span>
-        <span class="broker-badge" id="broker-count"></span>
-      </div>
-      <div class="broker-tabs">
-        <button class="broker-tab active" data-window="120" onclick="switchBrokerTab(this)">120 日</button>
-        <button class="broker-tab" data-window="60" onclick="switchBrokerTab(this)">60 日</button>
-      </div>
-      <div class="broker-col-hdr">
-        <span>名稱</span><span>現價</span><span>分點均</span><span>折扣</span>
-      </div>
-      <div id="broker-signal-list"></div>
-      <div id="broker-signal-footer" class="broker-footer"></div>
-    </div>
-    -->
-
   </div>
 
-  <!-- ══ PAGE 4: 健診 ══ -->
+  <!-- ══ PAGE 4: 主動式 ETF 買賣超 ══ -->
   <div class="page" id="page-check">
 
-    <!-- 持倉健檢（D-1） -->
+    <div class="flow-head">
+      <div class="flow-title">主動式 ETF 持股異動</div>
+      <div class="flow-meta" id="flowMeta">載入中…</div>
+    </div>
+
+    <div class="flow-chips" id="flowChips"></div>
+
+    <div class="flow-totals">
+      <div class="flow-tot"><span>加碼</span><b class="buy"  id="flowBuy">–</b></div>
+      <div class="flow-tot"><span>減碼</span><b class="sell" id="flowSell">–</b></div>
+    </div>
+
+    <div id="treemap" class="treemap"></div>
+    <div class="flow-tip" id="flowTip"></div>
+
+    <div class="flow-note">
+      ⚠ 金額為<b>兩份公開 PCF 快照相減的推估值</b>，不等同基金實際成交；
+      除權息、股票分割、成分股調整都可能造成假訊號。面積＝金額，綠加碼、紅減碼。
+    </div>
+    <div class="flow-cover" id="flowCover"></div>
+
+    <!-- ↓ 2026-09-23 下架：持倉健檢 + 財務試算，整頁改放主動式 ETF 買賣超。
+         用 <template> 保存而非刪除（這段本身就含註解，用 HTML 註解會提前收尾）。
+         要恢復：拿掉 template 標籤，並解開下方 JS「健診頁邏輯」的 /* */ 區塊。 -->
+    <template id="archived-check">
     <div class="check-section">
       <div class="check-title">🩺 持倉健檢</div>
       <div style="font-size:16px;color:var(--dim);margin-bottom:14px">輸入代碼、張數、成本價，查看今日持倉現況</div>
@@ -632,6 +649,7 @@
         </div>
       </div>
     </div>
+    </template>
 
   </div>
 
@@ -689,9 +707,10 @@
   </button>
   <button class="nav-btn" id="nav-check" onclick="switchPage('check')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      <rect x="3" y="3" width="10" height="11" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/>
+      <rect x="15" y="11" width="6" height="10" rx="1"/><rect x="3" y="16" width="10" height="5" rx="1"/>
     </svg>
-    <span>健診</span>
+    <span>主動</span>
   </button>
   <button class="nav-btn" id="nav-rank" onclick="switchPage('rank')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -740,9 +759,170 @@ function switchPage(id) {
   document.getElementById('page-'+id).classList.add('active');
   document.getElementById('nav-'+id).classList.add('active');
   window.scrollTo(0,0);
+  // treemap 要容器有寬度才排得出來，切到這頁才畫
+  if (id === 'check') renderFlow();
 }
 
-// ── 健診頁邏輯 ──
+// ══ 主動式 ETF 買賣超 treemap ══════════════════════════════════
+// 資料來自 scripts/fetch_active_etf.py：各投信官網 PCF 兩日快照相減。
+let _flowData = null, _flowCells = [], _flowSel = null;
+
+function fetchFlow() {
+  // 先試同源相對路徑（GitHub Pages 上最新、本機開檔也能測），失敗再退 raw
+  const ok = r => { if (!r.ok) throw 0; return r.json(); };
+  return fetch('data/active_flow.json?t=' + Date.now()).then(ok)
+    .catch(() => fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/active_flow.json?t=' + Date.now()).then(ok))
+    .then(d => { _flowData = d; return d; })
+    .catch(() => null);
+}
+
+// Squarified treemap：把 items 依 value 填滿 (x,y,w,h)，盡量接近正方形
+function squarify(items, x, y, w, h) {
+  const out = [], total = items.reduce((s, i) => s + i.value, 0);
+  if (!total || w <= 0 || h <= 0) return out;
+  const scale = (w * h) / total;
+  const nodes = items.map(i => Object.assign({}, i, { area: i.value * scale }));
+
+  const worst = (row, len) => {
+    const s = row.reduce((a, b) => a + b.area, 0);
+    const mx = Math.max.apply(null, row.map(r => r.area));
+    const mn = Math.min.apply(null, row.map(r => r.area));
+    return Math.max((len * len * mx) / (s * s), (s * s) / (len * len * mn));
+  };
+
+  let rx = x, ry = y, rw = w, rh = h, i = 0;
+  while (i < nodes.length && rw > 0.5 && rh > 0.5) {
+    const vertical = rw >= rh;              // 寬 > 高：在左側疊一整欄
+    const len = vertical ? rh : rw;
+    const row = [nodes[i]];
+    let j = i + 1;
+    while (j < nodes.length && worst(row.concat([nodes[j]]), len) <= worst(row, len)) {
+      row.push(nodes[j]); j++;
+    }
+    const thick = row.reduce((a, b) => a + b.area, 0) / len;
+    let off = 0;
+    for (const n of row) {
+      const side = n.area / thick;
+      out.push(Object.assign({}, n, vertical
+        ? { x: rx, y: ry + off, w: thick, h: side }
+        : { x: rx + off, y: ry, w: side, h: thick }));
+      off += side;
+    }
+    if (vertical) { rx += thick; rw -= thick; }
+    else          { ry += thick; rh -= thick; }
+    i = j;
+  }
+  return out;
+}
+
+const _oku = v => (Math.abs(v) / 1e8).toFixed(1) + '億';
+
+// 取前 keep 檔，其餘併成「其他 N 檔」
+function _trim(list, keep) {
+  if (list.length <= keep) return list.slice();
+  const head = list.slice(0, keep), tail = list.slice(keep);
+  const sum = tail.reduce((s, x) => s + Math.abs(x.amount), 0);
+  head.push({ code: '', name: '其他 ' + tail.length + ' 檔', amount: sum, top_etf: '', _agg: true });
+  return head;
+}
+
+function flowSelect(code) { _flowSel = code; renderFlow(); }
+
+function renderFlow(code) {
+  if (code) _flowSel = code;
+  const box = document.getElementById('treemap');
+  if (!box) return;
+  const draw = () => {
+    const d = _flowData;
+    if (!d) { box.innerHTML = '<div class="tm-empty">持股異動資料載入失敗</div>'; return; }
+
+    const all = d.etfs || {};
+    const codes = Object.keys(all).sort();
+    if (!codes.length) { box.innerHTML = '<div class="tm-empty">目前沒有可用的主動式 ETF 資料</div>'; return; }
+
+    // 預設選異動金額最大的那檔，最有得看
+    if (!_flowSel || !all[_flowSel]) {
+      _flowSel = codes.slice().sort((a, b) =>
+        (Math.abs(all[b].buy) + Math.abs(all[b].sell)) - (Math.abs(all[a].buy) + Math.abs(all[a].sell)))[0];
+    }
+    const e = all[_flowSel];
+
+    document.getElementById('flowChips').innerHTML = codes.map(c =>
+      '<div class="flow-chip' + (c === _flowSel ? ' active' : '') + '" onclick="flowSelect(\'' + c + '\')">' +
+      c + '</div>').join('');
+
+    document.getElementById('flowMeta').textContent =
+      e.name + '　持股 ' + e.holdings + ' 檔' +
+      (e.comparable ? '　' + (d.basis_date || '') + ' → ' + (d.data_date || '') : '');
+    document.getElementById('flowBuy').textContent  = '+' + _oku(e.buy || 0);
+    document.getElementById('flowSell').textContent = '-' + _oku(e.sell || 0);
+    document.getElementById('flowCover').textContent =
+      '資料來源：' + e.issuer + '投信官網公告 PCF（申購買回清單）　資料日 ' + (d.data_date || '-') +
+      '　收盤價 ' + (d.price_date || '-');
+    document.getElementById('flowTip').textContent = '';
+
+    if (!e.comparable) {
+      box.innerHTML = '<div class="tm-empty">這檔還沒有前一日的持股可比對<br>' +
+        '（' + e.issuer + '投信官網沒有歷史查詢，要等下一個交易日）</div>';
+      return;
+    }
+    const rows = e.flow || [];
+    if (!rows.length) { box.innerHTML = '<div class="tm-empty">' + e.name + ' 今日持股無異動</div>'; return; }
+
+    const W = box.clientWidth, H = box.clientHeight;
+    const buys  = _trim(rows.filter(s => s.amount > 0), 14);
+    const sells = _trim(rows.filter(s => s.amount < 0).map(s => Object.assign({}, s, { amount: -s.amount })), 12);
+    const bSum = buys.reduce((s, x) => s + x.amount, 0);
+    const sSum = sells.reduce((s, x) => s + x.amount, 0);
+    const tot  = bSum + sSum;
+    if (!tot) { box.innerHTML = '<div class="tm-empty">今日無金額異動</div>'; return; }
+
+    let sellW = Math.round(W * sSum / tot);
+    sellW = Math.max(0, Math.min(W, sellW));
+    const cells = []
+      .concat(squarify(sells.map(s => ({ d: s, value: s.amount })), 0, 0, sellW, H).map(c => (c.side = 'sell', c)))
+      .concat(squarify(buys .map(s => ({ d: s, value: s.amount })), sellW, 0, W - sellW, H).map(c => (c.side = 'buy', c)));
+
+    _flowCells = cells.map(c => c.d);          // 點擊時用索引查回原始資料
+    box.innerHTML = cells.map((c, idx) => {
+      const s = c.d, big = Math.min(c.w, c.h);
+      const bg = c.side === 'buy'
+        ? 'rgba(0,200,122,' + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')'
+        : 'rgba(255,63,94,'  + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')';
+      const fs   = Math.max(9, Math.min(17, big / 4.2));
+      const show = c.w > 42 && c.h > 26;
+      const sub  = c.w > 58 && c.h > 46;
+      return '<div class="tm-cell" style="left:' + c.x.toFixed(1) + 'px;top:' + c.y.toFixed(1) +
+        'px;width:' + c.w.toFixed(1) + 'px;height:' + c.h.toFixed(1) + 'px;background:' + bg + '"' +
+        ' onclick="flowTap(' + idx + ')">' +
+        (show ? '<div class="tm-name" style="font-size:' + fs.toFixed(0) + 'px">' + s.name + '</div>' : '') +
+        (sub  ? '<div class="tm-amt"  style="font-size:' + (fs * .78).toFixed(0) + 'px">' + _oku(s.amount) + '</div>' : '') +
+        (sub && s.delta_shares ? '<div class="tm-etf" style="font-size:' + (fs * .66).toFixed(0) + 'px">' +
+          (s.delta_shares > 0 ? '+' : '') + Math.round(s.delta_shares / 1000) + '張</div>' : '') +
+        '</div>';
+    }).join('');
+  };
+
+  if (_flowData) draw(); else fetchFlow().then(draw);
+}
+
+function flowTap(idx) {
+  const s = _flowCells[idx];
+  const tip = document.getElementById('flowTip');
+  if (!s || !tip) return;
+  if (s._agg) { tip.textContent = s.name + '　合計 ' + _oku(s.amount); return; }
+  const dir = s.amount > 0 ? '加碼' : '減碼';
+  tip.textContent = s.code + ' ' + s.name + '　' + dir + ' ' + _oku(s.amount) +
+    '　' + (s.delta_shares > 0 ? '+' : '') + (s.delta_shares || 0).toLocaleString() + ' 股';
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('page-check').classList.contains('active')) renderFlow();
+});
+
+/* ── 健診頁邏輯（2026-09-23 下架，整頁改放主動式 ETF 買賣超）──
+   對應的 HTML 存在 <template id="archived-check"> 裡，兩邊要一起恢復。
+── 以下原樣保留 ──
 let _dcaOn = true, _rate = 8;
 
 function setDCA(on) {
@@ -933,6 +1113,7 @@ function runETFCheck() {
     </div>`;
   }).join('');
 }
+── 健診頁邏輯結束 ── */
 
 // ── Mini bar chart（全域，排行頁與持倉健檢共用）──────────────────
 function miniBars(months) {
@@ -1117,7 +1298,7 @@ function renderMood(market) {
     { min:  0.3, emoji:'😊', main:'大盤微微暖',     sub:'存股族笑笑看，跟風族先別急',   cta:'🔥 熱門排行更新囉 ▼' },
     { min: -0.3, emoji:'😐', main:'大盤裝睡中',     sub:'不漲不跌，適合慢慢挑',         cta:'🎯 來看看哪些 ETF 處於甜蜜點 ▼' },
     { min: -1.0, emoji:'🍂', main:'大盤小休息',     sub:'存股族的撿便宜時機到了？',     cta:'💧 今日合理價清單 ▼' },
-    { min: -999, emoji:'🌧️', main:'大盤下雨天',     sub:'新聞會嚇人，但便宜貨可能來了', cta:'💎 跌出機會了嗎？來看健診 ▼' },
+    { min: -999, emoji:'🌧️', main:'大盤下雨天',     sub:'新聞會嚇人，但便宜貨可能來了', cta:'💎 跌出機會了嗎？來看今日合理價 ▼' },
   ];
 
   const m = MOODS.find(x => pct >= x.min) || MOODS[MOODS.length-1];
@@ -1346,7 +1527,10 @@ function renderRank() {
     const y1C   = retClr(e.ret1y);
     const _tag  = getEtfTag(e.code, e.name);
     const tagHtml = _tag ? `<div class="rank-tag" style="color:${_tag.color};border-color:${_tag.border};background:${_tag.bg}">${_tag.label}</div>` : '';
-    return `<div class="rank-row">
+    // 有 PCF 持股資料的主動式 ETF 才可點；抓不到的維持原樣，不標記也不給點
+    const hasFlow  = !!(_flowData && _flowData.etfs && _flowData.etfs[e.code]);
+    const flowHtml = hasFlow ? `<div class="rank-flow">持股異動 ›</div>` : '';
+    return `<div class="rank-row${hasFlow ? ' tappable' : ''}"${hasFlow ? ` onclick="openFlow('${e.code}')"` : ''}>
       <div class="rank-main">
         <div class="rank-no ${cls}">${rank}</div>
         <div class="rank-etf">
@@ -1361,7 +1545,7 @@ function renderRank() {
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>
-        ${tagHtml}
+        ${tagHtml}${flowHtml}
       </div>
     </div>`;
   }).join('');
@@ -1372,6 +1556,12 @@ function reloadData() {
   window.location.href = window.location.pathname + '?v=' + Date.now();
 }
 let _pollTimer = null;
+// 排行榜要知道哪幾檔有 PCF 持股資料才能決定可不可點，所以開場先抓一次，
+// 回來後補畫一次排行（之後 30 秒輪詢的 renderRank 就都帶得到了）。
+fetchFlow().then(d => { if (d) renderRank(); });
+
+function openFlow(code) { _flowSel = code; switchPage('check'); }
+
 function fetchData() {
   fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/market.json?t=' + Date.now())
     .then(r => r.json())
@@ -1382,57 +1572,6 @@ function fetchData() {
   }
 }
 fetchData();
-
-// ── 分點均價篩選器 ──
-let _brokerJson = null;
-let _brokerWindow = 120;
-
-function renderBrokerList() {
-  const listEl   = document.getElementById('broker-signal-list');
-  const footerEl = document.getElementById('broker-signal-footer');
-  const countEl  = document.getElementById('broker-count');
-  if (!_brokerJson) return;
-  const data = _brokerWindow === 60
-    ? (_brokerJson.data_60 || [])
-    : (_brokerJson.data    || []);
-  if (countEl) countEl.textContent = data.length ? `${data.length} 檔` : '';
-  if (!data.length) {
-    listEl.innerHTML = '<div class="broker-empty">目前大盤偏強，無個股低於分點均價</div>';
-    if (footerEl) footerEl.textContent = `${_brokerJson.updated} 更新・${_brokerWindow} 日分點資料`;
-    return;
-  }
-  listEl.innerHTML = data.map(r => {
-    const disc = r.discount.toFixed(1);
-    return `<div class="broker-row">
-      <span class="broker-name">${r.name}</span>
-      <span class="broker-price">${r.price}</span>
-      <span class="broker-avg">${r.avg}</span>
-      <span class="broker-disc">-${disc}%</span>
-    </div>`;
-  }).join('');
-  if (footerEl) footerEl.textContent = `${_brokerJson.updated} 更新・${_brokerWindow} 日分點資料・${data.length} 檔`;
-}
-
-function switchBrokerTab(btn) {
-  _brokerWindow = parseInt(btn.dataset.window);
-  document.querySelectorAll('.broker-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderBrokerList();
-}
-
-// 2026-07-08 下架：分點均價區塊已從 HTML 移除（資料源查證失敗，見上方註解），
-// 停用這個 fetch 避免對已下架的 DOM 元素操作、也省一次無意義的網路請求。
-// (async function loadBrokerSignal() {
-//   const listEl = document.getElementById('broker-signal-list');
-//   try {
-//     const resp = await fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/broker_signal.json?_=' + Date.now());
-//     if (!resp.ok) throw new Error('no data');
-//     _brokerJson = await resp.json();
-//     renderBrokerList();
-//   } catch(e) {
-//     listEl.innerHTML = '<div class="broker-empty">資料準備中</div>';
-//   }
-// })();
 </script>
 
 </body>

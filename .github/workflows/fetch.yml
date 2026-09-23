@@ -30,6 +30,12 @@ jobs:
         continue-on-error: true
         run: python scripts/fetch_dividend_calendar.py
 
+      # 主動式 ETF 持股（各投信 PCF）。投信官網可能擋 Actions IP 或改版，
+      # 失敗不要讓整條 pipeline 掛掉——腳本自己會保留既有檔案不覆蓋。
+      - name: Fetch active ETF holdings (PCF)
+        continue-on-error: true
+        run: python scripts/fetch_active_etf.py
+
       - name: Daily check & auto-fix avg
         continue-on-error: true
         env:
@@ -41,7 +47,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json data/daily_state.json data/etf_pool_cache.json
+          git add data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json data/daily_state.json data/etf_pool_cache.json data/active_flow.json data/_active_snapshot.json
           git diff --cached --quiet || git commit -m "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')"
           git pull --rebase origin main
           git push

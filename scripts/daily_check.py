@@ -104,7 +104,7 @@ def main():
     div_cal  = load(DIV_CAL)
 
     if not market or not div_info:
-        notify("⚠ ETF健診：market.json 或 dividend_info.json 讀取失敗")
+        notify("⚠ ETF存股雷達：market.json 或 dividend_info.json 讀取失敗")
         return
 
     etfs     = market.get("etfs", [])
@@ -118,7 +118,7 @@ def main():
 
     # ── 0c. TWSE 官方收盤核對來源抓取失敗（price 僅靠 yfinance，可能有整批 NaN 延遲風險）──
     if not market.get("twse_price_check_date"):
-        notify("⚠ ETF健診：本次 fetch_etf.py 未能取得 TWSE 官方收盤核對來源，\n"
+        notify("⚠ ETF存股雷達：本次 fetch_etf.py 未能取得 TWSE 官方收盤核對來源，\n"
                "price 僅來自 yfinance，若當天 yfinance 剛好整批延遲/NaN 將無法自動修正，請人工確認現價")
 
     # ── 載入跨日狀態 ──
@@ -231,10 +231,10 @@ def main():
     # ── 發通知 ──
     lines = []
     if issues:
-        lines.append("🚨 ETF健診 資料異常")
+        lines.append("🚨 ETF存股雷達 資料異常")
         lines.extend(issues)
     if updated:
-        lines.append("✅ ETF健診 avg 自動更新")
+        lines.append("✅ ETF存股雷達 avg 自動更新")
         lines.extend(updated)
     if cheap_alerts:
         lines.append("💚 監控清單 便宜訊號")
