@@ -375,6 +375,29 @@
 
   /* ── Rank page ── */
   .rank-sticky   { position:sticky; top:0; z-index:10; background:var(--bg); padding-bottom:4px; }
+  .rank-caveat   { font-size:13px; color:var(--dim); margin-bottom:8px; line-height:1.5; }
+  .rank-caveat b { color:var(--fair); }
+  .rank-find     { position:relative; margin-bottom:6px; }
+  .rank-find input {
+    width:100%; box-sizing:border-box; background:var(--card); color:var(--bright);
+    border:1px solid var(--border); border-radius:8px; padding:10px 34px 10px 12px;
+    font-size:16px; font-family:var(--sans); outline:none;
+  }
+  .rank-find input:focus { border-color:var(--fair); }
+  .rank-find input::-webkit-search-cancel-button { display:none; }
+  .rank-find button {
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--dim); font-size:17px; cursor:pointer;
+    padding:4px 8px; line-height:1;
+  }
+  .rank-find-msg { font-size:14px; margin-bottom:8px; min-height:0; line-height:1.5; }
+  .rank-find-msg.hit  { color:var(--fair); }
+  .rank-find-msg.miss { color:var(--dim); }
+  /* 找到的那一列用靜態底色 + 左側標線標出來。
+     不用閃爍動畫——這個 App 明確不要閃框/閃光。 */
+  .rank-row.found { background:rgba(240,184,64,.14);
+                    border-left:3px solid var(--fair);
+                    padding-left:7px; }
   .rank-hdr      { font-size:15px; color:#c4b5fd; background:rgba(196,181,253,.13); border-radius:8px; margin-bottom:4px; padding:9px 10px 10px; }
   .rank-hdr-main { display:flex; align-items:center; margin-bottom:5px; }
   .rank-hdr-sub  { display:flex; align-items:center; gap:0; padding-left:36px; }
@@ -662,7 +685,14 @@
       <div class="section-hdr" style="color:#FFD700; border-color:rgba(255,215,0,.2); margin-bottom:6px;">
         ETF 成交量排行
       </div>
-      <div style="font-size:13px; color:var(--dim); margin-bottom:8px;">依當日成交量排序 · 共 <span id="rankTotal">-</span> 支</div>
+      <div style="font-size:13px; color:var(--dim); margin-bottom:2px;">依當日成交量排序 · 共 <span id="rankTotal">-</span> 支</div>
+      <div class="rank-caveat">⚠ 排名高＝今天很多人在買賣，<b>不代表比較好或比較適合存股</b></div>
+      <div class="rank-find">
+        <input id="rankFind" type="search" placeholder="🔍 輸入代碼或名稱，找你的 ETF"
+               autocomplete="off" oninput="findInRank()" onkeydown="if(event.key==='Enter')findInRank()">
+        <button id="rankFindClear" onclick="clearRankFind()" hidden>✕</button>
+      </div>
+      <div class="rank-find-msg" id="rankFindMsg"></div>
       <div class="rank-hdr">
         <div class="rank-hdr-main">
           <div style="width:34px">#</div>
@@ -769,6 +799,7 @@ function switchPage(id) {
 // ══ 主動式 ETF 買賣超 treemap ══════════════════════════════════
 // 資料來自 scripts/fetch_active_etf.py：各投信官網 PCF 兩日快照相減。
 let _flowData = null, _flowCells = [], _flowSel = null;
+let _rankSorted = [];   // 排行頁當前榜單，搜尋定位用
 
 function fetchFlow() {
   // 先試同源相對路徑（GitHub Pages 上最新、本機開檔也能測），失敗再退 raw
@@ -1512,6 +1543,7 @@ function renderRank() {
     .slice(0, 100);
 
   document.getElementById('rankTotal').textContent = sorted.length;
+  _rankSorted = sorted;
 
   document.getElementById('rankRows').innerHTML = sorted.map((e, i) => {
     const rank  = i + 1;
@@ -1535,7 +1567,7 @@ function renderRank() {
     // 有 PCF 持股資料的主動式 ETF 才可點；抓不到的維持原樣，不標記也不給點
     const hasFlow  = !!(_flowData && _flowData.etfs && _flowData.etfs[e.code]);
     const flowHtml = hasFlow ? `<div class="rank-flow">持股異動 ›</div>` : '';
-    return `<div class="rank-row${hasFlow ? ' tappable' : ''}"${hasFlow ? ` onclick="openFlow('${e.code}')"` : ''}>
+    return `<div class="rank-row${hasFlow ? ' tappable' : ''}" data-code="${e.code}" data-rank="${rank}"${hasFlow ? ` onclick="openFlow('${e.code}')"` : ''}>
       <div class="rank-main">
         <div class="rank-no ${cls}">${rank}</div>
         <div class="rank-etf">
@@ -1554,6 +1586,77 @@ function renderRank() {
       </div>
     </div>`;
   }).join('');
+
+  applyRankFind(false);   // 每 30 秒重畫一次，把使用者的搜尋高亮補回來（不重新捲動）
+}
+
+// ── 排行頁：找自己的 ETF ──────────────────────────────────────
+// 只定位不過濾——使用者要看的是「我在第幾名」，把其他 99 支藏掉就失去參照。
+let _rankFind = '';
+
+function findInRank() {
+  const el = document.getElementById('rankFind');
+  _rankFind = (el.value || '').trim();
+  document.getElementById('rankFindClear').hidden = !_rankFind;
+  applyRankFind(true);
+}
+
+function clearRankFind() {
+  document.getElementById('rankFind').value = '';
+  _rankFind = '';
+  document.getElementById('rankFindClear').hidden = true;
+  applyRankFind(false);
+}
+
+function _matchEtf(e, q) {
+  const code = (e.code || '').toUpperCase();
+  const name = e.name || '';
+  if (code === q) return 3;                 // 代碼完全相同最優先
+  if (code.startsWith(q)) return 2;
+  if (code.includes(q) || name.includes(q)) return 1;
+  return 0;
+}
+
+function applyRankFind(scroll) {
+  const msg = document.getElementById('rankFindMsg');
+  document.querySelectorAll('#rankRows .rank-row.found')
+          .forEach(r => r.classList.remove('found'));
+  if (!_rankFind) { msg.textContent = ''; msg.className = 'rank-find-msg'; return; }
+
+  const q = _rankFind.toUpperCase();
+  const hits = _rankSorted
+    .map((e, i) => ({ e, rank: i + 1, score: _matchEtf(e, q) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score || a.rank - b.rank);
+
+  if (hits.length) {
+    // 符合的全部標示，不只第一支——打「富邦」時使用者想看的可能是排在很後面的
+    // 006208，只標最前面那支（00405A 第4名）等於找不到自己那支。
+    hits.forEach(h => {
+      const r = document.querySelector(`#rankRows .rank-row[data-code="${h.e.code}"]`);
+      if (r) r.classList.add('found');
+    });
+    const h = hits[0];
+    msg.className = 'rank-find-msg hit';
+    msg.textContent = hits.length === 1
+      ? `${h.e.code} ${h.e.name} — 第 ${h.rank} 名 / 共 ${_rankSorted.length} 支`
+      : `${hits.length} 支符合，已全部標示（最前面是 ${h.e.code} ${h.e.name}，第 ${h.rank} 名）`;
+    const row = document.querySelector(`#rankRows .rank-row[data-code="${h.e.code}"]`);
+    if (row && scroll) {
+      const top = row.getBoundingClientRect().top + window.scrollY
+                - (document.querySelector('.rank-sticky')?.offsetHeight || 0) - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+    return;
+  }
+
+  // 榜外：要明講「有這支但沒進榜」，不然使用者會以為搜尋壞了
+  const off = ETFS.filter(e => _matchEtf(e, q) > 0)
+                  .sort((a, b) => _matchEtf(b, q) - _matchEtf(a, q));
+  msg.className = 'rank-find-msg miss';
+  msg.textContent = off.length
+    ? `${off[0].code} ${off[0].name} — 不在今日 TOP ${_rankSorted.length}（成交量未進榜，不代表不好）`
+    : `找不到「${_rankFind}」，試試代碼或名稱關鍵字`;
 }
 
 // ── Bootstrap & reload ──
