@@ -3,7 +3,7 @@ scripts/daily_check.py
 每日收盤後驗證 market.json 資料品質，有異常發 Telegram 通知。
 自動修正：TWSE 官方新配息金額 vs 儲存 avg 差 >15% → 更新 dividend_info.json
 """
-import json, os, sys, time, urllib.request
+import ast, datetime, json, os, re, sys, time, urllib.request
 from pathlib import Path
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
@@ -61,6 +61,44 @@ def load(path):
 def save_json(path, obj):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=False, indent=2)
+
+
+FETCH_ETF          = ROOT / "fetch_etf.py"
+STALE_PENDING_DAYS = 90
+
+
+def check_stale_pending() -> list:
+    """_YLD_PENDING 是人工維護、不會自動清除的清單，放著沒人複查就會一直顯示
+    「待公告」——2026-09-23 就發現有 8 支滿 1 歲、最久 2.2 年沒人回頭查。
+    這裡挑出超過 STALE_PENDING_DAYS 天沒複查的，提醒去查是不是已經開始配息。
+
+    _YLD_PENDING 是 {代碼: "最後查證日"} 的 dict 字面值，直接從原始碼取出後用
+    ast.literal_eval 解析（不 import fetch_etf，那支在 import 時就會打 TWSE API）。
+    解析失敗就安靜跳過，寧可不提醒也不要誤報。
+    """
+    try:
+        src = FETCH_ETF.read_text(encoding="utf-8")
+        m = re.search(r"_YLD_PENDING\s*=\s*(\{.*?\n\})", src, re.S)
+        if not m:
+            return []
+        pending = ast.literal_eval(m.group(1))
+        if not isinstance(pending, dict):
+            return []                      # 還是舊的 set 格式，沒有日期可判
+    except Exception as e:
+        print(f"[WARN] _YLD_PENDING 解析失敗，跳過逾期檢查: {e}")
+        return []
+
+    today, out = datetime.date.today(), []
+    for code, checked in pending.items():
+        try:
+            d = datetime.date.fromisoformat(str(checked))
+        except ValueError:
+            continue
+        days = (today - d).days
+        if days > STALE_PENDING_DAYS:
+            out.append((days, f"• {code}：已 {days} 天未複查（上次 {checked}）"))
+    out.sort(reverse=True)
+    return [t for _, t in out]
 
 
 def check_new_in_top100(etfs: list) -> list:
@@ -228,6 +266,9 @@ def main():
     # ── TOP 100 新進偵測 ──
     new_entries = check_new_in_top100(etfs)
 
+    # ── _YLD_PENDING 逾期未複查 ──
+    stale = check_stale_pending()
+
     # ── 發通知 ──
     lines = []
     if issues:
@@ -239,6 +280,9 @@ def main():
     if cheap_alerts:
         lines.append("💚 監控清單 便宜訊號")
         lines.extend(cheap_alerts)
+    if stale:
+        lines.append(f"⏰ 待公告 ETF 逾 {STALE_PENDING_DAYS} 天未複查（查到已配息就從 _YLD_PENDING 移除）")
+        lines.extend(stale)
     # 新進榜只在有資料問題時通知
     problem_entries = []
     for e in new_entries:
