@@ -1682,7 +1682,7 @@
       "code": "00940",
       "name": "元大台灣價值高息",
       "amt": 0.06,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
