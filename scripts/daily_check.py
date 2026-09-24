@@ -66,6 +66,50 @@ def save_json(path, obj):
 FETCH_ETF          = ROOT / "fetch_etf.py"
 STALE_PENDING_DAYS = 90
 
+ACTIVE_FLOW      = ROOT / "data" / "active_flow.json"
+ACTIVE_MIN_ETFS  = 9     # 目前接 11 檔；掉到 9 以下代表至少一家投信的 adapter 壞了
+ACTIVE_STALE_ALL = 4     # 全部 ETF 的最新資料日都超過這天數 → 整條抓取停擺
+ACTIVE_STALE_ONE = 7     # 單一 ETF 資料日落後這麼多天 → 那家投信可能改版或擋我們
+
+
+def check_active_flow() -> list:
+    """主動式 ETF 持股資料的健康檢查。
+
+    fetch.yml 裡這個步驟是 continue-on-error，抓取整個失敗也不會讓 workflow 紅燈；
+    加上 PCF 本來就有 1~2 天公告延遲，「數字沒動」看起來很正常——沒有這個檢查，
+    投信改版或擋 IP 會完全靜默，只能等人察覺。這是本專案反覆出現的失效模式。
+    """
+    issues = []
+    data = load(ACTIVE_FLOW)
+    if not data:
+        return ["• active_flow.json 讀取失敗或不存在"]
+
+    etfs = data.get("etfs") or {}
+    if len(etfs) < ACTIVE_MIN_ETFS:
+        issues.append(f"• 主動式 ETF 只剩 {len(etfs)} 檔（低於 {ACTIVE_MIN_ETFS}），"
+                      f"可能有投信 adapter 壞了")
+
+    today, dates = datetime.date.today(), {}
+    for code, e in etfs.items():
+        try:
+            dates[code] = datetime.date.fromisoformat(str(e.get("data_date")))
+        except (TypeError, ValueError):
+            issues.append(f"• {code} {e.get('name','')}：沒有有效的資料日")
+
+    if dates:
+        newest = max(dates.values())
+        gap = (today - newest).days
+        if gap > ACTIVE_STALE_ALL:
+            issues.append(f"• 主動式 ETF 全面停更：最新資料日 {newest}（已 {gap} 天）")
+        else:
+            # 只有個別投信落後才逐檔列，否則全面停更時會洗版
+            for code, d in sorted(dates.items(), key=lambda x: x[1]):
+                lag = (today - d).days
+                if lag > ACTIVE_STALE_ONE:
+                    issues.append(f"• {code} {etfs[code].get('name','')}："
+                                  f"資料日 {d} 已落後 {lag} 天（{etfs[code].get('issuer','')}投信）")
+    return issues
+
 
 def check_stale_pending() -> list:
     """_YLD_PENDING 是人工維護、不會自動清除的清單，放著沒人複查就會一直顯示
@@ -269,6 +313,9 @@ def main():
     # ── _YLD_PENDING 逾期未複查 ──
     stale = check_stale_pending()
 
+    # ── 主動式 ETF 持股資料健康檢查 ──
+    active_issues = check_active_flow()
+
     # ── 發通知 ──
     lines = []
     if issues:
@@ -280,6 +327,9 @@ def main():
     if cheap_alerts:
         lines.append("💚 監控清單 便宜訊號")
         lines.extend(cheap_alerts)
+    if active_issues:
+        lines.append("📉 主動式 ETF 持股資料異常")
+        lines.extend(active_issues)
     if stale:
         lines.append(f"⏰ 待公告 ETF 逾 {STALE_PENDING_DAYS} 天未複查（查到已配息就從 _YLD_PENDING 移除）")
         lines.extend(stale)
