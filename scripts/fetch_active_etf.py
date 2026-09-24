@@ -423,7 +423,87 @@ def fetch_taishin(date_obj, specific=False):
     return out
 
 
-ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin]
+# ══════════════════════════════════════════════════════════════
+# Adapter：中國信託投信（www.ctbcinvestments.com.tw）
+#   Vue SPA，資料走 JSON API，但要先換 token：
+#     1. POST /API/home/AuthToken  token=www.ctbcinvestments.com（寫死的初始值）
+#        → 回 Data.token（真 token，約 115 字元）
+#     2. POST /API/etf/Buyback?token=<真token>  body {FID, StartDate, token}
+#        token 要同時放 query 與 body，缺一不可
+#   持股在 Data.Detail[Code=="STOCK"].Data，欄位 code_/name_/qty_
+#   資料日用「淨值日期」，不是「公告日」（公告日是次一營業日）
+#   FID 是投信內部代碼，可由 /API/etf/ETFCNOList 取得
+# ══════════════════════════════════════════════════════════════
+CTBC_API   = "https://www.ctbcinvestments.com.tw/API/"
+CTBC_FUNDS = {
+    "00406A": ("E0038", "主動中信台灣收益"),
+    "00983A": ("E0034", "主動中信ARK創新"),
+    "00995A": ("E0036", "主動中信台灣卓越"),
+}
+
+
+def _ctbc_token():
+    body = json.dumps({"token": "www.ctbcinvestments.com"}).encode()
+    req = urllib.request.Request(
+        CTBC_API + "home/AuthToken?token=www.ctbcinvestments.com", data=body,
+        headers={"User-Agent": UA, "Content-Type": "application/json; charset=utf-8"})
+    with urllib.request.urlopen(req, timeout=20, context=_SSL) as r:
+        return json.loads(r.read().decode("utf-8"))["Data"]["token"]
+
+
+def fetch_ctbc(date_obj, specific=False):
+    try:
+        token = _ctbc_token()
+    except Exception as e:
+        print(f"[中信] 取 token 失敗: {e}")
+        return {}
+
+    out = {}
+    for ticker, (fid, name) in CTBC_FUNDS.items():
+        body = json.dumps({"FID": fid, "token": token,
+                           "StartDate": date_obj.strftime("%Y/%m/%d")}).encode()
+        url = CTBC_API + "etf/Buyback?token=" + urllib.parse.quote(token, safe="")
+        try:
+            req = urllib.request.Request(url, data=body, headers={
+                "User-Agent": UA, "Content-Type": "application/json; charset=utf-8"})
+            d = json.loads(urllib.request.urlopen(req, timeout=25, context=_SSL)
+                           .read().decode("utf-8"))
+        except Exception as e:
+            print(f"[中信] {ticker} 失敗: {e}")
+            continue
+        if d.get("ResultCode") != 0 or not d.get("Data"):
+            print(f"[中信] {ticker} 回應異常: {str(d.get('ResultMsg'))[:40]}")
+            continue
+
+        data = d["Data"]
+        head = (data.get("Data") or [{}])[0]
+        # 用淨值日期，不是公告日——公告日是次一營業日
+        raw = str(head.get("淨值日期") or head.get("每受益權單位淨資產價值DATE") or "")
+        m = re.search(r"(\d{4})[/-](\d{2})[/-](\d{2})", raw)
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        holdings = {}
+        for grp in data.get("Detail") or []:
+            if grp.get("Code") != "STOCK":
+                continue                       # 期貨/選擇權/現金不算持股
+            for x in grp.get("Data") or []:
+                code = str(x.get("code_", "")).strip()
+                try:
+                    share = int(float(str(x.get("qty_", "0")).replace(",", "")))
+                except ValueError:
+                    continue
+                if code and share:
+                    holdings[code] = {"name": str(x.get("name_", "")).strip(),
+                                      "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "中信",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[中信] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        time.sleep(1)
+    return out
+
+
+ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc]
 
 
 # ══════════════════════════════════════════════════════════════
