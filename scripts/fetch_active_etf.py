@@ -300,7 +300,62 @@ def fetch_sinopac(date_obj, specific=False):
                        "data_date": data_date, "holdings": holdings}}
 
 
-ADAPTERS = [fetch_tsit, fetch_sinopac]
+# ══════════════════════════════════════════════════════════════
+# Adapter：凱基投信（www.kgifund.com.tw）
+#   POST /Fund/RedemptionVC  fundID=<內部代碼>&queryDate=<YYYY/MM/DD 或空>
+#   回傳 HTML 片段，表格欄位 [代碼, 名稱, 股數, 權重]，名稱是 HTML 實體編碼
+#   資料日在 <input id="DataDate" value="2026/09/24">，實測**沒有延遲**
+#   fundID 同樣是投信內部代碼（00407A → J024），不是股票代號
+# ══════════════════════════════════════════════════════════════
+KGI_FUNDS = {"00407A": ("J024", "主動凱基台灣")}
+
+
+def fetch_kgi(date_obj, specific=False):
+    import html as _html
+    url = "https://www.kgifund.com.tw/Fund/RedemptionVC"
+    out = {}
+    for ticker, (fund_id, name) in KGI_FUNDS.items():
+        body = urllib.parse.urlencode({
+            "fundID": fund_id,
+            "queryDate": date_obj.strftime("%Y/%m/%d") if specific else "",
+        }).encode()
+        try:
+            req = urllib.request.Request(url, data=body, headers={
+                "User-Agent": UA,
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-Requested-With": "XMLHttpRequest",
+                "Referer": "https://www.kgifund.com.tw/Fund/RedemptionList",
+            })
+            page = urllib.request.urlopen(req, timeout=25, context=_SSL).read().decode("utf-8", "replace")
+        except Exception as e:
+            print(f"[凱基] {ticker} 失敗: {e}")
+            continue
+
+        m = re.search(r'DataDate[^>]*value="(\d{4})[/-](\d{2})[/-](\d{2})"', page)
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        tag = re.compile(r"<[^>]+>")
+        holdings = {}
+        for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S | re.I):
+            cells = [_html.unescape(tag.sub("", c)).replace("\xa0", " ").strip()
+                     for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S | re.I)]
+            if len(cells) < 3 or not re.fullmatch(r"\d{4,6}[A-Z]?", cells[0]):
+                continue
+            try:
+                share = int(cells[2].replace(",", ""))
+            except ValueError:
+                continue
+            if share:
+                holdings[cells[0]] = {"name": cells[1], "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "凱基",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[凱基] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        time.sleep(1)
+    return out
+
+
+ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -377,12 +432,33 @@ def build_flow(prev, cur):
                 "amount": round(d * price, 0),
             })
         rows.sort(key=lambda x: -abs(x["amount"]))
+
+        # 整檔基金申購/贖回時，所有持股會同步等比例增減——那不是經理人換股。
+        # 實測 00407A 2026-09-24：50 檔裡 49 檔同步 -3.65%，顯示成「減碼 8.3 億」
+        # 會讓人以為經理人在賣股，其實只是規模縮水。同向且比例接近就標示出來。
+        scale_pct = None
+        ratios = []
+        for code in set(before) & set(after):
+            b = before[code].get("shares", 0)
+            a = after[code].get("shares", 0)
+            if b:
+                ratios.append((a - b) / b)
+        moved = [r for r in ratios if abs(r) > 0.0005]
+        if len(moved) >= 5 and len(moved) >= 0.6 * len(after) and \
+           (all(r > 0 for r in moved) or all(r < 0 for r in moved)):
+            med = sorted(moved)[len(moved) // 2]
+            # 六成以上持股同向，且變動幅度集中在中位數附近 → 判定為規模變動
+            close = [r for r in moved if abs(r - med) <= abs(med) * 0.35]
+            if len(close) >= 0.8 * len(moved):
+                scale_pct = round(med * 100, 2)
+
         if no_price:
             print(f"[WARN] {etf} 有 {len(no_price)} 檔異動查不到收盤價，未計入金額：{no_price}")
         out[etf] = {
             "advanced":   True,
             "reason":     "ok",
             "no_price":   no_price,
+            "scale_pct":  scale_pct,   # 非 None = 全池同步等比例增減（申贖造成的規模變動）
             "data_date":  d_new,
             "basis_date": d_old,
             "price_date": price_date,
@@ -466,6 +542,7 @@ def main():
                 "flow_to":    f.get("data_date"),
                 "price_date": f.get("price_date"),
                 "no_price": f.get("no_price") or [],   # 有異動但查無報價（海外持股）
+                "scale_pct": f.get("scale_pct"),
                 "buy": f["buy"], "sell": f["sell"],
                 "changed": f["changed"], "flow": f["flow"],
             })
@@ -478,6 +555,7 @@ def main():
                 "flow_to":    o.get("flow_to"),
                 "price_date": o.get("price_date"),
                 "no_price": o.get("no_price") or [],
+                "scale_pct": o.get("scale_pct"),
                 "buy": o.get("buy", 0), "sell": o.get("sell", 0),
                 "changed": o.get("changed", 0), "flow": o.get("flow", []),
             })

@@ -896,11 +896,15 @@ function renderFlow(code) {
       (e.price_date ? '　金額以 ' + e.price_date + ' 收盤價換算' : '') +
       '　PCF 公告通常落後行情 1~2 天';
     const np = (e.no_price || []).length;
-    document.getElementById('flowTip').textContent =
-      e.advanced === false && e.reason === 'not_updated'
-        ? '⏳ ' + (e.data_date || '') + ' 之後尚未有新的 PCF，以下為最近一次調整'
-        : np ? '※ 本檔另有 ' + np + ' 檔海外持股有異動，無報價來源，未計入金額'
-             : '';
+    const tips = [];
+    if (e.advanced === false && e.reason === 'not_updated')
+      tips.push('⏳ ' + (e.data_date || '') + ' 之後尚未有新的 PCF，以下為最近一次調整');
+    // 全池同步等比例增減＝申購贖回造成的規模變動，不是經理人換股，一定要講明
+    if (e.scale_pct != null)
+      tips.push('⚠ 本期幾乎所有持股同步變動 ' + (e.scale_pct > 0 ? '+' : '') + e.scale_pct +
+                '%，屬基金規模增減（申購／贖回），非經理人選股');
+    if (np) tips.push('※ 另有 ' + np + ' 檔海外持股有異動，無報價來源未計入金額');
+    document.getElementById('flowTip').textContent = tips.join('　');
 
     if (e.reason === 'no_basis') {
       box.innerHTML = '<div class="tm-empty">這檔還沒有前一份持股可比對<br>' +
