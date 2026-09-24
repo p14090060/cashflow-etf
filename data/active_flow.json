@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-24 16:20",
+  "updated": "2026-09-24 20:41",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
     "00981A": {
@@ -7,8 +7,8 @@
       "issuer": "統一",
       "holdings": 50,
       "data_date": "2026-09-23",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-21",
       "flow_to": "2026-09-23",
       "price_date": "20260923",
@@ -54,124 +54,106 @@
       "name": "主動統一升級50",
       "issuer": "統一",
       "holdings": 50,
-      "data_date": "2026-09-22",
+      "data_date": "2026-09-23",
       "advanced": true,
       "reason": "ok",
-      "flow_from": "2026-09-21",
-      "flow_to": "2026-09-22",
-      "price_date": "20260922",
+      "flow_from": "2026-09-22",
+      "flow_to": "2026-09-23",
+      "price_date": "20260923",
       "no_price": [],
       "scale_pct": null,
-      "buy": 397600000.0,
-      "sell": -5212542000.0,
-      "changed": 10,
+      "buy": 438160000.0,
+      "sell": -5800575000.0,
+      "changed": 9,
       "flow": [
         {
           "code": "2330",
           "name": "台積電",
-          "delta_shares": -1000000,
-          "amount": -2460000000.0
+          "delta_shares": -700000,
+          "amount": -1750000000.0
         },
         {
-          "code": "3711",
-          "name": "日月光投控",
-          "delta_shares": -999000,
-          "amount": -692307000.0
+          "code": "2303",
+          "name": "聯電",
+          "delta_shares": -8000000,
+          "amount": -1280000000.0
         },
         {
-          "code": "5274",
-          "name": "信驊",
-          "delta_shares": -25000,
-          "amount": -522625000.0
+          "code": "2383",
+          "name": "台光電",
+          "delta_shares": -200000,
+          "amount": -1004000000.0
         },
         {
-          "code": "2360",
-          "name": "致茂",
-          "delta_shares": -210000,
-          "amount": -512400000.0
-        },
-        {
-          "code": "2408",
-          "name": "南亞科",
-          "delta_shares": 800000,
-          "amount": 397600000.0
+          "code": "1303",
+          "name": "南亞",
+          "delta_shares": -3500000,
+          "amount": -796250000.0
         },
         {
           "code": "7769",
           "name": "鴻勁",
-          "delta_shares": -50000,
-          "amount": -307750000.0
+          "delta_shares": -79000,
+          "amount": -472025000.0
         },
         {
-          "code": "2345",
-          "name": "智邦",
+          "code": "2360",
+          "name": "致茂",
           "delta_shares": -160000,
-          "amount": -306400000.0
+          "amount": -372000000.0
         },
         {
-          "code": "2404",
-          "name": "漢唐",
-          "delta_shares": -249000,
-          "amount": -283860000.0
+          "code": "3189",
+          "name": "景碩",
+          "delta_shares": 310000,
+          "amount": 280860000.0
+        },
+        {
+          "code": "8046",
+          "name": "南電",
+          "delta_shares": 130000,
+          "amount": 157300000.0
         },
         {
           "code": "6669",
           "name": "緯穎",
-          "delta_shares": -40000,
-          "amount": -84600000.0
-        },
-        {
-          "code": "1717",
-          "name": "長興",
-          "delta_shares": -600000,
-          "amount": -42600000.0
+          "delta_shares": -60000,
+          "amount": -126300000.0
         }
       ]
     },
     "00988A": {
       "name": "主動統一全球創新",
       "issuer": "統一",
-      "holdings": 41,
-      "data_date": "2026-09-21",
+      "holdings": 42,
+      "data_date": "2026-09-22",
       "advanced": true,
       "reason": "ok",
-      "flow_from": "2026-09-20",
-      "flow_to": "2026-09-21",
-      "price_date": "20260921",
+      "flow_from": "2026-09-21",
+      "flow_to": "2026-09-22",
+      "price_date": "20260922",
       "no_price": [
-        "INTC US",
-        "PLTR US",
         "MSFT US",
-        "NET US"
+        "INTC US",
+        "IREN US",
+        "BE US"
       ],
       "scale_pct": null,
-      "buy": 188400000.0,
-      "sell": -1220680000.0,
-      "changed": 4,
+      "buy": 237300000.0,
+      "sell": -272250000.0,
+      "changed": 2,
       "flow": [
-        {
-          "code": "2330",
-          "name": "台積電",
-          "delta_shares": -200000,
-          "amount": -496000000.0
-        },
         {
           "code": "4979",
           "name": "華星光",
-          "delta_shares": -610000,
-          "amount": -376980000.0
+          "delta_shares": -450000,
+          "amount": -272250000.0
         },
         {
-          "code": "6515",
-          "name": "穎崴",
-          "delta_shares": -60000,
-          "amount": -347700000.0
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "delta_shares": 1200000,
-          "amount": 188400000.0
+          "code": "3017",
+          "name": "奇鋐",
+          "delta_shares": 70000,
+          "amount": 237300000.0
         }
       ]
     },
@@ -179,28 +161,29 @@
       "name": "主動統一前沿科技",
       "issuer": "統一",
       "holdings": 32,
-      "data_date": "2026-09-21",
+      "data_date": "2026-09-22",
       "advanced": true,
       "reason": "ok",
-      "flow_from": "2026-09-20",
-      "flow_to": "2026-09-21",
-      "price_date": "20260921",
+      "flow_from": "2026-09-21",
+      "flow_to": "2026-09-22",
+      "price_date": "20260922",
       "no_price": [
-        "SITM US",
+        "TSLA US",
         "AMZN US",
-        "SMTC US",
-        "GOOGL US"
+        "GOOGL US",
+        "DELL US",
+        "SMTC US"
       ],
       "scale_pct": null,
       "buy": 0,
-      "sell": -30735000.0,
+      "sell": -108900000.0,
       "changed": 1,
       "flow": [
         {
-          "code": "3017",
-          "name": "奇鋐",
-          "delta_shares": -9000,
-          "amount": -30735000.0
+          "code": "4979",
+          "name": "華星光",
+          "delta_shares": -180000,
+          "amount": -108900000.0
         }
       ]
     },
@@ -209,8 +192,8 @@
       "issuer": "永豐",
       "holdings": 30,
       "data_date": "2026-09-23",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-22",
       "flow_to": "2026-09-23",
       "price_date": "20260923",
@@ -239,8 +222,8 @@
       "issuer": "凱基",
       "holdings": 50,
       "data_date": "2026-09-24",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-23",
       "flow_to": "2026-09-24",
       "price_date": "20260924",
@@ -551,8 +534,8 @@
       "issuer": "台新",
       "holdings": 32,
       "data_date": "2026-09-24",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-23",
       "flow_to": "2026-09-24",
       "price_date": "20260924",
@@ -568,8 +551,8 @@
       "issuer": "台新",
       "holdings": 28,
       "data_date": "2026-09-24",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-23",
       "flow_to": "2026-09-24",
       "price_date": "20260924",
@@ -604,8 +587,8 @@
       "issuer": "中信",
       "holdings": 62,
       "data_date": "2026-09-23",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-22",
       "flow_to": "2026-09-23",
       "price_date": "20260923",
@@ -628,8 +611,8 @@
       "issuer": "中信",
       "holdings": 42,
       "data_date": "2026-09-22",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-21",
       "flow_to": "2026-09-22",
       "price_date": "20260922",
@@ -653,8 +636,8 @@
       "issuer": "中信",
       "holdings": 55,
       "data_date": "2026-09-23",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-22",
       "flow_to": "2026-09-23",
       "price_date": "20260923",
