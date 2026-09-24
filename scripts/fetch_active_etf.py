@@ -331,8 +331,15 @@ def fetch_kgi(date_obj, specific=False):
             print(f"[凱基] {ticker} 失敗: {e}")
             continue
 
-        m = re.search(r'DataDate[^>]*value="(\d{4})[/-](\d{2})[/-](\d{2})"', page)
-        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+        # 別用 <input id="DataDate">，那是「現金申購買回清單公告日」，是未來的
+        # 交割生效日（實測 2026/09/24 的資料顯示 2026/09/29）。真正的資料日跟在
+        # 淨值等數字後面，取頁面上所有「不超過今天」的日期中最新的那個。
+        cands = sorted({f"{a}-{b}-{c}" for a, b, c in
+                        re.findall(r"(\d{4})/(\d{2})/(\d{2})", page)})
+        today_s = datetime.datetime.now(
+            datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%d")
+        past = [x for x in cands if x <= today_s]
+        data_date = past[-1] if past else None
 
         tag = re.compile(r"<[^>]+>")
         holdings = {}
@@ -355,7 +362,68 @@ def fetch_kgi(date_obj, specific=False):
     return out
 
 
-ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi]
+# ══════════════════════════════════════════════════════════════
+# Adapter：台新投信（www.tsit.com.tw）
+#   POST /ETF/Home/Pcf  ETF_ID=<股票代號>&DATA_DATE=<YYYY-MM-DD>
+#   這家直接用股票代號，不用內部代碼；DATA_DATE 可查歷史，且當天就有資料
+#   表格欄位 [代號, 名稱, 股數, 持股權重]，代號帶彭博後綴（"2330 TT"）
+# ══════════════════════════════════════════════════════════════
+TSIT_TAISHIN_FUNDS = {
+    "00986A": "主動台新龍頭成長",
+    "00987A": "主動台新優勢成長",
+}
+
+
+def fetch_taishin(date_obj, specific=False):
+    import html as _html
+    url = "https://www.tsit.com.tw/ETF/Home/Pcf"
+    out = {}
+    for ticker, name in TSIT_TAISHIN_FUNDS.items():
+        body = urllib.parse.urlencode({
+            "ETF_ID": ticker,
+            "DATA_DATE": date_obj.strftime("%Y-%m-%d"),
+            "FUND_TYPE": "ALL",
+        }).encode()
+        try:
+            req = urllib.request.Request(url, data=body, headers={
+                "User-Agent": UA,
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Referer": url,
+            })
+            page = urllib.request.urlopen(req, timeout=25, context=_SSL).read().decode("utf-8", "replace")
+        except Exception as e:
+            print(f"[台新] {ticker} 失敗: {e}")
+            continue
+
+        m = re.search(r'DATA_DATE[^>]*value="(\d{4})-(\d{2})-(\d{2})"', page)
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        tag = re.compile(r"<[^>]+>")
+        holdings = {}
+        for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S | re.I):
+            cells = [_html.unescape(tag.sub("", c)).replace("\xa0", " ").strip()
+                     for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
+            if len(cells) < 3:
+                continue
+            # 代號帶彭博後綴，"2330 TT" / "MSFT US"，取空白前那段
+            code = cells[0].split()[0] if cells[0] else ""
+            if not re.fullmatch(r"[0-9A-Z]{3,6}", code):
+                continue
+            try:
+                share = int(cells[2].replace(",", ""))
+            except ValueError:
+                continue
+            if share:
+                holdings[code] = {"name": cells[1], "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "台新",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[台新] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        time.sleep(1)
+    return out
+
+
+ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -396,7 +464,10 @@ def build_flow(prev, cur):
                         "buy": 0, "sell": 0, "changed": 0, "flow": []}
             continue
 
-        if (d_new and d_old and d_new == d_old) or _shares(before) == _shares(after):
+        # 只有「資料日沒前進」才算沒更新。資料日有前進但持股一模一樣，
+        # 那是經理人真的沒調整，兩者意義完全不同，不能混為一談。
+        same_date = bool(d_new and d_old and d_new == d_old)
+        if same_date or (not d_new and _shares(before) == _shares(after)):
             out[etf] = {"advanced": False, "reason": "not_updated",
                         "data_date": d_new, "basis_date": d_old,
                         "buy": 0, "sell": 0, "changed": 0, "flow": []}
