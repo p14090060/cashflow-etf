@@ -25,6 +25,7 @@ import ssl
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -95,9 +96,38 @@ def closes_on(day, max_lookback=6):
     """
     if day in _CLOSES_CACHE:
         return _CLOSES_CACHE[day]
-    got = fetch_twse_closes(max_lookback=max_lookback, end=day)
-    _CLOSES_CACHE[day] = got
-    return got
+    date_str, closes = fetch_twse_closes(max_lookback=max_lookback, end=day)
+    # TWSE MI_INDEX 只有上市股票。ETF 常持有上櫃股（00410A 30 檔裡就有 6 檔
+    # ——力旺/昇達科/聯亞/旺矽/金居/新應材），少了櫃買這半，那些持股的異動
+    # 會因為查不到價而被靜靜跳過。
+    if date_str:
+        closes = dict(closes)
+        closes.update(fetch_tpex_closes(date_str))
+    _CLOSES_CACHE[day] = (date_str, closes)
+    return _CLOSES_CACHE[day]
+
+
+def fetch_tpex_closes(date_str):
+    """櫃買中心當日收盤行情。date_str 為 YYYYMMDD，回傳 {代碼: 收盤價}。"""
+    try:
+        d = datetime.datetime.strptime(date_str, "%Y%m%d").date()
+        url = ("https://www.tpex.org.tw/www/zh-tw/afterTrading/otc"
+               f"?date={d.strftime('%Y/%m/%d')}&type=EW&response=json")
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=20, context=_SSL) as r:
+            resp = json.loads(r.read().decode("utf-8"))
+        rows = (resp.get("tables") or [{}])[0].get("data") or []
+        out = {}
+        for row in rows:                       # [代號, 名稱, 收盤, ...]
+            try:
+                out[row[0].strip()] = float(str(row[2]).replace(",", ""))
+            except (ValueError, IndexError):
+                pass
+        print(f"[TPEx] 上櫃收盤 {date_str}（{len(out)} 檔）")
+        return out
+    except Exception as e:
+        print(f"[TPEx] {date_str} 抓取失敗: {e}")
+        return {}
 
 
 def fetch_twse_closes(max_lookback=6, end=None):
@@ -222,11 +252,19 @@ SINOPAC_FUNDS = {"00410A": "主動永豐科技趨勢"}
 
 
 def fetch_sinopac(date_obj, specific=False):
-    if specific:
-        return {}          # 永豐頁面只給當期，沒有歷史查詢，回補時略過
+    """POST 表單查詢：fundId + hDate。查詢日 D 取回的是「資料日期 D-1」的 PCF。"""
     url = "https://sitc.sinopac.com/SinopacEtfs/Etfs/Pcf"
+    body = urllib.parse.urlencode({
+        "fundId": "00410A",
+        "hDate": date_obj.strftime("%Y-%m-%d"),
+        "op": "",
+    }).encode()
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        req = urllib.request.Request(url, data=body, headers={
+            "User-Agent": UA,
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Referer": url,
+        })
         html = urllib.request.urlopen(req, timeout=25, context=_SSL).read().decode("utf-8", "replace")
     except Exception as e:
         print(f"[永豐] 失敗: {e}")
@@ -319,7 +357,7 @@ def build_flow(prev, cur):
         if not closes:
             price_date, closes = fetch_twse_closes()
 
-        rows = []
+        rows, no_price = [], []
         for code in set(before) | set(after):
             b = (before.get(code) or {}).get("shares", 0)
             a = (after.get(code) or {}).get("shares", 0)
@@ -328,7 +366,10 @@ def build_flow(prev, cur):
                 continue
             price = closes.get(code)
             if not price:
-                continue                      # 查不到收盤價就不硬算金額
+                # 查不到價就不硬算金額，但一定要記錄——這種「有異動卻算不出金額」
+                # 的缺口若靜靜跳過，畫面會顯示成「沒有異動」。
+                no_price.append(code)
+                continue
             rows.append({
                 "code": code,
                 "name": (after.get(code) or before.get(code) or {}).get("name", ""),
@@ -336,9 +377,12 @@ def build_flow(prev, cur):
                 "amount": round(d * price, 0),
             })
         rows.sort(key=lambda x: -abs(x["amount"]))
+        if no_price:
+            print(f"[WARN] {etf} 有 {len(no_price)} 檔異動查不到收盤價，未計入金額：{no_price}")
         out[etf] = {
             "advanced":   True,
             "reason":     "ok",
+            "no_price":   no_price,
             "data_date":  d_new,
             "basis_date": d_old,
             "price_date": price_date,
@@ -421,6 +465,7 @@ def main():
                 "flow_from":  f.get("basis_date"),
                 "flow_to":    f.get("data_date"),
                 "price_date": f.get("price_date"),
+                "no_price": f.get("no_price") or [],   # 有異動但查無報價（海外持股）
                 "buy": f["buy"], "sell": f["sell"],
                 "changed": f["changed"], "flow": f["flow"],
             })
@@ -432,6 +477,7 @@ def main():
                 "flow_from":  o.get("flow_from"),
                 "flow_to":    o.get("flow_to"),
                 "price_date": o.get("price_date"),
+                "no_price": o.get("no_price") or [],
                 "buy": o.get("buy", 0), "sell": o.get("sell", 0),
                 "changed": o.get("changed", 0), "flow": o.get("flow", []),
             })

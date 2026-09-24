@@ -895,10 +895,12 @@ function renderFlow(code) {
       '資料來源：' + e.issuer + '投信官網公告 PCF（申購買回清單）　最新資料日 ' + (e.data_date || '-') +
       (e.price_date ? '　金額以 ' + e.price_date + ' 收盤價換算' : '') +
       '　PCF 公告通常落後行情 1~2 天';
+    const np = (e.no_price || []).length;
     document.getElementById('flowTip').textContent =
       e.advanced === false && e.reason === 'not_updated'
         ? '⏳ ' + (e.data_date || '') + ' 之後尚未有新的 PCF，以下為最近一次調整'
-        : '';
+        : np ? '※ 本檔另有 ' + np + ' 檔海外持股有異動，無報價來源，未計入金額'
+             : '';
 
     if (e.reason === 'no_basis') {
       box.innerHTML = '<div class="tm-empty">這檔還沒有前一份持股可比對<br>' +
