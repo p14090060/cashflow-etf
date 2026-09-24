@@ -63,16 +63,49 @@ def _roc(d):
     return f"{d.year - 1911}/{d.month:02d}/{d.day:02d}"
 
 
+def _ms_date(v):
+    """PCF 回傳的日期 -> "2026-09-22"；解析不出來回 None。
+
+    同一支 API 會混用兩種格式（實測 00403A 回 /Date(...)/、00981A 回 ISO），
+    兩種都要認，只認一種會讓另一半的資料日變成 None。
+    """
+    s = str(v or "")
+    m = re.search(r"/Date\((-?\d+)\)/", s)
+    if m:
+        return datetime.datetime.fromtimestamp(
+            int(m.group(1)) / 1000, datetime.timezone.utc).strftime("%Y-%m-%d")
+    m = re.search(r"(\d{4})-(\d{2})-(\d{2})", s)
+    return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+
 # ══════════════════════════════════════════════════════════════
 # TWSE 官方收盤價（全市場，含個股）
 # 與 fetch_etf.py 的 fetch_twse_official_closes() 同一支 API；
 # 那邊是 module import 時就執行，直接 import 會多打一次網路，故另寫一份。
 # ══════════════════════════════════════════════════════════════
-def fetch_twse_closes(max_lookback=6):
+_CLOSES_CACHE = {}
+
+
+def closes_on(day, max_lookback=6):
+    """取 day（datetime.date）當日或之前最近交易日的全市場收盤價。
+
+    PCF 的資料日比行情落後 1~2 天且各投信不同，所以金額要用「該 ETF 資料日」
+    的收盤價換算，不能一律用最新收盤——用錯日期會讓金額系統性偏掉。
+    回傳 (實際使用的日期字串, {代碼: 收盤價})。
+    """
+    if day in _CLOSES_CACHE:
+        return _CLOSES_CACHE[day]
+    got = fetch_twse_closes(max_lookback=max_lookback, end=day)
+    _CLOSES_CACHE[day] = got
+    return got
+
+
+def fetch_twse_closes(max_lookback=6, end=None):
     """回傳 (date_str, {股票代碼: 收盤價})。找不到回 (None, {})。"""
     now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    base = end or now_tw.date()
     for delta in range(max_lookback):
-        d = now_tw.date() - datetime.timedelta(days=delta)
+        d = base - datetime.timedelta(days=delta)
         if d.weekday() >= 5:
             continue
         ds = d.strftime("%Y%m%d")
@@ -151,8 +184,16 @@ def fetch_tsit(date_obj, specific=False):
             print(f"[統一] {ticker} 失敗: {e}")
             continue
 
+        # PCF 自己的資料日（TranDate）。統一的 PCF 比行情落後約 2 天，且傳進去的
+        # date 參數不等於回傳的 TranDate，所以資料日一定要從回應裡取，
+        # 不能拿執行當天的日期充當——那會讓「資料沒更新」被誤顯示成「今日無異動」。
+        data_date = _ms_date((d.get("pcf") or [{}])[0].get("TranDate"))
+
         st = [a for a in (d.get("asset") or []) if a.get("AssetCode") == "ST"]
         details = (st[0].get("Details") or []) if st else []
+        # 查歷史時 pcf 陣列可能是空的，但每一筆持股明細自己也帶 TranDate，拿來備援
+        if not data_date and details:
+            data_date = _ms_date(details[0].get("TranDate"))
         holdings = {}
         for x in details:
             code = str(x.get("DetailCode", "")).strip()
@@ -166,9 +207,9 @@ def fetch_tsit(date_obj, specific=False):
                     "shares": share,
                 }
         if holdings:
-            out[ticker] = {"name": name, "issuer": "統一", "holdings": holdings}
-            tag = f"（{_roc(date_obj)} 歷史）" if specific else ""
-            print(f"[統一] {ticker} {name}：{len(holdings)} 檔{tag}")
+            out[ticker] = {"name": name, "issuer": "統一",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[統一] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
         time.sleep(1)
     return out
 
@@ -212,9 +253,13 @@ def fetch_sinopac(date_obj, specific=False):
     if not holdings:
         print("[永豐] 解析不到持股，頁面結構可能改了")
         return {}
+    # 頁面上有「資料日期：2026/09/23」，永豐落後 1 天（統一落後 2 天），各家不同
+    m = re.search(r"資料日期[：:]\s*(\d{4})[/-](\d{2})[/-](\d{2})", html)
+    data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
     name = SINOPAC_FUNDS["00410A"]
-    print(f"[永豐] 00410A {name}：{len(holdings)} 檔")
-    return {"00410A": {"name": name, "issuer": "永豐", "holdings": holdings}}
+    print(f"[永豐] 00410A {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+    return {"00410A": {"name": name, "issuer": "永豐",
+                       "data_date": data_date, "holdings": holdings}}
 
 
 ADAPTERS = [fetch_tsit, fetch_sinopac]
@@ -229,20 +274,51 @@ def load_json(p, default=None):
         return default
 
 
-def build_flow(prev, cur, closes):
-    """比對兩份快照，逐檔 ETF 算出它自己的加減碼明細。
+def _shares(h):
+    return {k: v.get("shares") for k, v in (h or {}).items()}
 
-    回傳 {etf代碼: {"buy","sell","changed","flow":[{code,name,delta_shares,amount}]}}
+
+def build_flow(prev, cur):
+    """逐檔 ETF 比對前後兩份 PCF，算出它自己的加減碼明細。
+
     不做跨 ETF 彙總——涵蓋率不足時彙總數字會誤導（看起來像全市場結論，其實漏一大半）。
+
+    advanced=False 代表**這檔的 PCF 還沒出新的**（資料日沒變，或持股一模一樣），
+    必須和「經理人今天沒動作」分開顯示。2026-09-24 就踩過這個坑：PCF 落後行情
+    兩天沒更新，畫面卻顯示 5 檔全部「異動 0」，看起來像市場靜止，其實是沒新資料。
     """
     prev_etfs = prev.get("etfs", {})
     out = {}
 
     for etf, info in cur.get("etfs", {}).items():
-        before = (prev_etfs.get(etf) or {}).get("holdings", {})
-        after  = info.get("holdings", {})
+        before_e = prev_etfs.get(etf) or {}
+        before   = before_e.get("holdings") or {}
+        after    = info.get("holdings") or {}
+        d_new    = info.get("data_date")
+        d_old    = before_e.get("data_date")
+
         if not before:
-            continue                          # 沒有前一份可比就跳過這檔
+            out[etf] = {"advanced": False, "reason": "no_basis",
+                        "data_date": d_new, "basis_date": None,
+                        "buy": 0, "sell": 0, "changed": 0, "flow": []}
+            continue
+
+        if (d_new and d_old and d_new == d_old) or _shares(before) == _shares(after):
+            out[etf] = {"advanced": False, "reason": "not_updated",
+                        "data_date": d_new, "basis_date": d_old,
+                        "buy": 0, "sell": 0, "changed": 0, "flow": []}
+            continue
+
+        # 金額用「該 ETF 資料日」的收盤價換算，不是最新收盤——PCF 落後 1~2 天且各家不同
+        price_date, closes = (None, {})
+        if d_new:
+            try:
+                price_date, closes = closes_on(datetime.date.fromisoformat(d_new))
+            except ValueError:
+                pass
+        if not closes:
+            price_date, closes = fetch_twse_closes()
+
         rows = []
         for code in set(before) | set(after):
             b = (before.get(code) or {}).get("shares", 0)
@@ -261,10 +337,15 @@ def build_flow(prev, cur, closes):
             })
         rows.sort(key=lambda x: -abs(x["amount"]))
         out[etf] = {
-            "buy":     round(sum(r["amount"] for r in rows if r["amount"] > 0), 0),
-            "sell":    round(sum(r["amount"] for r in rows if r["amount"] < 0), 0),
-            "changed": len(rows),
-            "flow":    rows,
+            "advanced":   True,
+            "reason":     "ok",
+            "data_date":  d_new,
+            "basis_date": d_old,
+            "price_date": price_date,
+            "buy":        round(sum(r["amount"] for r in rows if r["amount"] > 0), 0),
+            "sell":       round(sum(r["amount"] for r in rows if r["amount"] < 0), 0),
+            "changed":    len(rows),
+            "flow":       rows,
         }
     return out
 
@@ -284,73 +365,101 @@ def main():
         print("[ABORT] 所有 adapter 都沒抓到資料，保留既有檔案不覆蓋")
         return 1
 
-    price_date, closes = fetch_twse_closes()
-    snapshot = {
-        "snapshot_date": today.strftime("%Y-%m-%d"),
-        "price_date": price_date,
-        "etfs": etfs,
-    }
+    snapshot = {"fetched": now_tw.strftime("%Y-%m-%d %H:%M"), "etfs": etfs}
 
     prev = load_json(SNAPSHOT)
 
     # 沒有前次快照時，向支援歷史查詢的投信回補前一交易日，
     # 這樣第一次執行就算得出買賣超，不用空等一天。
     if not prev:
-        d = today - datetime.timedelta(days=1)
-        while d.weekday() >= 5:
-            d -= datetime.timedelta(days=1)
-        print(f"[BOOTSTRAP] 無前次快照，回補 {d} 的 PCF")
+        # 回補「前一份」PCF。各投信、甚至同投信不同基金的公告延遲都不一樣
+        # （實測 00403A 落後 2 天、00981A 落後 1 天），所以不能用固定天數，
+        # 要逐日往前找到「資料日與當期不同」的那一份才停，否則回補區間會
+        # 拉成一整週，算出來的不是單日調整。
+        cur_dates = {c: v.get("data_date") for c, v in etfs.items()}
         back = {}
-        for fn in ADAPTERS:
-            try:
-                back.update(fn(d, specific=True))
-            except Exception as e:
-                print(f"[WARN] {fn.__name__} 回補失敗: {e}")
+        print("[BOOTSTRAP] 無前次快照，逐日往前找每檔的前一份 PCF")
+        for back_days in range(1, 8):
+            todo = [c for c in etfs if c not in back]
+            if not todo:
+                break
+            d = today - datetime.timedelta(days=back_days)
+            if d.weekday() >= 5:
+                continue
+            got = {}
+            for fn in ADAPTERS:
+                try:
+                    got.update(fn(d, specific=True))
+                except Exception as e:
+                    print(f"[WARN] {fn.__name__} 回補失敗: {e}")
+            for c, v in got.items():
+                dd = v.get("data_date")
+                if c in etfs and c not in back and dd and dd != cur_dates.get(c):
+                    back[c] = v
+                    print(f"[BOOTSTRAP] {c} 前一份 = {dd}（當期 {cur_dates.get(c)}）")
         if back:
-            prev = {"snapshot_date": d.strftime("%Y-%m-%d"), "etfs": back}
+            prev = {"fetched": "(bootstrap)", "etfs": back}
         else:
             print("[BOOTSTRAP] 沒有投信支援歷史查詢，只能等下一個交易日")
 
-    flows, basis = {}, None
-    if prev and prev.get("snapshot_date") != snapshot["snapshot_date"]:
-        flows = build_flow(prev, snapshot, closes)
-        basis = prev.get("snapshot_date")
-    elif prev:
-        print(f"[SKIP] 快照日期與上次相同（{prev.get('snapshot_date')}），沿用既有結果")
-        old = load_json(OUT) or {}
-        basis = old.get("basis_date")
-        flows = {k: {kk: v[kk] for kk in ("buy", "sell", "changed", "flow")}
-                 for k, v in (old.get("etfs") or {}).items() if "flow" in v}
-    else:
-        print("[INIT] 第一次執行，只存快照；要等下一個交易日才算得出加減碼")
+    flows = build_flow(prev, snapshot) if prev else {}
+    old_out = (load_json(OUT) or {}).get("etfs") or {}
 
     out_etfs = {}
     for code, info in etfs.items():
-        row = {"name": info["name"], "issuer": info["issuer"],
-               "holdings": len(info["holdings"]),
-               # comparable=False：這檔還沒有前一份快照可比（例如永豐沒有歷史查詢，
-               # 要等下一個交易日）。前端要跟「今天真的沒調整」分開顯示。
-               "comparable": code in flows}
-        row.update(flows.get(code, {"buy": 0, "sell": 0, "changed": 0, "flow": []}))
+        f = flows.get(code) or {"advanced": False, "reason": "no_basis"}
+        row = {
+            "name":      info["name"],
+            "issuer":    info["issuer"],
+            "holdings":  len(info["holdings"]),
+            "data_date": info.get("data_date"),      # 這檔 PCF 自己的資料日
+            "advanced":  bool(f.get("advanced")),    # 這次 PCF 有沒有出新的
+            "reason":    f.get("reason", "no_basis"),
+        }
+        if f.get("advanced"):
+            row.update({
+                "flow_from":  f.get("basis_date"),
+                "flow_to":    f.get("data_date"),
+                "price_date": f.get("price_date"),
+                "buy": f["buy"], "sell": f["sell"],
+                "changed": f["changed"], "flow": f["flow"],
+            })
+        else:
+            # PCF 沒出新的：沿用上一次算出來的結果並標示未更新。
+            # 顯示「最近一次調整（9/20→9/22）」比顯示「異動 0」誠實得多。
+            o = old_out.get(code) or {}
+            row.update({
+                "flow_from":  o.get("flow_from"),
+                "flow_to":    o.get("flow_to"),
+                "price_date": o.get("price_date"),
+                "buy": o.get("buy", 0), "sell": o.get("sell", 0),
+                "changed": o.get("changed", 0), "flow": o.get("flow", []),
+            })
         out_etfs[code] = row
 
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump({
-            "updated":    now_tw.strftime("%Y-%m-%d %H:%M"),
-            "data_date":  snapshot["snapshot_date"],
-            "basis_date": basis,
-            "price_date": price_date,
-            "note":       "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交",
-            "etfs":       out_etfs,
+            "updated": now_tw.strftime("%Y-%m-%d %H:%M"),
+            "note":    "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；"
+                       "各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
+            "etfs":    out_etfs,
         }, f, ensure_ascii=False, indent=2)
 
+    # 這次沒抓到的投信要保留舊快照，否則下次會沒有可比對的基準
+    merged = dict((prev or {}).get("etfs") or {})
+    merged.update(etfs)
     with open(SNAPSHOT, "w", encoding="utf-8") as f:
-        json.dump(snapshot, f, ensure_ascii=False, indent=2)
+        json.dump({"fetched": snapshot["fetched"], "etfs": merged},
+                  f, ensure_ascii=False, indent=2)
 
     print("")
     for code, r in sorted(out_etfs.items()):
-        print(f"[OK] {code} {r['name']}：持股 {r['holdings']} 檔、異動 {r['changed']} 檔"
-              f"、加碼 {r['buy']/1e8:.1f} 億／減碼 {r['sell']/1e8:.1f} 億")
+        if r["advanced"]:
+            print(f"[OK] {code} {r['name']}：{r['flow_from']} → {r['flow_to']}，"
+                  f"異動 {r['changed']} 檔、加碼 {r['buy']/1e8:.1f} 億／減碼 {r['sell']/1e8:.1f} 億")
+        else:
+            why = {"not_updated": "PCF 尚未更新", "no_basis": "尚無前一份可比對"}.get(r["reason"], r["reason"])
+            print(f"[--] {code} {r['name']}：{why}（資料日 {r['data_date'] or '?'}）")
     return 0
 
 

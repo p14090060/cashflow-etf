@@ -885,23 +885,28 @@ function renderFlow(code) {
       '<div class="flow-chip' + (c === _flowSel ? ' active' : '') + '" onclick="flowSelect(\'' + c + '\')">' +
       c + '</div>').join('');
 
+    const span = (e.flow_from && e.flow_to) ? e.flow_from + ' → ' + e.flow_to : '';
     document.getElementById('flowMeta').textContent =
-      e.name + '　持股 ' + e.holdings + ' 檔' +
-      (e.comparable ? '　' + (d.basis_date || '') + ' → ' + (d.data_date || '') : '');
+      e.name + '　持股 ' + e.holdings + ' 檔' + (span ? '　' + span + ' 調整' : '');
     document.getElementById('flowBuy').textContent  = '+' + _oku(e.buy || 0);
     document.getElementById('flowSell').textContent = '-' + _oku(e.sell || 0);
+    // 各投信 PCF 公告有 1~2 天落差且各檔不同，資料日一定要標出來
     document.getElementById('flowCover').textContent =
-      '資料來源：' + e.issuer + '投信官網公告 PCF（申購買回清單）　資料日 ' + (d.data_date || '-') +
-      '　收盤價 ' + (d.price_date || '-');
-    document.getElementById('flowTip').textContent = '';
+      '資料來源：' + e.issuer + '投信官網公告 PCF（申購買回清單）　最新資料日 ' + (e.data_date || '-') +
+      (e.price_date ? '　金額以 ' + e.price_date + ' 收盤價換算' : '') +
+      '　PCF 公告通常落後行情 1~2 天';
+    document.getElementById('flowTip').textContent =
+      e.advanced === false && e.reason === 'not_updated'
+        ? '⏳ ' + (e.data_date || '') + ' 之後尚未有新的 PCF，以下為最近一次調整'
+        : '';
 
-    if (!e.comparable) {
-      box.innerHTML = '<div class="tm-empty">這檔還沒有前一日的持股可比對<br>' +
-        '（' + e.issuer + '投信官網沒有歷史查詢，要等下一個交易日）</div>';
+    if (e.reason === 'no_basis') {
+      box.innerHTML = '<div class="tm-empty">這檔還沒有前一份持股可比對<br>' +
+        '（' + e.issuer + '投信官網沒有歷史查詢，要等下一份 PCF 公告）</div>';
       return;
     }
     const rows = e.flow || [];
-    if (!rows.length) { box.innerHTML = '<div class="tm-empty">' + e.name + ' 今日持股無異動</div>'; return; }
+    if (!rows.length) { box.innerHTML = '<div class="tm-empty">' + e.name + ' 這段期間持股無異動</div>'; return; }
 
     const W = box.clientWidth, H = box.clientHeight;
     const buys  = _trim(rows.filter(s => s.amount > 0), 14);
