@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-24 20:41",
+  "updated": "2026-09-25 09:10",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
     "00981A": {
@@ -55,8 +55,8 @@
       "issuer": "統一",
       "holdings": 50,
       "data_date": "2026-09-23",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-22",
       "flow_to": "2026-09-23",
       "price_date": "20260923",
@@ -127,8 +127,8 @@
       "issuer": "統一",
       "holdings": 42,
       "data_date": "2026-09-22",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-21",
       "flow_to": "2026-09-22",
       "price_date": "20260922",
@@ -162,8 +162,8 @@
       "issuer": "統一",
       "holdings": 32,
       "data_date": "2026-09-22",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-21",
       "flow_to": "2026-09-22",
       "price_date": "20260922",
@@ -184,36 +184,6 @@
           "name": "華星光",
           "delta_shares": -180000,
           "amount": -108900000.0
-        }
-      ]
-    },
-    "00410A": {
-      "name": "主動永豐科技趨勢",
-      "issuer": "永豐",
-      "holdings": 30,
-      "data_date": "2026-09-23",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-22",
-      "flow_to": "2026-09-23",
-      "price_date": "20260923",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 9915000.0,
-      "sell": -36500000.0,
-      "changed": 2,
-      "flow": [
-        {
-          "code": "6274",
-          "name": "台燿",
-          "delta_shares": -25000,
-          "amount": -36500000.0
-        },
-        {
-          "code": "3529",
-          "name": "力旺",
-          "delta_shares": 3000,
-          "amount": 9915000.0
         }
       ]
     },
@@ -533,11 +503,11 @@
       "name": "主動台新龍頭成長",
       "issuer": "台新",
       "holdings": 32,
-      "data_date": "2026-09-24",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-23",
-      "flow_to": "2026-09-24",
+      "data_date": "2026-09-25",
+      "advanced": true,
+      "reason": "ok",
+      "flow_from": "2026-09-24",
+      "flow_to": "2026-09-25",
       "price_date": "20260924",
       "no_price": [],
       "scale_pct": null,
@@ -550,97 +520,12 @@
       "name": "主動台新優勢成長",
       "issuer": "台新",
       "holdings": 28,
-      "data_date": "2026-09-24",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-23",
-      "flow_to": "2026-09-24",
+      "data_date": "2026-09-25",
+      "advanced": true,
+      "reason": "ok",
+      "flow_from": "2026-09-24",
+      "flow_to": "2026-09-25",
       "price_date": "20260924",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 17105000.0,
-      "sell": -52935000.0,
-      "changed": 3,
-      "flow": [
-        {
-          "code": "6683",
-          "name": "雍智科技",
-          "delta_shares": -18000,
-          "amount": -27360000.0
-        },
-        {
-          "code": "3443",
-          "name": "創意",
-          "delta_shares": -3000,
-          "amount": -25575000.0
-        },
-        {
-          "code": "3491",
-          "name": "昇達科",
-          "delta_shares": 11000,
-          "amount": 17105000.0
-        }
-      ]
-    },
-    "00406A": {
-      "name": "主動中信台灣收益",
-      "issuer": "中信",
-      "holdings": 62,
-      "data_date": "2026-09-23",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-22",
-      "flow_to": "2026-09-23",
-      "price_date": "20260923",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 100000000.0,
-      "sell": 0,
-      "changed": 1,
-      "flow": [
-        {
-          "code": "2330",
-          "name": "台灣積體電路製造",
-          "delta_shares": 40000,
-          "amount": 100000000.0
-        }
-      ]
-    },
-    "00983A": {
-      "name": "主動中信ARK創新",
-      "issuer": "中信",
-      "holdings": 42,
-      "data_date": "2026-09-22",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-21",
-      "flow_to": "2026-09-22",
-      "price_date": "20260922",
-      "no_price": [
-        "CERS US",
-        "PLTR US",
-        "AMD US",
-        "TEM US",
-        "NTLA US",
-        "TSLA US",
-        "RXRX US"
-      ],
-      "scale_pct": null,
-      "buy": 0,
-      "sell": 0,
-      "changed": 0,
-      "flow": []
-    },
-    "00995A": {
-      "name": "主動中信台灣卓越",
-      "issuer": "中信",
-      "holdings": 55,
-      "data_date": "2026-09-23",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-22",
-      "flow_to": "2026-09-23",
-      "price_date": "20260923",
       "no_price": [],
       "scale_pct": null,
       "buy": 0,
