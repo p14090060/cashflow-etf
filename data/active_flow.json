@@ -1,54 +1,23 @@
 {
-  "updated": "2026-09-25 15:11",
+  "updated": "2026-09-25 20:41",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
       "issuer": "統一",
       "holdings": 50,
-      "data_date": "2026-09-23",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-21",
-      "flow_to": "2026-09-23",
-      "price_date": "20260923",
+      "data_date": "2026-09-24",
+      "advanced": true,
+      "reason": "ok",
+      "flow_from": "2026-09-23",
+      "flow_to": "2026-09-24",
+      "price_date": "20260924",
       "no_price": [],
       "scale_pct": null,
-      "buy": 692400000.0,
-      "sell": -2367105000.0,
-      "changed": 5,
-      "flow": [
-        {
-          "code": "6669",
-          "name": "緯穎",
-          "delta_shares": -444000,
-          "amount": -934620000.0
-        },
-        {
-          "code": "3711",
-          "name": "日月光投控",
-          "delta_shares": -1345000,
-          "amount": -932085000.0
-        },
-        {
-          "code": "6510",
-          "name": "精測",
-          "delta_shares": -144000,
-          "amount": -500400000.0
-        },
-        {
-          "code": "6274",
-          "name": "台燿",
-          "delta_shares": 240000,
-          "amount": 350400000.0
-        },
-        {
-          "code": "2368",
-          "name": "金像電",
-          "delta_shares": 300000,
-          "amount": 342000000.0
-        }
-      ]
+      "buy": 0,
+      "sell": 0,
+      "changed": 0,
+      "flow": []
     },
     "00403A": {
       "name": "主動統一升級50",
@@ -498,40 +467,6 @@
           "amount": -435000.0
         }
       ]
-    },
-    "00986A": {
-      "name": "主動台新龍頭成長",
-      "issuer": "台新",
-      "holdings": 32,
-      "data_date": "2026-09-25",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-24",
-      "flow_to": "2026-09-25",
-      "price_date": "20260924",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 0,
-      "sell": 0,
-      "changed": 0,
-      "flow": []
-    },
-    "00987A": {
-      "name": "主動台新優勢成長",
-      "issuer": "台新",
-      "holdings": 28,
-      "data_date": "2026-09-25",
-      "advanced": false,
-      "reason": "not_updated",
-      "flow_from": "2026-09-24",
-      "flow_to": "2026-09-25",
-      "price_date": "20260924",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 0,
-      "sell": 0,
-      "changed": 0,
-      "flow": []
     }
   }
 }
