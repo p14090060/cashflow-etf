@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-25 09:10",
+  "updated": "2026-09-25 13:55",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
     "00981A": {
@@ -504,8 +504,8 @@
       "issuer": "台新",
       "holdings": 32,
       "data_date": "2026-09-25",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-24",
       "flow_to": "2026-09-25",
       "price_date": "20260924",
@@ -521,8 +521,8 @@
       "issuer": "台新",
       "holdings": 28,
       "data_date": "2026-09-25",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "flow_from": "2026-09-24",
       "flow_to": "2026-09-25",
       "price_date": "20260924",
