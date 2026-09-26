@@ -792,8 +792,88 @@ def fetch_fuhwa(date_obj, specific=False):
     return out
 
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：安聯投信（etf.allianzgi.com.tw，Angular，寫法與野村幾乎相同）
+#   1. GET  /webapi/api/AntiForgery/GetAntiForgeryToken  → 設 X-XSRF-TOKEN cookie
+#   2. POST /webapi/api/Fund/GetFundAssets  {"FundID":"E0003"}
+#      **必須帶 X-XSRF-TOKEN header**，少了就所有端點一律 400
+#      （回應有 ASP.NET Core 的 traceId，代表請求有進到應用程式、不是 WAF 擋）
+#   持股在 Entries.Data.Table 裡 TableTitle 含「股票」那張，
+#   Rows = [序號, 代號, 名稱, 股數, 權重]（**第一欄是序號，代號在 index 1**）
+#   資料日用 FundAsset.NavDate（PCFDate 是未來的公告日）
+#   E000x 對股票代號的對照由淨值比對確認
+# ══════════════════════════════════════════════════════════════
+ALLIANZ_API   = "https://etf.allianzgi.com.tw/webapi/api/"
+ALLIANZ_FUNDS = {
+    "00984A": ("E0001", "主動安聯台灣高息"),
+    "00993A": ("E0002", "主動安聯台灣"),
+    "00402A": ("E0003", "主動安聯美國科技"),
+}
+
+
+def fetch_allianz(date_obj, specific=False):
+    if specific:
+        return {}          # 沒有日期參數，查不了歷史
+    op = _opener()
+    try:
+        op.open(ALLIANZ_API + "AntiForgery/GetAntiForgeryToken", timeout=20).read()
+    except Exception as e:
+        print(f"[安聯] 取防偽 token 失敗: {e}")
+        return {}
+    # CookieJar 掛在 HTTPCookieProcessor handler 上
+    xsrf = ""
+    for h in op.handlers:
+        for c in getattr(h, "cookiejar", None) or []:
+            if c.name.upper().endswith("XSRF-TOKEN"):
+                xsrf = c.value
+    if not xsrf:
+        print("[安聯] 拿不到 X-XSRF-TOKEN cookie")
+        return {}
+
+    out = {}
+    for ticker, (fid, name) in ALLIANZ_FUNDS.items():
+        req = urllib.request.Request(
+            ALLIANZ_API + "Fund/GetFundAssets",
+            data=json.dumps({"FundID": fid}).encode(),
+            headers={"Content-Type": "application/json",
+                     "X-XSRF-TOKEN": xsrf,
+                     "Referer": f"https://etf.allianzgi.com.tw/etf-info/{fid}?tab=4"})
+        try:
+            d = json.loads(op.open(req, timeout=25).read().decode("utf-8"))
+        except Exception as e:
+            print(f"[安聯] {ticker} 失敗: {e}")
+            continue
+
+        data = (d.get("Entries") or {}).get("Data") or {}
+        m = re.search(r"(\d{4})/(\d{2})/(\d{2})",
+                      str((data.get("FundAsset") or {}).get("NavDate") or ""))
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        tbl = next((t for t in (data.get("Table") or [])
+                    if "股票" in str(t.get("TableTitle", ""))), None)
+        holdings = {}
+        for row in (tbl or {}).get("Rows") or []:
+            if len(row) < 4:
+                continue
+            code = str(row[1]).strip()          # row[0] 是序號
+            try:
+                share = int(float(str(row[3]).replace(",", "")))
+            except ValueError:
+                continue
+            if code and share:
+                holdings[code] = {"name": str(row[2]).strip(), "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "安聯",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[安聯] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        else:
+            print(f"[安聯] {ticker} {name}：解析不到持股")
+        time.sleep(1)
+    return out
+
+
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
-            fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa]
+            fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz]
 
 
 # ══════════════════════════════════════════════════════════════
