@@ -926,8 +926,15 @@ function renderFlow(code) {
     }
     const rows = e.flow || [];
     if (!rows.length) {
-      box.innerHTML = '<div class="tm-empty">' + e.name + ' 目前沒有可顯示的調整紀錄<br>'
-        + '（最新 PCF 資料日 ' + (e.data_date || '-') + '，持股與前一份相同）</div>';
+      // 全海外持股的 ETF（00989A、00402A…）換股時 rows 會是空的——不是沒動，
+      // 是查不到台股收盤價算不出金額。這兩種要分開講，否則畫面會自相矛盾：
+      // 上面提示「另有 N 檔海外持股有異動」，下面卻寫「持股與前一份相同」。
+      box.innerHTML = np
+        ? '<div class="tm-empty">' + e.name + ' 這次異動的 ' + np + ' 檔都是海外持股<br>'
+          + '本站只取得台股官方收盤價，換算不出金額，因此不畫圖<br>'
+          + '（最新 PCF 資料日 ' + (e.data_date || '-') + '）</div>'
+        : '<div class="tm-empty">' + e.name + ' 目前沒有可顯示的調整紀錄<br>'
+          + '（最新 PCF 資料日 ' + (e.data_date || '-') + '，持股與前一份相同）</div>';
       return;
     }
 

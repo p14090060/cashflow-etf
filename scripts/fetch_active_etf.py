@@ -1125,10 +1125,76 @@ def fetch_yuanta(date_obj, specific=False):
         time.sleep(1)
     return out
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：摩根投信（am.jpmorgan.com）
+#   AEM + React，PDP 頁靠 /FundsMarketingHandler/product-data 取全部資料。
+#   關鍵是 role：country=tw 只有 role=twetf 會過，其他（per/ins/adv/retail…）
+#   一律回 "Country/Role combination is not supported by FMA"。
+#   cusip 就是 ISIN（TW00000401A1），頁面網址尾巴那串小寫就是它。
+#   持股在 fundData.holdings.pcfEquityHoldings：
+#     effectiveDate + data[].{securityTicker, securityDescription, shares}
+#   這家難得沒有公告日陷阱——effectiveDate 直接就是資料日。
+#   沒有日期參數（試過 effectiveDate/date/asOfDate/m12Date/holdingDate 都被忽略），
+#   所以查不了歷史。
+# ══════════════════════════════════════════════════════════════
+JPM_API   = "https://am.jpmorgan.com/FundsMarketingHandler/product-data"
+JPM_FUNDS = {
+    "00401A": ("TW00000401A1", "主動摩根台灣鑫收"),
+    "00989A": ("TW00000989A5", "主動摩根美國科技"),
+}
+
+
+def fetch_jpm(date_obj, specific=False):
+    if specific:
+        return {}          # API 吃不了日期參數，查不了歷史
+    out = {}
+    for ticker, (cusip, name) in JPM_FUNDS.items():
+        url = (f"{JPM_API}?cusip={cusip}&country=tw&role=twetf&language=zh")
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": UA, "Referer": "https://am.jpmorgan.com/"})
+            d = json.loads(urllib.request.urlopen(req, timeout=30, context=_SSL)
+                           .read().decode("utf-8"))
+        except Exception as e:
+            print(f"[摩根] {ticker} 失敗: {e}")
+            continue
+
+        fund = d.get("fundData")
+        if not fund:
+            err = ((d.get("error") or {}).get("errorMessage") or "fundData 為空")
+            print(f"[摩根] {ticker} {name}：{err}")
+            continue
+
+        pe = ((fund.get("holdings") or {}).get("pcfEquityHoldings")) or {}
+        data_date = str(pe.get("effectiveDate") or "")[:10] or None
+
+        holdings = {}
+        for row in pe.get("data") or []:
+            code = str(row.get("securityTicker") or "").strip()
+            try:
+                share = int(float(str(row.get("shares") or 0)))
+            except (TypeError, ValueError):
+                continue
+            if code and share:
+                holdings[code] = {"name": str(row.get("securityDescription") or "").strip(),
+                                  "shares": share}
+        if holdings and data_date:
+            out[ticker] = {"name": name, "issuer": "摩根",
+                           "data_date": data_date, "holdings": holdings}
+            tw = sum(1 for c in holdings if re.fullmatch(r"\d{4,6}[A-Z]?", c))
+            print(f"[摩根] {ticker} {name}：{len(holdings)} 檔"
+                  f"（台股 {tw}），資料日 {data_date}")
+        elif holdings:
+            print(f"[摩根] {ticker} {name}：抓到 {len(holdings)} 檔但沒有 effectiveDate，略過")
+        else:
+            print(f"[摩根] {ticker} {name}：pcfEquityHoldings 是空的")
+        time.sleep(1)
+    return out
+
 
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
             fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz,
-            fetch_fsitc, fetch_mega, fetch_yuanta]
+            fetch_fsitc, fetch_mega, fetch_yuanta, fetch_jpm]
 
 
 # ══════════════════════════════════════════════════════════════

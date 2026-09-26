@@ -93,9 +93,12 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - 抓不到的 ETF **保留上一次的換檔結果**（`fetched:false` + `last_change_date`），
   絕不讓它從畫面消失——使用者看到的會是「我買的那檔不見了」
 
-#### 已接的投信（2026-09-26：27 檔 / 13 家）
-統一 4、中信 3、群益 3、野村 3、安聯 3、台新 2、復華 2、第一金 2、
+#### 已接的投信（2026-09-27：29 檔 / 14 家）
+統一 4、中信 3、群益 3、野村 3、安聯 3、台新 2、復華 2、第一金 2、摩根 2、
 永豐 1、凱基 1、富邦 1、兆豐 1、元大 1
+
+排行榜認定的主動式 ETF 共 30 檔，只差國泰 00400A、聯博 00404A 兩檔（外加不在
+那 30 檔名單內、但也有接的 00411A）。
 
 新增一家投信＝新增一個 `fetch_xxx(date_obj, specific=False)` adapter，回傳
 `{ticker: {name, issuer, data_date, holdings: {code: {name, shares}}}}`，再掛進 `ADAPTERS`。
@@ -111,14 +114,25 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - ⚠ 回應編碼會飄（第一金 UTF-8／Big5 都出現過），先試 utf-8 再退 cp950。
 - ⚠ 兆豐的 `category_id` 下拉選單是陷阱：先送它篩「主動式ETF」反而會把 `fund_id`
   的 `<option>` 清空，初始頁本來就列齊了，直接送 `fund_id` 就好。
+- 摩根走 `FundsMarketingHandler/product-data`，**`role` 只有 `twetf` 會過**
+  （per/ins/adv/retail 都回 "Country/Role combination is not supported by FMA"）；
+  `cusip` 就是 ISIN。難得沒有公告日陷阱，`effectiveDate` 直接是資料日。
 - 元大是 Nuxt SPA，但持股 SSR 在 `window.__NUXT__` 的 `StockWeights` 裡，
   欄位值常是 minified 變數（`_nuxt_vars` 負責還原）；資料日用 DOM 上那個「交易日期」。
 - ⚠ 海外持股查無台股報價會被靜默略過 → 一定要進 `no_price` 並印 `[WARN]`。
 - 認證花招：統一 session cookie、中信 bootstrap token `"www.ctbcinvestments.com"`
   → `home/AuthToken`、安聯 `X-XSRF-TOKEN`（來自 `AntiForgery/GetAntiForgeryToken`）。
 
-**尚未攻破**：國泰 00400A、聯博 00404A、摩根 00401A/00989A（都是 SPA，API 端點還沒找到）。
-全市場主動式 ETF 共 30 檔，目前差這 4 檔。
+**剩下這兩檔，原因不同，不要當成「還沒找到 API」**：
+- **國泰 00400A**：API 全開放（`https://cwapi.cathaysite.com.tw/api/`，`fundCode=EA`），
+  但 `GetIndexStockWeights` **只給權重不給股數**；`BuySale/GetStocksList` 回空陣列，
+  因為它是**現金申購買回**型，PCF 沒有股票籃。TWSE `ETFortune/etfInfo/00400A` 也沒有持股。
+  權重×基金規模÷股價可以反推股數，但權重只到小數 2 位 → 每檔每日約 ±290 萬元誤差，
+  跟真實小額換股同一量級，**不做**（會變成「看起來像資料的雜訊」）。
+- **聯博 00404A**：2026-09-27 實測官網 `/zh-tw/*` 全部 302 → `:81/apac/tw/error/404_3.htm`，
+  連首頁都 404（WebFetch 從外部抓也一樣），是他們站台壞掉不是擋我們。
+  PCF 頁網址格式是 `https://www.abfunds.com.tw/zh-tw/etfs/pcf.<ISIN>.html`
+  （00404A 的 ISIN 是 `TW00000404A5`），站台修好後直接試這個。
 **不可用來源**：`etfinfo.tw`（robots.txt `Disallow: /api/`、使用條款禁爬禁再利用）、
 `nctuwanglin/active-etf`（無授權條款）。台灣**沒有**集中式的主動式 ETF 持股揭露，
 TWSE `ETFortune/etfInfo` 與 TPEx `serial_active_etf` 都只有彙總頁。
