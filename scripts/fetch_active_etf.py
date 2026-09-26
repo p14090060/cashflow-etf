@@ -571,8 +571,58 @@ def fetch_capital(date_obj, specific=False):
     return out
 
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：富邦投信（websys.fsit.com.tw）
+#   GET /FubonETF/Fund/Assets.aspx?stkId=<代號>&lan=TW
+#   ⚠ 持股**不在** PCF 頁（Pcf.aspx 只有基金淨值等層級數字，一度讓我誤判
+#     「富邦沒公開成分股」）。完整持股在「基金資產」頁 Assets.aspx。
+#   表格欄位 [代號, 名稱, 股數, 市值, 權重]，只吃 stkId，沒有日期參數
+# ══════════════════════════════════════════════════════════════
+FUBON_FUNDS = {"00405A": "主動富邦台灣龍耀"}
+
+
+def fetch_fubon(date_obj, specific=False):
+    if specific:
+        return {}          # Assets.aspx 沒有日期參數，查不了歷史
+    out = {}
+    for ticker, name in FUBON_FUNDS.items():
+        url = ("https://websys.fsit.com.tw/FubonETF/Fund/Assets.aspx"
+               f"?stkId={ticker}&lan=TW")
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            page = urllib.request.urlopen(req, timeout=25, context=_SSL).read().decode("utf-8", "replace")
+        except Exception as e:
+            print(f"[富邦] {ticker} 失敗: {e}")
+            continue
+
+        tag = re.compile(r"<[^>]+>")
+        holdings = {}
+        for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S | re.I):
+            cells = [tag.sub("", c).replace("&nbsp;", " ").strip()
+                     for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
+            if len(cells) < 3:
+                continue
+            code = cells[0].split()[0] if cells[0].split() else ""
+            if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
+                continue
+            try:
+                share = int(cells[2].replace(",", ""))
+            except ValueError:
+                continue
+            if share:
+                holdings[code] = {"name": cells[1], "shares": share}
+
+        m = re.search(r"(\d{4})/(\d{2})/(\d{2})", page)
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "富邦",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[富邦] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+    return out
+
+
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
-            fetch_capital]
+            fetch_capital, fetch_fubon]
 
 
 # ══════════════════════════════════════════════════════════════
