@@ -395,8 +395,13 @@ def fetch_taishin(date_obj, specific=False):
             print(f"[台新] {ticker} 失敗: {e}")
             continue
 
-        m = re.search(r'DATA_DATE[^>]*value="(\d{4})-(\d{2})-(\d{2})"', page)
-        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+        # DATA_DATE 只是把我們送進去的值原樣回傳，不是真的資料日；
+        # 真正的最新資料日在 MAX_DATE。取兩者較早的那個才正確。
+        def _pick(name):
+            m = re.search(name + r'[^>]*value="(\d{4})-(\d{2})-(\d{2})"', page)
+            return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+        echoed, newest = _pick("DATA_DATE"), _pick("MAX_DATE")
+        data_date = min(x for x in (echoed, newest) if x) if (echoed or newest) else None
 
         tag = re.compile(r"<[^>]+>")
         holdings = {}
@@ -625,10 +630,21 @@ def main():
     now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
     today  = now_tw.date()
 
+    # 用「最後一個交易日」當查詢日，不要用今天。週末與國定假日（例如 2026-09-25
+    # 中秋）傳今天進去，永豐與中信會直接回空、台新會把假日日期原樣 echo 回來，
+    # 看起來就像 adapter 壞了。closes_on() 本來就會往回找到有行情的那天。
+    trade_day_str, _ = closes_on(today)
+    try:
+        query_day = datetime.datetime.strptime(trade_day_str, "%Y%m%d").date()
+    except (TypeError, ValueError):
+        query_day = today
+    if query_day != today:
+        print(f"[DATE] 今天 {today} 非交易日，改以最後交易日 {query_day} 查詢")
+
     etfs = {}
     for fn in ADAPTERS:
         try:
-            etfs.update(fn(today))
+            etfs.update(fn(query_day))
         except Exception as e:
             print(f"[WARN] {fn.__name__} 整支失敗: {e}")
 
@@ -654,7 +670,7 @@ def main():
             todo = [c for c in etfs if c not in back]
             if not todo:
                 break
-            d = today - datetime.timedelta(days=back_days)
+            d = query_day - datetime.timedelta(days=back_days)
             if d.weekday() >= 5:
                 continue
             got = {}
@@ -676,9 +692,19 @@ def main():
     flows = build_flow(prev, snapshot) if prev else {}
     old_out = (load_json(OUT) or {}).get("etfs") or {}
 
+    # 這次沒抓到的 ETF 一律保留上次的結果，不讓它從畫面上消失。
+    # 2026-09-25 中秋連假那天，永豐/台新/中信因為被傳了假日日期而回空，
+    # 輸出直接從 11 檔掉到 5 檔——使用者看到的是「我買的那檔不見了」。
     out_etfs = {}
+    for code, old in old_out.items():
+        if code not in etfs:
+            out_etfs[code] = dict(old, fetched=False)
+            print(f"[KEEP] {code} {old.get('name','')}：本次未抓到，沿用上次資料"
+                  f"（資料日 {old.get('data_date')}）")
+
     for code, info in etfs.items():
         f = flows.get(code) or {"advanced": False, "reason": "no_basis"}
+        prev_out = old_out.get(code) or {}
         row = {
             "name":      info["name"],
             "issuer":    info["issuer"],
@@ -686,8 +712,9 @@ def main():
             "data_date": info.get("data_date"),      # 這檔 PCF 自己的資料日
             "advanced":  bool(f.get("advanced")),    # 這次 PCF 有沒有出新的
             "reason":    f.get("reason", "no_basis"),
+            "fetched":   True,
         }
-        if f.get("advanced"):
+        if f.get("advanced") and f.get("changed"):
             row.update({
                 "flow_from":  f.get("basis_date"),
                 "flow_to":    f.get("data_date"),
@@ -696,12 +723,15 @@ def main():
                 "scale_pct": f.get("scale_pct"),
                 "buy": f["buy"], "sell": f["sell"],
                 "changed": f["changed"], "flow": f["flow"],
+                # 最近一次「真的有換檔」的日期，排行頁用它決定標籤要不要顯示
+                "last_change_date": f.get("data_date"),
             })
         else:
-            # PCF 沒出新的：沿用上一次算出來的結果並標示未更新。
-            # 顯示「最近一次調整（9/20→9/22）」比顯示「異動 0」誠實得多。
-            o = old_out.get(code) or {}
+            # 這次沒有新調整（PCF 未更新，或有更新但持股沒動）：
+            # 沿用上一次「真的有換檔」的結果，不要顯示成空白或異動 0。
+            o = prev_out
             row.update({
+                "last_change_date": o.get("last_change_date"),
                 "flow_from":  o.get("flow_from"),
                 "flow_to":    o.get("flow_to"),
                 "price_date": o.get("price_date"),

@@ -89,7 +89,22 @@ def check_active_flow() -> list:
         issues.append(f"• 主動式 ETF 只剩 {len(etfs)} 檔（低於 {ACTIVE_MIN_ETFS}），"
                       f"可能有投信 adapter 壞了")
 
-    today, dates = datetime.date.today(), {}
+    # 本次沒抓到、沿用舊資料的（fetch_active_etf 會標 fetched:false）
+    kept = [c for c, e in etfs.items() if e.get("fetched") is False]
+    if len(kept) >= 3:
+        issues.append(f"• 有 {len(kept)} 檔本次沒抓到，沿用舊資料：{'、'.join(sorted(kept))}")
+
+    # **基準是最後一個交易日，不是日曆上的今天**。國定假日（如 2026-09-25 中秋）
+    # 和週末不會有新的 PCF，用 today 比會在每個連假都誤報一次「資料停更」。
+    # twse_price_check_date 由 fetch_etf.py 寫入，是 TWSE 實際有行情的那天。
+    mkt = load(MARKET) or {}
+    raw = str(mkt.get("twse_price_check_date") or "")
+    try:
+        base = datetime.datetime.strptime(raw, "%Y%m%d").date()
+    except ValueError:
+        base = datetime.date.today()      # 抓不到就退回今天，寧可誤報也不要漏報
+
+    dates = {}
     for code, e in etfs.items():
         try:
             dates[code] = datetime.date.fromisoformat(str(e.get("data_date")))
@@ -98,16 +113,18 @@ def check_active_flow() -> list:
 
     if dates:
         newest = max(dates.values())
-        gap = (today - newest).days
+        gap = (base - newest).days
         if gap > ACTIVE_STALE_ALL:
-            issues.append(f"• 主動式 ETF 全面停更：最新資料日 {newest}（已 {gap} 天）")
+            issues.append(f"• 主動式 ETF 全面停更：最新資料日 {newest}，"
+                          f"距最後交易日 {base} 已 {gap} 天")
         else:
             # 只有個別投信落後才逐檔列，否則全面停更時會洗版
             for code, d in sorted(dates.items(), key=lambda x: x[1]):
-                lag = (today - d).days
+                lag = (base - d).days
                 if lag > ACTIVE_STALE_ONE:
                     issues.append(f"• {code} {etfs[code].get('name','')}："
-                                  f"資料日 {d} 已落後 {lag} 天（{etfs[code].get('issuer','')}投信）")
+                                  f"資料日 {d} 落後最後交易日 {lag} 天"
+                                  f"（{etfs[code].get('issuer','')}投信）")
     return issues
 
 

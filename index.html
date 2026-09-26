@@ -801,6 +801,14 @@ function switchPage(id) {
 let _flowData = null, _flowCells = [], _flowSel = null;
 let _rankSorted = [];   // 排行頁當前榜單，搜尋定位用
 
+// 最後一次真的換檔是不是在 days 天內（排行頁標籤的有效期）
+function _changedWithin(dateStr, days) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return false;
+  return (Date.now() - d.getTime()) / 86400000 <= days;
+}
+
 function fetchFlow() {
   // 先試同源相對路徑（GitHub Pages 上最新、本機開檔也能測），失敗再退 raw
   const ok = r => { if (!r.ok) throw 0; return r.json(); };
@@ -897,7 +905,12 @@ function renderFlow(code) {
       '　PCF 公告通常落後行情 1~2 天';
     const np = (e.no_price || []).length;
     const tips = [];
-    if (e.advanced === false && e.reason === 'not_updated')
+    if (e.fetched === false)
+      tips.push('⚠ 本次未能取得新資料（投信網站異常），以下為先前結果');
+    else if (e.flow_to && e.data_date && e.flow_to !== e.data_date)
+      // 最新 PCF 沒有調整，畫面保留最近一次真的換檔的內容，日期要講明白
+      tips.push('⏳ 最新 PCF（' + e.data_date + '）持股無異動，以下為最近一次調整');
+    else if (e.advanced === false && e.reason === 'not_updated')
       tips.push('⏳ ' + (e.data_date || '') + ' 之後尚未有新的 PCF，以下為最近一次調整');
     // 全池同步等比例增減＝申購贖回造成的規模變動，不是經理人換股，一定要講明
     if (e.scale_pct != null)
@@ -912,7 +925,11 @@ function renderFlow(code) {
       return;
     }
     const rows = e.flow || [];
-    if (!rows.length) { box.innerHTML = '<div class="tm-empty">' + e.name + ' 這段期間持股無異動</div>'; return; }
+    if (!rows.length) {
+      box.innerHTML = '<div class="tm-empty">' + e.name + ' 目前沒有可顯示的調整紀錄<br>'
+        + '（最新 PCF 資料日 ' + (e.data_date || '-') + '，持股與前一份相同）</div>';
+      return;
+    }
 
     const W = box.clientWidth, H = box.clientHeight;
     const buys  = _trim(rows.filter(s => s.amount > 0), 14);
@@ -1575,9 +1592,13 @@ function renderRank() {
     const y1C   = retClr(e.ret1y);
     const _tag  = getEtfTag(e.code, e.name);
     const tagHtml = _tag ? `<div class="rank-tag" style="color:${_tag.color};border-color:${_tag.border};background:${_tag.bg}">${_tag.label}</div>` : '';
-    // 有 PCF 持股資料的主動式 ETF 才可點；抓不到的維持原樣，不標記也不給點
-    const hasFlow  = !!(_flowData && _flowData.etfs && _flowData.etfs[e.code]);
-    const flowHtml = hasFlow ? `<div class="rank-flow">持股異動 ›</div>` : '';
+    // 有 PCF 持股資料的主動式 ETF 才可點；抓不到的維持原樣，不標記也不給點。
+    // 標籤只在「最近一週內真的有換檔」時顯示——超過一週沒動作還掛著標籤，
+    // 等於在說有東西可看，點進去卻是舊資料。可點與否不受影響。
+    const fe       = _flowData && _flowData.etfs && _flowData.etfs[e.code];
+    const hasFlow  = !!fe;
+    const flowHtml = (hasFlow && _changedWithin(fe.last_change_date, 7))
+                   ? `<div class="rank-flow">持股異動 ›</div>` : '';
     return `<div class="rank-row${hasFlow ? ' tappable' : ''}" data-code="${e.code}" data-rank="${rank}"${hasFlow ? ` onclick="openFlow('${e.code}')"` : ''}>
       <div class="rank-main">
         <div class="rank-no ${cls}">${rank}</div>
