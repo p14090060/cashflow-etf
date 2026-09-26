@@ -872,8 +872,89 @@ def fetch_allianz(date_obj, specific=False):
     return out
 
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：第一金投信（www.fsitc.com.tw）
+#   POST /WebAPI.aspx/Get_hd  {"pStrFundID","pStrDate"}  → ASP.NET page method
+#   回傳 {"d": "<JSON 字串>"}，要再 json.loads 一次（雙層）。
+#   欄位：A=股票代號 B=股票名稱 C=權重% D=股數  group=1 才是股票
+#         （group=4 現金、group=5 彙總列，都要濾掉）
+#   ⚠ 兩個坑：
+#     1. pStrDate 是「查詢上界、不含當日」——傳 2026/09/24 會拿到 09-23 的持股。
+#        所以要抓 D 日資料得傳 D+1；傳空字串則回最新一份。一律以回傳的
+#        sdate 為準，不要用送出去的日期。
+#     2. 回應有時是 Big5（cp950）不是 UTF-8，硬解 utf-8 會炸。
+#   基金頁上看得到的那張「資產明細」表只有比重沒有股數，不能用；股數只在這支 API。
+#   fundid 對照：頁面 FundDetail.aspx?ID=<fundid>
+# ══════════════════════════════════════════════════════════════
+FSITC_FUNDS = {
+    "00994A": ("182", "主動第一金台股優"),
+    "00408A": ("183", "主動第一金優股息"),
+}
+
+
+def _fsitc_json(raw):
+    """第一金的回應在 UTF-8 / Big5 之間飄，先試 UTF-8 再退 cp950。"""
+    for enc in ("utf-8", "cp950"):
+        try:
+            return json.loads(raw.decode(enc))
+        except UnicodeDecodeError:
+            continue
+    return json.loads(raw.decode("cp950", "replace"))
+
+
+def fetch_fsitc(date_obj, specific=False):
+    url = "https://www.fsitc.com.tw/WebAPI.aspx/Get_hd"
+    # pStrDate 不含當日，所以要 D 日的資料得往後推一天
+    q = ((date_obj + datetime.timedelta(days=1)).strftime("%Y/%m/%d")
+         if specific else "")
+    out = {}
+    for ticker, (fund_id, name) in FSITC_FUNDS.items():
+        try:
+            req = urllib.request.Request(url,
+                data=json.dumps({"pStrFundID": fund_id, "pStrDate": q}).encode(),
+                headers={"User-Agent": UA,
+                         "Content-Type": "application/json; charset=utf-8",
+                         "Referer": "https://www.fsitc.com.tw/FundDetail.aspx"
+                                    f"?ID={fund_id}"})
+            d = _fsitc_json(urllib.request.urlopen(req, timeout=25, context=_SSL).read())
+            rows = json.loads(d.get("d") or "[]")
+        except Exception as e:
+            print(f"[第一金] {ticker} 失敗: {e}")
+            continue
+
+        stock = [r for r in rows if str(r.get("group")) == "1"]
+        if not stock:
+            print(f"[第一金] {ticker} {name}：{q or '最新'} 無資料")
+            continue
+
+        dates = sorted({str(r.get("sdate") or "")[:10] for r in stock} - {""})
+        data_date = dates[-1] if dates else None
+
+        holdings = {}
+        for r in stock:
+            code = str(r.get("A") or "").strip()
+            if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
+                continue          # 現金、期貨之類的非個股列
+            try:
+                share = int(float(str(r.get("D") or "").replace(",", "")))
+            except ValueError:
+                continue
+            if share:
+                holdings[code] = {"name": str(r.get("B") or "").strip(),
+                                  "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "第一金",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[第一金] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        else:
+            print(f"[第一金] {ticker} {name}：解析不到持股（{len(stock)} 列股票但無股數）")
+        time.sleep(1)
+    return out
+
+
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
-            fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz]
+            fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz,
+            fetch_fsitc]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1021,38 +1102,51 @@ def main():
 
     prev = load_json(SNAPSHOT)
 
-    # 沒有前次快照時，向支援歷史查詢的投信回補前一交易日，
-    # 這樣第一次執行就算得出買賣超，不用空等一天。
-    if not prev:
+    # 快照裡沒有前一份的 ETF，向支援歷史查詢的投信回補前一交易日，
+    # 這樣不用空等一天就算得出買賣超。
+    # 只看「這次抓到、但快照裡沒有」的——新接一家投信時它們同樣要回補，
+    # 之前寫成 `if not prev` 只涵蓋全空的情況，每加一家就會空白一天。
+    prev_etfs = (prev or {}).get("etfs") or {}
+    need = [c for c in etfs if c not in prev_etfs]
+    if need:
         # 回補「前一份」PCF。各投信、甚至同投信不同基金的公告延遲都不一樣
         # （實測 00403A 落後 2 天、00981A 落後 1 天），所以不能用固定天數，
         # 要逐日往前找到「資料日與當期不同」的那一份才停，否則回補區間會
         # 拉成一整週，算出來的不是單日調整。
         cur_dates = {c: v.get("data_date") for c, v in etfs.items()}
         back = {}
-        print("[BOOTSTRAP] 無前次快照，逐日往前找每檔的前一份 PCF")
+        print(f"[BOOTSTRAP] {len(need)} 檔缺前一份（{'、'.join(sorted(need))}），"
+              "逐日往前找")
+        # 第一天先全問，之後只留「真的回得出 need 裡那幾檔」的 adapter——
+        # 不然一支 ETF 缺前一份，就要對 11 家投信連打 7 天，白跑又擾民。
+        probe = list(ADAPTERS)
         for back_days in range(1, 8):
-            todo = [c for c in etfs if c not in back]
-            if not todo:
+            if all(c in back for c in need) or not probe:
                 break
             d = query_day - datetime.timedelta(days=back_days)
             if d.weekday() >= 5:
                 continue
-            got = {}
-            for fn in ADAPTERS:
+            got, keep = {}, []
+            for fn in probe:
                 try:
-                    got.update(fn(d, specific=True))
+                    r = fn(d, specific=True)
                 except Exception as e:
                     print(f"[WARN] {fn.__name__} 回補失敗: {e}")
+                    continue
+                if any(c in need for c in r):
+                    keep.append(fn)
+                got.update(r)
+            probe = keep
             for c, v in got.items():
                 dd = v.get("data_date")
-                if c in etfs and c not in back and dd and dd != cur_dates.get(c):
+                if c in need and c not in back and dd and dd != cur_dates.get(c):
                     back[c] = v
                     print(f"[BOOTSTRAP] {c} 前一份 = {dd}（當期 {cur_dates.get(c)}）")
         if back:
-            prev = {"fetched": "(bootstrap)", "etfs": back}
+            prev = {"fetched": (prev or {}).get("fetched", "(bootstrap)"),
+                    "etfs": dict(prev_etfs, **back)}
         else:
-            print("[BOOTSTRAP] 沒有投信支援歷史查詢，只能等下一個交易日")
+            print("[BOOTSTRAP] 這些投信不支援歷史查詢，只能等下一個交易日")
 
     flows = build_flow(prev, snapshot) if prev else {}
     old_out = (load_json(OUT) or {}).get("etfs") or {}

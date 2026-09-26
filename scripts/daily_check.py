@@ -67,7 +67,7 @@ FETCH_ETF          = ROOT / "fetch_etf.py"
 STALE_PENDING_DAYS = 90
 
 ACTIVE_FLOW      = ROOT / "data" / "active_flow.json"
-ACTIVE_MIN_ETFS  = 9     # 目前接 11 檔；掉到 9 以下代表至少一家投信的 adapter 壞了
+ACTIVE_MIN_ETFS  = 20    # 目前接 25 檔；本次實抓掉到 20 以下 = 約兩家投信的 adapter 壞了
 ACTIVE_STALE_ALL = 4     # 全部 ETF 的最新資料日都超過這天數 → 整條抓取停擺
 ACTIVE_STALE_ONE = 7     # 單一 ETF 資料日落後這麼多天 → 那家投信可能改版或擋我們
 
@@ -85,9 +85,12 @@ def check_active_flow() -> list:
         return ["• active_flow.json 讀取失敗或不存在"]
 
     etfs = data.get("etfs") or {}
-    if len(etfs) < ACTIVE_MIN_ETFS:
-        issues.append(f"• 主動式 ETF 只剩 {len(etfs)} 檔（低於 {ACTIVE_MIN_ETFS}），"
-                      f"可能有投信 adapter 壞了")
+    # 只算「本次真的抓到」的。輸出會保留抓不到的 ETF（fetched:false）避免它從畫面
+    # 消失，所以 len(etfs) 只增不減——拿總數當警戒線的話，全部投信掛掉也不會叫。
+    live = [c for c, e in etfs.items() if e.get("fetched") is not False]
+    if len(live) < ACTIVE_MIN_ETFS:
+        issues.append(f"• 主動式 ETF 本次只抓到 {len(live)} 檔（低於 {ACTIVE_MIN_ETFS}，"
+                      f"檔案共 {len(etfs)} 檔），可能有投信 adapter 壞了")
 
     # 本次沒抓到、沿用舊資料的（fetch_active_etf 會標 fetched:false）
     kept = [c for c, e in etfs.items() if e.get("fetched") is False]

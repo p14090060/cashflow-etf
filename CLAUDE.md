@@ -76,27 +76,47 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 ### 主動頁（Tab 4）
 | 代號 | 說明 |
 |---|---|
-| D-1 | **單檔**主動式 ETF 的當日持股異動 treemap（面積＝金額、綠加碼紅減碼、格內顯示張數） |
+| D-1 | **單檔**主動式 ETF 的當日持股異動 treemap（面積＝金額、**紅加碼綠減碼**＝台股慣例、格內顯示張數） |
 
 資料由 `scripts/fetch_active_etf.py` 產生 `data/active_flow.json`：
 抓各投信官網公告的 **PCF 申購買回清單**（法規要求主動式 ETF 每日開盤前揭露全部持股），
-加減碼 =（本次股數 − 前一份快照股數）× 當日 TWSE 官方收盤價。
+加減碼 =（本次股數 − 前一份快照股數）× **該資料日**的 TWSE／TPEx 官方收盤價。
 
-**刻意不做跨 ETF 彙總。** TOP 100 裡有 29 檔主動式 ETF，目前只接得到 5 檔；
-彙總數字會在畫面上長得像「全市場主動圈結論」，實際漏掉八成，等於騙人
-（同 2026-05 砍掉「月月都有錢領」的毛病）。單檔版在任何涵蓋率下都誠實：
-接得到就顯示，接不到就不出現在 chips 裡。等成交量涵蓋率 >80% 再考慮加回彙總視圖。
+**刻意不做跨 ETF 彙總。** 彙總數字會在畫面上長得像「全市場主動圈結論」，
+只要還有投信接不到就等於騙人（同 2026-05 砍掉「月月都有錢領」的毛病）。
+單檔版在任何涵蓋率下都誠實：接得到就顯示，接不到就不出現在 chips 裡。
 
-- 排行頁只有**抓得到 PCF 的那幾檔**可點（`.rank-row.tappable` + 「持股異動 ›」），
-  其餘 24 檔不給點也不標記
-- `comparable:false` 代表這檔還沒有前一日可比對（永豐官網沒有歷史查詢，要等隔天），
-  前端必須跟「今日無異動」分開顯示，不要混為一談
+- 排行頁只有**抓得到 PCF 的那幾檔**可點（`.rank-row.tappable` + 「持股異動 ›」）
+- `advanced:false` 代表這檔 PCF 這次沒出新的，和「有出新的但持股沒動」是兩種狀態，
+  前端必須分開顯示，不要混為一談
 - **這是兩份公開快照相減的推估值，不等於基金實際成交**，前端已標註，不要拿掉那段警語
-- 已支援：統一（00981A/00403A/00988A/00411A）、永豐（00410A）
-- 統一的 API 走 `POST /ETF/Transaction/GetPCF`，要先 GET 首頁拿 session cookie，
-  且 `fundCode` 是投信內部代碼（00403A→63YTW、00981A→49YTW），不是股票代號；
-  `specificDate=true` 可查歷史，所以初次執行能自動回補前一交易日
-- 群益（純 JS 渲染）、國泰（403）目前抓不到，要加投信就是加一個 adapter
+- 抓不到的 ETF **保留上一次的換檔結果**（`fetched:false` + `last_change_date`），
+  絕不讓它從畫面消失——使用者看到的會是「我買的那檔不見了」
+
+#### 已接的投信（2026-09-26：25 檔 / 11 家）
+統一 4、中信 3、群益 3、野村 3、安聯 3、台新 2、復華 2、**第一金 2**、永豐 1、凱基 1、富邦 1
+
+新增一家投信＝新增一個 `fetch_xxx(date_obj, specific=False)` adapter，回傳
+`{ticker: {name, issuer, data_date, holdings: {code: {name, shares}}}}`，再掛進 `ADAPTERS`。
+`specific=True` 用於回補前一份（快照裡沒有的 ETF 會自動觸發，所以新接投信當天就有數字）。
+
+**踩過的坑，加新 adapter 前先看：**
+- ⚠ **「公告日 ≠ 資料日」已經踩 6 次**（凱基 `DataDate`、中信 公告日、群益 `pcf.date1`、
+  安聯 `PCFDate`、兆豐、第一金 `pStrDate`）。API 給的常是**未來的交割公告日**，
+  真正的資料日要看 NAV 日／`date2`／淨值日期／回傳的 `sdate`。**一律以回傳值為準，
+  不要相信自己送出去的日期。**
+- ⚠ **「PCF 頁沒有成分股」≠「這家沒公開持股」**。富邦在 `Fund/Assets.aspx`、
+  復華只在 Excel 下載連結裡、第一金只在 `WebAPI.aspx/Get_hd`（頁面那張表只有比重沒股數）。
+- ⚠ 回應編碼會飄（第一金 UTF-8／Big5 都出現過），先試 utf-8 再退 cp950。
+- ⚠ 海外持股查無台股報價會被靜默略過 → 一定要進 `no_price` 並印 `[WARN]`。
+- 認證花招：統一 session cookie、中信 bootstrap token `"www.ctbcinvestments.com"`
+  → `home/AuthToken`、安聯 `X-XSRF-TOKEN`（來自 `AntiForgery/GetAntiForgeryToken`）。
+
+**尚未攻破**：國泰 00400A、元大 00990A、聯博 00404A、摩根 00401A/00989A（都是 SPA，
+API 端點還沒找到）、兆豐 00996A（ASP.NET 兩段式 postback 失敗）。
+**不可用來源**：`etfinfo.tw`（robots.txt `Disallow: /api/`、使用條款禁爬禁再利用）、
+`nctuwanglin/active-etf`（無授權條款）。台灣**沒有**集中式的主動式 ETF 持股揭露，
+TWSE `ETFortune/etfInfo` 與 TPEx `serial_active_etf` 都只有彙總頁。
 
 > **Tab 4 原本是「健診頁」**（持倉健檢 + 財務試算），2026-09-23 下架改放此頁。
 > HTML 存在 `<template id="archived-check">`、JS 在 `/* 健診頁邏輯 */` 註解區塊裡，
