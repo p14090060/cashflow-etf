@@ -679,8 +679,121 @@ def fetch_nomura(date_obj, specific=False):
     return out
 
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：復華投信（www.fhtrust.com.tw）
+#   GET /api/assetsExcel/<內部碼>/<YYYYMMDD>  → 直接下載 xlsx（完整持股）
+#   ⚠ 基金頁 /ETF/etf_detail/<內部碼>#stockhold 只顯示**前十大**，
+#     /api/ETFPcf 的持股陣列是空的，/api/stockhold 是月報——都不能用。
+#     完整持股只在那個 Excel 下載連結裡（頁面上的「檔案下載」按鈕）。
+#   xlsx 用標準庫 zipfile + ElementTree 解，不加相依套件
+#   內部碼 ETF23/24/25/26，可由 /ETF/trade_list 的 <option> 取得
+# ══════════════════════════════════════════════════════════════
+FUHWA_FUNDS = {
+    "00991A": ("ETF23", "主動復華未來50"),
+    "00998A": ("ETF24", "主動復華金融股息"),
+    "00986D": ("ETF25", "主動復華金融債息"),
+    "00409A": ("ETF26", "主動復華全球50"),
+}
+
+
+def _xlsx_rows(blob):
+    """把 xlsx 位元組解成 list[list[str]]。只支援單一工作表，夠用了。"""
+    import zipfile, io as _io
+    import xml.etree.ElementTree as ET
+    NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    z = zipfile.ZipFile(_io.BytesIO(blob))
+    shared = []
+    if "xl/sharedStrings.xml" in z.namelist():
+        root = ET.fromstring(z.read("xl/sharedStrings.xml"))
+        shared = ["".join(t.text or "" for t in si.iter(NS + "t"))
+                  for si in root.findall(NS + "si")]
+    sheet = ET.fromstring(z.read("xl/worksheets/sheet1.xml"))
+    out = []
+    for row in sheet.iter(NS + "row"):
+        vals = []
+        for c in row.iter(NS + "c"):
+            v = c.find(NS + "v")
+            s = v.text if v is not None else ""
+            if c.get("t") == "s" and s:
+                s = shared[int(s)]
+            vals.append(s or "")
+        out.append(vals)
+    return out
+
+
+def fetch_fuhwa(date_obj, specific=False):
+    out = {}
+    for ticker, (fund_id, name) in FUHWA_FUNDS.items():
+        page_url = f"https://www.fhtrust.com.tw/ETF/etf_detail/{fund_id}"
+        if specific:
+            url = ("https://www.fhtrust.com.tw/api/assetsExcel/"
+                   f"{fund_id}/{date_obj.strftime('%Y%m%d')}")
+        else:
+            # 各檔的最新資料日不同（實測 00991A 到 09/24，其餘只到 09/23），
+            # 自己猜日期會拿到 12 bytes 的「查無資料」。直接從基金頁讀出
+            # 「檔案下載」按鈕的連結，日期就內嵌在裡面。
+            try:
+                req = urllib.request.Request(page_url, headers={"User-Agent": UA})
+                page = urllib.request.urlopen(req, timeout=25, context=_SSL).read().decode("utf-8", "replace")
+                m = re.search(r"/api/assetsExcel/%s/(\d{8})" % fund_id, page)
+            except Exception as e:
+                print(f"[復華] {ticker} 讀基金頁失敗: {e}")
+                continue
+            if not m:
+                print(f"[復華] {ticker} 基金頁找不到下載連結")
+                continue
+            url = "https://www.fhtrust.com.tw" + m.group(0)
+
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": UA, "Referer": page_url})
+            blob = urllib.request.urlopen(req, timeout=30, context=_SSL).read()
+            if not blob.startswith(b"PK"):    # 查無資料時回的是一小段文字
+                print(f"[復華] {ticker} 該日無資料（{url[-8:]}）")
+                continue
+            rows = _xlsx_rows(blob)
+        except Exception as e:
+            print(f"[復華] {ticker} 失敗: {e}")
+            continue
+
+        data_date = None
+        holdings = {}
+        other = 0
+        for r in rows:
+            joined = " ".join(r)
+            m = re.search(r"日期[：:]\s*(\d{4})[/-](\d{2})[/-](\d{2})", joined)
+            if m and not data_date:
+                data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+            if len(r) < 3 or not r[0].strip():
+                continue
+            code = r[0].strip()
+            if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
+                # 非台股代號（彭博代碼如 SDLF LN、債券 ISIN 如 US89117F8Z56）
+                if re.match(r"[A-Z]{2,}", code):
+                    other += 1
+                continue
+            try:
+                share = int(str(r[2]).replace(",", ""))
+            except ValueError:
+                continue
+            if share:
+                holdings[code] = {"name": r[1].strip(), "shares": share}
+
+        if not holdings:
+            # 別靜默跳過——講清楚是「沒有台股持股」還是「解析失敗」
+            print(f"[復華] {ticker} {name}：無台股持股"
+                  f"（非台股標的 {other} 筆，海外股票／債券型），略過")
+            continue
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "復華",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[復華] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        time.sleep(1)
+    return out
+
+
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
-            fetch_capital, fetch_fubon, fetch_nomura]
+            fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa]
 
 
 # ══════════════════════════════════════════════════════════════
