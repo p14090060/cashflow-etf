@@ -951,10 +951,184 @@ def fetch_fsitc(date_obj, specific=False):
         time.sleep(1)
     return out
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：兆豐投信（www.megafunds.com.tw）
+#   trade_pcf.aspx 是傳統 ASP.NET WebForms，持股直接 server-render 在 <tr> 裡。
+#   POST 回去時 __EVENTTARGET=fund_id、fund_id=23（兆豐台灣豐收＝00996A）。
+#   ⚠ 不要先送 category_id 篩「主動式ETF」——那會觸發一次 postback 把 fund_id
+#     的 <option> 清空；初始頁本來就列齊全部基金，直接送 fund_id 就好。
+#   ⚠ 又是公告日陷阱：輸入框 qdt 和標題上那個日期都是**公告日**（未來的交割日，
+#     實測 09/24 的持股掛在 09/29 公告）。真正的資料日在 #div_prev_unit_total
+#     的「YYYY/MM/DD 預估發行受益權單位數」那行。
+#     qdt 給 D 會拿到「D 的前一營業日」的持股，所以要 D 的資料得送 D+1。
+# ══════════════════════════════════════════════════════════════
+MEGA_URL   = "https://www.megafunds.com.tw/MEGA/etf/trade_pcf.aspx"
+MEGA_FUNDS = {"00996A": ("23", "主動兆豐台灣豐收")}
+
+
+def fetch_mega(date_obj, specific=False):
+    # qdt 是公告日、給 D 會回 D 前一營業日，所以往後推一天才是要的資料日
+    qdt = ((date_obj + datetime.timedelta(days=1)).strftime("%Y/%m/%d")
+           if specific else "")
+    out = {}
+    for ticker, (fund_id, name) in MEGA_FUNDS.items():
+        try:
+            op = _opener()
+            op.addheaders += [("Referer", MEGA_URL)]
+            h0 = op.open(MEGA_URL, timeout=30).read().decode("utf-8", "replace")
+            form = {}
+            for m in re.finditer(r'<input[^>]*type="hidden"[^>]*>', h0):
+                n = re.search(r'name="([^"]+)"', m.group(0))
+                v = re.search(r'value="([^"]*)"', m.group(0))
+                if n:
+                    form[n.group(1)] = v.group(1) if v else ""
+            pfx = "ctl00$ContentPlaceHolder1$"
+            form.update({"__EVENTTARGET": pfx + "fund_id", "__EVENTARGUMENT": "",
+                         pfx + "category_id": "", pfx + "fund_id": fund_id,
+                         pfx + "qdt": qdt})
+            req = urllib.request.Request(MEGA_URL,
+                data=urllib.parse.urlencode(form, encoding="utf-8").encode(),
+                headers={"Content-Type": "application/x-www-form-urlencoded"})
+            h = op.open(req, timeout=30).read().decode("utf-8", "replace")
+        except Exception as e:
+            print(f"[兆豐] {ticker} 失敗: {e}")
+            continue
+
+        m = re.search(r'id="div_prev_unit_total".*?(\d{4})/(\d{2})/(\d{2})\s*預估發行受益權單位數',
+                      h, re.S)
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        holdings = {}
+        for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", h, re.S):
+            cells = [re.sub(r"<[^>]+>", "", c).replace("&nbsp;", " ").strip()
+                     for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
+            if len(cells) < 3 or not re.fullmatch(r"\d{4,6}[A-Z]?", cells[0]):
+                continue
+            try:
+                share = int(float(cells[2].replace(",", "")))
+            except ValueError:
+                continue
+            if share:
+                holdings[cells[0]] = {"name": cells[1], "shares": share}
+        if holdings and data_date:
+            out[ticker] = {"name": name, "issuer": "兆豐",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[兆豐] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date}")
+        elif holdings:
+            # 有持股卻讀不到資料日就整筆丟掉——寧可沒有，也不要拿錯日期去相減
+            print(f"[兆豐] {ticker} {name}：抓到 {len(holdings)} 檔但讀不到資料日，略過")
+        else:
+            print(f"[兆豐] {ticker} {name}：{qdt or '最新'} 無持股資料")
+        time.sleep(1)
+    return out
+
+# ══════════════════════════════════════════════════════════════
+# Adapter：元大投信（www.yuantaetfs.com）
+#   Nuxt SPA，但持股是 SSR 進 window.__NUXT__ 的 StockWeights 陣列，
+#   直接從 HTML 解得出來，不用打 API（/api/bridge 那層試不出簽章）。
+#   ⚠ __NUXT__ 是 minified IIFE：欄位值常常是 a/aB/dK 這種變數名，
+#     要先把函式參數表和尾端實參對起來才讀得到值（_nuxt_vars）。
+#   ⚠ 日期三選一，又是公告日陷阱：
+#       anndate  20260929  公告日（未來）
+#       predate  20260924  預估發行單位日
+#       trandate 20260923  ← 交易日＝持股的資料日
+#     頁面 DOM 上「交易日期: 2026/09/23」印的就是 trandate，用 DOM 那個最穩。
+#   00990A 是全球型，持股多半是美股（code 形如 "NVDA US"），照樣收進來，
+#   讓 build_flow 的 no_price 去標；濾掉會變成靜默漏資料。
+# ══════════════════════════════════════════════════════════════
+YUANTA_FUNDS = {"00990A": "主動元大AI新經濟"}
+
+
+def _nuxt_vars(html):
+    """把 window.__NUXT__=(function(a,b,...){...}(值1,值2,...)) 的變數表還原成 dict。"""
+    m = re.search(r"window\.__NUXT__=\(function\(([^)]*)\)", html)
+    if not m:
+        return {}
+    names = [n.strip() for n in m.group(1).split(",")]
+    tail = html[html.find("window.__NUXT__"):]
+    k = tail.rfind("}(")
+    end = tail.rfind("))")
+    if k < 0 or end < k:
+        return {}
+    vals, buf, depth, quote = [], "", 0, None
+    for ch in tail[k + 2:end + 1]:
+        if quote:
+            buf += ch
+            if ch == quote and not buf.endswith("\\" + quote):
+                quote = None
+            continue
+        if ch in "\"'":
+            quote = ch; buf += ch; continue
+        if ch in "[{(":
+            depth += 1
+        elif ch in "]})":
+            depth -= 1
+        if ch == "," and depth == 0:
+            vals.append(buf.strip()); buf = ""; continue
+        buf += ch
+    vals.append(buf.strip())
+    return dict(zip(names, vals))
+
+
+def _nuxt_val(raw, tbl):
+    """欄位值可能是字面值，也可能是變數名，統一解成字串。"""
+    raw = (raw or "").strip()
+    if raw.startswith('"') or raw.startswith("'"):
+        return raw[1:-1]
+    if re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]{0,3}", raw):
+        v = (tbl.get(raw) or "").strip()
+        return v[1:-1] if v.startswith('"') or v.startswith("'") else v
+    return raw
+
+
+def fetch_yuanta(date_obj, specific=False):
+    if specific:
+        return {}          # 頁面沒有日期參數，查不了歷史
+    out = {}
+    for ticker, name in YUANTA_FUNDS.items():
+        url = f"https://www.yuantaetfs.com/product/detail/{ticker}/ratio"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            h = urllib.request.urlopen(req, timeout=30, context=_SSL) \
+                              .read().decode("utf-8", "replace")
+        except Exception as e:
+            print(f"[元大] {ticker} 失敗: {e}")
+            continue
+
+        # 資料日取 DOM 上印的「交易日期」，不要拿 anndate（那是未來的公告日）
+        # 「交易日期:」和日期之間夾了一個 <br class="d-lg-none">，要允許標籤
+        m = re.search(r"交易日期[:：]\s*(?:<[^>]+>\s*)*(\d{4})/(\d{2})/(\d{2})", h)
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        tbl = _nuxt_vars(h)
+        holdings = {}
+        for mm in re.finditer(
+                r"\{code:([^,{}]+),[^{}]*?name:([^,{}]+),[^{}]*?qty:([^,{}]+)\}", h):
+            code = _nuxt_val(mm.group(1), tbl).strip()
+            try:
+                share = int(float(_nuxt_val(mm.group(3), tbl).replace(",", "")))
+            except ValueError:
+                continue
+            if code and share:
+                holdings[code] = {"name": _nuxt_val(mm.group(2), tbl).strip(),
+                                  "shares": share}
+        if holdings and data_date:
+            out[ticker] = {"name": name, "issuer": "元大",
+                           "data_date": data_date, "holdings": holdings}
+            tw = sum(1 for c in holdings if re.fullmatch(r"\d{4,6}[A-Z]?", c))
+            print(f"[元大] {ticker} {name}：{len(holdings)} 檔"
+                  f"（台股 {tw}），資料日 {data_date}")
+        elif holdings:
+            print(f"[元大] {ticker} {name}：抓到 {len(holdings)} 檔但讀不到交易日期，略過")
+        else:
+            print(f"[元大] {ticker} {name}：__NUXT__ 裡解不到 StockWeights")
+        time.sleep(1)
+    return out
+
 
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
             fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz,
-            fetch_fsitc]
+            fetch_fsitc, fetch_mega, fetch_yuanta]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1117,31 +1291,33 @@ def main():
         back = {}
         print(f"[BOOTSTRAP] {len(need)} 檔缺前一份（{'、'.join(sorted(need))}），"
               "逐日往前找")
-        # 第一天先全問，之後只留「真的回得出 need 裡那幾檔」的 adapter——
-        # 不然一支 ETF 缺前一份，就要對 11 家投信連打 7 天，白跑又擾民。
+        # 第一天先全問，之後只留「還欠著的那幾檔真的回得出來」的 adapter——
+        # 不然一支 ETF 缺前一份，就要對所有投信連打 7 天，白跑又擾民。
+        # 不支援歷史查詢的投信（元大、安聯、富邦）回空，第一天就會被剔掉；
+        # 已經補齊的投信也要剔掉，否則它們會陪著跑完剩下 6 天。
         probe = list(ADAPTERS)
         for back_days in range(1, 8):
-            if all(c in back for c in need) or not probe:
+            if not probe:
                 break
             d = query_day - datetime.timedelta(days=back_days)
             if d.weekday() >= 5:
                 continue
-            got, keep = {}, []
+            got, ret = {}, {}
             for fn in probe:
                 try:
                     r = fn(d, specific=True)
                 except Exception as e:
                     print(f"[WARN] {fn.__name__} 回補失敗: {e}")
-                    continue
-                if any(c in need for c in r):
-                    keep.append(fn)
+                    r = {}
+                ret[fn] = set(r)
                 got.update(r)
-            probe = keep
             for c, v in got.items():
                 dd = v.get("data_date")
                 if c in need and c not in back and dd and dd != cur_dates.get(c):
                     back[c] = v
                     print(f"[BOOTSTRAP] {c} 前一份 = {dd}（當期 {cur_dates.get(c)}）")
+            probe = [fn for fn in probe
+                     if any(c in need and c not in back for c in ret.get(fn, ()))]
         if back:
             prev = {"fetched": (prev or {}).get("fetched", "(bootstrap)"),
                     "etfs": dict(prev_etfs, **back)}

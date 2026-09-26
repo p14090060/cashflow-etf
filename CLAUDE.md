@@ -93,8 +93,9 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - 抓不到的 ETF **保留上一次的換檔結果**（`fetched:false` + `last_change_date`），
   絕不讓它從畫面消失——使用者看到的會是「我買的那檔不見了」
 
-#### 已接的投信（2026-09-26：25 檔 / 11 家）
-統一 4、中信 3、群益 3、野村 3、安聯 3、台新 2、復華 2、**第一金 2**、永豐 1、凱基 1、富邦 1
+#### 已接的投信（2026-09-26：27 檔 / 13 家）
+統一 4、中信 3、群益 3、野村 3、安聯 3、台新 2、復華 2、第一金 2、
+永豐 1、凱基 1、富邦 1、兆豐 1、元大 1
 
 新增一家投信＝新增一個 `fetch_xxx(date_obj, specific=False)` adapter，回傳
 `{ticker: {name, issuer, data_date, holdings: {code: {name, shares}}}}`，再掛進 `ADAPTERS`。
@@ -108,12 +109,16 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - ⚠ **「PCF 頁沒有成分股」≠「這家沒公開持股」**。富邦在 `Fund/Assets.aspx`、
   復華只在 Excel 下載連結裡、第一金只在 `WebAPI.aspx/Get_hd`（頁面那張表只有比重沒股數）。
 - ⚠ 回應編碼會飄（第一金 UTF-8／Big5 都出現過），先試 utf-8 再退 cp950。
+- ⚠ 兆豐的 `category_id` 下拉選單是陷阱：先送它篩「主動式ETF」反而會把 `fund_id`
+  的 `<option>` 清空，初始頁本來就列齊了，直接送 `fund_id` 就好。
+- 元大是 Nuxt SPA，但持股 SSR 在 `window.__NUXT__` 的 `StockWeights` 裡，
+  欄位值常是 minified 變數（`_nuxt_vars` 負責還原）；資料日用 DOM 上那個「交易日期」。
 - ⚠ 海外持股查無台股報價會被靜默略過 → 一定要進 `no_price` 並印 `[WARN]`。
 - 認證花招：統一 session cookie、中信 bootstrap token `"www.ctbcinvestments.com"`
   → `home/AuthToken`、安聯 `X-XSRF-TOKEN`（來自 `AntiForgery/GetAntiForgeryToken`）。
 
-**尚未攻破**：國泰 00400A、元大 00990A、聯博 00404A、摩根 00401A/00989A（都是 SPA，
-API 端點還沒找到）、兆豐 00996A（ASP.NET 兩段式 postback 失敗）。
+**尚未攻破**：國泰 00400A、聯博 00404A、摩根 00401A/00989A（都是 SPA，API 端點還沒找到）。
+全市場主動式 ETF 共 30 檔，目前差這 4 檔。
 **不可用來源**：`etfinfo.tw`（robots.txt `Disallow: /api/`、使用條款禁爬禁再利用）、
 `nctuwanglin/active-etf`（無授權條款）。台灣**沒有**集中式的主動式 ETF 持股揭露，
 TWSE `ETFortune/etfInfo` 與 TPEx `serial_active_etf` 都只有彙總頁。
