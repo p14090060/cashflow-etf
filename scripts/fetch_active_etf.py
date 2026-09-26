@@ -621,8 +621,66 @@ def fetch_fubon(date_obj, specific=False):
     return out
 
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：野村投信（www.nomurafunds.com.tw，Angular）
+#   POST /API/ETFAPI/api/Fund/GetFundAssets  {"FundID":"00999A","SearchDate":null}
+#   ⚠ SearchDate 是 nullable DateTime，傳空字串會 400，要傳 null 或日期
+#   持股同樣不在 PCF 頁，而在「基金資產」：Entries.Data.Table 裡
+#   TableTitle=="股票" 那一張，Rows = [代號, 名稱, 股數, 權重]，
+#   資料日在該表的 NavDate
+# ══════════════════════════════════════════════════════════════
+NOMURA_FUNDS = {
+    "00999A": "主動野村臺灣高息",
+    "00980A": "主動野村臺灣優選",
+    "00985A": "主動野村台灣50",
+}
+
+
+def fetch_nomura(date_obj, specific=False):
+    url = "https://www.nomurafunds.com.tw/API/ETFAPI/api/Fund/GetFundAssets"
+    out = {}
+    for ticker, name in NOMURA_FUNDS.items():
+        payload = {"FundID": ticker,
+                   "SearchDate": date_obj.strftime("%Y-%m-%d") if specific else None}
+        try:
+            req = urllib.request.Request(url, data=json.dumps(payload).encode(),
+                headers={"User-Agent": UA, "Content-Type": "application/json",
+                         "Referer": "https://www.nomurafunds.com.tw/ETFWEB/pcf"})
+            d = json.loads(urllib.request.urlopen(req, timeout=25, context=_SSL)
+                           .read().decode("utf-8"))
+        except Exception as e:
+            print(f"[野村] {ticker} 失敗: {e}")
+            continue
+
+        tables = (((d.get("Entries") or {}).get("Data") or {}).get("Table")) or []
+        stock_tbl = next((t for t in tables if "股票" in str(t.get("TableTitle", ""))), None)
+        if not stock_tbl:
+            print(f"[野村] {ticker} 找不到股票表")
+            continue
+        m = re.search(r"(\d{4})/(\d{2})/(\d{2})", str(stock_tbl.get("NavDate") or ""))
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        holdings = {}
+        for row in stock_tbl.get("Rows") or []:
+            if len(row) < 3:
+                continue
+            code = str(row[0]).strip()
+            try:
+                share = int(float(str(row[2]).replace(",", "")))
+            except ValueError:
+                continue
+            if code and share:
+                holdings[code] = {"name": str(row[1]).strip(), "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "野村",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[野村] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        time.sleep(1)
+    return out
+
+
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
-            fetch_capital, fetch_fubon]
+            fetch_capital, fetch_fubon, fetch_nomura]
 
 
 # ══════════════════════════════════════════════════════════════
