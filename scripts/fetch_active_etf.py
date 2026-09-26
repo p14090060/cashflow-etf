@@ -508,7 +508,71 @@ def fetch_ctbc(date_obj, specific=False):
     return out
 
 
-ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc]
+# ══════════════════════════════════════════════════════════════
+# Adapter：群益投信（www.capitalfund.com.tw，Angular）
+#   POST /CFWeb/api/etf/buyback   {"fundId":"<內部碼>","date":null|"YYYY-MM-DD"}
+#   **要 /CFWeb 前綴**，裸 /api/... 是 404
+#   fundId 由 POST /CFWeb/api/etf/items 取得（fundNo ↔ stockNo 對照）
+#   持股在 data.stocks，欄位 stocNo/stocName/share
+#   資料日用 pcf.date2（date1 是未來的公告生效日，同凱基/中信的陷阱）
+# ══════════════════════════════════════════════════════════════
+CAPITAL_API = "https://www.capitalfund.com.tw/CFWeb/api/etf/"
+
+
+def _capital_post(path, payload):
+    req = urllib.request.Request(
+        CAPITAL_API + path,
+        data=json.dumps(payload).encode() if payload is not None else b"null",
+        headers={"User-Agent": UA, "Content-Type": "application/json",
+                 "Referer": "https://www.capitalfund.com.tw/etf/transaction/buyback"})
+    with urllib.request.urlopen(req, timeout=25, context=_SSL) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def fetch_capital(date_obj, specific=False):
+    try:
+        items = _capital_post("items", None).get("data") or []
+    except Exception as e:
+        print(f"[群益] 取基金清單失敗: {e}")
+        return {}
+    funds = {x["stockNo"]: (x["fundNo"], x.get("shortName", ""))
+             for x in items if str(x.get("stockNo", "")).endswith("A")}
+
+    out = {}
+    for ticker, (fund_no, name) in funds.items():
+        try:
+            d = _capital_post("buyback", {
+                "fundId": fund_no,
+                "date": date_obj.strftime("%Y-%m-%d") if specific else None,
+            }).get("data") or {}
+        except Exception as e:
+            print(f"[群益] {ticker} 失敗: {e}")
+            continue
+
+        pcf = d.get("pcf") or {}
+        m = re.search(r"(\d{4})-(\d{2})-(\d{2})", str(pcf.get("date2") or ""))
+        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
+        holdings = {}
+        for x in d.get("stocks") or []:
+            code = str(x.get("stocNo", "")).strip()
+            try:
+                share = int(float(x.get("share") or 0))
+            except (TypeError, ValueError):
+                continue
+            if code and share:
+                holdings[code] = {"name": str(x.get("stocName", "")).strip(),
+                                  "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "群益",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[群益] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+        time.sleep(1)
+    return out
+
+
+ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
+            fetch_capital]
 
 
 # ══════════════════════════════════════════════════════════════
