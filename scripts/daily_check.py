@@ -67,7 +67,8 @@ FETCH_ETF          = ROOT / "fetch_etf.py"
 STALE_PENDING_DAYS = 90
 
 ACTIVE_FLOW      = ROOT / "data" / "active_flow.json"
-ACTIVE_MIN_ETFS  = 20    # 目前接 25 檔；本次實抓掉到 20 以下 = 約兩家投信的 adapter 壞了
+ACTIVE_MIN_ETFS  = 24    # 目前接 29 檔；本次實抓掉到 24 以下 = 約兩家投信的 adapter 壞了
+                         # （少 3 檔以內由下面的 kept 檢查負責，這條是整批掛掉的後盾）
 ACTIVE_STALE_ALL = 4     # 全部 ETF 的最新資料日都超過這天數 → 整條抓取停擺
 ACTIVE_STALE_ONE = 7     # 單一 ETF 資料日落後這麼多天 → 那家投信可能改版或擋我們
 
