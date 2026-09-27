@@ -154,7 +154,11 @@ CURATED = [
 CURATED_CODES = {code for code, _ in CURATED}
 
 # 上櫃 ETF 用 .TWO 後綴（TPEx），其餘用 .TW（TWSE）
-TWO_CODES = {"00928", "006201"}
+# CURATED 裡的上櫃碼先寫死當保底；其餘由 build_pool() 從 ISIN strMode=4 自動補進來，
+# 不要再手動維護——2026-09-27 以前這裡寫死兩支，導致上櫃 ETF 整批進不了池子，
+# 連成交量排第 32 名的 00411A 都不在排行榜上。
+CURATED_OTC = {"00928", "006201"}
+TWO_CODES   = set(CURATED_OTC)
 
 SUFFIX = ".TW"
 HIGH_DIV_KEYWORDS = ["高股息", "高息", "精選高息", "永續高息", "價值高息"]
@@ -384,53 +388,77 @@ EXCLUDE_KW = [
     'R1', 'R2',   # 受益憑證（01xxxT），非 ETF
 ]
 
+def _isin_etf_pool(str_mode):
+    """抓 ISIN 某一市場別的股票型 ETF，回傳 [(code, name)]。strMode=2 上市、4 上櫃。"""
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = _ur.Request(
+        'https://isin.twse.com.tw/isin/C_public.jsp?strMode=%s' % str_mode,
+        headers={'User-Agent': 'Mozilla/5.0'}
+    )
+    with _ur.urlopen(req, timeout=20, context=ctx) as r:
+        html = r.read().decode('ms950', errors='ignore')
+    # 只取 ETF 區段（從 "ETF <B>" 開始）
+    etf_start = html.find('ETF <B>')
+    section = html[etf_start:] if etf_start >= 0 else html
+    pairs = re.findall(r'([0-9]{4,6}[A-Z]?)　([^\t<\r\n]{2,30})', section)
+    out, seen = [], set()
+    for code, name in pairs:
+        code, name = code.strip(), name.strip()
+        if not code or not name or code in seen:
+            continue
+        if not code.startswith('0'):   # 排除台灣存託憑證（9xxx）
+            continue
+        if code.endswith('T'):         # 排除受益憑證（01004T, 01007T 等）
+            continue
+        if any(kw in name for kw in EXCLUDE_KW):
+            continue
+        seen.add(code)
+        out.append((code, name))
+    return out
+
+
 def fetch_twse_etf_pool():
-    """從 TWSE ISIN strMode=2 的 ETF 區段抓股票型 ETF 清單，回傳 [(code, name)]。
+    """抓 ISIN 的股票型 ETF 清單（**上市 + 上櫃**），回傳 [(code, name, is_otc)]。
     成功時同步更新 etf_pool_cache.json 作為 fallback 備份。
+
+    ⚠ 一定要連上櫃一起抓。2026-09-27 以前只讀 strMode=2，上櫃 ETF 全部進不了池子，
+      只有 CURATED 裡寫死的 00928/006201 例外——結果成交量排第 32 名的 00411A
+      （主動統一前沿科技）、第 33 名的 00998A 都不在排行榜上，
+      連我們自己有抓持股異動的 00411A 都連不回排行頁。
     """
-    try:
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        req = _ur.Request(
-            'https://isin.twse.com.tw/isin/C_public.jsp?strMode=2',
-            headers={'User-Agent': 'Mozilla/5.0'}
-        )
-        with _ur.urlopen(req, timeout=20, context=ctx) as r:
-            html = r.read().decode('ms950', errors='ignore')
-        # 只取 ETF 區段（從 "ETF <B>" 開始）
-        etf_start = html.find('ETF <B>')
-        section = html[etf_start:] if etf_start >= 0 else html
-        pairs = re.findall(r'([0-9]{4,6}[A-Z]?)　([^\t<\r\n]{2,30})', section)
-        results, seen = [], set()
-        for code, name in pairs:
-            code, name = code.strip(), name.strip()
-            if not code or not name or code in seen:
-                continue
-            if not code.startswith('0'):   # 排除台灣存託憑證（9xxx）
-                continue
-            if code.endswith('T'):         # 排除受益憑證（01004T, 01007T 等）
-                continue
-            if any(kw in name for kw in EXCLUDE_KW):
+    results, seen = [], set()
+    for str_mode, is_otc, lab in ((2, False, "上市"), (4, True, "上櫃")):
+        try:
+            got = _isin_etf_pool(str_mode)
+        except Exception as e:
+            # 其中一邊掛掉不要拖垮另一邊，但一定要出聲——靜默縮水是這專案的老毛病
+            print("[POOL] ISIN strMode=%s（%s）抓取失敗: %s" % (str_mode, lab, e))
+            continue
+        added = 0
+        for code, name in got:
+            if code in seen:
                 continue
             seen.add(code)
-            results.append((code, name))
-        print(f"[POOL] TWSE 股票型 ETF: {len(results)} 支")
-        # 成功時更新 cache，供下次 TWSE 失敗時 fallback
-        if results:
-            try:
-                with open(POOL_CACHE, "w", encoding="utf-8") as f:
-                    json.dump(results, f, ensure_ascii=False, indent=2)
-            except Exception:
-                pass
-        return results
-    except Exception as e:
-        print(f"[POOL] TWSE 抓取失敗: {e}")
+            results.append((code, name, is_otc))
+            added += 1
+        print("[POOL] %s股票型 ETF: %d 支" % (lab, added))
+
+    if not results:                     # 兩邊都掛才算失敗，交給 build_pool() fallback
+        print("[POOL] ISIN 兩個市場別都抓不到")
         return []
+    try:
+        with open(POOL_CACHE, "w", encoding="utf-8") as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+    return results
 
 def build_pool():
-    """精選池 + TWSE 自動發現池合併，精選碼不重複。
-    TWSE 失敗時 fallback etf_pool_cache.json（上次成功的清單），避免縮水成 13 支精選。
+    """精選池 + ISIN 自動發現池合併，精選碼不重複。
+    ISIN 失敗時 fallback etf_pool_cache.json（上次成功的清單），避免縮水成 13 支精選。
+    順便把自動發現的上櫃碼補進 TWO_CODES，yfinance 才會用 .TWO 後綴去抓。
     """
     auto = fetch_twse_etf_pool()
 
@@ -438,19 +466,28 @@ def build_pool():
         if POOL_CACHE.exists():
             try:
                 cached = json.load(open(POOL_CACHE, encoding="utf-8"))
-                auto = [(c, n) for c, n in cached if c and n]
-                print(f"[POOL] TWSE 失敗，從 etf_pool_cache.json fallback 取得 {len(auto)} 支")
+                # cache 可能是舊的兩元組 [(code, name)]（2026-09-27 之前只存上市），
+                # 補不出市場別時一律當上市，至少不會整批壞掉
+                auto = [(r[0], r[1], bool(r[2]) if len(r) > 2 else False)
+                        for r in cached if len(r) >= 2 and r[0] and r[1]]
+                print(f"[POOL] ISIN 失敗，從 etf_pool_cache.json fallback 取得 {len(auto)} 支")
             except Exception as fb_err:
                 print(f"[POOL] fallback 讀取 cache 失敗: {fb_err}")
 
     pool = list(CURATED)
-    added = 0
-    for code, name in auto:
+    added = otc_added = 0
+    for code, name, is_otc in auto:
+        if is_otc:
+            TWO_CODES.add(code)          # yfinance 要 .TWO，MIS 要 otc_ 前綴
         if code not in CURATED_CODES:
             pool.append((code, name))
             added += 1
-    print(f"[POOL] 合計: 精選 {len(CURATED)} + 自動發現 {added} = {len(pool)} 支")
+            if is_otc:
+                otc_added += 1
+    print(f"[POOL] 合計: 精選 {len(CURATED)} + 自動發現 {added} = {len(pool)} 支"
+          f"（其中上櫃 {otc_added} 支，TWO_CODES 共 {len(TWO_CODES)} 碼）")
     return pool
+
 
 # ── 訊號計算 ──────────────────────────────────────────────────────────
 def is_high_div(name, yld):
@@ -809,6 +846,8 @@ for code, name in ALL_ETFS:
 
         results.append({
             "code": code, "name": name, "curated": curated,
+            # 上櫃註記：mis_fetcher 要靠它決定 MIS 用 otc_ 還是 tse_ 前綴
+            "otc": code in TWO_CODES,
             "price": safe(price), "ma60": safe(ma60), "ma20": safe(ma20),
             "low52": safe(low52), "high52": safe(high52),
             "rsi": safe(rsi),
@@ -829,6 +868,7 @@ for code, name in ALL_ETFS:
             # 精選池即使失敗也要輸出（保持計算機可用）
             results.append({
                 "code": code, "name": name, "curated": True,
+                "otc": code in TWO_CODES,
                 "price": 0, "ma60": 0, "ma20": 0, "low52": 0, "high52": 0,
                 "rsi": 50,
                 "yld": 0, "yld_verified": False, "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30),

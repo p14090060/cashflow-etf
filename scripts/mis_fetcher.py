@@ -54,18 +54,21 @@ def _fetch_url(url):
     with _ur.urlopen(req, timeout=12, context=SSL_CTX) as r:
         return json.loads(r.read().decode("utf-8"))
 
-def fetch_mis_etfs(codes):
+def fetch_mis_etfs(codes, otc_codes=()):
     """
-    codes: list of str（ETF 代碼，台股 ETF 幾乎全為上市 tse）
+    codes: list of str（ETF 代碼）
+    otc_codes: 其中屬於**上櫃**的代碼集合，MIS 前綴要用 otc_ 不是 tse_
+               （用 tse_ 查上櫃會回一筆空殼 c=""，等於查不到）
     回傳 {code: {price, vol, change_pt, change_pct, mis_time}}
     每批 20 支，批次間等 3 秒
     """
+    otc = set(otc_codes)
     results, batch_size = {}, 20
     batches = [codes[i:i+batch_size] for i in range(0, len(codes), batch_size)]
     for idx, batch in enumerate(batches):
         if idx > 0:
             time.sleep(3)
-        ex_ch = "|".join(f"tse_{c}.tw" for c in batch)
+        ex_ch = "|".join(("otc_" if c in otc else "tse_") + c + ".tw" for c in batch)
         try:
             d = _fetch_url(f"{MIS_URL}?json=1&delay=0&ex_ch={ex_ch}")
             for item in d.get("msgArray", []):
@@ -461,7 +464,8 @@ def main():
 
     if trading:
         codes      = [e["code"] for e in base.get("etfs", [])]
-        mis_data   = fetch_mis_etfs(codes)
+        otc_codes  = {e["code"] for e in base.get("etfs", []) if e.get("otc")}
+        mis_data   = fetch_mis_etfs(codes, otc_codes)
         mis_market = fetch_mis_market()
         mis_ok     = len(mis_data) > 0
         print(f"[MIS] 抓到 {len(mis_data)} 支即時資料，大盤={'OK' if mis_market else 'FAIL'}")
@@ -491,8 +495,8 @@ def main():
             e["heat"]  = round(new_sv + new_sc + score_cont, 2)
 
         else:
-            # 這支沒有 MIS 即時資料（上櫃 ETF 00928/006201 不在 MIS 報價範圍，
-            # 或整批盤後/假日沒有），cur_vol 仍是 _base.json 的 yfinance「股」。
+            # 這支沒有 MIS 即時資料（整批盤後／假日，或個別查不到），
+            # cur_vol 仍是 _base.json 的 yfinance「股」。
             # 上市 ETF 的 cur_vol 盤中直接來自 MIS「張」、盤後由下方保留邏輯還原成
             # 「張」，不換算會以 1000 倍虛胖霸佔成交量排行前兩名。
             # 2026-09-05：原本是 elif mis_ok，盤後 mis_ok=False 時整段跳過，
