@@ -1191,10 +1191,146 @@ def fetch_jpm(date_obj, specific=False):
         time.sleep(1)
     return out
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：國泰投信（cwapi.cathaysite.com.tw）
+#   GET api/ETF/GetETFDetailStockList?FundCode=EA&SearchDate=YYYY-MM-DD
+#   完全開放、不用 token。欄位 stockCode / stockName / volumn / weights。
+#   ⚠ 我第一次找錯端點，白白把國泰列成「只有權重不做」——記帳一下免得重蹈：
+#     · `GetIndexStockWeights` 只回 {stockCode,stockName,weights}，**沒有股數**，
+#       但它是「指數成分權重」，不是基金持股，本來就不該拿來用。
+#     · `BuySale/GetStocksList` 回空陣列，因為 00400A 是現金申購買回型，
+#       PCF 沒有股票籃——這也不代表官網沒揭露持股。
+#     · 真正那支要傳 **`SearchDate`**（我一開始傳 `date`，所以回「查無資料」，
+#       被我誤讀成沒資料）。**參數名錯 ≠ 資料不存在。**
+#   ⚠ 欄位名是 `volumn`（他們自己拼錯的，不是 volume）。
+#   資料日：預設取 `GetETFAssets` 的 `preDate`；查歷史直接把日期塞 SearchDate，
+#   非交易日會回空陣列，不會默默給前一天，所以送什麼日期就是什麼日期。
+# ══════════════════════════════════════════════════════════════
+CATHAY_API   = "https://cwapi.cathaysite.com.tw/api/"
+CATHAY_FUNDS = {"00400A": ("EA", "主動國泰動能高息")}
+
+
+def _cathay_get(path, **params):
+    url = CATHAY_API + path + "?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url, headers={
+        "User-Agent": UA, "Referer": "https://www.cathaysite.com.tw/"})
+    return json.loads(urllib.request.urlopen(req, timeout=25, context=_SSL)
+                      .read().decode("utf-8"))
+
+
+def fetch_cathay(date_obj, specific=False):
+    out = {}
+    for ticker, (fund_code, name) in CATHAY_FUNDS.items():
+        try:
+            if specific:
+                data_date = date_obj.strftime("%Y-%m-%d")
+            else:
+                pre = str(((_cathay_get("ETF/GetETFAssets", FundCode=fund_code)
+                            .get("result")) or {}).get("preDate") or "")
+                m = re.search(r"(\d{4})[/-](\d{2})[/-](\d{2})", pre)
+                if not m:
+                    print(f"[國泰] {ticker} {name}：GetETFAssets 讀不到 preDate")
+                    continue
+                data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+            rows = _cathay_get("ETF/GetETFDetailStockList",
+                               FundCode=fund_code,
+                               SearchDate=data_date).get("result") or []
+        except Exception as e:
+            print(f"[國泰] {ticker} 失敗: {e}")
+            continue
+
+        holdings = {}
+        for r in rows:
+            code = str(r.get("stockCode") or "").strip()
+            if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
+                continue
+            try:
+                share = int(float(str(r.get("volumn") or "").replace(",", "")))
+            except ValueError:
+                continue
+            if share:
+                holdings[code] = {"name": str(r.get("stockName") or "").strip(),
+                                  "shares": share}
+        if holdings:
+            out[ticker] = {"name": name, "issuer": "國泰",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[國泰] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date}")
+        else:
+            print(f"[國泰] {ticker} {name}：{data_date} 無持股資料")
+        time.sleep(1)
+    return out
+
+# ══════════════════════════════════════════════════════════════
+# Adapter：聯博投信（webapi.alliancebernstein.com）
+#   GET /v2/funds/tw/zh-tw/investor/<ISIN>/holdings?date=YYYY-MM-DD
+#   官網是 AEM + React，網址組法寫在頁面的 `dataSpec`：
+#     fundApiUrl=https://webapi.alliancebernstein.com
+#     baseUrl = "funds/" + countryCode + "/" + lang + "/" + currentSegmentName
+#   回傳 domesticHoldings[] 依 holdingCategory 分段
+#   （equity / options / futures），只取 holdings-section-equity。
+#   欄位 holdingCode / holding / holdingShares，asOfDate 是 MM/DD/YYYY。
+#   非交易日回空陣列，有 date 參數所以查得了歷史。
+#   ⚠ 同一支基金還有個 /basket 端點，那邊的 `date` 是**公告日**
+#     （傳 09-24 回 asOfDate 09-23），別拿它的日期當資料日。
+#   ⚠ 2026-09-27 第一次測時官網 /zh-tw/* 全站 302→404，過幾小時就好了；
+#     那是他們站台短暫中斷，不要因此判定「這家沒公開」。
+# ══════════════════════════════════════════════════════════════
+AB_API   = "https://webapi.alliancebernstein.com/v2/funds/tw/zh-tw/investor"
+AB_FUNDS = {"00404A": ("TW00000404A5", "主動聯博動能50")}
+
+
+def fetch_ab(date_obj, specific=False):
+    out = {}
+    for ticker, (isin, name) in AB_FUNDS.items():
+        url = f"{AB_API}/{isin}/holdings"
+        if specific:
+            url += "?date=" + date_obj.strftime("%Y-%m-%d")
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": UA, "Accept": "application/json",
+                "Referer": "https://www.abfunds.com.tw/"})
+            d = json.loads(urllib.request.urlopen(req, timeout=25, context=_SSL)
+                           .read().decode("utf-8"))
+        except Exception as e:
+            print(f"[聯博] {ticker} 失敗: {e}")
+            continue
+
+        sec = next((x for x in (d.get("domesticHoldings") or [])
+                    if str(x.get("holdingCategory") or "").endswith("equity")), None)
+        if not sec:
+            print(f"[聯博] {ticker} {name}："
+                  f"{date_obj if specific else '最新'} 沒有股票持股（非交易日或無資料）")
+            continue
+
+        m = re.match(r"(\d{2})/(\d{2})/(\d{4})", str(sec.get("asOfDate") or ""))
+        data_date = f"{m.group(3)}-{m.group(1)}-{m.group(2)}" if m else None
+
+        holdings = {}
+        for r in sec.get("holdings") or []:
+            code = str(r.get("holdingCode") or "").strip()
+            try:
+                share = int(float(r.get("holdingShares") or 0))
+            except (TypeError, ValueError):
+                continue
+            if code and share:
+                holdings[code] = {"name": str(r.get("holding") or "").strip(),
+                                  "shares": share}
+        if holdings and data_date:
+            out[ticker] = {"name": name, "issuer": "聯博",
+                           "data_date": data_date, "holdings": holdings}
+            print(f"[聯博] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date}")
+        elif holdings:
+            print(f"[聯博] {ticker} {name}：抓到 {len(holdings)} 檔但 asOfDate 解不出來，略過")
+        else:
+            print(f"[聯博] {ticker} {name}：股票段是空的")
+        time.sleep(1)
+    return out
+
 
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
             fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz,
-            fetch_fsitc, fetch_mega, fetch_yuanta, fetch_jpm]
+            fetch_fsitc, fetch_mega, fetch_yuanta, fetch_jpm, fetch_cathay,
+            fetch_ab]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1460,9 +1596,14 @@ def main():
 
     print("")
     for code, r in sorted(out_etfs.items()):
-        if r["advanced"]:
+        if r["advanced"] and r["changed"]:
             print(f"[OK] {code} {r['name']}：{r['flow_from']} → {r['flow_to']}，"
                   f"異動 {r['changed']} 檔、加碼 {r['buy']/1e8:.1f} 億／減碼 {r['sell']/1e8:.1f} 億")
+        elif r["advanced"]:
+            # PCF 有出新的、但持股一模一樣＝經理人今天真的沒動。這時 flow_from/to
+            # 是 null（那兩欄只在有異動時才填），照舊格式印會變成「None → None」，
+            # 看起來像壞掉，所以獨立一行講清楚。
+            print(f"[==] {code} {r['name']}：{r['data_date']} 有新 PCF，但持股與前一份相同")
         else:
             why = {"not_updated": "PCF 尚未更新", "no_basis": "尚無前一份可比對"}.get(r["reason"], r["reason"])
             print(f"[--] {code} {r['name']}：{why}（資料日 {r['data_date'] or '?'}）")

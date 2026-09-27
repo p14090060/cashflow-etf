@@ -93,12 +93,12 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - 抓不到的 ETF **保留上一次的換檔結果**（`fetched:false` + `last_change_date`），
   絕不讓它從畫面消失——使用者看到的會是「我買的那檔不見了」
 
-#### 已接的投信（2026-09-27：29 檔 / 14 家）
+#### 已接的投信（2026-09-27：31 檔 / 16 家，**全市場覆蓋**）
 統一 4、中信 3、群益 3、野村 3、安聯 3、台新 2、復華 2、第一金 2、摩根 2、
-永豐 1、凱基 1、富邦 1、兆豐 1、元大 1
+永豐 1、凱基 1、富邦 1、兆豐 1、元大 1、國泰 1、聯博 1
 
-排行榜認定的主動式 ETF 共 30 檔，只差國泰 00400A、聯博 00404A 兩檔（外加不在
-那 30 檔名單內、但也有接的 00411A）。
+排行榜認定的主動式 ETF 共 30 檔**全部接完**，另加不在那份名單內的 00411A。
+（復華 00998A／00986D 是海外股債標的、無台股持股，抓得到但不輸出。）
 
 新增一家投信＝新增一個 `fetch_xxx(date_obj, specific=False)` adapter，回傳
 `{ticker: {name, issuer, data_date, holdings: {code: {name, shares}}}}`，再掛進 `ADAPTERS`。
@@ -114,6 +114,12 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - ⚠ 回應編碼會飄（第一金 UTF-8／Big5 都出現過），先試 utf-8 再退 cp950。
 - ⚠ 兆豐的 `category_id` 下拉選單是陷阱：先送它篩「主動式ETF」反而會把 `fund_id`
   的 `<option>` 清空，初始頁本來就列齊了，直接送 `fund_id` 就好。
+- 國泰 `cwapi.cathaysite.com.tw/api/ETF/GetETFDetailStockList`，
+  參數 `FundCode=EA` + **`SearchDate`**（不是 `date`），股數欄位叫 **`volumn`**；
+  資料日預設取 `GetETFAssets` 的 `preDate`，非交易日回空陣列不會給錯日期。
+- 聯博 `webapi.alliancebernstein.com/v2/funds/tw/zh-tw/investor/<ISIN>/holdings?date=`，
+  取 `domesticHoldings` 裡 `holdings-section-equity` 那段；
+  ⚠ 同基金的 `/basket` 端點 `date` 是**公告日**，別拿它的日期當資料日。
 - 摩根走 `FundsMarketingHandler/product-data`，**`role` 只有 `twetf` 會過**
   （per/ins/adv/retail 都回 "Country/Role combination is not supported by FMA"）；
   `cusip` 就是 ISIN。難得沒有公告日陷阱，`effectiveDate` 直接是資料日。
@@ -123,19 +129,22 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - 認證花招：統一 session cookie、中信 bootstrap token `"www.ctbcinvestments.com"`
   → `home/AuthToken`、安聯 `X-XSRF-TOKEN`（來自 `AntiForgery/GetAntiForgeryToken`）。
 
-**剩下這兩檔，原因不同，不要當成「還沒找到 API」**：
-- **國泰 00400A**：API 全開放（`https://cwapi.cathaysite.com.tw/api/`，`fundCode=EA`），
-  但 `GetIndexStockWeights` **只給權重不給股數**；`BuySale/GetStocksList` 回空陣列，
-  因為它是**現金申購買回**型，PCF 沒有股票籃。TWSE `ETFortune/etfInfo/00400A` 也沒有持股。
-  權重×基金規模÷股價可以反推股數，但權重只到小數 2 位 → 每檔每日約 ±290 萬元誤差，
-  跟真實小額換股同一量級，**不做**（會變成「看起來像資料的雜訊」）。
-- **聯博 00404A**：2026-09-27 實測官網 `/zh-tw/*` 全部 302 → `:81/apac/tw/error/404_3.htm`，
-  連首頁都 404（WebFetch 從外部抓也一樣），是他們站台壞掉不是擋我們。
-  PCF 頁網址格式是 `https://www.abfunds.com.tw/zh-tw/etfs/pcf.<ISIN>.html`
-  （00404A 的 ISIN 是 `TW00000404A5`），站台修好後直接試這個。
 **不可用來源**：`etfinfo.tw`（robots.txt `Disallow: /api/`、使用條款禁爬禁再利用）、
 `nctuwanglin/active-etf`（無授權條款）。台灣**沒有**集中式的主動式 ETF 持股揭露，
 TWSE `ETFortune/etfInfo` 與 TPEx `serial_active_etf` 都只有彙總頁。
+
+#### ⚠ 2026-09-27 我把國泰誤判成「沒有股數」，Gavin 截圖打臉
+官網持股權重頁明明就有股數欄。三個誤判環節，之後查任何一家都要避開：
+1. 拿 `GetIndexStockWeights` 當持股 —— 那是**指數成分權重**不是基金持股，
+   本來就沒股數，我卻拿它下結論。
+2. `BuySale/GetStocksList` 回空陣列（00400A 是現金申購買回、PCF 沒股票籃），
+   我把「這支 API 沒資料」讀成「官網沒揭露」。
+3. 真正那支 `ETF/GetETFDetailStockList` 我試過，但參數傳成 `date`，
+   正確是 **`SearchDate`**，於是回「查無資料」——**參數名錯 ≠ 資料不存在**。
+
+**通則：SPA 要找 API，別在主 bundle 猜。** Angular 看 `runtime.js` 的 chunk 地圖、
+Vue/Nuxt 看懶載入 chunk、webpack 看 `i.u=e=>...` 那串，把該 chunk 單獨抓下來
+grep 呼叫端，參數名和欄位名會直接寫在那裡（國泰的股數欄位叫 `volumn`，拼錯的）。
 
 > **Tab 4 原本是「健診頁」**（持倉健檢 + 財務試算），2026-09-23 下架改放此頁。
 > HTML 存在 `<template id="archived-check">`、JS 在 `/* 健診頁邏輯 */` 註解區塊裡，
