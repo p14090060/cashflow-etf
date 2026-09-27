@@ -24,6 +24,9 @@
     --dear:  #ff3f5e;
     --up:    #ff3f5e;
     --dn:    #00c87a;
+    --bond:  #58a6ff;   /* 債券型標示。刻意避開紅漲綠跌與四態四色，
+                          讀起來是「分類」不是「買賣判斷」；灰色在深色底太弱，
+                          債券和股票是兩種商品，要讓人一眼看出來 */
     --gold:  #ffd700;
     --nav-h: 62px;
   }
@@ -139,6 +142,13 @@
   .sig-dear {
     background:rgba(251,146,60,.12); color:#fb923c;
     border:1px solid #fb923c; border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
+  /* 債券 ETF 不套股價訊號，用中性灰藍——刻意不借用四態任何一色，
+     免得被當成買賣判斷。只是在說「這是債券型」。 */
+  .sig-bond {
+    background:rgba(88,166,255,.14); color:var(--bond);
+    border:1px solid var(--bond); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-hot {
@@ -1056,6 +1066,8 @@ function runCalc() {
 function holdingHint(signal, profitPct) {
   const profit = profitPct !== null && profitPct > 0;
   const loss   = profitPct !== null && profitPct < 0;
+  // 債券 ETF 的漲跌看利率，不是位置高低，給不出「便宜/偏貴」那種建議
+  if (signal === 'bond')  return '債券型 ETF 主要看利率與配息，本頁不提供價格位置判斷';
   if (signal === 'hot')   return profit ? '目前位置偏熱，持倉已有獲利，可留意風險' : '目前追高風險偏高，宜觀察後再決定';
   if (signal === 'dear')  return profit ? '目前位置偏高，持倉已有獲利，可考慮分批調節' : '目前位置偏高，宜等待回落再評估';
   if (signal === 'fair')  return '目前處於合理區間，可安心持有';
@@ -1074,8 +1086,8 @@ function runHoldingCheck() {
   if (!etf) { out.innerHTML = '<div class="health-miss">查無此代碼，可能不在今日成交量清單</div>'; return; }
 
   const price    = etf.price;
-  const sigLabel = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' }[etf.signal] || '偏貴';
-  const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' }[etf.signal] || 'sig-dear';
+  const sigLabel = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' }[etf.signal] || '偏貴';
+  const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' }[etf.signal] || 'sig-dear';
 
   // 損益
   const profitPct = cost > 0 ? (price - cost) / cost * 100 : null;
@@ -1160,8 +1172,8 @@ function runETFCheck() {
   const out = document.getElementById('etfCheckResult');
   if (!codes.length) { out.innerHTML = '<div class="health-miss">請至少輸入一支 ETF 代碼</div>'; return; }
 
-  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
-  const SIG_COLOR = { cheap:'var(--cheap)', fair:'var(--fair)', hot:'#ef4444', dear:'#fb923c' };
+  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
+  const SIG_COLOR = { cheap:'var(--cheap)', fair:'var(--fair)', hot:'#ef4444', dear:'#fb923c', bond:'var(--bond)' };
 
   out.innerHTML = codes.map(code => {
     const etf = ETFS.find(e => e.code.toUpperCase() === code);
@@ -1245,8 +1257,8 @@ document.getElementById('sharesIn').addEventListener('input', calcUpdate);
 function renderSignalCard(etf, estimated) {
   const hasRange = etf.low52 != null && etf.high52 != null && etf.high52 > etf.low52;
   const pos = hasRange ? Math.min(97, Math.max(3, (etf.price - etf.low52) / (etf.high52 - etf.low52) * 100)) : 50;
-  const sigLabel = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' }[etf.signal] || '偏貴';
-  const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' }[etf.signal] || 'sig-dear';
+  const sigLabel = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' }[etf.signal] || '偏貴';
+  const sigClass = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' }[etf.signal] || 'sig-dear';
   const note = estimated ? `<div style="font-size:16px;color:var(--dim);margin-top:8px">⚠ 估算數值，每日更新後將顯示真實資料</div>` : '';
   const maDStr = etf.maD != null
     ? `<span class="${etf.maD>=0?'pos':'neg'}">${etf.maD>=0?'+':''}${etf.maD.toFixed(1)}%</span>`
@@ -1414,8 +1426,8 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   }
   renderMood(market);
 
-  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
-  const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear' };
+  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
+  const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' };
 
   // 只從成交量前 100 篩選，避免冷門 ETF 混入
   const TOP100 = [...ETFS]
@@ -1562,8 +1574,8 @@ function getEtfTag(code, name) {
 }
 
 function renderRank() {
-  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴' };
-  const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c' };
+  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
+  const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c', bond:'var(--bond)' };
   const fmtRet = v => (v == null) ? '--' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const retClr = v => (v == null) ? 'var(--dim)' : v >= 0 ? '#ff6b6b' : '#00e5a0';
 

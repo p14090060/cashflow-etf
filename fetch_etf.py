@@ -497,9 +497,29 @@ def build_pool():
 def is_high_div(name, yld):
     return any(k in name for k in HIGH_DIV_KEYWORDS) or yld > 5
 
-def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, name):
-    pos52 = (price - low52) / (high52 - low52) if high52 > low52 else 0.5
+def is_bond_etf(code):
+    """代號 B/D 結尾＝債券型 ETF。
+
+    實測 ISIN 全部 1294 檔裡 111 檔 B/D 結尾，名稱**全部**都是債券型，零例外；
+    反向查「名稱含債但代號非 B/D」只抓到槓反類（00680L/00681R/00688L/00689R
+    /00687C），那些本來就被 EXCLUDE_KW 擋掉。
+    名稱關鍵字擋不住簡稱省略「債」字的（主動富邦動態入息＝投資級債、
+    主動貝萊德優投等＝投資等級債、凱基IG精選15+＝IG 債），所以用代號判。
+    """
+    return bool(code) and code[-1] in ("B", "D")
+
+
+def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, name,
+                code=""):
+    # 債券 ETF 跟著利率走，不是動能標的。套股票的 MA/RSI 規則會機械性地一直
+    # 判成「便宜」——實測 3 檔債券型 3/3 都是 cheap，但全池只有 8% 是 cheap。
+    # 那不是划算，是模型量錯東西。寧可不給訊號，也不要給看起來像買點的假訊號。
+    # ⚠ 這支回傳的是 (signal, maD) 兩元組，跟 mis_fetcher 那支只回字串不同，
+    #   守衛也要回兩元組，否則呼叫端 `signal, maD = ...` 會把 "bond" 拆成 4 個字元
     maD60 = round((price - ma60) / ma60 * 100, 1) if ma60 > 0 else 0
+    if is_bond_etf(code):
+        return "bond", maD60
+    pos52 = (price - low52) / (high52 - low52) if high52 > low52 else 0.5
 
     if ret5d >= 5 or rsi >= 75:
         return "hot", maD60
@@ -844,7 +864,7 @@ for code, name in ALL_ETFS:
         yld_pending = code in _YLD_PENDING
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
-                                   ret5d, vol_ratio, rsi, yld, name)
+                                   ret5d, vol_ratio, rsi, yld, name, code)
         heat, score_cont = calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated)
         div_days, div_est, div_next = calc_div_forecast(divs, code, div_freq)
 

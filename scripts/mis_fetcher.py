@@ -161,7 +161,25 @@ def fetch_mis_market():
 # ── 訊號計算（與 fetch_etf.py 統一：ma60 + RSI，不靠 NAV）──
 _HIGH_DIV_KW = ["高股息", "高息", "精選高息", "永續高息", "價值高息"]
 
-def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, name):
+def is_bond_etf(code):
+    """代號 B/D 結尾＝債券型 ETF。
+
+    實測 ISIN 全部 1294 檔裡 111 檔 B/D 結尾，名稱**全部**都是債券型，零例外；
+    反向查「名稱含債但代號非 B/D」只抓到槓反類（00680L/00681R/00688L/00689R
+    /00687C），那些本來就被 EXCLUDE_KW 擋掉。
+    名稱關鍵字擋不住簡稱省略「債」字的（主動富邦動態入息＝投資級債、
+    主動貝萊德優投等＝投資等級債、凱基IG精選15+＝IG 債），所以用代號判。
+    """
+    return bool(code) and code[-1] in ("B", "D")
+
+
+def calc_signal(price, ma20, ma60, low52, high52, ret5d, vol_ratio, rsi, yld, name,
+                code=""):
+    # 債券 ETF 跟著利率走，不是動能標的。套股票的 MA/RSI 規則會機械性地一直
+    # 判成「便宜」——實測 3 檔債券型 3/3 都是 cheap，但全池只有 8% 是 cheap。
+    # 那不是划算，是模型量錯東西。寧可不給訊號，也不要給看起來像買點的假訊號。
+    if is_bond_etf(code):
+        return "bond"
     if price <= 0 or ma60 <= 0:
         return "dear"
     pos52 = (price - low52) / (high52 - low52) if high52 > low52 else 0.5
@@ -380,7 +398,7 @@ def verify_output():
             e.get("ma20", 0), e.get("ma60", 0),
             e.get("low52", 0), e.get("high52", 0),
             e.get("ret5d", 0), e.get("vol_ratio", 1),
-            e.get("rsi", 50), e.get("yld", 0), e.get("name", ""),
+            e.get("rsi", 50), e.get("yld", 0), e.get("name", ""), code,
         )
         if expected != stored_sig:
             e["signal"] = expected
@@ -546,6 +564,7 @@ def main():
             e.get("rsi",      50),
             e.get("yld",       0),
             e.get("name",     ""),
+            e.get("code",     ""),
         )
         # 補寫 maD（_base.json 缺欄位時也能正常顯示）
         if e.get("maD") is None and _ma60 > 0:
@@ -631,6 +650,7 @@ def main():
                             e.get("low52", 0), e.get("high52", 0),
                             e.get("ret5d", 0), e.get("vol_ratio", 1),
                             e.get("rsi", 50), e.get("yld", 0), e.get("name", ""),
+                            e.get("code", ""),
                         )
                         if e.get("ma60", 0) > 0:
                             e["maD"] = round((e["price"] - e["ma60"]) / e["ma60"] * 100, 1)
