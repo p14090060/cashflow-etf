@@ -1,5 +1,5 @@
 {
-  "fetched": "2026-09-28 23:11",
+  "fetched": "2026-09-29 09:17",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
@@ -855,7 +855,7 @@
     "00407A": {
       "name": "主動凱基台灣",
       "issuer": "凱基",
-      "data_date": "2026-09-24",
+      "data_date": "2026-09-29",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -5938,63 +5938,63 @@
     "00989A": {
       "name": "主動摩根美國科技",
       "issuer": "摩根",
-      "data_date": "2026-09-23",
+      "data_date": "2026-09-24",
       "holdings": {
         "NVDA": {
           "name": "NVIDIA CORP",
-          "shares": 7250
-        },
-        "CRWD": {
-          "name": "CROWDSTRIKE HOLDINGS INC - A",
-          "shares": 4972
-        },
-        "AVGO": {
-          "name": "BROADCOM INC",
-          "shares": 3643
+          "shares": 7048
         },
         "META": {
           "name": "META PLATFORMS INC-CLASS A",
-          "shares": 1730
+          "shares": 1682
         },
-        "PANW": {
-          "name": "PALO ALTO NETWORKS INC",
-          "shares": 3227
+        "CRWD": {
+          "name": "CROWDSTRIKE HOLDINGS INC - A",
+          "shares": 4904
+        },
+        "AVGO": {
+          "name": "BROADCOM INC",
+          "shares": 3541
         },
         "INTC": {
           "name": "INTEL CORP",
-          "shares": 9997
+          "shares": 9718
+        },
+        "PANW": {
+          "name": "PALO ALTO NETWORKS INC",
+          "shares": 3137
         },
         "AMD": {
           "name": "ADVANCED MICRO DEVICES",
-          "shares": 1834
+          "shares": 1805
         },
         "CRM": {
           "name": "SALESFORCE INC",
-          "shares": 4725
+          "shares": 4593
         },
         "TSLA": {
           "name": "TESLA INC",
-          "shares": 2773
-        },
-        "SNOW": {
-          "name": "SNOWFLAKE INC-CLASS A",
-          "shares": 3099
+          "shares": 2696
         },
         "NET": {
           "name": "CLOUDFLARE INC - CLASS A",
-          "shares": 2915
+          "shares": 2834
+        },
+        "SNOW": {
+          "name": "SNOWFLAKE INC-CLASS A",
+          "shares": 3013
         },
         "TTWO": {
           "name": "TAKE-TWO INTERACTIVE SOFTWRE",
-          "shares": 4950
+          "shares": 4812
         },
         "MSFT": {
           "name": "MICROSOFT CORP",
-          "shares": 1926
+          "shares": 1872
         },
         "TWLO": {
           "name": "TWILIO INC - A",
-          "shares": 3057
+          "shares": 2972
         },
         "SHOP": {
           "name": "SHOPIFY INC - CLASS A",
@@ -6002,11 +6002,11 @@
         },
         "LRCX": {
           "name": "LAM RESEARCH CORP",
-          "shares": 2801
+          "shares": 2723
         },
         "GOOG": {
           "name": "ALPHABET INC-CL C",
-          "shares": 2427
+          "shares": 2359
         },
         "ASML": {
           "name": "ASML HOLDING NV-NY REG SHS",
@@ -6014,75 +6014,75 @@
         },
         "HOOD": {
           "name": "ROBINHOOD MARKETS INC - A",
-          "shares": 6097
+          "shares": 5927
         },
         "NOW": {
           "name": "SERVICENOW INC",
-          "shares": 4808
+          "shares": 4674
         },
         "HUBS": {
           "name": "HUBSPOT INC",
-          "shares": 2796
+          "shares": 2718
         },
         "LITE": {
           "name": "LUMENTUM HOLDINGS INC",
-          "shares": 647
+          "shares": 629
         },
         "DOCN": {
           "name": "DIGITALOCEAN HOLDINGS INC",
-          "shares": 4175
+          "shares": 4059
         },
         "ZM": {
           "name": "ZOOM COMMUNICATIONS INC",
-          "shares": 6099
+          "shares": 5929
         },
         "TXN": {
           "name": "TEXAS INSTRUMENTS INC",
-          "shares": 1862
-        },
-        "TEAM": {
-          "name": "ATLASSIAN CORP PLC-CLASS A",
-          "shares": 2347
-        },
-        "RIVN": {
-          "name": "RIVIAN AUTOMOTIVE INC-A",
-          "shares": 30417
-        },
-        "BE": {
-          "name": "BLOOM ENERGY CORP- A",
-          "shares": 1650
-        },
-        "ADBE": {
-          "name": "ADOBE INC",
-          "shares": 1812
+          "shares": 1810
         },
         "TEM": {
           "name": "TEMPUS AI INC",
-          "shares": 5664
+          "shares": 5506
+        },
+        "RIVN": {
+          "name": "RIVIAN AUTOMOTIVE INC-A",
+          "shares": 29569
+        },
+        "TEAM": {
+          "name": "ATLASSIAN CORP PLC-CLASS A",
+          "shares": 2282
         },
         "MU": {
           "name": "MICRON TECHNOLOGY INC",
           "shares": 403
         },
+        "BE": {
+          "name": "BLOOM ENERGY CORP- A",
+          "shares": 1604
+        },
+        "ADBE": {
+          "name": "ADOBE INC",
+          "shares": 1761
+        },
         "PLTR": {
           "name": "PALANTIR TECHNOLOGIES INC-A",
-          "shares": 2073
-        },
-        "ADI": {
-          "name": "ANALOG DEVICES INC",
-          "shares": 1006
+          "shares": 2015
         },
         "TSM": {
           "name": "TAIWAN SEMICONDUCTOR-SP ADR",
-          "shares": 858
+          "shares": 834
         },
-        "CIEN": {
-          "name": "CIENA CORP",
-          "shares": 1052
+        "ADI": {
+          "name": "ANALOG DEVICES INC",
+          "shares": 978
         },
         "GLW": {
           "name": "CORNING INC",
           "shares": 2371
+        },
+        "CIEN": {
+          "name": "CIENA CORP",
+          "shares": 1002
         },
         "AMZN": {
           "name": "AMAZON.COM INC",
@@ -6096,21 +6096,17 @@
           "name": "SANDISK CORP-W/I",
           "shares": 194
         },
-        "U": {
-          "name": "UNITY SOFTWARE INC",
-          "shares": 7435
-        },
         "CRDO": {
           "name": "CREDO TECHNOLOGY GROUP HOLDI",
           "shares": 1627
         },
-        "FIGR": {
-          "name": "FIGURE TECHNOLOGY SOLUT-CL A",
-          "shares": 8670
-        },
         "CDNS": {
           "name": "CADENCE DESIGN SYS INC",
           "shares": 958
+        },
+        "U": {
+          "name": "UNITY SOFTWARE INC",
+          "shares": 7435
         },
         "SPCX": {
           "name": "SPACE EXPLORATION TECHN-CL A",
@@ -6132,73 +6128,73 @@
           "name": "MACOM TECHNOLOGY SOLUTIONS H",
           "shares": 958
         },
+        "FIGR": {
+          "name": "FIGURE TECHNOLOGY SOLUT-CL A",
+          "shares": 8155
+        },
         "ESTC": {
           "name": "ELASTIC NV",
           "shares": 2871
-        },
-        "LMND": {
-          "name": "LEMONADE INC",
-          "shares": 5601
         },
         "VEEV": {
           "name": "VEEVA SYSTEMS INC-CLASS A",
           "shares": 912
         },
-        "ENTG": {
-          "name": "ENTEGRIS INC",
-          "shares": 1612
-        },
         "XYZ": {
           "name": "BLOCK INC",
           "shares": 3199
         },
-        "OKTA": {
-          "name": "OKTA INC",
-          "shares": 1041
+        "ENTG": {
+          "name": "ENTEGRIS INC",
+          "shares": 1612
         },
         "WRBY": {
           "name": "WARBY PARKER INC-CLASS A",
           "shares": 9116
         },
+        "LMND": {
+          "name": "LEMONADE INC",
+          "shares": 5199
+        },
+        "OKTA": {
+          "name": "OKTA INC",
+          "shares": 1041
+        },
         "ALAB": {
           "name": "ASTERA LABS INC",
           "shares": 578
-        },
-        "VICR": {
-          "name": "VICOR CORP",
-          "shares": 709
         },
         "NU": {
           "name": "NU HOLDINGS LTD/CAYMAN ISL-A",
           "shares": 14586
         },
-        "ALGM": {
-          "name": "ALLEGRO MICROSYSTEMS INC",
-          "shares": 5445
+        "VICR": {
+          "name": "VICOR CORP",
+          "shares": 709
         },
         "TTMI": {
           "name": "TTM TECHNOLOGIES",
           "shares": 1484
         },
-        "SYM": {
-          "name": "SYMBOTIC INC",
-          "shares": 4252
-        },
-        "SMCI": {
-          "name": "SUPER MICRO COMPUTER INC",
-          "shares": 4049
-        },
         "TXG": {
           "name": "10X GENOMICS INC-CLASS A",
           "shares": 2211
         },
-        "ADSK": {
-          "name": "AUTODESK INC",
-          "shares": 768
-        },
         "ILMN": {
           "name": "ILLUMINA INC",
           "shares": 648
+        },
+        "ALGM": {
+          "name": "ALLEGRO MICROSYSTEMS INC",
+          "shares": 4937
+        },
+        "SYM": {
+          "name": "SYMBOTIC INC",
+          "shares": 3843
+        },
+        "SMCI": {
+          "name": "SUPER MICRO COMPUTER INC",
+          "shares": 4049
         },
         "TWST": {
           "name": "TWIST BIOSCIENCE CORP",
@@ -6207,6 +6203,10 @@
         "CBRS": {
           "name": "CEREBRAS SYSTEMS INC - A",
           "shares": 296
+        },
+        "ADSK": {
+          "name": "AUTODESK INC",
+          "shares": 275
         },
         "GENB": {
           "name": "GENERATE BIOMEDICINES INC",
