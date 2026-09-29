@@ -1432,9 +1432,23 @@ def build_flow(prev, cur):
 
         if no_price:
             print(f"[WARN] {etf} 有 {len(no_price)} 檔異動查不到收盤價，未計入金額：{no_price}")
+
+        # ── 不變量自檢 ──────────────────────────────────────────────
+        # 資料日前進了、而且前後股數字典**確實不同**，那 rows 與 no_price 就不該
+        # 同時是空的——空的代表異動在算出來之後、寫進輸出之前被吃掉了。
+        # 2026-09-30 的 bug 正是這個形狀：00989A 換了 37 檔，全是美股沒台股報價，
+        # rows 空、no_price 又被輸出端的條件濾掉，整筆靜默消失。
+        # 這條是「形狀比對」不是猜測，不會誤報：股數真的有差才會觸發。
+        anomaly = None
+        if _shares(before) != _shares(after) and not rows and not no_price:
+            anomaly = (f"{etf} 資料日 {d_old}→{d_new} 股數確實有差，"
+                       f"但 changed 與 no_price 都是空的（異動被吃掉了）")
+            print(f"[BUG] {anomaly}")
+
         out[etf] = {
             "advanced":   True,
             "reason":     "ok",
+            "anomaly":    anomaly,
             "no_price":   no_price,
             "scale_pct":  scale_pct,   # 非 None = 全池同步等比例增減（申贖造成的規模變動）
             "data_date":  d_new,
@@ -1550,6 +1564,11 @@ def main():
             "advanced":  bool(f.get("advanced")),    # 這次 PCF 有沒有出新的
             "reason":    f.get("reason", "no_basis"),
             "fetched":   True,
+            # 第一次看到這檔的日期。daily_check 用它算「追蹤多久沒換股」，
+            # 沒有它就分不出「從沒換股」是真的沒動還是才剛開始追蹤。
+            "first_seen": prev_out.get("first_seen") or str(info.get("data_date") or ""),
+            # build_flow 的不變量自檢結果，None = 正常
+            "anomaly":   f.get("anomaly"),
         }
         # 有異動就算數，不能只看 changed —— changed 只計「查得到台股收盤價」的，
         # 全海外持股的 ETF（00983A 中信ARK、00989A 摩根美國科技、00402A 安聯

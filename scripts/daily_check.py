@@ -71,6 +71,9 @@ ACTIVE_MIN_ETFS  = 26    # 目前接 31 檔；本次實抓掉到 26 以下 = 約
                          # （少 3 檔以內由下面的 kept 檢查負責，這條是整批掛掉的後盾）
 ACTIVE_STALE_ALL = 4     # 全部 ETF 的最新資料日都超過這天數 → 整條抓取停擺
 ACTIVE_STALE_ONE = 7     # 單一 ETF 資料日落後這麼多天 → 那家投信可能改版或擋我們
+ACTIVE_NO_CHANGE = 21    # 資料日持續前進、卻這麼多天沒記錄到任何換股 → 值得看一眼。
+                         # 主動式 ETF 三週不動有可能（富邦 00405A 就真的沒動），
+                         # 所以這條是提醒不是錯誤；真正的 bug 由 anomaly 那條精準抓。
 
 
 def check_active_flow() -> list:
@@ -129,6 +132,35 @@ def check_active_flow() -> list:
                     issues.append(f"• {code} {etfs[code].get('name','')}："
                                   f"資料日 {d} 落後最後交易日 {lag} 天"
                                   f"（{etfs[code].get('issuer','')}投信）")
+
+    # ── A. 不變量自檢：fetch_active_etf 算出「股數有差卻沒產出異動」 ──
+    # 這是精準訊號，代表異動在寫檔前被程式吃掉了，不是投信沒動。
+    # 2026-09-30 抓到的 00989A（一次 37 檔全美股）就是這種，當時所有監控都顯示健康。
+    for code, e in sorted(etfs.items()):
+        if e.get("anomaly"):
+            issues.append(f"• 🐛 {code} {e.get('name','')}：{e['anomaly']}")
+
+    # ── B. 廣角網：資料日一直前進，卻很久沒記錄到任何換股 ──
+    # 用 first_seen 扣掉「才剛開始追蹤」的，否則新接的投信會整批誤報。
+    for code, e in sorted(etfs.items()):
+        if e.get("fetched") is False or code not in dates:
+            continue                      # 沒抓到的另有 kept 檢查負責
+        if (base - dates[code]).days > ACTIVE_STALE_ONE:
+            continue                      # 資料本來就停更，上面已經報過
+        try:
+            seen = datetime.date.fromisoformat(str(e.get("first_seen"))[:10])
+        except (TypeError, ValueError):
+            continue                      # 沒有追蹤起點就無從判斷，寧可不報
+        last = e.get("last_change_date")
+        try:
+            since = datetime.date.fromisoformat(str(last)[:10]) if last else seen
+        except ValueError:
+            since = seen
+        quiet = (base - since).days
+        if quiet > ACTIVE_NO_CHANGE:
+            what = f"最後換股 {last}" if last else f"自 {seen} 開始追蹤以來從未換股"
+            issues.append(f"• {code} {e.get('name','')}：{what}，已 {quiet} 天"
+                          f"（資料日 {dates[code]} 仍正常更新，請確認不是又被吃掉）")
     return issues
 
 
