@@ -126,6 +126,13 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 - 元大是 Nuxt SPA，但持股 SSR 在 `window.__NUXT__` 的 `StockWeights` 裡，
   欄位值常是 minified 變數（`_nuxt_vars` 負責還原）；資料日用 DOM 上那個「交易日期」。
 - ⚠ 海外持股查無台股報價會被靜默略過 → 一定要進 `no_price` 並印 `[WARN]`。
+- ⚠ **輸出的判斷是 `advanced and (changed or no_price)`，不能只看 `changed`。**
+  `changed` 只計「查得到台股收盤價」的異動，所以**台股持股 0 檔**的 ETF
+  （00983A 中信ARK、00989A 摩根美國科技、00402A 安聯美國科技）永遠是 0；
+  而 `no_price` 以前寫在同一個 `if` 裡，會跟著落空 → 整筆換股不留痕跡。
+  2026-09-30 用 git 歷史比對原始快照才抓到：**00989A 09/23→09/24 換了 37 檔**，
+  畫面上卻完全空白。查「有沒有漏」的方法就是拿舊 commit 的
+  `_active_snapshot.json` 逐版比對股數，不要只看 `active_flow.json` 的結論。
 - 認證花招：統一 session cookie、中信 bootstrap token `"www.ctbcinvestments.com"`
   → `home/AuthToken`、安聯 `X-XSRF-TOKEN`（來自 `AntiForgery/GetAntiForgeryToken`）。
 

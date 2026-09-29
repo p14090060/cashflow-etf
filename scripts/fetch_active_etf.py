@@ -1551,7 +1551,13 @@ def main():
             "reason":    f.get("reason", "no_basis"),
             "fetched":   True,
         }
-        if f.get("advanced") and f.get("changed"):
+        # 有異動就算數，不能只看 changed —— changed 只計「查得到台股收盤價」的，
+        # 全海外持股的 ETF（00983A 中信ARK、00989A 摩根美國科技、00402A 安聯
+        # 美國科技，台股持股都是 0 檔）換股時 changed 永遠是 0，連 no_price 都
+        # 因為寫在這個 if 裡而跟著落空，等於整筆換股完全不留痕跡。
+        # 2026-09-30 用 git 歷史比對原始快照才發現：00983A 09/22→09/23、
+        # 00989A 09/23→09/24 都真的換過股，畫面上卻什麼都沒有。
+        if f.get("advanced") and (f.get("changed") or f.get("no_price")):
             row.update({
                 "flow_from":  f.get("basis_date"),
                 "flow_to":    f.get("data_date"),
