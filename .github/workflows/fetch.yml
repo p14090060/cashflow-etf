@@ -61,3 +61,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run update-data.yml --repo ${{ github.repository }} --ref main
+
+      # ── Dead man's switch ──────────────────────────────────────────
+      # daily_check 只能檢查「跑出來的東西對不對」，抓不到「整條根本沒跑」
+      # （Actions 服務中斷、workflow 被停用、repo 設定被改）。那種情況下
+      # 使用者收到的是完全靜默，跟一切正常無法區分。
+      # 解法是反過來：跑成功就 ping 一次，**沒收到 ping** 就由外部服務通知。
+      # HEALTHCHECK_URL 還沒設時整步跳過，不會讓 job 紅燈。
+      # 設定方式見 CLAUDE.md「外部死人開關」。
+      - name: Ping dead man's switch
+        if: success() && env.HEALTHCHECK_URL != ''
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL"

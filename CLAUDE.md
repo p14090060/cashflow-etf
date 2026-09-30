@@ -328,6 +328,33 @@ mis_fetcher 還有**三處**會重算並覆蓋 signal（含寫檔後的自驗）
 
 **加任何監控前先問：這條在「它要防的那個故障」真的發生時，跑得到嗎？**
 
+### 外部死人開關（dead man's switch）
+
+上面兩條修完，仍有一個 `daily_check` 本質上補不了的洞：
+**整條 Actions 根本沒跑**（服務中斷、workflow 被停用、repo 設定被改）。
+監控住在被監控的東西裡面，它死了就一起死，使用者收到完全靜默。
+
+解法是反過來——**不是「壞了就叫」，而是「沒回報就叫」**：
+`fetch.yml` 最後一步在成功時 ping 一個外部 URL，外部服務在超過寬限時間
+沒收到 ping 時通知 Gavin。
+
+分工：
+| 誰 | 負責 |
+|---|---|
+| 外部死人開關 | **有沒有跑** |
+| `daily_check.py` | **跑出來的東西對不對** |
+
+設定（healthchecks.io 免費方案，支援 Telegram）：
+1. healthchecks.io 註冊 → New Check，名稱 `ETF fetch`
+2. Schedule 選 Cron，填 `0 1 * * 1-5`（UTC，對應台北 09:00 週一至五），
+   Grace Time 給 6 小時（Actions 排程本身就有 5~30 分延遲）
+3. 複製該 check 的 Ping URL
+4. GitHub repo → Settings → Secrets and variables → Actions → New secret，
+   名稱 **`HEALTHCHECK_URL`**，值貼上那個 URL
+5. healthchecks.io → Integrations → Telegram，綁同一個 bot / chat
+
+第 4 步沒設之前，`Ping dead man's switch` 那步會自動跳過，不影響現有流程。
+
 | 區塊 | 觸發條件 |
 |---|---|
 | 💚 監控清單便宜訊號 | LAZY_WATCHLIST 有 `cheap` 訊號 |
