@@ -729,9 +729,8 @@ def fetch_fuhwa(date_obj, specific=False):
             url = ("https://www.fhtrust.com.tw/api/assetsExcel/"
                    f"{fund_id}/{date_obj.strftime('%Y%m%d')}")
         else:
-            # 各檔的最新資料日不同（實測 00991A 到 09/24，其餘只到 09/23），
-            # 自己猜日期會拿到 12 bytes 的「查無資料」。直接從基金頁讀出
-            # 「檔案下載」按鈕的連結，日期就內嵌在裡面。
+            # 各檔的最新資料日不同，自己亂猜會拿到 12 bytes 的「查無資料」，
+            # 所以先從基金頁的「檔案下載」連結讀出一個已知存在的日期當下界。
             try:
                 req = urllib.request.Request(page_url, headers={"User-Agent": UA})
                 page = urllib.request.urlopen(req, timeout=25, context=_SSL).read().decode("utf-8", "replace")
@@ -742,7 +741,36 @@ def fetch_fuhwa(date_obj, specific=False):
             if not m:
                 print(f"[復華] {ticker} 基金頁找不到下載連結")
                 continue
-            url = "https://www.fhtrust.com.tw" + m.group(0)
+            # ⚠ 頁面連結會落後於實際檔案。2026-09-30 實測 00991A 頁面停在
+            #   09/24，但 API 上 09/29 的 xlsx 早就有了——只讀連結會讓這檔
+            #   PCF 永遠卡住、前端一直空白。所以拿連結日期當**下界**，
+            #   從查詢日往回找第一個抓得到的（查無資料只回 12 bytes，很快）。
+            link_day = datetime.datetime.strptime(m.group(1), "%Y%m%d").date()
+            cands = []
+            d = date_obj
+            while d >= link_day and len(cands) < 10:
+                cands.append(d)
+                d -= datetime.timedelta(days=1)
+            if link_day not in cands:
+                cands.append(link_day)
+            url = None
+            for d in cands:
+                probe = ("https://www.fhtrust.com.tw/api/assetsExcel/"
+                         f"{fund_id}/{d.strftime('%Y%m%d')}")
+                try:
+                    head = urllib.request.Request(probe, headers={
+                        "User-Agent": UA, "Referer": page_url})
+                    if urllib.request.urlopen(head, timeout=20, context=_SSL).read(2) == b"PK":
+                        url = probe
+                        if d != link_day:
+                            print(f"[復華] {ticker} 頁面連結停在 {link_day}，"
+                                  f"實際最新是 {d}")
+                        break
+                except Exception:
+                    continue
+            if not url:
+                print(f"[復華] {ticker} {link_day}~{date_obj} 都抓不到檔案")
+                continue
 
         try:
             req = urllib.request.Request(url, headers={
