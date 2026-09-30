@@ -346,8 +346,12 @@ mis_fetcher 還有**三處**會重算並覆蓋 signal（含寫檔後的自驗）
 
 **現況：2026-09-30 已上線並實測成功**（check 名稱 `ETF fetch`、Cron
 `0 1 * * 1-5` UTC、Grace 6 小時，GitHub secret `HEALTHCHECK_URL` 已設）。
-通知管道目前是 healthchecks 預設的 email；要改走 Telegram 就去
-healthchecks.io → Integrations → Telegram 綁同一個 bot。
+通知管道走 Telegram（healthchecks.io → Integrations → Telegram）。
+**注意：雲端版 healthchecks 用的是它自己的 bot，不是本專案 ETF 日報那支**，
+所以會是另一個對話視窗，沒辦法合併。想合併只能用 Webhook 整合去打
+`api.telegram.org/bot<TOKEN>/sendMessage`——但那等於把 TELEGRAM_BOT_TOKEN
+存進第三方服務，違反「機敏資料集中管理」，不要這樣做。
+分開其實更好讀：那支 bot 一出聲就代表整條 pipeline 沒跑。
 
 當初的設定步驟（換 repo 或重建時照做）：
 1. healthchecks.io 註冊 → Add Check，名稱 `ETF fetch`
