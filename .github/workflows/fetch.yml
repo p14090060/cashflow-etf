@@ -69,8 +69,18 @@ jobs:
       # 解法是反過來：跑成功就 ping 一次，**沒收到 ping** 就由外部服務通知。
       # HEALTHCHECK_URL 還沒設時整步跳過，不會讓 job 紅燈。
       # 設定方式見 CLAUDE.md「外部死人開關」。
+      # if 不要寫 env.HEALTHCHECK_URL != ''：step 自己的 env 在它自己的 if 裡
+      # 到底算不算數，GitHub 兩種說法都有人講。萬一不算，secret 明明設好了
+      # step 卻被永遠跳過 → healthchecks 每天誤報「掛了」，反而毀掉這套機制。
+      # 判斷移到 shell 裡，語義百分之百確定。
       - name: Ping dead man's switch
-        if: success() && env.HEALTHCHECK_URL != ''
+        if: success()
         env:
           HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
-        run: curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL"
+        run: |
+          if [ -z "$HEALTHCHECK_URL" ]; then
+            echo "HEALTHCHECK_URL 未設定，跳過 ping"
+            exit 0
+          fi
+          curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL"
+          echo "ping 已送出"
