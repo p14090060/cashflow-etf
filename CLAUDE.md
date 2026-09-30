@@ -344,16 +344,31 @@ mis_fetcher 還有**三處**會重算並覆蓋 signal（含寫檔後的自驗）
 | 外部死人開關 | **有沒有跑** |
 | `daily_check.py` | **跑出來的東西對不對** |
 
-設定（healthchecks.io 免費方案，支援 Telegram）：
-1. healthchecks.io 註冊 → New Check，名稱 `ETF fetch`
+**現況：2026-09-30 已上線並實測成功**（check 名稱 `ETF fetch`、Cron
+`0 1 * * 1-5` UTC、Grace 6 小時，GitHub secret `HEALTHCHECK_URL` 已設）。
+通知管道目前是 healthchecks 預設的 email；要改走 Telegram 就去
+healthchecks.io → Integrations → Telegram 綁同一個 bot。
+
+當初的設定步驟（換 repo 或重建時照做）：
+1. healthchecks.io 註冊 → Add Check，名稱 `ETF fetch`
 2. Schedule 選 Cron，填 `0 1 * * 1-5`（UTC，對應台北 09:00 週一至五），
-   Grace Time 給 6 小時（Actions 排程本身就有 5~30 分延遲）
-3. 複製該 check 的 Ping URL
+   Grace Time 給 6 小時（Actions 排程本身就有 5~30 分延遲，太短會誤報）
+3. 複製該 check 的 Ping URL（`https://hc-ping.com/<uuid>`，
+   後面**不要**接 `/start`、`/fail`、`/log`，也不要用 slug 版）
 4. GitHub repo → Settings → Secrets and variables → Actions → New secret，
    名稱 **`HEALTHCHECK_URL`**，值貼上那個 URL
-5. healthchecks.io → Integrations → Telegram，綁同一個 bot / chat
 
-第 4 步沒設之前，`Ping dead man's switch` 那步會自動跳過，不影響現有流程。
+第 4 步沒設之前，那步會印「未設定，跳過 ping」後正常結束，不影響現有流程。
+
+**⚠ 那步的 `if` 不要寫 `env.HEALTHCHECK_URL != ''`。**
+HEALTHCHECK_URL 是同一個 step 的 `env`，而 step 自己的 env 在它自己的 `if`
+裡算不算數，GitHub 沒有明確保證。萬一不算，secret 明明設好了 step 還是會
+被永遠跳過 → ping 永遠不發 → healthchecks 每天誤報「掛了」，**把監控本身
+變成雜訊來源，比沒有監控更糟**。空值判斷寫在 `run` 的 shell 裡才確定。
+
+另外：job 卡死不動這種情況已經被這條蓋到了（沒 ping 就是沒 ping，過了
+6 小時 grace 照樣叫），所以不需要為了「怕它 hang」去加 `timeout-minutes`。
+真要加也只是省 Actions 分鐘數，不是補監控漏洞——別把兩件事搞混。
 
 | 區塊 | 觸發條件 |
 |---|---|
