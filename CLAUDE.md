@@ -311,6 +311,23 @@ mis_fetcher 還有**三處**會重算並覆蓋 signal（含寫檔後的自驗）
 
 ## daily_check.py TG 通知規則
 
+### ⚠ 監控本身也會壞，而且壞掉時看起來跟「一切正常」一樣（2026-09-30）
+
+目標是「壞掉時它來找你」，不是「你每天去確認它沒壞」。兩個實際存在過的破口：
+
+1. **過期守門員在 CI 上是瞎的。** 原本用 `MARKET.stat().st_mtime` 判斷
+   market.json 是否超過 30 小時沒更新——但 **git 不保存 mtime**，
+   `actions/checkout` 拿到的檔案 mtime 永遠是「剛剛」，所以這條在
+   GitHub Actions 上**永遠不會觸發**，偏偏那正是它要防的場景。
+   （實測本機：mtime 09-30 01:03，實際 updated 09-29 21:52。）
+   改看 `market.json` 的 `updated` 欄位，並注意那是**台北時間**、CI 跑在 UTC。
+2. **`fetch_etf.py` 那步沒有 `continue-on-error`。** 它一掛整個 job 中止，
+   後面的 `daily_check` 根本不會執行 → 使用者收到「完全沒通知」。
+   **壞掉的時候更要讓警報跑得到**，所以抓資料的步驟一律 continue-on-error，
+   只留 commit/push 會讓 job 紅燈。
+
+**加任何監控前先問：這條在「它要防的那個故障」真的發生時，跑得到嗎？**
+
 | 區塊 | 觸發條件 |
 |---|---|
 | 💚 監控清單便宜訊號 | LAZY_WATCHLIST 有 `cheap` 訊號 |

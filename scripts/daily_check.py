@@ -225,13 +225,28 @@ def check_new_in_top100(etfs: list) -> list:
 
 def main():
     # ── 0. market.json 過期檢查（30 小時）──
-    if MARKET.exists():
-        age_hours = (time.time() - MARKET.stat().st_mtime) / 3600
-        if age_hours > 30:
-            notify(f"🚨 market.json 資料過期（已 {age_hours:.0f} 小時未更新），Action 可能執行失敗")
-            return
-    else:
+    # ⚠ 以前這裡看檔案 mtime，在 GitHub Actions 上**永遠不會觸發**：
+    #   git 不保存 mtime，每次 actions/checkout 拿到的都是「剛剛」。
+    #   這條是專門要抓「整條 pipeline 掛掉」的守門員，結果它自己在 CI 是瞎的。
+    #   改看 market.json 裡的 updated 欄位（mis_fetcher 寫入，台北時間）。
+    #   2026-09-30 實測：mtime 09-30 01:03，updated 09-29 21:52，差 3 小時。
+    if not MARKET.exists():
         notify("🚨 market.json 不存在，請確認 Action 是否正常執行")
+        return
+    stamp = str((load(MARKET) or {}).get("updated") or "")
+    age_hours = None
+    try:
+        # updated 是台北時間，CI 跑在 UTC，比較前要對齊時區
+        wrote = datetime.datetime.strptime(stamp[:16], "%Y-%m-%d %H:%M")
+        now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+        age_hours = (now_tw.replace(tzinfo=None) - wrote).total_seconds() / 3600
+    except ValueError:
+        # 讀不到就退回 mtime，本機仍然準；CI 上等於不檢查，但至少不會誤報
+        age_hours = (time.time() - MARKET.stat().st_mtime) / 3600
+        print(f"[WARN] market.json 沒有可解析的 updated（{stamp!r}），退回用 mtime")
+    if age_hours > 30:
+        notify(f"🚨 market.json 資料過期（updated={stamp}，已 {age_hours:.0f} 小時未更新），"
+               f"Action 可能執行失敗")
         return
 
     market   = load(MARKET)

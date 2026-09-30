@@ -23,7 +23,12 @@ jobs:
       - name: Install dependencies
         run: pip install yfinance requests
 
+      # ⚠ 這步一定要 continue-on-error。以前沒有，它一掛整個 job 就中止，
+      #   後面的 daily_check 根本不會執行 → 使用者收到的是「完全沒通知」，
+      #   跟「一切正常」長得一模一樣。壞掉的時候更要讓警報跑得到。
+      #   腳本本身失敗時不會覆寫既有資料，所以讓它繼續是安全的。
       - name: Fetch ETF base data
+        continue-on-error: true
         run: python fetch_etf.py
 
       - name: Fetch dividend calendar (TWSE official)
