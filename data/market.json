@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-30 20:07",
+  "updated": "2026-09-30 21:35",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -5927,7 +5927,7 @@
       "yld": 5.3,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 14,
+      "days": 16,
       "est": 0.16,
       "div_next": "2026-10-15",
       "signal": "dear",
@@ -10002,6 +10002,18 @@
       "days_until": 7,
       "source": "official",
       "amount_source": "MoneyDJ"
+    },
+    {
+      "code": "00936",
+      "name": "台新永續高息中小",
+      "iso_date": "2026-10-16",
+      "day": "16",
+      "mon": "10月",
+      "amt": 0,
+      "soon": false,
+      "days_until": 16,
+      "source": "official",
+      "amount_source": "official"
     },
     {
       "code": "00929",
