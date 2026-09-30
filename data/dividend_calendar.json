@@ -6,6 +6,13 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "00936": {
+      "code": "00936",
+      "name": "台新永續高息中小",
+      "ex_dividend_date": "2026-10-16",
+      "amount": 0.0,
+      "amount_source": null
+    },
     "00940": {
       "code": "00940",
       "name": "元大台灣價值高息",
