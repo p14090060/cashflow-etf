@@ -1429,7 +1429,14 @@ def build_flow(prev, cur):
             if not price:
                 # 查不到價就不硬算金額，但一定要記錄——這種「有異動卻算不出金額」
                 # 的缺口若靜靜跳過，畫面會顯示成「沒有異動」。
-                no_price.append(code)
+                # 連同名稱與增減股數一起存：算不出的只有「金額」，至於
+                # 「買了什麼、賣了什麼、幾股」PCF 本來就寫得清清楚楚，
+                # 沒有理由因為缺一個收盤價就把整筆丟掉。
+                no_price.append({
+                    "code": code,
+                    "name": (after.get(code) or before.get(code) or {}).get("name", ""),
+                    "delta_shares": d,
+                })
                 continue
             rows.append({
                 "code": code,
@@ -1438,6 +1445,7 @@ def build_flow(prev, cur):
                 "amount": round(d * price, 0),
             })
         rows.sort(key=lambda x: -abs(x["amount"]))
+        no_price.sort(key=lambda x: -abs(x["delta_shares"]))
 
         # 整檔基金申購/贖回時，所有持股會同步等比例增減——那不是經理人換股。
         # 實測 00407A 2026-09-24：50 檔裡 49 檔同步 -3.65%，顯示成「減碼 8.3 億」
@@ -1459,7 +1467,8 @@ def build_flow(prev, cur):
                 scale_pct = round(med * 100, 2)
 
         if no_price:
-            print(f"[WARN] {etf} 有 {len(no_price)} 檔異動查不到收盤價，未計入金額：{no_price}")
+            print(f"[WARN] {etf} 有 {len(no_price)} 檔異動查不到收盤價，未計入金額："
+                  f"{[x['code'] for x in no_price]}")
 
         # ── 不變量自檢 ──────────────────────────────────────────────
         # 資料日前進了、而且前後股數字典**確實不同**，那 rows 與 no_price 就不該
