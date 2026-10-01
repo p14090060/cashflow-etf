@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-01 15:06",
+  "updated": "2026-10-01 22:20",
   "market": {
     "price": 48353.49,
     "change_pt": 413.36,
@@ -719,7 +719,7 @@
       "low52": 8.03,
       "high52": 10.6,
       "rsi": 69.4,
-      "yld": 16.0,
+      "yld": 16.2,
       "yld_verified": true,
       "yld_pending": false,
       "days": 0,
