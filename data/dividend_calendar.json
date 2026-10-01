@@ -6,6 +6,13 @@
     "license": "政府開放資料 (data.gov.tw/license)"
   },
   "etfs": {
+    "0056": {
+      "code": "0056",
+      "name": "元大高股息",
+      "ex_dividend_date": "2026-10-22",
+      "amount": 0.0,
+      "amount_source": null
+    },
     "00936": {
       "code": "00936",
       "name": "台新永續高息中小",
@@ -24,8 +31,8 @@
       "code": "00939",
       "name": "統一台灣高息動能",
       "ex_dividend_date": "2026-10-05",
-      "amount": 0.072,
-      "amount_source": "Gavin 人工確認"
+      "amount": 0.125,
+      "amount_source": "TWSE"
     }
   }
 }
