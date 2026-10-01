@@ -1,10 +1,10 @@
 {
-  "fetched": "2026-09-30 21:33",
+  "fetched": "2026-10-01 09:20",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
       "issuer": "統一",
-      "data_date": "2026-09-30",
+      "data_date": "2026-09-29",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -211,7 +211,7 @@
     "00403A": {
       "name": "主動統一升級50",
       "issuer": "統一",
-      "data_date": "2026-09-30",
+      "data_date": "2026-09-29",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -418,7 +418,7 @@
     "00988A": {
       "name": "主動統一全球創新",
       "issuer": "統一",
-      "data_date": "2026-09-29",
+      "data_date": "2026-09-28",
       "holdings": {
         "LITE US": {
           "name": "LUMENTUM HOLDINGS INC",
@@ -589,7 +589,7 @@
     "00411A": {
       "name": "主動統一前沿科技",
       "issuer": "統一",
-      "data_date": "2026-09-29",
+      "data_date": "2026-09-28",
       "holdings": {
         "BE US": {
           "name": "BLOOM ENERGY CORP- A",
@@ -843,7 +843,7 @@
     "00407A": {
       "name": "主動凱基台灣",
       "issuer": "凱基",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -3625,27 +3625,27 @@
     "00409A": {
       "name": "主動復華全球50",
       "issuer": "復華",
-      "data_date": "2026-09-29",
+      "data_date": "2026-09-30",
       "holdings": {
         "3017": {
           "name": "奇鋐科技",
           "shares": 173000
         },
-        "5274": {
-          "name": "信驊科技",
-          "shares": 29000
-        },
         "2454": {
           "name": "聯發科技",
           "shares": 111000
         },
-        "3026": {
-          "name": "禾伸堂企",
-          "shares": 659000
+        "5274": {
+          "name": "信驊科技",
+          "shares": 29000
         },
         "8046": {
           "name": "南亞電路",
           "shares": 391000
+        },
+        "3026": {
+          "name": "禾伸堂企",
+          "shares": 659000
         },
         "3653": {
           "name": "健策精密",
@@ -3659,13 +3659,13 @@
           "name": "致茂電子",
           "shares": 117000
         },
+        "6805": {
+          "name": "富世達股",
+          "shares": 89000
+        },
         "2449": {
           "name": "京元電子",
           "shares": 613000
-        },
-        "6805": {
-          "name": "富世達股",
-          "shares": 59000
         },
         "2383": {
           "name": "台光電子",
@@ -5902,7 +5902,7 @@
     "00989A": {
       "name": "主動摩根美國科技",
       "issuer": "摩根",
-      "data_date": "2026-09-29",
+      "data_date": "2026-09-30",
       "holdings": {
         "NVDA": {
           "name": "NVIDIA CORP",
@@ -5916,13 +5916,13 @@
           "name": "CROWDSTRIKE HOLDINGS INC - A",
           "shares": 4904
         },
-        "AVGO": {
-          "name": "BROADCOM INC",
-          "shares": 3541
-        },
         "PANW": {
           "name": "PALO ALTO NETWORKS INC",
           "shares": 3137
+        },
+        "AVGO": {
+          "name": "BROADCOM INC",
+          "shares": 3541
         },
         "INTC": {
           "name": "INTEL CORP",
@@ -5936,10 +5936,6 @@
           "name": "SALESFORCE INC",
           "shares": 4593
         },
-        "NET": {
-          "name": "CLOUDFLARE INC - CLASS A",
-          "shares": 2834
-        },
         "SNOW": {
           "name": "SNOWFLAKE INC-CLASS A",
           "shares": 3013
@@ -5947,6 +5943,10 @@
         "TTWO": {
           "name": "TAKE-TWO INTERACTIVE SOFTWRE",
           "shares": 4812
+        },
+        "NET": {
+          "name": "CLOUDFLARE INC - CLASS A",
+          "shares": 2834
         },
         "MSFT": {
           "name": "MICROSOFT CORP",
@@ -5980,21 +5980,21 @@
           "name": "ROBINHOOD MARKETS INC - A",
           "shares": 5927
         },
-        "LITE": {
-          "name": "LUMENTUM HOLDINGS INC",
-          "shares": 629
-        },
         "NOW": {
           "name": "SERVICENOW INC",
           "shares": 4674
         },
-        "DOCN": {
-          "name": "DIGITALOCEAN HOLDINGS INC",
-          "shares": 4059
+        "LITE": {
+          "name": "LUMENTUM HOLDINGS INC",
+          "shares": 629
         },
         "HUBS": {
           "name": "HUBSPOT INC",
           "shares": 2718
+        },
+        "DOCN": {
+          "name": "DIGITALOCEAN HOLDINGS INC",
+          "shares": 4059
         },
         "ZM": {
           "name": "ZOOM COMMUNICATIONS INC",
@@ -6004,13 +6004,13 @@
           "name": "TEXAS INSTRUMENTS INC",
           "shares": 1810
         },
-        "BE": {
-          "name": "BLOOM ENERGY CORP- A",
-          "shares": 1604
-        },
         "TEM": {
           "name": "TEMPUS AI INC",
           "shares": 5506
+        },
+        "BE": {
+          "name": "BLOOM ENERGY CORP- A",
+          "shares": 1604
         },
         "RIVN": {
           "name": "RIVIAN AUTOMOTIVE INC-A",
@@ -6044,13 +6044,13 @@
           "name": "CORNING INC",
           "shares": 2371
         },
-        "CIEN": {
-          "name": "CIENA CORP",
-          "shares": 1002
-        },
         "AMZN": {
           "name": "AMAZON.COM INC",
           "shares": 1437
+        },
+        "CIEN": {
+          "name": "CIENA CORP",
+          "shares": 1002
         },
         "MPWR": {
           "name": "MONOLITHIC POWER SYSTEMS INC",
@@ -6132,6 +6132,10 @@
           "name": "10X GENOMICS INC-CLASS A",
           "shares": 2211
         },
+        "NU": {
+          "name": "NU HOLDINGS LTD/CAYMAN ISL-A",
+          "shares": 14586
+        },
         "TTMI": {
           "name": "TTM TECHNOLOGIES",
           "shares": 1484
@@ -6139,10 +6143,6 @@
         "ALGM": {
           "name": "ALLEGRO MICROSYSTEMS INC",
           "shares": 4937
-        },
-        "NU": {
-          "name": "NU HOLDINGS LTD/CAYMAN ISL-A",
-          "shares": 14586
         },
         "ILMN": {
           "name": "ILLUMINA INC",
@@ -6164,13 +6164,13 @@
           "name": "TWIST BIOSCIENCE CORP",
           "shares": 515
         },
-        "CBRS": {
-          "name": "CEREBRAS SYSTEMS INC - A",
-          "shares": 296
-        },
         "ADSK": {
           "name": "AUTODESK INC",
           "shares": 275
+        },
+        "CBRS": {
+          "name": "CEREBRAS SYSTEMS INC - A",
+          "shares": 296
         },
         "GENB": {
           "name": "GENERATE BIOMEDICINES INC",
