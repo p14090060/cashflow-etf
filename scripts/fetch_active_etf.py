@@ -1397,6 +1397,26 @@ def _shares(h):
     return {k: v.get("shares") for k, v in (h or {}).items()}
 
 
+def _np_fill(npz, holdings):
+    """把舊格式的 no_price（純字串代碼）補成 {code, name, delta_shares}。
+
+    股數救不回來——那是兩份快照相減的結果，舊快照早被覆蓋了。但名稱查得到：
+    只要那檔還在現在的持股裡就有。只有代碼的清單等於沒講（「ASML 有異動」
+    對使用者毫無意義），補上名稱才看得懂是哪家公司。
+    查不到代表那檔已經被整筆賣光，那本身就是資訊，直接寫出來。
+    """
+    out = []
+    for x in npz or []:
+        if isinstance(x, dict):
+            out.append(x)
+            continue
+        nm = (holdings.get(x) or {}).get("name", "")
+        out.append({"code": x,
+                    "name": nm or "（已不在持股清單中）",
+                    "delta_shares": None})
+    return out
+
+
 def build_flow(prev, cur):
     """逐檔 ETF 比對前後兩份 PCF，算出它自己的加減碼明細。
 
@@ -1620,7 +1640,11 @@ def main():
     out_etfs = {}
     for code, old in old_out.items():
         if code not in etfs:
-            out_etfs[code] = dict(old, fetched=False)
+            # 這條是「今天沒抓到這檔」，名稱只能靠前一份快照補
+            out_etfs[code] = dict(
+                old, fetched=False,
+                no_price=_np_fill(old.get("no_price"),
+                                  (prev_etfs.get(code) or {}).get("holdings") or {}))
             print(f"[KEEP] {code} {old.get('name','')}：本次未抓到，沿用上次資料"
                   f"（資料日 {old.get('data_date')}）")
 
@@ -1668,7 +1692,8 @@ def main():
                 "flow_from":  o.get("flow_from"),
                 "flow_to":    o.get("flow_to"),
                 "price_date": o.get("price_date"),
-                "no_price": o.get("no_price") or [],
+                # 沿用的舊紀錄可能是只有代碼的舊格式，名稱補回來
+            "no_price": _np_fill(o.get("no_price"), info.get("holdings") or {}),
                 "scale_pct": o.get("scale_pct"),
                 "buy": o.get("buy", 0), "sell": o.get("sell", 0),
                 "changed": o.get("changed", 0), "flow": o.get("flow", []),
