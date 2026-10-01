@@ -165,6 +165,29 @@ def fetch_twse_closes(max_lookback=6, end=None):
 
 
 # ══════════════════════════════════════════════════════════════
+# 持股容器
+#   代碼在「同一檔 ETF 之內」理應唯一，但各市場的號碼空間是重疊的：
+#   00986A 同時持有台積電 2330 與東京 6981 村田製作所、8306 三菱UFJ，
+#   全是裸四碼。真撞到同一碼時，dict 預設行為是後者無聲蓋掉前者
+#   ——持股少一檔、名稱直接消失，畫面上完全看不出來。
+#   這個子類別只負責「出聲」，不改任何行為（撞號當下仍然是後者勝）。
+#   註：不要改用「比對名稱來判斷是不是台股」那條路。2026-10-01 量過：
+#   投信寫全名、交易所寫簡稱，1158 筆台股持股有 58 筆對不上
+#   （台積電 vs 台灣積體電路製造、聯電 vs 聯華電子…），假警報比真問題多。
+# ══════════════════════════════════════════════════════════════
+class _Holdings(dict):
+    def __setitem__(self, k, v):
+        if k in self:
+            old = (self.get(k) or {}).get("name", "")
+            new = (v or {}).get("name", "")
+            if not hasattr(self, "dups"):
+                self.dups = []
+            self.dups.append(f"{k}「{old}」被「{new}」覆蓋")
+            print(f"[DUP] 代碼 {k} 重複：「{old}」→「{new}」，前者會消失")
+        super().__setitem__(k, v)
+
+
+# ══════════════════════════════════════════════════════════════
 # Adapter：統一投信（www.ezmoney.com.tw）
 #   GET  /                        取 session cookie（少了會 302 迴圈）
 #   POST /ETF/Transaction/GetPCF  {"fundCode","date","specificDate"}
@@ -224,7 +247,7 @@ def fetch_tsit(date_obj, specific=False):
         # 查歷史時 pcf 陣列可能是空的，但每一筆持股明細自己也帶 TranDate，拿來備援
         if not data_date and details:
             data_date = _ms_date(details[0].get("TranDate"))
-        holdings = {}
+        holdings = _Holdings()
         for x in details:
             code = str(x.get("DetailCode", "")).strip()
             try:
@@ -273,7 +296,7 @@ def fetch_sinopac(date_obj, specific=False):
     # 表格列：<td>代碼</td><td>名稱</td>…<td>股數</td>
     rows = re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S | re.I)
     tag = re.compile(r"<[^>]+>")
-    holdings = {}
+    holdings = _Holdings()
     for tr in rows:
         cells = [tag.sub("", c).replace("&nbsp;", " ").strip()
                  for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S | re.I)]
@@ -342,7 +365,7 @@ def fetch_kgi(date_obj, specific=False):
         data_date = past[-1] if past else None
 
         tag = re.compile(r"<[^>]+>")
-        holdings = {}
+        holdings = _Holdings()
         for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S | re.I):
             cells = [_html.unescape(tag.sub("", c)).replace("\xa0", " ").strip()
                      for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S | re.I)]
@@ -404,7 +427,7 @@ def fetch_taishin(date_obj, specific=False):
         data_date = min(x for x in (echoed, newest) if x) if (echoed or newest) else None
 
         tag = re.compile(r"<[^>]+>")
-        holdings = {}
+        holdings = _Holdings()
         for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S | re.I):
             cells = [_html.unescape(tag.sub("", c)).replace("\xa0", " ").strip()
                      for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
@@ -487,7 +510,7 @@ def fetch_ctbc(date_obj, specific=False):
         m = re.search(r"(\d{4})[/-](\d{2})[/-](\d{2})", raw)
         data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
 
-        holdings = {}
+        holdings = _Holdings()
         for grp in data.get("Detail") or []:
             if grp.get("Code") != "STOCK":
                 continue                       # 期貨/選擇權/現金不算持股
@@ -553,7 +576,7 @@ def fetch_capital(date_obj, specific=False):
         m = re.search(r"(\d{4})-(\d{2})-(\d{2})", str(pcf.get("date2") or ""))
         data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
 
-        holdings = {}
+        holdings = _Holdings()
         for x in d.get("stocks") or []:
             code = str(x.get("stocNo", "")).strip()
             try:
@@ -596,7 +619,7 @@ def fetch_fubon(date_obj, specific=False):
             continue
 
         tag = re.compile(r"<[^>]+>")
-        holdings = {}
+        holdings = _Holdings()
         for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S | re.I):
             cells = [tag.sub("", c).replace("&nbsp;", " ").strip()
                      for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
@@ -660,7 +683,7 @@ def fetch_nomura(date_obj, specific=False):
         m = re.search(r"(\d{4})/(\d{2})/(\d{2})", str(stock_tbl.get("NavDate") or ""))
         data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
 
-        holdings = {}
+        holdings = _Holdings()
         for row in stock_tbl.get("Rows") or []:
             if len(row) < 3:
                 continue
@@ -785,7 +808,7 @@ def fetch_fuhwa(date_obj, specific=False):
             continue
 
         data_date = None
-        holdings = {}
+        holdings = _Holdings()
         other = 0
         for r in rows:
             joined = " ".join(r)
@@ -879,7 +902,7 @@ def fetch_allianz(date_obj, specific=False):
 
         tbl = next((t for t in (data.get("Table") or [])
                     if "股票" in str(t.get("TableTitle", ""))), None)
-        holdings = {}
+        holdings = _Holdings()
         for row in (tbl or {}).get("Rows") or []:
             if len(row) < 4:
                 continue
@@ -958,7 +981,7 @@ def fetch_fsitc(date_obj, specific=False):
         dates = sorted({str(r.get("sdate") or "")[:10] for r in stock} - {""})
         data_date = dates[-1] if dates else None
 
-        holdings = {}
+        holdings = _Holdings()
         for r in stock:
             code = str(r.get("A") or "").strip()
             if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
@@ -1026,7 +1049,7 @@ def fetch_mega(date_obj, specific=False):
                       h, re.S)
         data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
 
-        holdings = {}
+        holdings = _Holdings()
         for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", h, re.S):
             cells = [re.sub(r"<[^>]+>", "", c).replace("&nbsp;", " ").strip()
                      for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
@@ -1129,7 +1152,7 @@ def fetch_yuanta(date_obj, specific=False):
         data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
 
         tbl = _nuxt_vars(h)
-        holdings = {}
+        holdings = _Holdings()
         for mm in re.finditer(
                 r"\{code:([^,{}]+),[^{}]*?name:([^,{}]+),[^{}]*?qty:([^,{}]+)\}", h):
             code = _nuxt_val(mm.group(1), tbl).strip()
@@ -1196,7 +1219,7 @@ def fetch_jpm(date_obj, specific=False):
         pe = ((fund.get("holdings") or {}).get("pcfEquityHoldings")) or {}
         data_date = str(pe.get("effectiveDate") or "")[:10] or None
 
-        holdings = {}
+        holdings = _Holdings()
         for row in pe.get("data") or []:
             code = str(row.get("securityTicker") or "").strip()
             try:
@@ -1267,7 +1290,7 @@ def fetch_cathay(date_obj, specific=False):
             print(f"[國泰] {ticker} 失敗: {e}")
             continue
 
-        holdings = {}
+        holdings = _Holdings()
         for r in rows:
             code = str(r.get("stockCode") or "").strip()
             if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
@@ -1333,7 +1356,7 @@ def fetch_ab(date_obj, specific=False):
         m = re.match(r"(\d{2})/(\d{2})/(\d{4})", str(sec.get("asOfDate") or ""))
         data_date = f"{m.group(3)}-{m.group(1)}-{m.group(2)}" if m else None
 
-        holdings = {}
+        holdings = _Holdings()
         for r in sec.get("holdings") or []:
             code = str(r.get("holdingCode") or "").strip()
             try:
@@ -1477,7 +1500,11 @@ def build_flow(prev, cur):
         # rows 空、no_price 又被輸出端的條件濾掉，整筆靜默消失。
         # 這條是「形狀比對」不是猜測，不會誤報：股數真的有差才會觸發。
         anomaly = None
-        if _shares(before) != _shares(after) and not rows and not no_price:
+        if info.get("dup"):
+            anomaly = (f"{etf} PCF 出現重複代碼："
+                       f"{'；'.join(info['dup'])}（後者覆蓋前者，持股少算）")
+            print(f"[BUG] {anomaly}")
+        elif _shares(before) != _shares(after) and not rows and not no_price:
             anomaly = (f"{etf} 資料日 {d_old}→{d_new} 股數確實有差，"
                        f"但 changed 與 no_price 都是空的（異動被吃掉了）")
             print(f"[BUG] {anomaly}")
@@ -1520,6 +1547,13 @@ def main():
             etfs.update(fn(query_day))
         except Exception as e:
             print(f"[WARN] {fn.__name__} 整支失敗: {e}")
+
+    # 撞號是會無聲掉資料的那種錯，一定要讓它走到 daily_check 的警報，
+    # 不能只留在 Action log 裡——沒人會每天去翻 log。
+    for _v in etfs.values():
+        _d = getattr(_v.get("holdings"), "dups", None)
+        if _d:
+            _v["dup"] = list(_d)
 
     if not etfs:
         print("[ABORT] 所有 adapter 都沒抓到資料，保留既有檔案不覆蓋")
