@@ -27,7 +27,10 @@
     --bond:  #58a6ff;   /* 債券型標示。刻意避開紅漲綠跌與四態四色，
                           讀起來是「分類」不是「買賣判斷」；灰色在深色底太弱，
                           債券和股票是兩種商品，要讓人一眼看出來 */
-    --gold:  #ffd700;
+    --sea:   #1f6feb;   /* 海外持股標示。比 --bond 的 #58a6ff 深，因為這裡是
+                          「藍底白字」，淺藍配白字對比不足（約 2:1）。兩者都是
+                          藍但不同頁：--bond 在排行頁、--sea 在主動頁，不同框。 */
+  --gold:  #ffd700;
     --nav-h: 62px;
   }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
@@ -476,6 +479,7 @@
      而且會把下方的海外持股清單整個推出畫面外 */
   .treemap.tm-slim { height:auto; }
   .treemap.tm-slim .tm-empty { height:auto; padding:30px 24px; }
+  .tm-empty.sea { background:var(--sea); color:#fff; }
   .tm-empty    { display:flex; align-items:center; justify-content:center; height:100%;
                  color:var(--dim); font-size:15px; text-align:center; padding:0 24px; }
 
@@ -491,9 +495,12 @@
      但「買賣了什麼、幾股」PCF 有給，用清單補上。長度可能到 3、40 檔，給捲軸。 */
   .np-wrap  { margin:10px 14px 0; border:1px solid var(--border); border-radius:8px;
               background:var(--card); overflow:hidden; }
-  .np-hd    { padding:9px 12px; font-size:13px; color:var(--dim);
-              border-bottom:1px solid var(--border); background:var(--card2); }
-  .np-hd b  { color:var(--bright); }
+  /* 藍底白字＝海外。全海外與混合兩種情況都會出現這塊，標示掛在這裡才蓋得全
+     （上面那個空狀態框只有「全海外」那 3 檔才看得到） */
+  .np-hd    { padding:9px 12px; font-size:13px; color:#fff;
+              background:var(--sea); }
+  .np-hd b  { color:#fff; }
+  .np-wrap  { border-color:var(--sea); }
   .np-list  { max-height:290px; overflow-y:auto; }
   .np-row   { display:flex; align-items:center; gap:9px; padding:9px 12px;
               border-bottom:1px solid var(--border); font-size:14px; }
@@ -948,9 +955,9 @@ function _npList(rows) {
 }
 
 // 空狀態一律走這裡：順手把框框縮起來，免得每個 return 點都要記得加 class
-function _tmEmpty(box, html) {
+function _tmEmpty(box, html, cls) {
   box.classList.add('tm-slim');
-  box.innerHTML = '<div class="tm-empty">' + html + '</div>';
+  box.innerHTML = '<div class="tm-empty' + (cls ? ' ' + cls : '') + '">' + html + '</div>';
 }
 
 function renderFlow(code) {
@@ -1001,6 +1008,11 @@ function renderFlow(code) {
     if (e.scale_pct != null)
       tips.push('⚠ 本期幾乎所有持股同步變動 ' + (e.scale_pct > 0 ? '+' : '') + e.scale_pct +
                 '%，屬基金規模增減（申購／贖回），非經理人選股');
+    // 混合型 ETF（00997A 51 檔裡只有 4 檔台股）的金額只涵蓋台股那幾檔，
+    // 不標的話會被當成整檔基金的動作。np 與 tips 都在上面才宣告，
+    // 這段一定要放在它們之後——const 有 TDZ，寫前面是 ReferenceError 整頁掛掉。
+    if (np && (e.changed || 0) > 0)
+      tips.push('※ 上方金額僅計台股部分，海外持股見下方藍色清單');
     document.getElementById('flowTip').textContent = tips.join('　');
     // 一定要在所有 early return 之前畫。no_basis 與「rows 空」那兩條路徑都會
     // 提前 return，寫在後面的話，全海外持股那幾檔反而永遠看不到清單。
@@ -1016,11 +1028,13 @@ function renderFlow(code) {
       // 全海外持股的 ETF（00989A、00402A…）換股時 rows 會是空的——不是沒動，
       // 是查不到台股收盤價算不出金額。這兩種要分開講，否則畫面會自相矛盾：
       // 上面提示「另有 N 檔海外持股有異動」，下面卻寫「持股與前一份相同」。
-      _tmEmpty(box, np
-        ? '這次異動的 ' + np + ' 檔都是海外持股，無台股報價換算不出金額<br>'
-          + '明細見下方清單（PCF 資料日 ' + (e.data_date || '-') + '）'
-        : e.name + ' 目前沒有可顯示的調整紀錄<br>'
+      if (np) {
+        _tmEmpty(box, '這次異動的 ' + np + ' 檔都是海外持股，無台股報價換算不出金額<br>'
+          + '明細見下方清單（PCF 資料日 ' + (e.data_date || '-') + '）', 'sea');
+      } else {
+        _tmEmpty(box, e.name + ' 目前沒有可顯示的調整紀錄<br>'
           + '（最新 PCF 資料日 ' + (e.data_date || '-') + '，持股與前一份相同）');
+      }
       return;
     }
 
