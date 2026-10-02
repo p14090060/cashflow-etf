@@ -1,5 +1,5 @@
 {
-  "fetched": "2026-10-01 22:20",
+  "fetched": "2026-10-02 09:23",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
@@ -211,7 +211,7 @@
     "00403A": {
       "name": "主動統一升級50",
       "issuer": "統一",
-      "data_date": "2026-10-01",
+      "data_date": "2026-09-30",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -847,7 +847,7 @@
     "00407A": {
       "name": "主動凱基台灣",
       "issuer": "凱基",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -5902,7 +5902,7 @@
     "00989A": {
       "name": "主動摩根美國科技",
       "issuer": "摩根",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "holdings": {
         "NVDA": {
           "name": "NVIDIA CORP",
@@ -5940,13 +5940,13 @@
           "name": "SNOWFLAKE INC-CLASS A",
           "shares": 3013
         },
-        "TTWO": {
-          "name": "TAKE-TWO INTERACTIVE SOFTWRE",
-          "shares": 4812
-        },
         "NET": {
           "name": "CLOUDFLARE INC - CLASS A",
           "shares": 2834
+        },
+        "TTWO": {
+          "name": "TAKE-TWO INTERACTIVE SOFTWRE",
+          "shares": 4812
         },
         "MSFT": {
           "name": "MICROSOFT CORP",
@@ -5956,13 +5956,13 @@
           "name": "TESLA INC",
           "shares": 2696
         },
-        "SHOP": {
-          "name": "SHOPIFY INC - CLASS A",
-          "shares": 6061
-        },
         "LRCX": {
           "name": "LAM RESEARCH CORP",
           "shares": 2723
+        },
+        "SHOP": {
+          "name": "SHOPIFY INC - CLASS A",
+          "shares": 6061
         },
         "TWLO": {
           "name": "TWILIO INC - A",
@@ -5980,13 +5980,13 @@
           "name": "ROBINHOOD MARKETS INC - A",
           "shares": 5927
         },
-        "NOW": {
-          "name": "SERVICENOW INC",
-          "shares": 4674
-        },
         "LITE": {
           "name": "LUMENTUM HOLDINGS INC",
           "shares": 629
+        },
+        "NOW": {
+          "name": "SERVICENOW INC",
+          "shares": 4674
         },
         "HUBS": {
           "name": "HUBSPOT INC",
@@ -6004,29 +6004,29 @@
           "name": "TEXAS INSTRUMENTS INC",
           "shares": 1810
         },
-        "TEM": {
-          "name": "TEMPUS AI INC",
-          "shares": 5506
-        },
         "BE": {
           "name": "BLOOM ENERGY CORP- A",
           "shares": 1604
-        },
-        "RIVN": {
-          "name": "RIVIAN AUTOMOTIVE INC-A",
-          "shares": 29569
         },
         "MU": {
           "name": "MICRON TECHNOLOGY INC",
           "shares": 403
         },
-        "ADBE": {
-          "name": "ADOBE INC",
-          "shares": 1761
+        "RIVN": {
+          "name": "RIVIAN AUTOMOTIVE INC-A",
+          "shares": 29569
         },
         "TEAM": {
           "name": "ATLASSIAN CORP PLC-CLASS A",
           "shares": 2282
+        },
+        "ADBE": {
+          "name": "ADOBE INC",
+          "shares": 1761
+        },
+        "TEM": {
+          "name": "TEMPUS AI INC",
+          "shares": 5506
         },
         "ADI": {
           "name": "ANALOG DEVICES INC",
@@ -6044,13 +6044,13 @@
           "name": "CORNING INC",
           "shares": 2371
         },
-        "AMZN": {
-          "name": "AMAZON.COM INC",
-          "shares": 1437
-        },
         "CIEN": {
           "name": "CIENA CORP",
           "shares": 1002
+        },
+        "AMZN": {
+          "name": "AMAZON.COM INC",
+          "shares": 1437
         },
         "MPWR": {
           "name": "MONOLITHIC POWER SYSTEMS INC",
@@ -6072,10 +6072,6 @@
           "name": "UNITY SOFTWARE INC",
           "shares": 7435
         },
-        "SPCX": {
-          "name": "SPACE EXPLORATION TECHN-CL A",
-          "shares": 1951
-        },
         "ROK": {
           "name": "ROCKWELL AUTOMATION INC",
           "shares": 660
@@ -6083,6 +6079,14 @@
         "MTSI": {
           "name": "MACOM TECHNOLOGY SOLUTIONS H",
           "shares": 958
+        },
+        "SPCX": {
+          "name": "SPACE EXPLORATION TECHN-CL A",
+          "shares": 1951
+        },
+        "ALAB": {
+          "name": "ASTERA LABS INC",
+          "shares": 778
         },
         "CRWV": {
           "name": "COREWEAVE INC",
@@ -6096,21 +6100,21 @@
           "name": "VEEVA SYSTEMS INC-CLASS A",
           "shares": 912
         },
-        "WRBY": {
-          "name": "WARBY PARKER INC-CLASS A",
-          "shares": 9116
-        },
         "ENTG": {
           "name": "ENTEGRIS INC",
           "shares": 1612
         },
-        "XYZ": {
-          "name": "BLOCK INC",
-          "shares": 3199
+        "WRBY": {
+          "name": "WARBY PARKER INC-CLASS A",
+          "shares": 9116
         },
         "LMND": {
           "name": "LEMONADE INC",
           "shares": 5199
+        },
+        "XYZ": {
+          "name": "BLOCK INC",
+          "shares": 3199
         },
         "MDB": {
           "name": "MONGODB INC",
@@ -6120,10 +6124,6 @@
           "name": "OKTA INC",
           "shares": 1041
         },
-        "ALAB": {
-          "name": "ASTERA LABS INC",
-          "shares": 578
-        },
         "VICR": {
           "name": "VICOR CORP",
           "shares": 709
@@ -6131,10 +6131,6 @@
         "TXG": {
           "name": "10X GENOMICS INC-CLASS A",
           "shares": 2211
-        },
-        "NU": {
-          "name": "NU HOLDINGS LTD/CAYMAN ISL-A",
-          "shares": 14586
         },
         "TTMI": {
           "name": "TTM TECHNOLOGIES",
@@ -6159,6 +6155,10 @@
         "FIGR": {
           "name": "FIGURE TECHNOLOGY SOLUT-CL A",
           "shares": 3968
+        },
+        "NU": {
+          "name": "NU HOLDINGS LTD/CAYMAN ISL-A",
+          "shares": 7564
         },
         "TWST": {
           "name": "TWIST BIOSCIENCE CORP",
