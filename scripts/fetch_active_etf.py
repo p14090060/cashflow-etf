@@ -1041,6 +1041,50 @@ def fetch_fsitc(date_obj, specific=False):
 MEGA_URL   = "https://www.megafunds.com.tw/MEGA/etf/trade_pcf.aspx"
 MEGA_FUNDS = {"00996A": ("23", "主動兆豐台灣豐收")}
 
+# 備援來源：基金商品頁 etf_product.aspx?id=<同一組 fund_id>
+#   2026-09-28~10-02，trade_pcf 在 GitHub Actions 上連續 18 次排程回空（本機正常），
+#   整整 5 個交易日沒有新資料。商品頁拿的是同一份持股，但：
+#     * 單純 GET，不用 ASP.NET postback、viewstate、__EVENTTARGET
+#     * 持股與股數跟 PCF **完全吻合**（2026-10-02 實測 52 檔、總股數 5,488,386 一致）
+#     * 頁面自己標「持股比重 資料來源：兆豐投信，YYYY/MM/DD」
+#   ⚠ 那個日期是真的資料日，不是「今天」——同日實測 id=21/22 標 10/01、
+#     id=18/19/20/23 標 10/02，會隨基金不同，所以可以信。
+#   ⚠ 只有最新一份，沒有歷史查詢，所以只在 specific=False 時當備援；
+#     bootstrap 回補前一份仍然只能靠 trade_pcf 的 qdt。
+MEGA_PRODUCT = "https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id={}"
+
+
+def _mega_product(fund_id):
+    """回傳 (資料日, holdings)；抓不到或缺資料日回 (None, None)。"""
+    try:
+        op = _opener()
+        h = op.open(MEGA_PRODUCT.format(fund_id), timeout=30
+                    ).read().decode("utf-8", "replace")
+    except Exception as e:
+        print(f"[兆豐] 商品頁失敗: {type(e).__name__}: {e}")
+        return None, None
+    m = re.search(r"持股比重\s*資料來源：兆豐投信，(\d{4})/(\d{2})/(\d{2})", _plain(h))
+    data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+    holdings = _Holdings()
+    # 列是 div 排版不是 <table>：<div class="fund-info …"> 裡四個 fund-content
+    for blk in re.split(r'<div class="fund-info', h)[1:]:
+        cells = [re.sub(r"<[^>]+>", "", x).replace("&nbsp;", " ").strip()
+                 for x in re.findall(r'<div class="fund-content[^"]*">(.*?)</div>',
+                                     blk[:1200], re.S)][:4]
+        if len(cells) < 3 or not re.fullmatch(r"\d{4,6}[A-Z]?", cells[0]):
+            continue
+        try:
+            share = int(cells[2].replace(",", ""))
+        except ValueError:
+            continue
+        if share:
+            holdings[cells[0]] = {"name": cells[1], "shares": share}
+    if not (holdings and data_date):
+        print(f"[兆豐] 商品頁解析不出東西（持股 {len(holdings)} 檔、"
+              f"資料日 {data_date or '沒讀到'}）")
+        return None, None
+    return data_date, holdings
+
 
 def fetch_mega(date_obj, specific=False):
     # qdt 是公告日、給 D 會回 D 前一營業日，所以往後推一天才是要的資料日
@@ -1114,6 +1158,16 @@ def fetch_mega(date_obj, specific=False):
                   f"（<tr> {rows_n} 列、資料日{'有' if data_date else '沒讀到'}、"
                   f"頁面{'有' if name in h else '沒有'}基金名稱）")
             print(f"[兆豐] 頁面文字前 300 字：{_plain(h)[:300]}")
+
+        # trade_pcf 沒拿到就改走商品頁。只有最新一份，所以歷史查詢不適用
+        # （bootstrap 回補前一份仍然得靠 qdt）。
+        if ticker not in out and not specific:
+            pd_date, pd_hold = _mega_product(fund_id)
+            if pd_date and pd_hold:
+                out[ticker] = {"name": name, "issuer": "兆豐",
+                               "data_date": pd_date, "holdings": pd_hold}
+                print(f"[兆豐] {ticker} {name}：改用商品頁 {len(pd_hold)} 檔，"
+                      f"資料日 {pd_date}")
         time.sleep(1)
     return out
 
