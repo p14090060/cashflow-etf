@@ -718,6 +718,13 @@ FUHWA_FUNDS = {
     "00409A": ("ETF26", "主動復華全球50"),
 }
 
+# 海外股票的彭博代碼：「TICKER 市場別」，市場別固定兩個大寫字母
+#   NVDA US / 6981 JP / 000660 KS / AV/ LN（英傑華，ticker 裡有斜線）
+# 要排除的是債券 ISIN（US89117F8Z56，12 碼、沒有空格）和表頭（證券代號）。
+# 2026-10-02 實測 4 檔復華基金共 123 種非台股代碼：這條收下 93 種全是股票
+# （00409A 40、00998A 53），排除 30 種全是 00986D 金融債的 ISIN 與表頭，零誤判。
+_BBG = re.compile(r"[A-Z0-9][A-Z0-9/.-]{0,7} [A-Z]{2}")
+
 
 def _xlsx_rows(blob):
     """把 xlsx 位元組解成 list[list[str]]。只支援單一工作表，夠用了。"""
@@ -819,10 +826,15 @@ def fetch_fuhwa(date_obj, specific=False):
                 continue
             code = r[0].strip()
             if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
-                # 非台股代號（彭博代碼如 SDLF LN、債券 ISIN 如 US89117F8Z56）
-                if re.match(r"[A-Z]{2,}", code):
-                    other += 1
-                continue
+                # 海外股票一定要留著。算不出台幣金額沒關係，下游會把它們歸進
+                # no_price，前端的藍色海外清單就靠這個列出「換了哪一支」。
+                # ⚠ 2026-10-02 以前這裡無條件 continue，00409A 主動復華全球50
+                #   的 41 檔海外持股被整批丟掉，畫面上只剩 10 檔台股——一檔
+                #   「全球50」只顯示 20% 的持股，而且看起來一切正常。
+                #   不是 adapter 掛掉，是解析時自己把資料扔了，最難發現的那種。
+                if not _BBG.fullmatch(code):
+                    other += 1          # 債券 ISIN、表頭等真的不是股票的
+                    continue
             try:
                 share = int(str(r[2]).replace(",", ""))
             except ValueError:
@@ -831,14 +843,17 @@ def fetch_fuhwa(date_obj, specific=False):
                 holdings[code] = {"name": r[1].strip(), "shares": share}
 
         if not holdings:
-            # 別靜默跳過——講清楚是「沒有台股持股」還是「解析失敗」
-            print(f"[復華] {ticker} {name}：無台股持股"
-                  f"（非台股標的 {other} 筆，海外股票／債券型），略過")
+            # 別靜默跳過——講清楚是「沒有可用持股」還是「解析失敗」
+            print(f"[復華] {ticker} {name}：無可用持股"
+                  f"（無法辨識標的 {other} 筆，多半是債券 ISIN），略過")
             continue
         if holdings:
             out[ticker] = {"name": name, "issuer": "復華",
                            "data_date": data_date, "holdings": holdings}
-            print(f"[復華] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
+            sea = sum(1 for c in holdings if " " in c)
+            print(f"[復華] {ticker} {name}：{len(holdings)} 檔"
+                  f"（台股 {len(holdings) - sea}、海外 {sea}），"
+                  f"資料日 {data_date or '?'}")
         time.sleep(1)
     return out
 

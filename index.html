@@ -921,8 +921,19 @@ function flowSelect(code) { _flowSel = code; renderFlow(); }
 // 但 PCF 本來就寫了增減股數，條列出來至少看得到「買賣了什麼、幾股」。
 // 舊版 active_flow.json 的 no_price 是純字串陣列（只有代碼），要能一起吃，
 // 否則 Action 還沒重跑之前這塊會整個爆掉。
-const _NP_MKT = { US:'美', JP:'日', HK:'港', KR:'韓', GB:'英', DE:'德',
-                  FR:'法', NL:'荷', CH:'瑞', CA:'加', AU:'澳', SG:'新', TW:'台' };
+// 彭博市場別代碼，**不是 ISO 國碼**，這兩套長得像但對不起來。
+// 2026-10-02 實測全部持股共出現 14 種，每一種都拿成分股本身的身分核對過：
+//   300757 CH = ROBOTECHNIK，深圳創業板的中國 A 股 → 陸，不是瑞士
+//   （舊表照 ISO 把 CH 當瑞士，畫面上會把中國股標成「瑞」）
+//   SDLF LN = 標準人壽（英）、UCG IM = 裕信（義）、ABN NA = 荷蘭銀行（荷）
+//   AMUN FP = 東方匯理（法）、IFX GY = 英飛凌（德）、CABK SM = 凱克薩（西）
+//   BOCHGR GA = 賽普勒斯銀行（掛雅典）、KBC BB = 比利時聯合金融（比）
+//   009150 KS / KP = 三星電機，兩家投信寫法不同，都是韓國
+// 舊表裡的 KR/GB/DE/FR/NL/CA/AU/SG/TW 是 ISO 碼，實測一次都沒出現過，已刪。
+// 認不得的會原樣顯示代碼（見 _npList 的 || mkt），不會壞掉。
+const _NP_MKT = { US:'美', JP:'日', HK:'港', CH:'陸', KS:'韓', KP:'韓',
+                  LN:'英', GY:'德', FP:'法', IM:'義', NA:'荷', SM:'西',
+                  GA:'希', BB:'比' };
 
 function _npRows(e) {
   return (e.no_price || []).map(x =>

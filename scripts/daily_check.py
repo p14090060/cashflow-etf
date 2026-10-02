@@ -71,6 +71,12 @@ ACTIVE_MIN_ETFS  = 26    # 目前接 31 檔；本次實抓掉到 26 以下 = 約
                          # （少 3 檔以內由下面的 kept 檢查負責，這條是整批掛掉的後盾）
 ACTIVE_STALE_ALL = 4     # 全部 ETF 的最新資料日都超過這天數 → 整條抓取停擺
 ACTIVE_STALE_ONE = 7     # 單一 ETF 資料日落後這麼多天 → 那家投信可能改版或擋我們
+# 「本次抓不到（fetched=False）」而且資料已經舊了，性質跟「投信公告慢」完全不同：
+# 前者是我們這邊回空，門檻要嚴很多。base 取的是最後一個交易日而不是今天，
+# 放假不會把 lag 撐大，所以不必為了連假留寬容。
+# 2026-10-02 用 git 回放 34 個 active_flow.json 版本校準：門檻 2/3/4 結果一模一樣
+# （00996A 13 次、00997A 1 次），全是真的斷線，零誤報，取最寬的 4。
+ACTIVE_DEAD_ONE  = 4
 ACTIVE_NO_CHANGE = 21    # 資料日持續前進、卻這麼多天沒記錄到任何換股 → 值得看一眼。
                          # 主動式 ETF 三週不動有可能（富邦 00405A 就真的沒動），
                          # 所以這條是提醒不是錯誤；真正的 bug 由 anomaly 那條精準抓。
@@ -97,6 +103,10 @@ def check_active_flow() -> list:
                       f"檔案共 {len(etfs)} 檔），可能有投信 adapter 壞了")
 
     # 本次沒抓到、沿用舊資料的（fetch_active_etf 會標 fetched:false）
+    # 門檻 3 是「一次掉一批」的訊號，單檔偶爾回空很常見（連假、投信晚公告）。
+    # ⚠ 但單檔**一直**回空就是壞了，這條完全看不到：2026-09-28~10-02 的 00996A
+    #   連續 18 次排程沒抓到，kept 始終是 1，所有監控全綠，是使用者自己發現的。
+    #   那個缺口現在由下面的 ACTIVE_DEAD_ONE 補，這裡維持只管「一次掉一批」。
     kept = [c for c, e in etfs.items() if e.get("fetched") is False]
     if len(kept) >= 3:
         issues.append(f"• 有 {len(kept)} 檔本次沒抓到，沿用舊資料：{'、'.join(sorted(kept))}")
@@ -128,10 +138,16 @@ def check_active_flow() -> list:
             # 只有個別投信落後才逐檔列，否則全面停更時會洗版
             for code, d in sorted(dates.items(), key=lambda x: x[1]):
                 lag = (base - d).days
-                if lag > ACTIVE_STALE_ONE:
-                    issues.append(f"• {code} {etfs[code].get('name','')}："
-                                  f"資料日 {d} 落後最後交易日 {lag} 天"
-                                  f"（{etfs[code].get('issuer','')}投信）")
+                e = etfs[code]
+                dead = e.get("fetched") is False
+                limit = ACTIVE_DEAD_ONE if dead else ACTIVE_STALE_ONE
+                if lag > limit:
+                    issues.append(
+                        f"• {code} {e.get('name','')}："
+                        + (f"連續抓不到，資料停在 {d}（落後最後交易日 {lag} 天）"
+                           if dead else
+                           f"資料日 {d} 落後最後交易日 {lag} 天")
+                        + f"（{e.get('issuer','')}投信）")
 
     # ── A. 不變量自檢：fetch_active_etf 算出「股數有差卻沒產出異動」 ──
     # 這是精準訊號，代表異動在寫檔前被程式吃掉了，不是投信沒動。
