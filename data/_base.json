@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-02 15:18",
+  "updated": "2026-10-02 21:41",
   "market": {
     "price": 48475.74,
     "change_pt": 122.25,
@@ -42,7 +42,7 @@
       "vol_ratio": 2.36,
       "heat": 59.8,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 805421000000.0,
       "div_freq": "季配"
     },
     {
@@ -81,7 +81,7 @@
       "vol_ratio": 0.48,
       "heat": 32.37,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 107808000000.0,
       "div_freq": "季配"
     },
     {
@@ -120,7 +120,7 @@
       "vol_ratio": 1.0,
       "heat": 32.62,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 2501933000000.0,
       "div_freq": "半年配"
     },
     {
@@ -159,7 +159,7 @@
       "vol_ratio": 0.73,
       "heat": 24.99,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 609155000000.0,
       "div_freq": "季配"
     },
     {
@@ -198,7 +198,7 @@
       "vol_ratio": 1.21,
       "heat": 50.09,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 481089000000.0,
       "div_freq": "半年配"
     },
     {
@@ -237,7 +237,7 @@
       "vol_ratio": 1.01,
       "heat": 67.78,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 290703000000.0,
       "div_freq": "季配"
     },
     {
@@ -276,7 +276,7 @@
       "vol_ratio": 1.48,
       "heat": 73.41,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 147515000000.0,
       "div_freq": "季配"
     },
     {
@@ -315,7 +315,7 @@
       "vol_ratio": 0.67,
       "heat": 19.74,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 657500000000.0,
       "div_freq": "季配"
     },
     {
@@ -354,7 +354,7 @@
       "vol_ratio": 0.51,
       "heat": 19.91,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 67109000000.0,
       "div_freq": "月配"
     },
     {
@@ -393,7 +393,7 @@
       "vol_ratio": 0.75,
       "heat": 27.91,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 157859000000.0,
       "div_freq": "月配"
     },
     {
@@ -432,7 +432,7 @@
       "vol_ratio": 0.53,
       "heat": 23.36,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 40135000000.0,
       "div_freq": "季配"
     },
     {
@@ -471,7 +471,7 @@
       "vol_ratio": 2.57,
       "heat": 74.0,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1497000000.0,
       "div_freq": "半年配"
     },
     {
@@ -510,7 +510,7 @@
       "vol_ratio": 1.33,
       "heat": 59.96,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1073000000.0,
       "div_freq": "年配"
     },
     {
@@ -549,7 +549,7 @@
       "vol_ratio": 0.8,
       "heat": 30.03,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 29001000000.0,
       "div_freq": "月配"
     },
     {
@@ -588,7 +588,7 @@
       "vol_ratio": 0.84,
       "heat": 37.27,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 3736000000.0,
       "div_freq": "月配"
     },
     {
@@ -627,7 +627,7 @@
       "vol_ratio": 1.51,
       "heat": 76.13,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 6162000000.0,
       "div_freq": "年配"
     },
     {
@@ -666,7 +666,7 @@
       "vol_ratio": 0.45,
       "heat": 12.0,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 4302000000.0,
       "div_freq": "季配"
     },
     {
@@ -705,7 +705,7 @@
       "vol_ratio": 1.25,
       "heat": 60.33,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 25970000000.0,
       "div_freq": "季配"
     },
     {
@@ -744,7 +744,7 @@
       "vol_ratio": 1.55,
       "heat": 71.25,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 61085000000.0,
       "div_freq": "月配"
     },
     {
@@ -783,7 +783,7 @@
       "vol_ratio": 1.47,
       "heat": 71.25,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 23574000000.0,
       "div_freq": "不配息"
     },
     {
@@ -822,7 +822,7 @@
       "vol_ratio": 1.77,
       "heat": 63.69,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1480000000.0,
       "div_freq": "季配"
     },
     {
@@ -861,7 +861,7 @@
       "vol_ratio": 0.74,
       "heat": 41.55,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 15417000000.0,
       "div_freq": "年配"
     },
     {
@@ -900,7 +900,7 @@
       "vol_ratio": 0.51,
       "heat": 35.56,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1931000000.0,
       "div_freq": "半年配"
     },
     {
@@ -939,7 +939,7 @@
       "vol_ratio": 1.56,
       "heat": 57.69,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 3720000000.0,
       "div_freq": "年配"
     },
     {
@@ -978,7 +978,7 @@
       "vol_ratio": 1.42,
       "heat": 47.97,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 167807000000.0,
       "div_freq": "年配"
     },
     {
@@ -1017,7 +1017,7 @@
       "vol_ratio": 1.48,
       "heat": 73.57,
       "score_cont": 30,
-      "aum": 0,
+      "aum": 2669000000.0,
       "div_freq": "年配"
     },
     {
@@ -1056,7 +1056,7 @@
       "vol_ratio": 0.92,
       "heat": 38.93,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 4387000000.0,
       "div_freq": "年配"
     },
     {
@@ -1095,7 +1095,7 @@
       "vol_ratio": 0.64,
       "heat": 32.08,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 512000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1134,7 +1134,7 @@
       "vol_ratio": 1.11,
       "heat": 42.48,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 2248000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1173,7 +1173,7 @@
       "vol_ratio": 0.57,
       "heat": 31.51,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 2088000000.0,
       "div_freq": "半年配"
     },
     {
@@ -1212,7 +1212,7 @@
       "vol_ratio": 1.94,
       "heat": 59.51,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 362000000.0,
       "div_freq": "年配"
     },
     {
@@ -1251,7 +1251,7 @@
       "vol_ratio": 1.93,
       "heat": 64.63,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 3787000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1290,7 +1290,7 @@
       "vol_ratio": 3.64,
       "heat": 59.1,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1137000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1329,7 +1329,7 @@
       "vol_ratio": 0.84,
       "heat": 45.25,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 664000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1407,7 +1407,7 @@
       "vol_ratio": 0.67,
       "heat": 53.21,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 2633000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1485,7 +1485,7 @@
       "vol_ratio": 0.64,
       "heat": 39.88,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1535000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1524,7 +1524,7 @@
       "vol_ratio": 1.03,
       "heat": 49.94,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1451000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1602,7 +1602,7 @@
       "vol_ratio": 0.98,
       "heat": 34.13,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 2700000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1641,7 +1641,7 @@
       "vol_ratio": 0.58,
       "heat": 18.96,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 49385000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1680,7 +1680,7 @@
       "vol_ratio": 0.3,
       "heat": 20.85,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1904000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1719,7 +1719,7 @@
       "vol_ratio": 1.69,
       "heat": 64.61,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 540000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1797,7 +1797,7 @@
       "vol_ratio": 1.92,
       "heat": 76.03,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 301000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1836,7 +1836,7 @@
       "vol_ratio": 0.15,
       "heat": 32.14,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 2188000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1875,7 +1875,7 @@
       "vol_ratio": 1.25,
       "heat": 48.34,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 115460000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1914,7 +1914,7 @@
       "vol_ratio": 0.43,
       "heat": 26.41,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 477000000.0,
       "div_freq": "不配息"
     },
     {
@@ -1992,7 +1992,7 @@
       "vol_ratio": 1.06,
       "heat": 49.14,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 389000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2031,7 +2031,7 @@
       "vol_ratio": 1.17,
       "heat": 42.19,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 161000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2070,7 +2070,7 @@
       "vol_ratio": 0.58,
       "heat": 25.52,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 6976000000.0,
       "div_freq": "季配"
     },
     {
@@ -2109,7 +2109,7 @@
       "vol_ratio": 0.45,
       "heat": 33.26,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 59644000000.0,
       "div_freq": "半年配"
     },
     {
@@ -2148,7 +2148,7 @@
       "vol_ratio": 1.3,
       "heat": 57.02,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1454000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2187,7 +2187,7 @@
       "vol_ratio": 0.64,
       "heat": 38.21,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 528000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2226,7 +2226,7 @@
       "vol_ratio": 0.35,
       "heat": 9.43,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 7006000000.0,
       "div_freq": "半年配"
     },
     {
@@ -2265,7 +2265,7 @@
       "vol_ratio": 0.1,
       "heat": 35.72,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 155000000.0,
       "div_freq": "半年配"
     },
     {
@@ -2304,7 +2304,7 @@
       "vol_ratio": 0.79,
       "heat": 38.35,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 181000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2343,7 +2343,7 @@
       "vol_ratio": 1.74,
       "heat": 68.6,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 569000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2382,7 +2382,7 @@
       "vol_ratio": 0.39,
       "heat": 32.17,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 407000000.0,
       "div_freq": "季配"
     },
     {
@@ -2421,7 +2421,7 @@
       "vol_ratio": 5.35,
       "heat": 51.5,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1705000000.0,
       "div_freq": "季配"
     },
     {
@@ -2460,7 +2460,7 @@
       "vol_ratio": 0.51,
       "heat": 18.69,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 2788000000.0,
       "div_freq": "季配"
     },
     {
@@ -2499,7 +2499,7 @@
       "vol_ratio": 0.59,
       "heat": 30.49,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 2073000000.0,
       "div_freq": "月配"
     },
     {
@@ -2538,7 +2538,7 @@
       "vol_ratio": 1.03,
       "heat": 35.36,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1966000000.0,
       "div_freq": "季配"
     },
     {
@@ -2577,7 +2577,7 @@
       "vol_ratio": 1.99,
       "heat": 87.73,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 4569000000.0,
       "div_freq": "半年配"
     },
     {
@@ -2616,7 +2616,7 @@
       "vol_ratio": 1.31,
       "heat": 58.68,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 12536000000.0,
       "div_freq": "年配"
     },
     {
@@ -2655,7 +2655,7 @@
       "vol_ratio": 0.89,
       "heat": 25.03,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 213000000.0,
       "div_freq": "半年配"
     },
     {
@@ -2694,7 +2694,7 @@
       "vol_ratio": 1.11,
       "heat": 52.59,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 925000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2733,7 +2733,7 @@
       "vol_ratio": 0.33,
       "heat": 36.39,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 744000000.0,
       "div_freq": "年配"
     },
     {
@@ -2772,7 +2772,7 @@
       "vol_ratio": 2.21,
       "heat": 73.2,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 5762000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2811,7 +2811,7 @@
       "vol_ratio": 0.68,
       "heat": 25.88,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 38183000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2850,7 +2850,7 @@
       "vol_ratio": 1.19,
       "heat": 63.72,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 5677000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2889,7 +2889,7 @@
       "vol_ratio": 0.9,
       "heat": 28.9,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1404000000.0,
       "div_freq": "不配息"
     },
     {
@@ -2928,7 +2928,7 @@
       "vol_ratio": 0.36,
       "heat": 23.2,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 6101000000.0,
       "div_freq": "年配"
     },
     {
@@ -2967,7 +2967,7 @@
       "vol_ratio": 0.86,
       "heat": 26.4,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 212000000.0,
       "div_freq": "季配"
     },
     {
@@ -3006,7 +3006,7 @@
       "vol_ratio": 0.15,
       "heat": 28.34,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 217000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3045,7 +3045,7 @@
       "vol_ratio": 0.99,
       "heat": 53.3,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 77837000000.0,
       "div_freq": "年配"
     },
     {
@@ -3084,7 +3084,7 @@
       "vol_ratio": 1.09,
       "heat": 42.63,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 405000000.0,
       "div_freq": "年配"
     },
     {
@@ -3123,7 +3123,7 @@
       "vol_ratio": 1.8,
       "heat": 75.52,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 6169000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3162,7 +3162,7 @@
       "vol_ratio": 1.47,
       "heat": 67.76,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 888000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3201,7 +3201,7 @@
       "vol_ratio": 1.19,
       "heat": 61.57,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 8549000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3240,7 +3240,7 @@
       "vol_ratio": 0.79,
       "heat": 26.21,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 156576000000.0,
       "div_freq": "半年配"
     },
     {
@@ -3279,7 +3279,7 @@
       "vol_ratio": 0.95,
       "heat": 34.43,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 29551000000.0,
       "div_freq": "半年配"
     },
     {
@@ -3318,7 +3318,7 @@
       "vol_ratio": 1.26,
       "heat": 43.35,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 10589000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3357,7 +3357,7 @@
       "vol_ratio": 0.57,
       "heat": 28.6,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 70241000000.0,
       "div_freq": "季配"
     },
     {
@@ -3396,7 +3396,7 @@
       "vol_ratio": 0.87,
       "heat": 35.46,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 13758000000.0,
       "div_freq": "半年配"
     },
     {
@@ -3435,7 +3435,7 @@
       "vol_ratio": 0.37,
       "heat": 25.29,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 16164000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3474,7 +3474,7 @@
       "vol_ratio": 0.7,
       "heat": 34.2,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 7434000000.0,
       "div_freq": "季配"
     },
     {
@@ -3513,7 +3513,7 @@
       "vol_ratio": 0.58,
       "heat": 33.14,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 7346000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3552,7 +3552,7 @@
       "vol_ratio": 0.36,
       "heat": 11.48,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 14249000000.0,
       "div_freq": "季配"
     },
     {
@@ -3591,7 +3591,7 @@
       "vol_ratio": 1.16,
       "heat": 62.01,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 1869000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3630,7 +3630,7 @@
       "vol_ratio": 0.41,
       "heat": 43.66,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 1266000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3669,7 +3669,7 @@
       "vol_ratio": 2.25,
       "heat": 67.9,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 359000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3708,7 +3708,7 @@
       "vol_ratio": 0.85,
       "heat": 18.4,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 29304000000.0,
       "div_freq": "月配"
     },
     {
@@ -3747,7 +3747,7 @@
       "vol_ratio": 0.97,
       "heat": 31.64,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 3039000000.0,
       "div_freq": "年配"
     },
     {
@@ -3786,7 +3786,7 @@
       "vol_ratio": 0.38,
       "heat": 31.35,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 2810000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3825,7 +3825,7 @@
       "vol_ratio": 0.62,
       "heat": 46.9,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1032000000.0,
       "div_freq": "不配息"
     },
     {
@@ -3864,7 +3864,7 @@
       "vol_ratio": 4.08,
       "heat": 66.3,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 7017000000.0,
       "div_freq": "季配"
     },
     {
@@ -3903,7 +3903,7 @@
       "vol_ratio": 2.58,
       "heat": 55.4,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 10036000000.0,
       "div_freq": "季配"
     },
     {
@@ -3942,7 +3942,7 @@
       "vol_ratio": 1.12,
       "heat": 38.92,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 2651000000.0,
       "div_freq": "雙月配"
     },
     {
@@ -3981,7 +3981,7 @@
       "vol_ratio": 0.61,
       "heat": 27.94,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 4734000000.0,
       "div_freq": "年配"
     },
     {
@@ -4020,7 +4020,7 @@
       "vol_ratio": 1.24,
       "heat": 37.68,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 6324000000.0,
       "div_freq": "不配息"
     },
     {
@@ -4059,7 +4059,7 @@
       "vol_ratio": 1.68,
       "heat": 82.25,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 1682000000.0,
       "div_freq": "半年配"
     },
     {
@@ -4098,7 +4098,7 @@
       "vol_ratio": 4.61,
       "heat": 50.4,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 2112000000.0,
       "div_freq": "季配"
     },
     {
@@ -4137,7 +4137,7 @@
       "vol_ratio": 1.54,
       "heat": 85.53,
       "score_cont": 30,
-      "aum": 0,
+      "aum": 3080000000.0,
       "div_freq": "半年配"
     },
     {
@@ -4176,7 +4176,7 @@
       "vol_ratio": 0.24,
       "heat": 13.76,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 16703000000.0,
       "div_freq": "季配"
     },
     {
@@ -4215,7 +4215,7 @@
       "vol_ratio": 0.62,
       "heat": 13.46,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 2640000000.0,
       "div_freq": "年配"
     },
     {
@@ -4254,7 +4254,7 @@
       "vol_ratio": 1.94,
       "heat": 83.0,
       "score_cont": 30,
-      "aum": 0,
+      "aum": 1490000000.0,
       "div_freq": "年配"
     },
     {
@@ -4293,7 +4293,7 @@
       "vol_ratio": 0.4,
       "heat": 10.43,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 161194000000.0,
       "div_freq": "季配"
     },
     {
@@ -4332,7 +4332,7 @@
       "vol_ratio": 0.1,
       "heat": 6.47,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 502000000.0,
       "div_freq": "年配"
     },
     {
@@ -4371,7 +4371,7 @@
       "vol_ratio": 0.3,
       "heat": 10.12,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 1356000000.0,
       "div_freq": "季配"
     },
     {
@@ -4410,7 +4410,7 @@
       "vol_ratio": 1.2,
       "heat": 40.8,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 98632000000.0,
       "div_freq": "半年配"
     },
     {
@@ -4449,7 +4449,7 @@
       "vol_ratio": 0.69,
       "heat": 20.77,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 39868000000.0,
       "div_freq": "半年配"
     },
     {
@@ -4488,7 +4488,7 @@
       "vol_ratio": 0.57,
       "heat": 24.27,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 14603000000.0,
       "div_freq": "不配息"
     },
     {
@@ -4527,7 +4527,7 @@
       "vol_ratio": 0.27,
       "heat": 18.55,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 2718000000.0,
       "div_freq": "半年配"
     },
     {
@@ -4566,7 +4566,7 @@
       "vol_ratio": 2.63,
       "heat": 73.8,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 54528000000.0,
       "div_freq": "季配"
     },
     {
@@ -4605,7 +4605,7 @@
       "vol_ratio": 0.2,
       "heat": 12.18,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 3839000000.0,
       "div_freq": "雙月配"
     },
     {
@@ -4644,7 +4644,7 @@
       "vol_ratio": 1.66,
       "heat": 47.41,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1882000000.0,
       "div_freq": "季配"
     },
     {
@@ -4683,7 +4683,7 @@
       "vol_ratio": 2.67,
       "heat": 48.0,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 12835000000.0,
       "div_freq": "月配"
     },
     {
@@ -4722,7 +4722,7 @@
       "vol_ratio": 0.78,
       "heat": 44.09,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 53797000000.0,
       "div_freq": "半年配"
     },
     {
@@ -4761,7 +4761,7 @@
       "vol_ratio": 1.74,
       "heat": 54.12,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 4147000000.0,
       "div_freq": "月配"
     },
     {
@@ -4800,7 +4800,7 @@
       "vol_ratio": 0.11,
       "heat": 11.95,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 2779000000.0,
       "div_freq": "季配"
     },
     {
@@ -4839,7 +4839,7 @@
       "vol_ratio": 0.96,
       "heat": 29.39,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 27970000000.0,
       "div_freq": "月配"
     },
     {
@@ -4878,7 +4878,7 @@
       "vol_ratio": 1.0,
       "heat": 68.42,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 11771000000.0,
       "div_freq": "不配息"
     },
     {
@@ -4917,7 +4917,7 @@
       "vol_ratio": 2.91,
       "heat": 56.9,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 856000000.0,
       "div_freq": "月配"
     },
     {
@@ -4956,7 +4956,7 @@
       "vol_ratio": 1.16,
       "heat": 41.42,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1167000000.0,
       "div_freq": "月配"
     },
     {
@@ -4995,7 +4995,7 @@
       "vol_ratio": 0.53,
       "heat": 23.92,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 6773000000.0,
       "div_freq": "月配"
     },
     {
@@ -5034,7 +5034,7 @@
       "vol_ratio": 1.32,
       "heat": 44.91,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 11514000000.0,
       "div_freq": "季配"
     },
     {
@@ -5073,7 +5073,7 @@
       "vol_ratio": 0.83,
       "heat": 28.62,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 3717000000.0,
       "div_freq": "年配"
     },
     {
@@ -5112,7 +5112,7 @@
       "vol_ratio": 1.42,
       "heat": 76.4,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 4384000000.0,
       "div_freq": "年配"
     },
     {
@@ -5151,7 +5151,7 @@
       "vol_ratio": 0.77,
       "heat": 28.5,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 4616000000.0,
       "div_freq": "月配"
     },
     {
@@ -5190,7 +5190,7 @@
       "vol_ratio": 1.13,
       "heat": 58.54,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 2362000000.0,
       "div_freq": "年配"
     },
     {
@@ -5229,7 +5229,7 @@
       "vol_ratio": 1.79,
       "heat": 69.94,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 442000000.0,
       "div_freq": "季配"
     },
     {
@@ -5268,7 +5268,7 @@
       "vol_ratio": 1.04,
       "heat": 37.02,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1296000000.0,
       "div_freq": "季配"
     },
     {
@@ -5307,7 +5307,7 @@
       "vol_ratio": 2.88,
       "heat": 53.6,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 15473000000.0,
       "div_freq": "月配"
     },
     {
@@ -5346,7 +5346,7 @@
       "vol_ratio": 2.2,
       "heat": 52.6,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1778000000.0,
       "div_freq": "月配"
     },
     {
@@ -5385,7 +5385,7 @@
       "vol_ratio": 2.01,
       "heat": 86.8,
       "score_cont": 30,
-      "aum": 0,
+      "aum": 1556000000.0,
       "div_freq": "月配"
     },
     {
@@ -5424,7 +5424,7 @@
       "vol_ratio": 1.72,
       "heat": 55.13,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 1131000000.0,
       "div_freq": "月配"
     },
     {
@@ -5463,7 +5463,7 @@
       "vol_ratio": 3.38,
       "heat": 64.3,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 10820000000.0,
       "div_freq": "年配"
     },
     {
@@ -5502,7 +5502,7 @@
       "vol_ratio": 2.62,
       "heat": 55.4,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 958000000.0,
       "div_freq": "年配"
     },
     {
@@ -5541,7 +5541,7 @@
       "vol_ratio": 1.9,
       "heat": 70.19,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 4216000000.0,
       "div_freq": "年配"
     },
     {
@@ -5580,7 +5580,7 @@
       "vol_ratio": 1.26,
       "heat": 56.09,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 1120000000.0,
       "div_freq": "年配"
     },
     {
@@ -5619,7 +5619,7 @@
       "vol_ratio": 0.3,
       "heat": 11.92,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 10798000000.0,
       "div_freq": "季配"
     },
     {
@@ -5658,7 +5658,7 @@
       "vol_ratio": 0.38,
       "heat": 15.82,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 6296000000.0,
       "div_freq": "季配"
     },
     {
@@ -5697,7 +5697,7 @@
       "vol_ratio": 0.7,
       "heat": 17.77,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 3496000000.0,
       "div_freq": "半年配"
     },
     {
@@ -5736,7 +5736,7 @@
       "vol_ratio": 1.97,
       "heat": 65.43,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 9055000000.0,
       "div_freq": "季配"
     },
     {
@@ -5775,7 +5775,7 @@
       "vol_ratio": 0.16,
       "heat": 16.5,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1263000000.0,
       "div_freq": "年配"
     },
     {
@@ -5814,7 +5814,7 @@
       "vol_ratio": 0.31,
       "heat": 18.08,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 625000000.0,
       "div_freq": "季配"
     },
     {
@@ -5853,7 +5853,7 @@
       "vol_ratio": 1.6,
       "heat": 74.1,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 20070000000.0,
       "div_freq": "季配"
     },
     {
@@ -5892,7 +5892,7 @@
       "vol_ratio": 1.25,
       "heat": 49.93,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 409000000.0,
       "div_freq": "年配"
     },
     {
@@ -5931,7 +5931,7 @@
       "vol_ratio": 0.95,
       "heat": 24.27,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 3167000000.0,
       "div_freq": "半年配"
     },
     {
@@ -5970,7 +5970,7 @@
       "vol_ratio": 1.77,
       "heat": 65.51,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 1220000000.0,
       "div_freq": "不配息"
     },
     {
@@ -6009,7 +6009,7 @@
       "vol_ratio": 0.83,
       "heat": 35.65,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 3651000000.0,
       "div_freq": "不配息"
     },
     {
@@ -6048,7 +6048,7 @@
       "vol_ratio": 1.14,
       "heat": 40.22,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 201411000000.0,
       "div_freq": "不配息"
     },
     {
@@ -6087,7 +6087,7 @@
       "vol_ratio": 0.42,
       "heat": 31.21,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 972000000.0,
       "div_freq": "季配"
     },
     {
@@ -6126,7 +6126,7 @@
       "vol_ratio": 0.62,
       "heat": 17.54,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 5824000000.0,
       "div_freq": "年配"
     },
     {
@@ -6165,7 +6165,7 @@
       "vol_ratio": 0.86,
       "heat": 50.49,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 10709000000.0,
       "div_freq": "年配"
     },
     {
@@ -6204,7 +6204,7 @@
       "vol_ratio": 1.42,
       "heat": 62.93,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 7257000000.0,
       "div_freq": "不配息"
     },
     {
@@ -6243,7 +6243,7 @@
       "vol_ratio": 0.58,
       "heat": 33.6,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 4997000000.0,
       "div_freq": "季配"
     },
     {
@@ -6282,7 +6282,7 @@
       "vol_ratio": 0.76,
       "heat": 15.29,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 8523000000.0,
       "div_freq": "不配息"
     },
     {
@@ -6321,7 +6321,7 @@
       "vol_ratio": 0.59,
       "heat": 23.46,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 2115000000.0,
       "div_freq": "季配"
     },
     {
@@ -6360,7 +6360,7 @@
       "vol_ratio": 0.85,
       "heat": 59.07,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 8424000000.0,
       "div_freq": "不配息"
     },
     {
@@ -6399,7 +6399,7 @@
       "vol_ratio": 0.66,
       "heat": 49.21,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 3600000000.0,
       "div_freq": "半年配"
     },
     {
@@ -6438,7 +6438,7 @@
       "vol_ratio": 2.51,
       "heat": 76,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 50647000000.0,
       "div_freq": "季配"
     },
     {
@@ -6477,7 +6477,7 @@
       "vol_ratio": 2.39,
       "heat": 60.1,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 733000000.0,
       "div_freq": "月配"
     },
     {
@@ -6516,7 +6516,7 @@
       "vol_ratio": 0.54,
       "heat": 25.73,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 975000000.0,
       "div_freq": "年配"
     },
     {
@@ -6555,7 +6555,7 @@
       "vol_ratio": 1.82,
       "heat": 49.35,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 999000000.0,
       "div_freq": "月配"
     },
     {
@@ -6594,7 +6594,7 @@
       "vol_ratio": 1.1,
       "heat": 51.08,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 9827000000.0,
       "div_freq": "半年配"
     },
     {
@@ -6633,7 +6633,7 @@
       "vol_ratio": 1.46,
       "heat": 48.21,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 11901000000.0,
       "div_freq": "月配"
     },
     {
@@ -6672,7 +6672,7 @@
       "vol_ratio": 11.42,
       "heat": 69.0,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 11416000000.0,
       "div_freq": "年配"
     },
     {
@@ -6711,7 +6711,7 @@
       "vol_ratio": 1.06,
       "heat": 54.05,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 583000000.0,
       "div_freq": "年配"
     },
     {
@@ -6750,7 +6750,7 @@
       "vol_ratio": 1.61,
       "heat": 73.85,
       "score_cont": 18,
-      "aum": 0,
+      "aum": 2541000000.0,
       "div_freq": "年配"
     },
     {
@@ -6789,7 +6789,7 @@
       "vol_ratio": 1.48,
       "heat": 69.61,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 52602000000.0,
       "div_freq": "年配"
     },
     {
@@ -6828,7 +6828,7 @@
       "vol_ratio": 1.17,
       "heat": 70.61,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 1132000000.0,
       "div_freq": "季配"
     },
     {
@@ -6867,7 +6867,7 @@
       "vol_ratio": 0.88,
       "heat": 51.13,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 37629000000.0,
       "div_freq": "不配息"
     },
     {
@@ -6906,7 +6906,7 @@
       "vol_ratio": 1.56,
       "heat": 73.16,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 79423000000.0,
       "div_freq": "半年配"
     },
     {
@@ -6945,7 +6945,7 @@
       "vol_ratio": 1.35,
       "heat": 69.02,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 42394000000.0,
       "div_freq": "季配"
     },
     {
@@ -6984,7 +6984,7 @@
       "vol_ratio": 1.8,
       "heat": 77.94,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 10329000000.0,
       "div_freq": "年配"
     },
     {
@@ -7023,7 +7023,7 @@
       "vol_ratio": 1.46,
       "heat": 54.34,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 4579000000.0,
       "div_freq": "季配"
     },
     {
@@ -7062,7 +7062,7 @@
       "vol_ratio": 0.84,
       "heat": 46.71,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 4847000000.0,
       "div_freq": "季配"
     },
     {
@@ -7101,7 +7101,7 @@
       "vol_ratio": 4.24,
       "heat": 76,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 4031000000.0,
       "div_freq": "季配"
     },
     {
@@ -7140,7 +7140,7 @@
       "vol_ratio": 1.74,
       "heat": 82.68,
       "score_cont": 24,
-      "aum": 0,
+      "aum": 12774000000.0,
       "div_freq": "季配"
     },
     {
@@ -7179,7 +7179,7 @@
       "vol_ratio": 1.0,
       "heat": 36.61,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 11566000000.0,
       "div_freq": "季配"
     },
     {
@@ -7257,7 +7257,7 @@
       "vol_ratio": 0.51,
       "heat": 19.85,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 4326000000.0,
       "div_freq": "年配"
     },
     {
@@ -7296,7 +7296,7 @@
       "vol_ratio": 0.95,
       "heat": 27.41,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 1634000000.0,
       "div_freq": "月配"
     },
     {
@@ -7335,7 +7335,7 @@
       "vol_ratio": 0.72,
       "heat": 21.11,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 4251000000.0,
       "div_freq": "半年配"
     },
     {
@@ -7374,7 +7374,7 @@
       "vol_ratio": 0.78,
       "heat": 36.44,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 6001000000.0,
       "div_freq": "不配息"
     },
     {
@@ -7413,7 +7413,7 @@
       "vol_ratio": 0.86,
       "heat": 23.76,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 221000000.0,
       "div_freq": "不配息"
     },
     {
@@ -7452,7 +7452,7 @@
       "vol_ratio": 0.91,
       "heat": 43.44,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 7007000000.0,
       "div_freq": "不配息"
     },
     {
@@ -7491,7 +7491,7 @@
       "vol_ratio": 1.72,
       "heat": 42.59,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 22845000000.0,
       "div_freq": "季配"
     },
     {
@@ -7530,7 +7530,7 @@
       "vol_ratio": 0.42,
       "heat": 15.28,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 7743000000.0,
       "div_freq": "不配息"
     },
     {
@@ -7569,7 +7569,7 @@
       "vol_ratio": 0.05,
       "heat": 10.55,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 187000000.0,
       "div_freq": "不配息"
     },
     {
@@ -7608,7 +7608,7 @@
       "vol_ratio": 0.26,
       "heat": 25.4,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 246000000.0,
       "div_freq": "不配息"
     },
     {
@@ -7647,7 +7647,7 @@
       "vol_ratio": 0.35,
       "heat": 20.47,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1949000000.0,
       "div_freq": "月配"
     },
     {
@@ -7686,7 +7686,7 @@
       "vol_ratio": 1.27,
       "heat": 56.3,
       "score_cont": 30,
-      "aum": 0,
+      "aum": 1740000000.0,
       "div_freq": "年配"
     },
     {
@@ -7725,7 +7725,7 @@
       "vol_ratio": 0.75,
       "heat": 33.53,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 5016000000.0,
       "div_freq": "半年配"
     },
     {
@@ -7764,7 +7764,7 @@
       "vol_ratio": 0.17,
       "heat": 5.43,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 627000000.0,
       "div_freq": "不配息"
     },
     {
@@ -7803,7 +7803,7 @@
       "vol_ratio": 0.86,
       "heat": 30.15,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 3426000000.0,
       "div_freq": "季配"
     },
     {
@@ -7842,7 +7842,7 @@
       "vol_ratio": 0.16,
       "heat": 7.38,
       "score_cont": 0,
-      "aum": 0,
+      "aum": 1117000000.0,
       "div_freq": "年配"
     },
     {
@@ -7881,7 +7881,7 @@
       "vol_ratio": 0.76,
       "heat": 28.33,
       "score_cont": 12,
-      "aum": 0,
+      "aum": 1050000000.0,
       "div_freq": "月配"
     },
     {
@@ -7920,7 +7920,7 @@
       "vol_ratio": 1.99,
       "heat": 66.28,
       "score_cont": 6,
-      "aum": 0,
+      "aum": 5488000000.0,
       "div_freq": "季配"
     }
   ],
