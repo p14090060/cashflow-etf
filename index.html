@@ -635,10 +635,8 @@
     <div class="flow-tip" id="flowTip"></div>
     <div id="flowForeign"></div>
 
-    <div class="flow-note">
-      ⚠ 金額為<b>兩份公開 PCF 快照相減的推估值</b>，不等同基金實際成交；
-      除權息、股票分割、成分股調整都可能造成假訊號。面積＝金額，<b>紅加碼、綠減碼</b>（台股慣例）。
-    </div>
+    <!-- 內容由 draw() 依「下面實際畫出了什麼」決定，見 flowNote 那段 -->
+    <div class="flow-note" id="flowNote"></div>
     <div class="flow-cover" id="flowCover"></div>
 
     <!-- ↓ 2026-09-23 下架：持倉健檢 + 財務試算，整頁改放主動式 ETF 買賣超。
@@ -1010,13 +1008,21 @@ function renderFlow(code) {
       '　PCF 公告通常落後行情 1~2 天';
     const npRows = _npRows(e), np = npRows.length;
     const tips = [];
+    // 「以下為…」這種話只有在下面真的有東西時才能講。沿用的舊紀錄可能根本
+    // 是空的——00983A 中信ARK 從 2026-09-23 開始追蹤起一次換股都沒記錄到
+    // （flow 空、no_price 空、last_change_date 是 null），這幾條卻照樣宣告
+    // 「以下為最近一次調整」，下面緊接著就是「目前沒有可顯示的調整紀錄」，
+    // 自己打自己臉。Gavin 2026-10-02 截圖問「這是真的嗎」就是看到這個。
+    const hasPrev = !!((e.flow && e.flow.length) || np);
+    const andBelow = hasPrev ? '，以下為最近一次調整' : '';
     if (e.fetched === false)
-      tips.push('⚠ 本次未能取得新資料（投信網站異常），以下為先前結果');
+      tips.push('⚠ 本次未能取得新資料（投信網站異常）'
+                + (hasPrev ? '，以下為先前結果' : ''));
     else if (e.flow_to && e.data_date && e.flow_to !== e.data_date)
       // 最新 PCF 沒有調整，畫面保留最近一次真的換檔的內容，日期要講明白
-      tips.push('⏳ 最新 PCF（' + e.data_date + '）持股無異動，以下為最近一次調整');
+      tips.push('⏳ 最新 PCF（' + e.data_date + '）持股無異動' + andBelow);
     else if (e.advanced === false && e.reason === 'not_updated')
-      tips.push('⏳ ' + (e.data_date || '') + ' 之後尚未有新的 PCF，以下為最近一次調整');
+      tips.push('⏳ ' + (e.data_date || '') + ' 之後尚未有新的 PCF' + andBelow);
     // 全池同步等比例增減＝申購贖回造成的規模變動，不是經理人換股，一定要講明
     if (e.scale_pct != null)
       tips.push('⚠ 本期幾乎所有持股同步變動 ' + (e.scale_pct > 0 ? '+' : '') + e.scale_pct +
@@ -1030,6 +1036,19 @@ function renderFlow(code) {
     // 一定要在所有 early return 之前畫。no_basis 與「rows 空」那兩條路徑都會
     // 提前 return，寫在後面的話，全海外持股那幾檔反而永遠看不到清單。
     document.getElementById('flowForeign').innerHTML = np ? _npList(npRows) : '';
+
+    // 說明框跟著下面實際畫出來的東西走。什麼都沒有還留著「面積＝金額」，
+    // 等於在解釋一張不存在的圖；全海外那幾檔連面積都沒有，只有股數。
+    // 和 flowForeign 一樣，必須寫在所有 early return 之前。
+    const hasTree = (e.flow || []).length > 0;
+    const noteEl  = document.getElementById('flowNote');
+    noteEl.hidden = !(hasTree || np);
+    noteEl.innerHTML = hasTree
+      ? '⚠ 金額為<b>兩份公開 PCF 快照相減的推估值</b>，不等同基金實際成交；'
+        + '除權息、股票分割、成分股調整都可能造成假訊號。'
+        + '面積＝金額，<b>紅加碼、綠減碼</b>（台股慣例）。'
+      : '⚠ 增減股數為<b>兩份公開 PCF 快照相減的推估值</b>，不等同基金實際成交；'
+        + '除權息、股票分割、成分股調整都可能造成假訊號。';
 
     if (e.reason === 'no_basis') {
       _tmEmpty(box, '這檔還沒有前一份持股可比對<br>' +
