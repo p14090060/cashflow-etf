@@ -64,6 +64,16 @@ def _roc(d):
     return f"{d.year - 1911}/{d.month:02d}/{d.day:02d}"
 
 
+def _plain(html):
+    """HTML -> 可讀純文字，給診斷訊息用（擋人頁、錯誤頁長怎樣）。
+
+    Action log 裡貼一整頁 HTML 沒人看得下去，但只印例外字串又什麼都看不出來。
+    """
+    t = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", html or "")
+    t = re.sub(r"<[^>]+>", " ", t).replace("&nbsp;", " ")
+    return re.sub(r"\s+", " ", t).strip()
+
+
 def _ms_date(v):
     """PCF 回傳的日期 -> "2026-09-22"；解析不出來回 None。
 
@@ -1057,8 +1067,21 @@ def fetch_mega(date_obj, specific=False):
                 headers={"Content-Type": "application/x-www-form-urlencoded"})
             h = op.open(req, timeout=30).read().decode("utf-8", "replace")
         except Exception as e:
-            print(f"[兆豐] {ticker} 失敗: {e}")
+            # 2026-09-28~10-02：本機抓得到（52 檔、資料日當天），GitHub Actions
+            # 上卻連續 18 次排程回空。原因無從判斷，因為這裡只印了例外字串。
+            # 要分辨「被擋 IP」「改版」「逾時」就得把現場留下來。
+            print(f"[兆豐] {ticker} 失敗: {type(e).__name__}: {e}")
+            body = getattr(e, "read", None)
+            if body:                       # HTTPError 才有，看得到擋人的頁面長怎樣
+                try:
+                    print(f"[兆豐] HTTP {getattr(e, 'code', '?')} 回應前 200 字："
+                          f"{_plain(body().decode('utf-8', 'replace'))[:200]}")
+                except Exception:
+                    pass
             continue
+        # 第一次 GET 就被擋的話，h0 會是一張不含表單的頁面，往下一定解析不出東西
+        print(f"[兆豐] {ticker} 取得頁面 {len(h0)}/{len(h)} 字元，"
+              f"hidden 欄位 {len(form)} 個")
 
         m = re.search(r'id="div_prev_unit_total".*?(\d{4})/(\d{2})/(\d{2})\s*預估發行受益權單位數',
                       h, re.S)
@@ -1084,7 +1107,13 @@ def fetch_mega(date_obj, specific=False):
             # 有持股卻讀不到資料日就整筆丟掉——寧可沒有，也不要拿錯日期去相減
             print(f"[兆豐] {ticker} {name}：抓到 {len(holdings)} 檔但讀不到資料日，略過")
         else:
-            print(f"[兆豐] {ticker} {name}：{qdt or '最新'} 無持股資料")
+            # 這條是 Actions 上最可能走到的路徑，但原本只印一句「無持股資料」，
+            # 分不出是「這天真的沒公告」還是「頁面根本不是我們要的那張」。
+            rows_n = len(re.findall(r"<tr[^>]*>", h))
+            print(f"[兆豐] {ticker} {name}：{qdt or '最新'} 無持股資料"
+                  f"（<tr> {rows_n} 列、資料日{'有' if data_date else '沒讀到'}、"
+                  f"頁面{'有' if name in h else '沒有'}基金名稱）")
+            print(f"[兆豐] 頁面文字前 300 字：{_plain(h)[:300]}")
         time.sleep(1)
     return out
 

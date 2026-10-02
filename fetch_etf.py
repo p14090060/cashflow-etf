@@ -412,10 +412,20 @@ def calc_div_forecast(divs, code, div_freq):
     except Exception:
         return fallback_days, fallback_est, None
 
+# 規模低於這個數（元）的非 curated ETF，熱度歸零。0 = 停用。
+# ⚠ 這條規則從寫下來到 2026-10-02 為止**一次都沒生效過**：aum 來自 yfinance
+#   的 fast_info.market_cap，對台股 ETF 永遠回 0，而條件要求 aum > 0。
+#   2026-10-02 接上 emega 的真實規模後實測：原本的 500 億門檻會讓 189 檔
+#   非 curated ETF 裡的 169 檔熱度歸零，熱度榜只剩 20 檔，幾乎所有主動式
+#   ETF（00996A 40 億、00987A 25 億、00980A 201 億…）全部消失。
+#   補資料不該順帶改掉排名，所以先停用。要啟用請先決定合理門檻再開。
+AUM_HEAT_FLOOR = 0
+
+
 def calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated=False):
-    """複合熱度指數：量比(0-40) + 漲跌幅(0-30) + 連續性(0-30)，規模 <500億歸零
+    """複合熱度指數：量比(0-40) + 漲跌幅(0-30) + 連續性(0-30)
     回傳 (heat, score_cont)，score_cont 供 mis_fetcher 即時重算 heat 時繼承。"""
-    if not curated and aum > 0 and aum < 50_000_000_000:
+    if AUM_HEAT_FLOOR and not curated and 0 < aum < AUM_HEAT_FLOOR:
         return 0, 0
     vol_ratio   = cur_vol / avg_vol if avg_vol > 0 else 0
     score_vol   = min(vol_ratio * 20, 40)
@@ -766,8 +776,56 @@ def fetch_nav_twse(code):
         pass
     return None
 
+# ══════════════════════════════════════════════════════════════
+# 資產規模：兆豐證券 ETF 專區（www.emega.com.tw）
+#   yfinance 的 fast_info.market_cap 對台股 ETF 永遠回 0，所以 aum 長年是 0
+#   （203 檔全部 0）。emega 的 api/etf 一次給 358 檔的「資產規模億」，
+#   2026-10-02 實測可補 202/203。
+#   流程：先 GET 頁面拿 cookie 與 <meta name="_csrf">，再 POST 回 api/etf。
+#   ⚠ POST 一定要帶 body（即使是空字串）。少了 Content-Length 會被站前面的
+#     Akamai 擋成 411 Bad Request，而且錯誤頁長得不像 API 回應，很難查。
+#   ⚠ 只取規模。同一支 API 的「配息頻率」**不能用**——那是公開說明書的
+#     「收益分配**評價**頻率」，不是實際有沒有配息。2026-10-02 實測 148 檔
+#     有 14 檔對不上，全是我們標「不配息」它標「年配／季配」。抽查 00646
+#     元大S&P500，MoneyDJ 明確「查無配息資料」，是我們對。拿它覆蓋會把
+#     009822 那類累積型、以及 00989A 那種「過了評價月但決定不配」全部寫壞。
+# ══════════════════════════════════════════════════════════════
+EMEGA_BASE = "https://www.emega.com.tw/etfmaster"
+
+
+def fetch_emega_aum():
+    """回傳 {代號: 資產規模(元)}。失敗回空 dict，呼叫端沿用原本的 0。"""
+    try:
+        s = requests.Session()
+        s.headers["User-Agent"] = "Mozilla/5.0"
+        page = s.get(f"{EMEGA_BASE}/analyze/index2.do", timeout=20).text
+        m = re.search(r'name="_csrf"\s+content="([^"]+)"', page)
+        if not m:
+            print("[emega] 找不到 CSRF token，略過資產規模")
+            return {}
+        r = s.post(f"{EMEGA_BASE}/api/etf", data="",
+                   headers={"X-XSRF-TOKEN": m.group(1),
+                            "Referer": f"{EMEGA_BASE}/analyze/index2.do"},
+                   timeout=30)
+        rows = (r.json() or {}).get("data") or {}
+    except Exception as e:
+        print(f"[emega] 資產規模抓取失敗（沿用原值）: {e}")
+        return {}
+    out = {}
+    for c, v in rows.items():
+        try:
+            yi = float(str((v or {}).get("資產規模億", "")).strip())
+        except (TypeError, ValueError):
+            continue
+        if yi > 0:
+            out[c] = round(yi * 1e8)        # 億 → 元
+    print(f"[emega] 資產規模 {len(out)} 檔")
+    return out
+
+
 # ── 主流程 ──────────────────────────────────────────────────────────
 ALL_ETFS  = build_pool()
+EMEGA_AUM = fetch_emega_aum()
 
 results = []
 for code, name in ALL_ETFS:
@@ -864,13 +922,15 @@ for code, name in ALL_ETFS:
         nav = fetch_nav_twse(code) or round(float(hist["Close"].iloc[-2]), 2)
         premium = round((price - nav) / nav * 100, 2) if nav > 0 else 0.0
 
-        aum = 0.0
+        # 規模優先用 emega（yfinance 對台股 ETF 的 market_cap 永遠是 0）
+        aum = float(EMEGA_AUM.get(code, 0) or 0)
         yld = 0.0
-        try:
-            info = tk.fast_info
-            aum = safe(getattr(info, "market_cap", 0) or 0)
-        except Exception:
-            pass
+        if not aum:
+            try:
+                info = tk.fast_info
+                aum = safe(getattr(info, "market_cap", 0) or 0)
+            except Exception:
+                pass
         import pandas as _pd
         divs = tk.dividends  # 一次抓，配息預測共用
 
