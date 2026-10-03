@@ -35,14 +35,91 @@
     min-height:100vh; position:relative;
   }
 
+  /* 用 hidden 屬性開關的元素（搜尋下拉、結果面板、錯誤橫幅…）一律吃這條，
+     免得哪天有人給它加了 display 就把 hidden 蓋掉 */
+  [hidden] { display:none !important; }
+
   /* ── Top bar ── */
-  .topbar {
+  /* 2026-10-03：sticky／背景／邊框從 .topbar 移到外層 .app-hdr，
+     讓「標題列 ＋ 搜尋列」整塊一起黏在頂部，只有一個 sticky 層，
+     不會跟排行頁的 .rank-sticky 互相打架 */
+  .app-hdr {
     position:sticky; top:0; z-index:50;
     background:rgba(13,17,23,.92); backdrop-filter:blur(12px);
     border-bottom:1px solid var(--border);
+  }
+  .topbar {
     padding:12px 16px 10px;
     display:flex; align-items:center; justify-content:space-between;
   }
+
+  /* ── 全站搜尋（Phase 1） ── */
+  .gsearch-bar  { padding:0 14px 10px; position:relative; }
+  .gsearch-wrap { position:relative; display:flex; align-items:center; }
+  .gsearch-wrap .gs-ico { position:absolute; left:11px; font-size:14px; pointer-events:none; opacity:.75; }
+  .gsearch-bar input {
+    width:100%; box-sizing:border-box;
+    background:var(--card); color:var(--bright);
+    border:1px solid var(--border); border-radius:9px;
+    padding:10px 34px 10px 32px; font-size:15px; font-family:var(--sans);
+  }
+  .gsearch-bar input::placeholder { color:var(--dim); }
+  .gsearch-bar input:focus { outline:none; border-color:var(--cheap); }
+  .gs-clear {
+    position:absolute; right:6px; background:none; border:none;
+    color:var(--dim); font-size:15px; cursor:pointer; padding:4px 7px; line-height:1;
+  }
+  /* 下拉掛在 .app-hdr（sticky 會建立包含區塊），所以 top:100% 就是表頭正下方 */
+  .gsearch-list {
+    position:absolute; left:14px; right:14px; top:100%; z-index:60;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden auto; max-height:46vh;
+    box-shadow:0 10px 28px rgba(0,0,0,.45);
+  }
+  .gs-row {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border);
+  }
+  .gs-row:last-child { border-bottom:none; }
+  .gs-row:hover, .gs-row.on { background:var(--card2); }
+  .gs-code { font-family:var(--mono); font-size:14px; font-weight:700; flex:0 0 62px; }
+  .gs-name { flex:1 1 auto; min-width:0; font-size:14px; color:var(--dim);
+             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gs-px   { font-family:var(--mono); font-size:13px; flex:0 0 auto; text-align:right; }
+  .gs-chg  { margin-left:6px; }
+  .gs-empty{ padding:16px 14px; font-size:14px; color:var(--dim); line-height:1.7; text-align:center; }
+  .gs-empty span { font-size:13px; opacity:.8; }
+
+  /* 結果面板：蓋在內容上，不動原本五個分頁的結構。
+     Phase 2 這塊會長成 ETF 詳細頁 */
+  .gs-panel {
+    position:fixed; left:50%; transform:translateX(-50%);
+    top:var(--hdr-h, 104px); bottom:var(--nav-h);
+    width:100%; max-width:430px; z-index:55;
+    background:var(--bg); overflow-y:auto;
+    border-top:1px solid var(--border);
+  }
+  .gs-panel-hd {
+    position:sticky; top:0; z-index:1; background:var(--bg);
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; padding:12px 14px 10px; border-bottom:1px solid var(--border);
+  }
+  .gs-panel-hd .t { font-size:15px; min-width:0; overflow:hidden;
+                    text-overflow:ellipsis; white-space:nowrap; }
+  .gs-panel-hd .t b { font-family:var(--mono); font-size:16px; }
+  .gs-panel-hd button {
+    background:none; border:1px solid var(--border); border-radius:8px;
+    color:var(--dim); font-size:15px; cursor:pointer; padding:4px 10px; line-height:1.2;
+  }
+  .gs-panel-body { padding:12px 14px 20px; }
+  .gs-flow-btn {
+    width:100%; margin-top:12px; padding:12px;
+    background:var(--card); color:var(--bright);
+    border:1px solid var(--border); border-radius:10px;
+    font-size:15px; font-family:var(--sans); cursor:pointer;
+  }
+  .gs-flow-btn:hover { background:var(--card2); }
+  .gs-note { margin-top:14px; font-size:13px; color:var(--dim); line-height:1.7; }
   .topbar-title { font-size:16px; font-weight:700; letter-spacing:.02em; }
   .topbar-sub   { font-family:var(--mono); font-size:16px; color:var(--dim); margin-top:1px; }
   .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; border-radius:6px; padding:2px 8px; margin-top:3px; }

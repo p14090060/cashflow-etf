@@ -9,19 +9,41 @@
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261003b">
-<link rel="stylesheet" href="css/components.css?v=20261003b">
-<link rel="stylesheet" href="css/pages.css?v=20261003b">
+<link rel="stylesheet" href="css/base.css?v=20261003c">
+<link rel="stylesheet" href="css/components.css?v=20261003c">
+<link rel="stylesheet" href="css/pages.css?v=20261003c">
 </head>
 <body>
 
-<!-- Top bar -->
-<div class="topbar">
-  <div>
-    <div class="topbar-title">ETF 存股雷達</div>
-    <div id="statusBadge" class="status-badge status-closed">載入中…</div>
+<!-- Top bar ＋ 全站搜尋：整塊一起 sticky，見 css/base.css 的 .app-hdr -->
+<header class="app-hdr">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">ETF 存股雷達</div>
+      <div id="statusBadge" class="status-badge status-closed">載入中…</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="reloadData()">↻</button>
   </div>
-  <button class="refresh-btn" id="refreshBtn" onclick="reloadData()">↻</button>
+
+  <div class="gsearch-bar">
+    <div class="gsearch-wrap">
+      <span class="gs-ico">🔍</span>
+      <input id="gsearch" type="search" autocomplete="off" maxlength="12"
+             placeholder="輸入 ETF 代碼或名稱，例：0050 / 高股息"
+             oninput="gsSearch()" onkeydown="gsKey(event)">
+      <button class="gs-clear" id="gsearchClear" hidden onclick="gsClear()">✕</button>
+    </div>
+    <div class="gsearch-list" id="gsearchList" hidden></div>
+  </div>
+</header>
+
+<!-- 搜尋結果面板。Phase 2 這塊會長成 ETF 詳細頁 -->
+<div class="gs-panel" id="gsPanel" hidden>
+  <div class="gs-panel-hd">
+    <div class="t" id="gsPanelTitle"></div>
+    <button onclick="gsClosePanel()">✕ 關閉</button>
+  </div>
+  <div class="gs-panel-body" id="gsPanelBody"></div>
 </div>
 <div class="disclaimer">
   ⚠️ 投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書。<br>
@@ -300,16 +322,17 @@
 
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
-<script src="js/config.js?v=20261003b"></script>
-<script src="js/nav.js?v=20261003b"></script>
-<script src="js/flow.js?v=20261003b"></script>
-<script src="js/archived-check.js?v=20261003b"></script>
-<script src="js/format.js?v=20261003b"></script>
-<script src="js/calc.js?v=20261003b"></script>
-<script src="js/lookup.js?v=20261003b"></script>
-<script src="js/render.js?v=20261003b"></script>
-<script src="js/rank.js?v=20261003b"></script>
-<script src="js/boot.js?v=20261003b"></script>
+<script src="js/config.js?v=20261003c"></script>
+<script src="js/nav.js?v=20261003c"></script>
+<script src="js/flow.js?v=20261003c"></script>
+<script src="js/archived-check.js?v=20261003c"></script>
+<script src="js/format.js?v=20261003c"></script>
+<script src="js/calc.js?v=20261003c"></script>
+<script src="js/lookup.js?v=20261003c"></script>
+<script src="js/render.js?v=20261003c"></script>
+<script src="js/rank.js?v=20261003c"></script>
+<script src="js/search.js?v=20261003c"></script>
+<script src="js/boot.js?v=20261003c"></script>
 
 </body>
 </html>

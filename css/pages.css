@@ -74,7 +74,10 @@
   .health-miss { font-size:16px; color:var(--dim); text-align:center; padding:16px 0; }
 
   /* ── Rank page ── */
-  .rank-sticky   { position:sticky; top:0; z-index:10; background:var(--bg); padding-bottom:4px; }
+  /* top 必須讓開上面那塊 sticky 表頭，否則會整塊躲到它後面（z-index 10 < 50）。
+     表頭高度會隨狀態列字數變動，所以由 search.js 的 _syncHdrH() 量完寫進
+     --hdr-h；fallback 的 104px 是 JS 還沒跑到時的近似值 */
+  .rank-sticky   { position:sticky; top:var(--hdr-h, 104px); z-index:10; background:var(--bg); padding-bottom:4px; }
   .rank-caveat   { font-size:13px; color:var(--dim); margin-bottom:8px; line-height:1.5; }
   .rank-caveat b { color:var(--fair); }
   .rank-find     { position:relative; margin-bottom:6px; }
