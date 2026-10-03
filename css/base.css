@@ -1,0 +1,91 @@
+/* base.css — 設計 token、頂欄、頁面容器、底部導覽
+   從 index.html 行 13–101 原樣搬出（2026-10-03 拆檔，未改內容）*/
+  :root {
+    --bg:    #0d1117;
+    --card:  #161b22;
+    --card2: #1c2128;
+    --border:#30363d;
+    --dim:   #8b949e;
+    --bright:#e6edf3;
+    --mono:  'Consolas','Courier New',monospace;
+    --sans:  'Microsoft JhengHei','微軟正黑體',sans-serif;
+    --cheap: #00e5a0;
+    --fair:  #F0B840;
+    --dear:  #ff3f5e;
+    --up:    #ff3f5e;
+    --dn:    #00c87a;
+    --bond:  #58a6ff;   /* 債券型標示。刻意避開紅漲綠跌與四態四色，
+                          讀起來是「分類」不是「買賣判斷」；灰色在深色底太弱，
+                          債券和股票是兩種商品，要讓人一眼看出來 */
+    --sea:   #164c80;   /* 海外持股標示（藍底白字）。深色底的大色塊不能用亮藍，
+                          #1f6feb 整片鋪下去會刺眼。這個配白字對比 8.8:1，
+                          比原本的 4.63:1 還好讀。不沿用 --bond #58a6ff：
+                          那是當文字色用的淺藍，鋪底配白字只有約 2:1 會糊。
+                          兩個藍分屬排行頁與主動頁，不會同框出現。 */
+  --gold:  #ffd700;
+    --nav-h: 62px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+
+  html { overflow-x:hidden; }
+  body {
+    background:var(--bg); color:var(--bright);
+    font-family:var(--sans); font-size:16px;
+    max-width:430px; margin:0 auto;
+    min-height:100vh; position:relative;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    position:sticky; top:0; z-index:50;
+    background:rgba(13,17,23,.92); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    padding:12px 16px 10px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .topbar-title { font-size:16px; font-weight:700; letter-spacing:.02em; }
+  .topbar-sub   { font-family:var(--mono); font-size:16px; color:var(--dim); margin-top:1px; }
+  .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; border-radius:6px; padding:2px 8px; margin-top:3px; }
+  .status-live  { background:rgba(0,229,160,.12); color:#00e5a0; border:1px solid rgba(0,229,160,.3); }
+  .status-live::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:#00e5a0; animation:pulse 1.2s ease-in-out infinite; }
+  .status-closed  { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
+  .status-holiday { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:16px; cursor:pointer; line-height:1; }
+  .refresh-btn.spinning { animation:spin .6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .disclaimer {
+    background:rgba(240,184,64,.08); border-bottom:1px solid rgba(240,184,64,.2);
+    padding:6px 16px; font-size:16px; color:var(--fair);
+    text-align:center; letter-spacing:.02em; line-height:1.5;
+  }
+  .demo-badge {
+    background:rgba(240,184,64,.12); color:var(--fair);
+    border:1px solid rgba(240,184,64,.4); border-radius:4px;
+    padding:2px 8px; font-size:16px; font-family:var(--mono);
+  }
+
+  /* ── Page container ── */
+  .pages { padding-bottom:calc(var(--nav-h) + 8px); }
+  .page  { display:none; padding:14px 14px 0; }
+  .page.active { display:block; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:430px;
+    height:var(--nav-h);
+    background:rgba(22,27,34,.96); backdrop-filter:blur(16px);
+    border-top:1px solid var(--border);
+    display:flex; z-index:100;
+  }
+  .nav-btn {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px;
+    cursor:pointer; border:none; background:none;
+    color:var(--dim); transition:color .15s; padding:8px 0;
+  }
+  .nav-btn.active { color:var(--cheap); }
+  .nav-btn svg { width:22px; height:22px; }
+  .nav-btn span { font-size:14px; font-weight:500; }
+

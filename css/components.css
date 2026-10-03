@@ -1,0 +1,218 @@
+/* components.css — 卡片、市場情緒、便宜訊號、等待清單、配息頁、計算機、行事曆、頁尾
+   從 index.html 行 102–317 原樣搬出（2026-10-03 拆檔，未改內容）*/
+  /* ── Cards / layout helpers ── */
+  .section-hdr {
+    display:flex; align-items:center; gap:8px;
+    font-size:16px; font-weight:700; margin-bottom:10px;
+    padding-bottom:7px; border-bottom:1px solid var(--border);
+  }
+  .section-hdr.buy  { color:var(--bright); border-color:rgba(0,229,160,.2); }
+  .section-hdr.wait { color:var(--bright); }
+  .badge-count {
+    font-family:var(--sans); font-size:16px; font-weight:700;
+    background:rgba(255,255,255,.07); border-radius:10px; padding:2px 10px;
+    color:var(--bright);
+  }
+
+  /* ── Market mood ── */
+  .mood-card {
+    background:var(--card2); border:1px solid var(--border);
+    border-radius:12px; padding:13px 14px; margin-bottom:22px;
+    display:flex; align-items:center; gap:13px;
+  }
+  .mood-emoji { font-size:36px; line-height:1; flex-shrink:0; }
+  .mood-main  { font-size:16px; font-weight:700; }
+  .mood-sub   { font-size:14px; color:var(--bright); margin-top:3px; line-height:1.5; }
+  .mood-cta   { font-size:16px; color:#e8607a; margin-top:5px; font-weight:600; }
+  .mood-idx   { font-family:var(--mono); font-size:14px; margin-top:4px; }
+  .mood-idx.up{ color:var(--up); } .mood-idx.dn{ color:var(--dn); } .mood-idx.flat{ color:var(--dim); }
+
+  /* ── Buy cards ── */
+  .buy-card {
+    background:rgba(0,229,160,.05); border:1px solid rgba(0,229,160,.2);
+    border-radius:11px; padding:13px 14px; margin-bottom:10px;
+  }
+  .buy-top  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+  .buy-code { font-family:var(--sans); font-size:14px; font-weight:700; color:var(--bright); letter-spacing:.04em; }
+  .buy-name { font-size:16px; font-weight:500; margin-top:3px; color:#58a6ff; }
+  .sig-cheap {
+    background:rgba(0,229,160,.12); color:var(--cheap);
+    border:1px solid var(--cheap); border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
+  .sig-fair {
+    background:rgba(240,184,64,.12); color:var(--fair);
+    border:1px solid var(--fair); border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
+  .sig-dear {
+    background:rgba(251,146,60,.12); color:#fb923c;
+    border:1px solid #fb923c; border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
+  /* 債券 ETF 不套股價訊號，用中性灰藍——刻意不借用四態任何一色，
+     免得被當成買賣判斷。只是在說「這是債券型」。 */
+  .sig-bond {
+    background:rgba(88,166,255,.14); color:var(--bond);
+    border:1px solid var(--bond); border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
+  .sig-hot {
+    background:rgba(239,68,68,.12); color:#ef4444;
+    border:1px solid #ef4444; border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
+  .empty-state {
+    background:var(--card2); border:1px solid var(--border);
+    border-radius:12px; padding:18px 16px; text-align:center;
+    color:var(--dim); font-size:16px; line-height:1.7; margin-bottom:10px;
+  }
+  .empty-why {
+    margin-top:12px; padding:10px 12px;
+    background:rgba(88,166,255,.06); border:1px solid rgba(88,166,255,.15);
+    border-radius:8px; font-size:14px; color:#58a6ff; text-align:left; line-height:1.7;
+  }
+  .hot-item {
+    display:flex; align-items:center; gap:10px;
+    background:var(--card2); border:1px solid var(--border);
+    border-radius:10px; padding:10px 13px; margin-bottom:7px;
+  }
+  .hot-rank { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--dim); width:22px; flex-shrink:0; }
+  .hot-rank.gold { color:var(--gold); }
+  .hot-rank.silver { color:#aab0b8; }
+  .hot-rank.bronze { color:#cd7f32; }
+  .buy-stats {
+    display:flex; gap:14px; font-size:16px; margin-bottom:9px; flex-wrap:wrap;
+  }
+  .buy-stats .lbl { color:var(--bright); }
+  .buy-stats .val { color:var(--bright); font-family:var(--mono); font-size:16px; font-weight:700; }
+  .buy-stats .neg { color:#58a6ff; font-family:var(--mono); font-size:16px; font-weight:700; }
+  .buy-stats .pos { color:#58a6ff; font-family:var(--mono); font-size:16px; font-weight:700; }
+  .range-track { height:5px; background:rgba(255,255,255,.08); border-radius:3px; position:relative; margin-bottom:4px; }
+  .range-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,rgba(88,166,255,.15),rgba(88,166,255,.6)); }
+  .range-dot   { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:#58a6ff; border:2px solid var(--bg); }
+  .range-lbl   { display:flex; justify-content:space-between; font-family:var(--mono); font-size:16px; color:var(--dim); }
+  .div-pill {
+    display:inline-flex; align-items:center; gap:3px;
+    background:rgba(255,149,0,.1); border:1px solid rgba(255,149,0,.35);
+    border-radius:20px; padding:5px 12px; font-size:14px; color:#ff9500;
+    font-family:var(--mono); margin-top:8px; font-weight:500;
+  }
+  .div-num { font-size:16px; font-weight:700; }
+
+  /* ── Wait list ── */
+  .wait-item {
+    display:flex; align-items:center; gap:9px;
+    background:rgba(255,255,255,.03); border:1px solid var(--border);
+    border-radius:8px; padding:10px 12px; margin-bottom:7px;
+  }
+  .wait-code  { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); width:68px; flex-shrink:0; }
+  .wait-name  { font-size:16px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#58a6ff; }
+  .wait-sig   { border-radius:6px; padding:4px 12px; font-size:16px; font-weight:700; flex-shrink:0; white-space:nowrap; }
+  .wait-sig.dear { background:rgba(255,63,94,.1); color:var(--dear); border:1px solid rgba(255,63,94,.3); }
+  .wait-sig.fair { background:rgba(240,184,64,.1); color:var(--fair); border:1px solid rgba(240,184,64,.3); }
+
+  /* ── Dividend page ── */
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:15px; margin-bottom:22px; }
+  .panel-title { font-size:16px; font-weight:700; margin-bottom:12px; color:#ff9500; }
+  .panel-title .ic { margin-right:6px; }
+
+  /* Calculator */
+  .etf-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .etf-chip  {
+    background:rgba(255,255,255,.05); border:1px solid var(--border);
+    border-radius:20px; padding:6px 13px;
+    font-family:var(--sans); font-size:16px; font-weight:700; color:#4a7099; cursor:pointer;
+    transition:all .15s;
+  }
+  .etf-chip:active, .etf-chip.on {
+    background:rgba(88,166,255,.15); border-color:#58a6ff; color:#a8ccff;
+    font-size:19px; padding:8px 16px;
+  }
+  .input-row {
+    display:flex; align-items:center; gap:10px; margin-bottom:12px;
+  }
+  .input-lbl { font-size:16px; color:var(--bright); }
+  .num-input {
+    background:var(--card2); border:1px solid var(--border); border-radius:8px;
+    padding:8px 12px; font-family:var(--mono); font-size:16px; font-weight:700;
+    color:var(--bright); width:90px; text-align:center; outline:none;
+    transition:border-color .15s;
+  }
+  .num-input:focus { border-color:var(--cheap); }
+  .custom-row {
+    display:flex; gap:8px; margin-bottom:12px; align-items:center;
+  }
+  .custom-input {
+    background:var(--card2); border:1px solid var(--border); border-radius:8px;
+    padding:7px 12px; font-family:var(--sans); font-size:16px; font-weight:700;
+    color:var(--bright); flex:1; outline:none; transition:border-color .15s;
+    letter-spacing:.04em;
+  }
+  .custom-input::placeholder { color:var(--dim); font-weight:400; font-size:16px; }
+  .custom-input:focus { border-color:#ff9500; }
+  .custom-btn {
+    background:#ff9500; border:none; border-radius:8px;
+    padding:7px 16px; font-size:16px; font-weight:700; color:#000;
+    cursor:pointer; white-space:nowrap; transition:opacity .15s;
+  }
+  .custom-btn:active { opacity:.8; }
+  .custom-msg { font-size:14px; margin-bottom:10px; padding:6px 10px; border-radius:6px; }
+  .custom-msg.ok   { background:rgba(0,229,160,.08); color:var(--cheap); border:1px solid rgba(0,229,160,.2); }
+  .custom-msg.warn { background:rgba(240,184,64,.08); color:var(--fair);  border:1px solid rgba(240,184,64,.2); }
+  .custom-msg.err  { background:rgba(255,63,94,.08);  color:var(--dear);  border:1px solid rgba(255,63,94,.2); }
+  .calc-out {
+    background:rgba(0,229,160,.06); border:1px solid rgba(0,229,160,.18);
+    border-radius:9px; padding:13px 14px;
+  }
+  .calc-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .calc-row:last-child { margin:0; padding-top:9px; border-top:1px solid rgba(255,63,94,.15); }
+  .calc-lbl  { font-size:16px; color:var(--bright); }
+  .calc-lbl .big-num { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); }
+  .calc-val  { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--dear); }
+  .calc-val.sm { font-size:16px; color:var(--dear); }
+
+  /* Calendar */
+  .cal-item {
+    display:flex; align-items:center; gap:11px;
+    border-radius:9px; padding:10px 12px; margin-bottom:8px;
+    background:rgba(255,255,255,.03); border:1px solid var(--border);
+  }
+  .cal-item.soon  { background:rgba(255,215,0,.05); border-color:rgba(255,215,0,.25); }
+  .cal-item.today { background:rgba(0,229,160,.06); border-color:rgba(0,229,160,.35); }
+  .cal-item:last-child { margin:0; }
+  .cal-date { text-align:center; width:38px; flex-shrink:0; }
+  .cal-day   { font-family:var(--mono); font-size:16px; font-weight:700; display:block; line-height:1; }
+  .cal-mon   { font-size:14px; color:var(--bright); }
+  .cal-line  { width:1px; height:30px; background:var(--border); flex-shrink:0; }
+  .cal-info  { flex:1; }
+  .cal-code2 { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); }
+  .cal-name2 { font-size:16px; color:#58a6ff; margin-top:2px; }
+  .cal-r     { text-align:right; }
+  .cal-amt   { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--gold); }
+  .cal-ulbl  { font-size:14px; color:var(--bright); }
+  .soon-pill {
+    display:inline-block; background:rgba(255,215,0,.15); color:var(--gold);
+    border-radius:4px; padding:1px 6px; font-size:16px; font-family:var(--mono);
+    margin-top:3px;
+  }
+  .today-pill {
+    background:rgba(0,229,160,.18); color:var(--cheap);
+    border:1px solid rgba(0,229,160,.4);
+  }
+
+  /* Source badges */
+  .src-lbl         { font-size:11px; margin-top:3px; }
+  .src-official    { color:#7ec8e3; }
+  .src-estimate    { color:var(--dim); }
+  .yld-badge       { font-size:12px; margin-left:2px; opacity:.8; }
+
+  /* Footer */
+  .site-footer {
+    margin:28px 12px 16px; padding:14px 16px;
+    border-top:1px solid var(--border); border-radius:8px;
+    font-size:12px; color:var(--dim); line-height:1.8;
+  }
+  .site-footer a { color:#58a6ff; text-decoration:none; }
+  .site-footer a:hover { text-decoration:underline; }
+

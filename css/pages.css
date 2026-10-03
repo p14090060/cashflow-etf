@@ -1,0 +1,201 @@
+/* pages.css — 頻道頁、主動頁、排行頁、treemap
+   從 index.html 行 318–516 原樣搬出（2026-10-03 拆檔，未改內容）*/
+  /* ── Channel page ── */
+  .yt-hero {
+    background:var(--bg);
+    border-radius:14px;
+    padding:22px 16px; text-align:center; margin-bottom:22px;
+  }
+  .yt-logo  { line-height:1; margin-bottom:8px; }
+  .yt-logo img { width:260px !important; height:126px !important; max-width:260px !important; object-fit:cover; object-position:50% 45%; display:block; margin:0 auto; }
+  .yt-name  { font-size:16px; font-weight:700; margin-bottom:5px; }
+  .yt-desc  { font-size:16px; color:var(--bright); line-height:1.6; margin-bottom:16px; }
+  .yt-btn   {
+    display:inline-block; background:#ff3f5e; color:#fff;
+    border-radius:24px; padding:11px 28px; font-size:16px; font-weight:700;
+    text-decoration:none; transition:opacity .15s;
+  }
+  .yt-btn:active { opacity:.8; }
+  .yt-stats {
+    display:flex; gap:0; margin-top:16px;
+    border-top:1px solid rgba(255,63,94,.2); padding-top:14px;
+  }
+  .yt-stat { flex:1; text-align:center; }
+  .yt-stat .n { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); }
+  .yt-stat .l { font-size:16px; color:var(--dim); margin-top:2px; }
+
+
+
+  /* ── Check page ── */
+  .check-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:22px; }
+  .check-title { font-size:16px; font-weight:700; margin-bottom:16px; color:#ff9500; }
+  .check-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; }
+  .check-lbl { font-size:16px; color:var(--bright); flex-shrink:0; }
+  .input-prefix { display:flex; align-items:center; background:var(--card2); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .input-prefix span { padding:12px 10px; font-size:16px; color:var(--dim); border-right:1px solid var(--border); white-space:nowrap; }
+  .input-prefix input { background:transparent; border:none; padding:12px 12px; font-size:16px; color:var(--bright); width:130px; text-align:right; font-family:var(--mono); }
+  .input-prefix input:focus { outline:none; }
+  .dca-toggle { display:flex; gap:8px; }
+  .dca-btn { padding:12px 28px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:16px; font-weight:600; cursor:pointer; }
+  .dca-btn.active { background:rgba(0,229,160,.12); border-color:var(--cheap); color:var(--cheap); }
+  .dca-tip { font-size:16px; color:var(--dim); line-height:1.7; padding:14px 16px; background:rgba(255,255,255,.03); border-radius:8px; margin-bottom:16px; }
+  .rate-presets { display:flex; gap:8px; margin-bottom:14px; }
+  .rate-btn { flex:1; padding:14px 4px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:16px; font-weight:600; cursor:pointer; text-align:center; line-height:1.4; }
+  .rate-btn small { display:block; font-size:14px; font-weight:400; margin-top:4px; }
+  .rate-btn.active { background:rgba(88,166,255,.12); border-color:#58a6ff; color:#58a6ff; }
+  .rate-btn.active small { color:#58a6ff; }
+  .rate-slider-row { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .rate-slider-row input[type=range] { flex:1; height:6px; }
+  .rate-num { font-family:var(--mono); font-size:16px; font-weight:700; color:#58a6ff; min-width:54px; text-align:right; }
+  .check-calc-btn { width:100%; padding:18px; background:linear-gradient(90deg,rgba(88,166,255,.15),rgba(0,229,160,.15)); border:1px solid rgba(88,166,255,.3); border-radius:10px; color:var(--bright); font-size:14px; font-weight:700; cursor:pointer; margin-top:8px; }
+  .check-calc-btn:active { opacity:.8; }
+  .proj-table { width:100%; border-collapse:collapse; margin-top:16px; }
+  .proj-table th { font-size:16px; color:var(--dim); padding:12px 4px; text-align:center; border-bottom:1px solid var(--border); }
+  .proj-table td { font-size:16px; font-family:var(--mono); padding:14px 4px; text-align:center; border-bottom:1px solid rgba(255,255,255,.05); color:var(--bright); }
+  .proj-table tr:last-child td { border-bottom:none; }
+  .proj-table td.year-col { color:var(--dim); font-size:16px; }
+  .risk-badge { display:inline-block; padding:10px 20px; border-radius:20px; font-size:16px; font-weight:700; margin:14px 0 10px; }
+  .risk-C { background:rgba(0,229,160,.12); color:var(--cheap); border:1px solid rgba(0,229,160,.3); }
+  .risk-M { background:rgba(240,184,64,.12); color:var(--fair); border:1px solid rgba(240,184,64,.3); }
+  .risk-A { background:rgba(255,63,94,.12); color:var(--dear); border:1px solid rgba(255,63,94,.3); }
+  .suggest-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .suggest-chip { padding:10px 18px; border-radius:20px; font-size:16px; font-weight:700; background:rgba(88,166,255,.1); color:#58a6ff; border:1px solid rgba(88,166,255,.25); }
+  .etf-inputs { display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+  .etf-code-inp { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:16px 18px; font-size:16px; color:var(--bright); font-family:var(--mono); text-align:center; letter-spacing:.08em; }
+  .etf-code-inp:focus { outline:none; border-color:rgba(88,166,255,.5); }
+  .etf-code-inp::placeholder { font-size:16px; letter-spacing:0; color:var(--dim); }
+  .health-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:14px; }
+  .health-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+  .health-code { font-size:16px; font-weight:700; font-family:var(--mono); color:var(--bright); }
+  .health-name { font-size:16px; color:var(--dim); margin-top:4px; }
+  .health-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .health-kv .k { font-size:14px; color:var(--dim); }
+  .health-kv .v { font-size:16px; font-family:var(--mono); font-weight:700; color:var(--bright); }
+  .health-miss { font-size:16px; color:var(--dim); text-align:center; padding:16px 0; }
+
+  /* ── Rank page ── */
+  .rank-sticky   { position:sticky; top:0; z-index:10; background:var(--bg); padding-bottom:4px; }
+  .rank-caveat   { font-size:13px; color:var(--dim); margin-bottom:8px; line-height:1.5; }
+  .rank-caveat b { color:var(--fair); }
+  .rank-find     { position:relative; margin-bottom:6px; }
+  .rank-find input {
+    width:100%; box-sizing:border-box; background:var(--card); color:var(--bright);
+    border:1px solid var(--border); border-radius:8px; padding:10px 34px 10px 12px;
+    font-size:16px; font-family:var(--sans); outline:none;
+  }
+  .rank-find input:focus { border-color:var(--fair); }
+  .rank-find input::-webkit-search-cancel-button { display:none; }
+  .rank-find button {
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--dim); font-size:17px; cursor:pointer;
+    padding:4px 8px; line-height:1;
+  }
+  .rank-find-msg { font-size:14px; margin-bottom:8px; min-height:0; line-height:1.5; }
+  .rank-find-msg.hit  { color:var(--fair); }
+  .rank-find-msg.miss { color:var(--dim); }
+  /* 找到的那一列用靜態底色 + 整圈金框標出來（卡片化後不再用左側標線，
+     那會讓左邊圓角對不齊）。不用閃爍動畫——這個 App 明確不要閃框/閃光。 */
+  .rank-row.found { background:rgba(240,184,64,.14);
+                    border-color:var(--fair); }
+  .rank-hdr      { font-size:15px; color:#c4b5fd; background:rgba(196,181,253,.13); border-radius:8px; margin-bottom:8px; padding:9px 10px 10px; }
+  .rank-hdr-main { display:flex; align-items:center; margin-bottom:5px; }
+  .rank-hdr-sub  { display:flex; align-items:center; gap:0; padding-left:36px; }
+  /* 每個排名一張圓角卡：一列有兩行（代碼名稱 / 配息報酬），原本只靠
+     4% 白的底線分隔，在深色底幾乎看不見，兩行會跟下一名黏成一團。
+     卡片把兩行綁成一組，比單純加分隔線有效。圓角 10px 沿用 .rank-hdr 的語彙。 */
+  .rank-row      { padding:12px 10px; margin-bottom:8px;
+                   background:var(--card); border:1px solid var(--border);
+                   border-radius:10px; }
+  .rank-row.tappable { cursor:pointer; }
+  .rank-row.tappable:active { background:var(--card2); }
+  /* 用金色而非紅綠——這個標記是「可點」的提示，不是漲跌方向，
+     擺在報酬率（紅正綠負）旁邊用紅綠會被讀成方向 */
+  .rank-flow     { font-size:11px; font-weight:700; color:var(--fair); white-space:nowrap;
+                   margin-left:8px; flex-shrink:0; }
+  .rank-main     { display:flex; align-items:center; }
+  .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
+  .rank-no       { width:36px; text-align:center; font-size:18px; font-weight:700; color:var(--dim); flex-shrink:0; }
+  .rank-no.gold  { color:#FFD700; }
+  .rank-no.silver{ color:#C0C0C0; }
+  .rank-no.bronze{ color:#CD7F32; }
+  .rank-etf      { flex:1; min-width:0; padding-right:6px; }
+  .rank-code     { font-size:20px; font-weight:700; font-family:var(--mono); color:var(--bright); }
+  .rank-name     { font-size:18px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-price    { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); flex-shrink:0; text-align:right; margin-right:8px; min-width:44px; }
+  .rank-sig      { font-size:18px; font-weight:600; flex-shrink:0; white-space:nowrap; }
+  .rank-freq     { width:68px; font-size:18px; color:var(--dim); flex-shrink:0; }
+  .rank-num      { width:82px; font-size:18px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
+  .rank-yld      { width:72px; font-size:18px; font-family:var(--mono); font-weight:700; flex-shrink:0; text-align:right; }
+  .mini-bars     { display:flex; align-items:center; gap:2px; height:26px; padding-left:6px; flex-shrink:0; }
+  .rank-tag      { font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; border:1px solid; white-space:nowrap; margin-left:8px; flex-shrink:0; letter-spacing:.02em; }
+
+  /* ── 逆向計算機 ── */
+
+  /* ── 月月領息組合 ── */
+
+  /* ── 主動式 ETF 買賣超 treemap ── */
+  .flow-head   { padding:14px 14px 6px; }
+  .flow-title  { font-size:19px; font-weight:700; letter-spacing:.02em; }
+  .flow-meta   { font-size:15px; color:var(--dim); margin-top:4px; line-height:1.5; }
+  .flow-totals { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:6px 14px 10px; }
+  .flow-tot    { background:var(--card); border:1px solid var(--border); border-radius:8px;
+                 padding:8px 10px; display:flex; align-items:baseline; justify-content:space-between; }
+  .flow-tot span { font-size:15px; color:var(--dim); }
+  .flow-tot b    { font-size:20px; font-family:var(--mono); font-weight:700; }
+  .flow-tot b.buy  { color:#ff3f5e; }   /* 加碼＝紅（台股慣例，同 --up） */
+  .flow-tot b.sell { color:#00c87a; }   /* 減碼＝綠（同 --dn） */
+  /* 一行 4 顆、滿了自動換到下一行；不用橫向捲動，避免超出手機畫面 */
+  .flow-chips  { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;
+                 padding:0 14px 8px; }
+  .flow-chip   { background:var(--card); border:1px solid var(--border);
+                 border-radius:18px; padding:9px 3px; font-size:16px; color:var(--dim);
+                 font-family:var(--mono); font-weight:700; cursor:pointer; white-space:nowrap;
+                 text-align:center; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.02em; }
+  .flow-chip.active { background:rgba(0,200,122,.14); border-color:#00c87a; color:#00c87a; }
+
+  .treemap     { position:relative; width:100%; height:520px; margin:0 auto;
+                 background:var(--card); border-top:1px solid var(--border);
+                 border-bottom:1px solid var(--border); overflow:hidden; }
+  .tm-cell     { position:absolute; overflow:hidden; border:1px solid rgba(13,17,23,.85);
+                 display:flex; flex-direction:column; align-items:center; justify-content:center;
+                 text-align:center; padding:2px; cursor:pointer; }
+  .tm-name     { font-weight:700; line-height:1.15; word-break:break-all; }
+  .tm-amt      { font-family:var(--mono); line-height:1.2; opacity:.95; }
+  .tm-etf      { font-family:var(--mono); opacity:.8; line-height:1.2; }
+  /* 畫不出 treemap 時框框縮成文字高度——520px 的空框裡浮一行字很難看，
+     而且會把下方的海外持股清單整個推出畫面外 */
+  .treemap.tm-slim { height:auto; }
+  .treemap.tm-slim .tm-empty { height:auto; padding:30px 24px; }
+  .tm-empty.sea { background:var(--sea); color:#fff; }
+  .tm-empty    { display:flex; align-items:center; justify-content:center; height:100%;
+                 color:var(--dim); font-size:15px; text-align:center; padding:0 24px; }
+
+  .flow-tip    { min-height:24px; padding:10px 14px 0; font-size:15px; color:var(--bright);
+                 font-family:var(--mono); }
+  .flow-note   { margin:10px 14px; padding:11px 13px; background:var(--card2);
+                 border:1px solid var(--border); border-left:3px solid var(--fair);
+                 border-radius:6px; font-size:14px; color:var(--dim); line-height:1.65; }
+  .flow-note b { color:var(--bright); }
+  .flow-cover  { margin:0 14px 18px; font-size:13px; color:var(--dim); line-height:1.7; }
+
+  /* 海外持股異動條列：這些標的查不到台股收盤價算不出金額，畫不進 treemap，
+     但「買賣了什麼、幾股」PCF 有給，用清單補上。長度可能到 3、40 檔，給捲軸。 */
+  .np-wrap  { margin:10px 14px 0; border:1px solid var(--border); border-radius:8px;
+              background:var(--card); overflow:hidden; }
+  /* 藍底白字＝海外。全海外與混合兩種情況都會出現這塊，標示掛在這裡才蓋得全
+     （上面那個空狀態框只有「全海外」那 3 檔才看得到） */
+  .np-hd    { padding:9px 12px; font-size:13px; color:#fff;
+              background:var(--sea); }
+  .np-hd b  { color:#fff; }
+  .np-wrap  { border-color:var(--sea); }
+  .np-list  { max-height:290px; overflow-y:auto; }
+  .np-row   { display:flex; align-items:center; gap:9px; padding:9px 12px;
+              border-bottom:1px solid var(--border); font-size:14px; }
+  .np-row:last-child { border-bottom:0; }
+  .np-id    { flex:0 0 auto; min-width:62px; font-family:var(--mono);
+              color:var(--bright); font-size:13px; }
+  .np-mkt   { margin-left:5px; padding:1px 4px; border-radius:3px; font-size:11px;
+              background:var(--card2); color:var(--dim); border:1px solid var(--border); }
+  .np-name  { flex:1 1 auto; min-width:0; color:var(--dim); font-size:13px;
+              overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .np-d     { flex:0 0 auto; font-family:var(--mono); font-size:13px; text-align:right; }
