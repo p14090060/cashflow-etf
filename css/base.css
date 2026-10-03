@@ -87,6 +87,8 @@
              overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .gs-px   { font-family:var(--mono); font-size:13px; flex:0 0 auto; text-align:right; }
   .gs-chg  { margin-left:6px; }
+  .gs-more { padding:9px 12px; font-size:12.5px; color:var(--dim); text-align:center;
+             border-top:1px solid var(--border); background:var(--card2); }
   .gs-empty{ padding:16px 14px; font-size:14px; color:var(--dim); line-height:1.7; text-align:center; }
   .gs-empty span { font-size:13px; opacity:.8; }
 
@@ -95,7 +97,11 @@
   .gs-panel {
     position:fixed; left:50%; transform:translateX(-50%);
     top:var(--hdr-h, 104px); bottom:var(--nav-h);
-    width:100%; max-width:430px; z-index:55;
+    width:100%; max-width:430px;
+    /* ⚠ 必須低於 .app-hdr 的 50。.app-hdr 是 sticky＋z-index，會建立堆疊脈絡，
+       所以裡面的下拉寫 z-index:60 對外仍等同 50；面板只要 ≥50 就會蓋住下拉。
+       面板本來就從表頭下緣開始，壓在表頭之下不影響外觀。 */
+    z-index:40;
     background:var(--bg); overflow-y:auto;
     border-top:1px solid var(--border);
   }

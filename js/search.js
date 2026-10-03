@@ -27,26 +27,46 @@ function _gsFmtChg(e) {
        + (up ? '▲' : '▼') + Math.abs(p).toFixed(2) + '%</span>';
 }
 
+// 比對規則（刻意不共用 rank.js 的 _matchEtf）：
+//   4 代碼完全相同 ／ 3 代碼開頭 ／ 2 代碼或名稱包含 ／ 1 只有分類包含
+// 多比一個 div_category 的理由是實測出來的：台灣 ETF 名稱混用「高股息」與
+// 「高息」，只比名稱的話搜「高股息」只有 8 檔，但分類是高股息的有 76 檔
+// （00878 國泰永續高息、00919 群益台灣精選高息…全被漏掉）。
+// 「債券」「海外」更極端——名稱 0 檔，分類分別有 3 檔與 10 檔。
+// 代碼搜尋完全不受影響（0050 → 1 檔、00981A → 1 檔）。
+// ⚠ 沒有直接改 rank.js 的 _matchEtf，是為了不動到排行頁既有行為。
+//    等排行頁搜尋併入全站搜尋（後續階段）之後，這兩套就會收斂成一套。
+function _gsMatch(e, q) {
+  const code = (e.code || '').toUpperCase();
+  const name = e.name || '';
+  const cat  = e.div_category || '';
+  if (code === q) return 4;
+  if (code.startsWith(q)) return 3;
+  if (code.includes(q) || name.includes(q)) return 2;
+  if (cat.includes(q)) return 1;
+  return 0;
+}
+
 function gsSearch() {
   const input = document.getElementById('gsearch');
   const list  = document.getElementById('gsearchList');
   const q = (input.value || '').trim().toUpperCase();
   document.getElementById('gsearchClear').hidden = !q;
   _gsSel = -1;
+  // 開始查別的就把舊結果收掉，不然面板會壓著下拉
+  gsClosePanel();
   if (!q) { list.hidden = true; list.innerHTML = ''; _gsRows = []; return; }
 
-  // _matchEtf 回傳 3/2/1/0（代碼全等 > 代碼開頭 > 包含 > 不符）
   // 同分再用成交量排，常被交易的排前面
-  _gsRows = (ETFS || [])
-    .map(e => ({ e, s: _matchEtf(e, q) }))
+  const hits = (ETFS || [])
+    .map(e => ({ e, s: _gsMatch(e, q) }))
     .filter(x => x.s > 0)
-    .sort((a, b) => b.s - a.s || (b.e.avg_vol || 0) - (a.e.avg_vol || 0))
-    .slice(0, 8)
-    .map(x => x.e);
+    .sort((a, b) => b.s - a.s || (b.e.avg_vol || 0) - (a.e.avg_vol || 0));
+  _gsRows = hits.slice(0, 8).map(x => x.e);
 
   if (!_gsRows.length) {
     list.innerHTML = '<div class="gs-empty">找不到「' + input.value.trim() + '」'
-                   + '<br><span>可以試試代碼（0050）或名稱（高股息）</span></div>';
+                   + '<br><span>可以試試代碼（0050）、名稱（元大）或類型（高股息）</span></div>';
     list.hidden = false;
     return;
   }
@@ -55,13 +75,18 @@ function gsSearch() {
     + '<div class="gs-code">' + e.code + '</div>'
     + '<div class="gs-name">' + (e.name || '') + '</div>'
     + '<div class="gs-px">' + (e.price != null ? e.price : '--') + _gsFmtChg(e) + '</div>'
-    + '</div>').join('');
+    + '</div>').join('')
+    // 截斷時一定要說還有多少，不然使用者會以為「只有這幾檔」
+    + (hits.length > _gsRows.length
+        ? '<div class="gs-more">共 ' + hits.length + ' 檔符合，先顯示前 '
+          + _gsRows.length + ' 筆</div>' : '');
   list.hidden = false;
 }
 
 function gsKey(ev) {
   const list = document.getElementById('gsearchList');
-  if (ev.key === 'Escape') { gsClear(); return; }
+  // Esc 一次收乾淨：下拉、輸入、結果面板都關掉
+  if (ev.key === 'Escape') { gsClear(); gsClosePanel(); return; }
   if (!_gsRows.length || list.hidden) {
     if (ev.key === 'Enter') gsSearch();
     return;
