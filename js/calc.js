@@ -15,7 +15,13 @@ function renderChips() {
     `<div class="etf-chip ${e.code===selETF?.code?'on':''}" onclick="selChip('${e.code}')">${e.code}</div>`
   ).join('');
 }
-function selChip(code) { selETF = ETFS.find(e => e.code===code); renderChips(); calcUpdate(); revCalcUpdate(); }
+// 2026-10-03：拿掉結尾的 revCalcUpdate() 呼叫。
+// 那個函式整個專案都不存在（CSS 還留著 /* ── 逆向計算機 ── */，看來是當年移除
+// 「逆向計算機」時漏清這個呼叫點），所以每點一次晶片就丟一次
+// 「Uncaught ReferenceError: revCalcUpdate is not defined」。
+// 因為它排在最後，前面三件事都做完了，畫面看起來正常，只有 console 有紅字——
+// 最容易被當成「沒壞」而一直留著的那種。pre-split 第 1368 行一字不差，非拆檔造成。
+function selChip(code) { selETF = ETFS.find(e => e.code===code); renderChips(); calcUpdate(); }
 function calcUpdate() {
   const n = parseInt(document.getElementById('sharesIn').value) || 0;
   const next = (selETF.est * n * 1000).toFixed(0);
