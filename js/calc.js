@@ -3,7 +3,9 @@
 // ⚠ 一律用傳統 <script> 載入，不要加 type="module"：
 //   HTML 裡有 15 個行內 onclick 需要這些函式掛在 window 上。
 // ── Mutable globals（renderAll 會更新）──
-let ETFS = STATIC_ETFS;
+// 2026-10-03：初始值從 STATIC_ETFS（10 檔寫死假價格）改成空陣列。
+// 抓不到資料時寧可畫面空著並明說，也不要拿假資料充數。
+let ETFS = [];
 let selETF = ETFS.find(e => e.curated !== false) || ETFS[0];
 
 // ── Chip & calculator（只顯示精選 ETF，有準確配息資料）──

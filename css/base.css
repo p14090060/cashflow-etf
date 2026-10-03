@@ -50,6 +50,12 @@
   .status-live::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:#00e5a0; animation:pulse 1.2s ease-in-out infinite; }
   .status-closed  { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
   .status-holiday { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
+  /* 資料載入失敗。刻意不加 animation——會閃的東西一律不要 */
+  .status-error   { background:rgba(255,63,94,.12); color:#ff6b7f; border:1px solid rgba(255,63,94,.35); }
+  .data-error     { margin:0 14px 12px; padding:12px 14px; border-radius:8px; font-size:14px; line-height:1.7;
+                    background:rgba(255,63,94,.08); border:1px solid rgba(255,63,94,.3); color:#ffb3bd; }
+  .data-error b   { color:#fff; font-weight:600; }
+  .data-error[hidden] { display:none; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:16px; cursor:pointer; line-height:1; }
   .refresh-btn.spinning { animation:spin .6s linear infinite; }

@@ -13,11 +13,46 @@ fetchFlow().then(d => { if (d) renderRank(); });
 
 function openFlow(code) { _flowSel = code; switchPage('check'); }
 
+// ── 資料載入失敗的處理（2026-10-03）────────────────────────────
+// 以前抓失敗會改畫 STATIC_ETFS：0050 寫死 175.3、行事曆停在 5 月。
+// 雖然更新時間欄位會寫「示範資料」，但價格、殖利率、訊號全是假的，
+// 畫面上跟真的一模一樣——使用者沒有理由察覺自己在看假數字。
+// 現在分兩種情況講清楚，一律不拿舊資料冒充現在的資料。
+let _lastOk = '';     // 最近一次成功載入的資料時間，空字串＝從沒成功過
+
+function showDataError(err) {
+  const badge = document.getElementById('statusBadge');
+  if (badge) {
+    badge.className = 'status-badge status-error';
+    badge.textContent = '資料載入失敗';
+  }
+  const box = document.getElementById('dataError');
+  if (box) {
+    box.innerHTML = _lastOk
+      // 載入過了才失敗：畫面上的東西還有用，但要標明那是什麼時候的
+      ? '⚠ 目前無法更新，以下是 <b>' + _lastOk + '</b> 的資料，不是現在的狀況。'
+      // 從沒成功過：畫面本來就是空的，直接說拿不到
+      : '⚠ 資料暫時無法取得。<br>可能是網路問題或資料來源暫時中斷，請稍後按右上角 ↻ 重新整理。';
+    box.hidden = false;
+  }
+  console.warn('[ETF] market.json 載入失敗：', err);
+}
+
+function hideDataError() {
+  const box = document.getElementById('dataError');
+  if (box) box.hidden = true;
+}
+
 function fetchData() {
   fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/market.json?t=' + Date.now())
-    .then(r => r.json())
-    .then(d => renderAll(d.etfs, d.calendar || STATIC_CAL, d.updated, d.market, d.is_closed, d.is_holiday))
-    .catch(() => renderAll(STATIC_ETFS, STATIC_CAL, '示範資料', null, true, false));
+    // fetch 只有在網路層失敗才 reject，404/500 會進 then，所以要自己檢查
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(d => {
+      _lastOk = d.updated || '';
+      hideDataError();
+      renderAll(d.etfs, d.calendar || [], d.updated, d.market, d.is_closed, d.is_holiday);
+    })
+    .catch(showDataError);
   if (!_pollTimer) {
     _pollTimer = setInterval(fetchData, 30 * 1000);
   }
