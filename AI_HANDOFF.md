@@ -229,30 +229,30 @@
 
 **Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
 
-## Phase 3 Plan（Rev.3.1，待 Codex 最後複審）
+## Phase 3 Plan（Rev.3.2，待 Codex 複審：只驗 router blocker）
 
-- 來源：Codex 對 Rev.3（`32e92d47`）的 NEED FIX，只剩 2 個 Coding blocker。本次只做最小修訂，**未修改程式、未 Coding、未 push**。
-- 文件：`PHASE3_PLAN.md`（Rev.3.1）。
+- 來源：Codex 最後複審 Rev.3.1 仍為 NEED FIX，只剩「router timeout 後的新操作」一項。本次只修 router 段落，**未修改程式、未 Coding、未 push**。visualViewport 章節（§11）未動。
+- 文件：`PHASE3_PLAN.md`（Rev.3.2）。
 
-**Rev.3.1 實際修正**
-1. **Router timeout 與 pending 取消**（§7.8、RT-14～RT-18）：
-   - timeout 時取消並清除該次 pending navigation（continuation 永不執行）。
-   - timeout 的 traversal 轉為 orphan；晚到事件不執行舊目標。
-   - 新 navigation 的 k 以 `expected`（含 orphan 目標）計算，不以畫面狀態計算。
-   - 舊事件在新 traversal 之前抵達時不渲染；新 traversal 到達後畫面為新目標。
-   - 測試 hook：`window.__routerForceTimeout()`，僅測試使用。
-2. **visualViewport 座標**（§11.1–11.2、§11.6、LR-7～LR-9）：
-   - 所有量測使用同一座標系（`getBoundingClientRect` 相對於 layout viewport）。
-   - 可視區為 `[visualViewport.offsetTop, offsetTop + height]`，不再假設 `[0, height]`。
-   - 「看得到」以可視區交集與 `elementFromPoint` 命中判定，不以 DOM 存在判定。
-   - 測試涵蓋 offsetTop = 0、offsetTop > 0、20px 極端、鍵盤關閉恢復。offsetTop > 0 若無法在 headless 產生，標記為前置條件不成立，需 iPhone Chrome 真機補測。
-3. **§18.2 文件修正**：D-ESG-1 的敘述已改為「最終數量可依 Product Owner 的 ESG 分類決策改變；Rev.2 驗證值只是待決前的預設」。原敘述寫成「Codex 要求分布維持 Rev.2 驗證值」，這是錯誤歸因，已撤回。交接本第 8 項有同一錯誤，也一併修正。
+**核心修正**：`history.go(-k)` 的 timeout 不代表瀏覽器已抵達預期位置，因此 timeout 後不得依假定位置規劃。
 
-**D-ESG 與 D14 維持 pending**，本次不要求 Product Owner 回答，也未自行決定。
+**採用的 timeout 後同步策略：「park 直到確認」**
+1. timeout 只取消 continuation，並把 traversal 標為 orphan；**槽位仍被佔用**，不視為完成（§7.8）。
+2. 區分兩種位置：`confirmed`（瀏覽器已確認；popstate 或 3 秒 resync 時更新）與 `requested`（在途目標，**不得用於規劃**）（§7.1）。
+3. 任一時間只允許一個 traversal 在途（R4）。在途期間的新導航一律 park（last wins），不計算 k、不寫 history、不 push／replace（R5、R8）。
+4. 完成後才依 `confirmed` 求值 parked intent 並執行（§7.6、§7.7）。orphan popstate 不執行任何 continuation；parked 的執行是它自己的，不是 orphan 的 continuation（§7.6 步驟 3）。
+5. 沒有 nonce，不以 nonce 宣告完成。完成只以 popstate 為準；3 秒 resync 是 no-op 的保險（R-N3 殘餘風險，需真機確認）。
+6. 沒有 back 迴圈；每次導航最多一次 `traverse`（R4、RT-21）。Phase 2 的 Detail push／replace 語意（§6.1）不變。
+
+**測試**：RT-14～RT-21，包含「traversal 本身尚未完成」（`__routerDeferTraversal`）與 release 後的真實 traversal。核心測試 RT-16：release 前 parked 不寫入 history，`history.state` 仍為 Detail entry。
+
+**文件更正**：§18.2 與本交接本的 D-ESG 敘述已在 Rev.3.1 修正，這次不再變動。
+
+**D-ESG 與 D14 維持 pending**，本次未要求 Product Owner 回答。
 
 **下一步**
-- Codex 做最後複審 `PHASE3_PLAN.md` Rev.3.1（重點：§7.8 orphan 規則、RT-14～RT-18、§11.1 座標系、§11.6 三種情境）。
-- Codex 通過後，才依 PO 決策進入 Coding；D-ESG 與 D14 仍待 PO。
+- Codex 只驗這一個 blocker：§7.1、§7.5–§7.8、RT-14～RT-21。
+- 通過後，才依 PO 決策進入 Coding。
 
 ## Phase 2 封版狀態
 

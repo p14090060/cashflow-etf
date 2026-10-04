@@ -1,6 +1,6 @@
 # PHASE3_PLAN.md — 分類瀏覽與導覽重組（Phase 3）
 
-狀態：**Plan Rev.3.1，待 Codex 最後複審。尚未開始 Coding。**
+狀態：**Plan Rev.3.2，待 Codex 複審（只驗 router blocker）。尚未開始 Coding。**
 前置：Phase 2 VERIFIED / CLOSED（功能 baseline `1958cdc0`；封版文件 `74c61106`）。
 Rev.3 只修正 Codex 對 Rev.2（`eebc1794`）的 findings，不擴張 scope。
 
@@ -24,6 +24,8 @@ Rev.3 只修正 Codex 對 Rev.2（`eebc1794`）的 findings，不擴張 scope。
 **仍 pending**：D-ESG（三檔歸類）、D14（自選分頁內容）。
 
 **Rev.3.1 只修兩項**（不改其他章節）：(1) §7.8 的 timeout 與晚到事件規則，及對應測試 RT-14～RT-18；(2) §11.1–11.2 的 visualViewport 座標系，及對應低高度與鍵盤測試 LR-7～LR-9、§11.6。另修正 §18.2 的一句錯誤敘述。
+
+**Rev.3.2 只修 router 的 timeout 後新操作**（§7.1、§7.5–§7.8、RT-14～RT-21、§19 的 R-N3）：timeout 只取消 continuation，不代表 traversal 完成；區分「已確認位置」與「請求目標」；在途期間新導航一律 park。visualViewport（§11）未變動。
 
 ---
 
@@ -287,19 +289,24 @@ Detail 的畫面、分頁、計算機、收合、刷新 slot patching、flow 區
 
 ## 7. 共用 Router：history 協調
 
-### 7.1 退層規則（Rev.3 選定的唯一方案）
-
-以下五條是唯一規則，Rev.2 的 §7.3 與 §7.6 矛盾處已移除。
+### 7.1 退層與導航規則（Rev.3.2，唯一方案）
 
 | 規則 | 內容 |
 |---|---|
-| **R1 popstate 只渲染** | popstate 只讀 `history.state`（normalize 後）並渲染畫面。popstate 本身從不呼叫 `history.back()`／`go()`。 |
-| **R2 單層關閉** | 使用者關閉頂層（✕、Esc、Detail 的 ✕）→ `history.back()` 一次。前提：每層恰好對應一個 entry（§7.3）。 |
-| **R3 多層導航** | 需要退到共同層級或改基底時，由 router 呼叫 `navigate(target)`：計算 k = 目前深度 − 共同前綴深度，呼叫 `history.go(-k)` **一次**，並記下 pending。 |
-| **R4 pending 續行** | pending 的 push／replace 只在「popstate 深度等於預期」時執行，且在同一個 popstate 任務內、渲染之前執行，因此不會畫出中間狀態。續行**只做 push／replace，不做 back**。若深度不符（使用者在途中按了 Back），pending 放棄、不重試，以實際 state 為準。 |
-| **R5 busy 鎖** | 發出任何 back／go 時設 `busy`；收到對應 popstate 或 500ms 逾時才清除（§7.8）。busy 期間的關閉與導航請求**直接忽略，不排隊**。 |
+| **R1 popstate 只渲染** | popstate 只根據 `history.state`（normalize 後）渲染。popstate 本身不呼叫 `history.back()`、`go()`。 |
+| **R2 單層關閉** | 使用者關閉頂層 → 一次 `traverse(-1)`。 |
+| **R3 導航以 intent 表示** | 所有導航（開啟 Detail、關閉頂層、切換基底、查看持股異動）都先表示為 **intent**：在執行當下依**已確認位置**求值，回傳目標 `{base, stack}`。 |
+| **R4 單一 traversal 槽** | 任一時間最多一個 traversal 在途（含 orphan）。每次導航最多呼叫一次 `traverse(-k)`，沒有 back 迴圈。 |
+| **R5 在途時一律 park** | 槽位被佔用時，新導航不計算 k、不寫入 history，只把 intent 存為 `parked`（last wins）。 |
+| **R6 continuation 驗證** | 在途 traversal 完成時，只有已確認位置的 `base` 與 `stack` 等於規劃時的前綴，才執行其 continuation（只 push／replace）；不符則丟棄 continuation，以已確認位置渲染。驗證以內容比對進行，不宣告 traversal 已完成。 |
+| **R7 完成的唯一依據** | traversal 只有在 popstate 抵達，或 §7.8 的 resync 時才算完成。**timeout 不算完成。** |
+| **R8 在途時不寫 history** | 有在途 traversal 時，任何 history 寫入（含 `replaceTop` 的 ui 快照）都不執行；ui 狀態只留在記憶體，待確認後再快照。 |
 
-Rev.2 的「持續 back 直到 stack 為空」迴圈已移除，改為 R3 的單次 `go(-k)` 加 R4 的放棄規則。
+**位置的兩種身分（Rev.3.2 明確區分）**
+- `confirmed`：瀏覽器已確認的目前 entry（popstate 或 resync 時更新）。**所有規劃（k、前綴、intent 求值）只使用 `confirmed`。**
+- `requested`：在途 traversal 的目標。只記在 `inflight` 裡，**不得用於規劃新導航**。
+
+Rev.3.1 的 `expected` 與 nonce 已移除。
 
 ### 7.2 狀態模型
 
@@ -345,73 +352,73 @@ popstate 遇到 Phase 2 格式或 `null` 時，同樣只 normalize 當前 entry�
 
 **已知限制（沿用 Phase 2）**：↻ 使用 `location.replace` 時，跨文件的 history 會留下舊 entry（見 §7.11）。
 
-### 7.5 操作表
+### 7.5 操作表（Rev.3.2，全部經 intent）
 
-| 操作 | 作法 | history 效果 |
-|---|---|---|
-| `open(folder／tool)` | 快照當前 entry → `pushState(stack+[layer])` | +1 entry |
-| `openDetail(code)` | §6.2 規則 | 未開啟 +1；已開啟不同 code 為 replace；相同不變 |
-| `closeTop()` | R2：`history.back()` 一次 | −1 entry（由 popstate 渲染） |
-| `replaceTop(patch)` | 更新頂層 ui／view／code，`replaceState` | 0 |
-| `navigate(target)` | R3／R4（§7.7） | 退 k 層，再 push |
+| 操作 | intent（執行當下依已確認位置求值） | 無在途 traversal | 有在途 traversal（R5） |
+|---|---|---|---|
+| `openDetail(code)` | §6.2：頂層為 detail 且 code 不同 → replace；頂層非 detail → push；相同不變 | 依 §7.7 執行 | park |
+| `closeTop()` | 目標 = 已確認 stack 去掉頂層 | 一次 `traverse(-1)`（R2） | park |
+| `navigate(base／folder／tool)` | 目標 = 指定的 base 與 stack | 依 §7.7 | park |
+| `openFlow(code)` | 目標 = `{base:'cat', stack:[folder(active, flow, code)]}`（§8） | 依 §7.7 | park |
+| `replaceTop(patch)` | 只更新 ui | 立即 `replaceState` | 不寫 history（R8） |
 
-### 7.6 popstate（唯一入口）
+Phase 2 的 Detail 語意（§6.1）由 `openDetail` 的 intent 保留。
 
-1. 清除 busy（若有）。
-2. `state = normalize(event.state)`（§7.4）。
-3. 若有 pending 且 `state` 的深度等於 pending 的共同前綴深度 → 執行 pending 續行（R4），再取得最終 state。
-4. 若有 pending 但深度不符 → 放棄 pending（R4）。
-5. 渲染 `state.base` 與 `state.stack`：移除多的層、補上缺的層、套用每層 ui。
+### 7.6 popstate（唯一入口，與 §7.8 統一）
 
-### 7.7 navigate(target) 協議
+1. `c = normalize(event.state)`（§7.4）。
+2. **若無在途 traversal**：渲染 `c`；若有 `parked`，依 `c` 求值並執行（§7.7）。結束。
+3. **若有在途 traversal `f`**：
+   1. 清除 `inflight`。此 popstate 是 `f` 的完成事件（R7）。
+   2. 若 `f` 為 active，且 `c` 符合 `f` 的規劃前綴（R6），執行 `f.continuation`，得到最終 state；否則丟棄 continuation。
+   3. 若 `f` 為 **orphan**：**不執行任何 continuation。**
+   4. 渲染：若存在 `parked`，**不渲染** `c`（畫面由 parked 的執行結果決定，避免閃回舊狀態）；否則渲染 `c` 或步驟 2 的最終 state。
+   5. 若存在 `parked`：取出並清空，依**已確認位置**求值 intent 並執行（§7.7）。這是新導航自己的執行，不是 `f` 的 continuation。
 
-1. 計算共同前綴：逐層比對 **type + key + view + code**（完全相同才算共同）。基底不同則共同前綴為 0。
-2. k = 目前 stack 長度 − 共同前綴長度。
-3. 若 k > 0：設 busy，記下 pending = {depth: 共同前綴長度, base, layers: target 剩餘層}，呼叫 `history.go(-k)`。
-4. 若 k = 0：直接 push 剩餘層（不需 pop）。
-5. 續行（R4）：在 E0（或共同前綴深度）上：若基底不同則 `replaceState` 基底；然後依序 push 剩餘層。
+### 7.7 navigate(intent) 協議（Rev.3.2）
 
-**同一次導航只有一次 go**，沒有迴圈。
+1. 若 `inflight` 不為空 → `parked = intent`，返回（不計算 k，不寫 history）。
+2. 依 `confirmed` 求值 `target = intent(confirmed)`。
+3. 計算共同前綴 `p`：逐層比對 type、key、view、code；基底不同則 `p = 0`。`k = confirmed.stack.length − p`。
+4. 若 `k = 0`：基底相同，直接 push 剩餘層。
+5. 若 `k > 0`：
+   - 建立 `inflight = {delta: −k, plannedPrefix: {base: confirmed.base, stack: confirmed.stack.slice(0, p)}, continuation: {base（若不同）, layers: target.stack.slice(p)}, state: 'active'}`；
+   - 啟動 500ms timeout；
+   - 呼叫 `traverse(−k)`，這是唯一的 history traversal 呼叫。
 
-### 7.8 busy 鎖、timeout 與 orphan navigation（Rev.3.1）
+**規劃只使用 `confirmed`。** 這正是為了避免：在 traversal 尚未確認前，用假定的 expected 位置算出 k=0，並把 push／replace 寫進仍停留的舊 Detail entry。
 
-**追蹤模型**
-- router 維護 `expected`：路由器相信目前所在的 entry（stack 與 nonce）。每次發出 go、push、replace 都同步更新 `expected`。
-- 每個 entry 在 push 或 replace 時寫入一個隨機 `nonce` 到 `history.state`。
-- 每次 `navigate` 發出的 go 產生一個 **traversal**：`{targetNonce, continuation, issuedAt}`。
-- **新 navigation 的 k 一律由 `expected` 計算，不由畫面渲染狀態計算。** 瀏覽器依序執行 traversal，尚未抵達的舊 traversal 仍會移動位置，因此 `expected` 必須已包含它。
+### 7.8 timeout、orphan 與 resync（Rev.3.2）
 
-**正常完成**：popstate 的 nonce 等於 active traversal 的 `targetNonce` → 執行 continuation（只 push／replace），再渲染最終 state。
+**timeout（500ms 內沒有 popstate）**
+1. 清除 busy。使用者可以再操作，但新操作依 R5 被 park，不被忽略。
+2. **取消 `inflight.continuation`**，之後永不執行。
+3. `inflight.state = 'orphan'`。**槽位仍被佔用。** timeout 不代表 traversal 完成，瀏覽器可能尚未移動。
+4. 畫面與 history 都不變（不渲染、不寫入）。
 
-**timeout（500ms 內沒有對應 popstate）**
-1. 清除 busy。
-2. **取消該 traversal 的 continuation**，並且之後永不執行。
-3. 該 traversal 轉為 **orphan**，記錄其 `targetNonce`。
-4. `expected` 維持為 orphan 的目標（瀏覽器仍會移動過去）。畫面**不因 timeout 渲染中間狀態**。
-5. busy 已清除，使用者可以開始新操作。
+**orphan 完成**：下一個 popstate（R7）清除槽位，依 §7.6 步驟 3 處理：不執行 continuation；有 parked 時由 parked 決定畫面。
 
-**orphan 晚到的事件**
-- 事件的 nonce 等於某個 orphan 的 `targetNonce` 時：
-  - 永不執行該 orphan 的 continuation。
-  - 若此時**沒有**更新的 active traversal：渲染事件的實際 state（畫面對齊瀏覽器實際位置）。
-  - 若**有**更新的 active traversal：只消耗該 orphan，**不渲染**（最終畫面由更新的 traversal 決定）。
-- 瀏覽器依發出順序抵達事件，因此 orphan 一定早於較新的 traversal 抵達。新 traversal 的事件到達時，清空 orphan 清單。
+**resync（3000ms 內仍沒有 popstate 的保險）**
+- 讀取 `history.state` 作為已確認位置（瀏覽器目前實際所在的 entry），清除槽位，渲染，執行 parked。
+- 這是 fallback，用於 traversal 實際為 no-op 的情況。
+- 殘餘風險 R-N3（§19）：若 traversal 在 3 秒後才完成，之後的 popstate 會被當成使用者 Back（R1，只渲染），不會執行任何 continuation；但 parked 可能已依舊位置執行。真機需確認。
 
-**timeout 之後的新操作**
-- 新 navigation 以 `expected`（orphan 目標）計算 k，因此 k 正確。
-- 新 traversal 成為 active，其 continuation 只屬於它自己。
-- 只有 nonce 等於新 traversal `targetNonce` 的事件會觸發新 continuation。
+**busy 的意義**：busy 只代表「active traversal 在途且未逾時」，此時使用者請求被忽略。timeout 後不再忽略，改為 park。
 
-**期間（timeout 之前）**：busy 期間，Esc、✕、點 ETF、點頁籤、搜尋選取等導航請求一律忽略（不排隊）。
+### 7.8.1 測試 hook（只在測試環境使用，行為忠實於瀏覽器）
 
-**過場**：OPENING／CLOSING 的過場鎖與 busy 分開，只影響點擊。
-
-**測試 hook**：為了讓 timeout 可重現，router 提供測試專用的 `window.__routerForceTimeout()`，只在測試環境呼叫，行為等同 500ms 逾時。
+| hook | 行為 |
+|---|---|
+| `window.__routerDeferTraversal = true` | `traverse()` 不呼叫 `history.go`，改排入佇列，模擬「traversal 尚未完成」。`window.__routerDeferredCount` 可讀。 |
+| `window.__routerReleaseTraversal()` | 執行佇列中的真實 `history.go`，popstate 隨後抵達。 |
+| `window.__routerForceTimeout()` | 立即執行 active → orphan 的 timeout 流程。 |
+| `window.__routerForceResync()` | 立即執行 3000ms 的 resync。 |
+| `window.__routerTraversalCount` | 每次 `traverse()` 呼叫計數（RT-21）。 |
 
 ### 7.9 Esc
 
 - Esc 只呼叫 `closeTop()` 一次。
-- busy 中忽略。
+- 有在途 traversal 時，依 R5 park（以 `closeTop` 的 intent 求值，見 §7.5）；active 階段的 busy 期間忽略。
 - 頂層是 Detail → 只關 Detail，資料夾保留。
 - 頂層是資料夾 → 關資料夾。
 
@@ -794,11 +801,14 @@ Rev.3 在 `gs-ckm` 下額外讓位：
 | RT-11 | 切換 ETF 不累積層（Phase 2 語意） | Detail 開著切換 A→B→C，`history.length` 不變，一次 Back 直接離開 Detail |
 | RT-12 | 工具子頁 → Back | 回工具列表 |
 | RT-13 | Phase 2 格式的 state（`etfDetail`）載入 | normalize 為 v2；`history.length` 不變；Back 到基底不產生額外 entry（MG-1） |
-| RT-14 | timeout：清除 busy 與 continuation；畫面不渲染中間狀態（沿用 timeout 前的畫面） |
-| RT-15 | timeout → 舊事件晚到（期間無新操作） | 舊 continuation 不執行：`history.length` 不因晚到事件增加；畫面等於事件的實際 state；base 與 stack 不變成舊目標 |
-| RT-16 | timeout → 使用者新 navigation → 新操作完成 | 新操作正常完成；最終 state = 新目標；`history.length` 只增加新 continuation 的 push 數（舊 continuation 為 0） |
-| RT-17 | timeout → 新 navigation 已發出 → 舊事件才抵達 | 舊事件不渲染（畫面不閃回舊 state）；新 traversal 抵達後畫面 = 新目標 |
-| RT-18 | 測試 hook | `window.__routerForceTimeout()` 只在測試使用；行為等同 500ms 逾時 |
+| RT-14 | timeout 只取消 continuation，不釋放槽位；畫面與 history 不變；busy 清除，新操作改為 park |
+| RT-15 | **traversal 未完成**：從 Detail 發出 `traverse(−1)`（deferred）→ timeout → 使用者 navigate(tools)（parked）→ release。舊 continuation（push flow）不執行；parked 依已確認位置執行，最終基底 tools |
+| RT-16 | **核心**：同 RT-15，release 前：parked 不寫入 history（`history.length`、`history.state` 不變，仍是 Detail entry）。證明新導航沒有寫進假定的 k=0 位置（Rev.3.1 會這樣做） |
+| RT-17 | orphan 完成發生在 parked 之後：不渲染 orphan 的 flow 狀態（畫面不閃回）；最終只顯示 parked 的結果 |
+| RT-18 | hook 忠實度：`__routerDeferTraversal` 期間 `history.state`、`location`、`history.length` 不變、`__routerDeferredCount` = 1；release 後才有 popstate |
+| RT-19 | resync：deferred traversal 未 release → `__routerForceResync()` → 以 `history.state`（仍為 Detail）為已確認位置，parked 依此求值，history 順序正確 |
+| RT-20 | RT-15 完成後，`history.back()` 與 `history.forward()` 結果與 history 實際順序一致；Back 路徑上沒有舊 Detail；Forward 殘留的舊 entry 行為與 Phase 2 相同（已記錄） |
+| RT-21 | 無 back loop：每次 navigate 最多一次 `traverse`；RT-15 流程的 `__routerTraversalCount` 符合規劃（orphan 1 次，加上 parked 規劃的次數） |
 
 ### 16.6 Detail 導航與持股異動
 
@@ -865,7 +875,7 @@ Coding 完成後依協定提供逐步操作。預計項目：分類頁 8 個頁�
 | 來源 | 驗證位置 |
 |---|---|
 | Codex 1（Detail 語意） | §6、RT-11 |
-| Codex 2（退層規則）＋ Rev.3.1 timeout | §7.1、§7.8、RT-9～RT-18 |
+| Codex 2（退層規則）＋ Rev.3.1／3.2 timeout | §7.1、§7.6–§7.8、RT-9～RT-21 |
 | Codex 3（導航順序） | §8、NV-A～NV-E |
 | Codex 4（首次失敗與測試政策） | §7.10、§16.1、HF-1、HF-2 |
 | Codex 5（低高度） | §11、LR-1～LR-9 |
@@ -912,6 +922,7 @@ D11、D12、D13、D15、D16、D17（見第 0 節）。
 | R9 | `regression_test.py` 分頁切換項目需改 | §16.1，先給 Codex 看差異 |
 | R-N1 | 規則只看簡稱，官方全名可能含不同地區或策略字眼 | §3.5、D-ESG-2 |
 | R-N2 | 持股異動與中間畫面的真機表現 | §8.4；真機確認 |
+| R-N3 | resync（3 秒）是保險，若 traversal 在之後才完成，parked 可能已依舊位置執行 | §7.8；真機確認；必要時改為無限等待並顯示「處理中」 |
 
 ---
 
