@@ -110,6 +110,10 @@
     background:var(--bg); overflow-y:auto;
     border-top:1px solid var(--border);
   }
+  /* 詳細頁往下捲時收起頂部區域，回到頂部再出現（js/detail.js 的 _dtSyncCollapse） */
+  body.dt-collapsed .app-hdr { display:none; }
+  body.dt-collapsed #gsPanel { top:0; }
+  body.dt-collapsed #gsPanel .gs-panel-hd { display:none; }
   .gs-panel-hd {
     position:sticky; top:0; z-index:1; background:var(--bg);
     display:flex; align-items:center; justify-content:space-between;

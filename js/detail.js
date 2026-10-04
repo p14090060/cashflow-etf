@@ -231,7 +231,23 @@ function _dtBuild() {
     '<section class="dt-pane" data-pane="holdings"><div data-slot="holdings"></div></section>' +
     '<div class="dt-foot">本站資訊僅供參考，非個別標的買賣建議。</div>';
   _dtEl('dtSharesIn').addEventListener('input', _dtCalc);
+  _dtEl('dtSharesIn').addEventListener('focus', () => {
+    setTimeout(() => _dtEl('dtSharesIn').scrollIntoView({ block: 'center' }), 300);
+  });
   _dtSkeleton = true;
+}
+
+// 往下捲超過一點就收起頂部區域；回到頂部才出現。滯後區間避免捲動邊界來回閃動。
+function _dtSyncCollapse() {
+  if (!_detailOpen) return;
+  const body = document.body;
+  const st = _dtEl('gsPanel').scrollTop;
+  if (st > 4 && !body.classList.contains('dt-collapsed')) {
+    body.classList.add('dt-collapsed');
+  } else if (st <= 0 && body.classList.contains('dt-collapsed')) {
+    body.classList.remove('dt-collapsed');
+    _gsSyncAll();
+  }
 }
 
 function _dtSyncTabs() {
@@ -315,12 +331,17 @@ function openDetail(code, opts) {
     _dtEl('gsPanel').scrollTop = 0;
   }
   detailPatch();
+  _dtSyncCollapse();
 }
 
 function hideDetail() {
   _detailOpen = false;
   _dtSkeleton = false;
   _dtEl('gsPanel').hidden = true;
+  if (document.body.classList.contains('dt-collapsed')) {
+    document.body.classList.remove('dt-collapsed');
+    _gsSyncAll();
+  }
 }
 
 // 唯一的關閉入口。同一次開啟最多一次 history.back()：_detailPushed 在送出 back 前就清掉。
@@ -389,3 +410,5 @@ window.addEventListener('popstate', function (ev) {
 document.addEventListener('keydown', function (ev) {
   if (ev.key === 'Escape' && _detailOpen) closeDetail();
 });
+
+document.getElementById('gsPanel').addEventListener('scroll', _dtSyncCollapse, { passive: true });

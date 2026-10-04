@@ -51,6 +51,14 @@
   - 補測：Back 同時收起 Detail 與下拉，且只產生一次 popstate。
 - 瀏覽器測試腳本收入 `tests/browser/`，可由專案根目錄重跑（見 AI_HANDOFF.md）。
 
+## Android 真機回報修正（第二輪）
+
+依怡恩決定 Q1、Q2 修正：
+- **Q1（鍵盤與橫向空間不足）**：詳細頁往下捲超過 4px 時，收起頂部標題、搜尋框與詳細頁標題列（含 ✕）；回到頂部才重新出現。收起期間返回手勢仍可關閉詳細頁。計算機輸入框獲得焦點時會捲到畫面中央。
+- **Q2（↻ 重新整理）**：維持現狀，仍會關閉詳細頁。
+- 資源版本號 bump 為 `20261004d`。
+- 新增 `tests/browser/detail_collapse_test.py`（12 項）。
+
 ## 已知限制（依 Rev. 3）
 
 - `est` 與日期的同源判斷由 calendar 欄位推定，market.json 沒有 provenance 欄位。
