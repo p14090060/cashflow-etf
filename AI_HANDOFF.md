@@ -13,22 +13,88 @@
   - 新增或刪除功能
   - 修改金融公式、資料來源或 data pipeline
   - Claude 與 Codex 有無法自行解決的實質衝突
-  - 需要 Android 真機或 iOS 驗收
-- 不需要怡恩時，回覆最後寫 `【不需要怡恩處理｜等待 Codex Review】`。
+  - 需要真機驗收（主要環境：iPhone + Google Chrome；Samsung + Chrome、iPhone + Safari 為相容性抽測）
+- Codex 給怡恩的完成回覆一律使用下方白話格式；取代原先固定的「等待 Codex Review」結尾，避免誤報下一位。
 - 不 push、不進下一個 Phase，除非怡恩明確要求。
+
+### Codex 固定溝通規則
+
+- Review 技術內容可以維持專業，但最後給怡恩的回覆必須使用一般使用者看得懂的繁體中文。
+- 怡恩不是負責閱讀程式碼的工程師，不得只寫 commit、函式名稱、測試編號或「第 1、6 項」就要求她操作。
+- 技術細節放在前面，最後一定翻成白話。回覆保持精簡，但不能省略「我要怎麼做」。
+
+每次工作完成後，固定依序使用以下格式結尾：
+
+**【檢查結果】**
+
+- PASS / NEED FIX。
+- 用 1～3 句白話說明發生什麼事。
+
+**【現在需要我做事嗎？】**
+
+- 不需要時明確寫：「不用，你現在不用做任何事。」
+- 需要時明確寫：「需要，請你做以下操作。」
+
+**【如果需要我操作】**
+
+需要怡恩操作時，逐步寫清楚：
+
+1. 我要開什麼。
+2. 我要點哪裡。
+3. 我要輸入什麼（若需要）。
+4. 我要觀察什麼。
+5. 什麼結果算 PASS。
+6. 什麼結果算 FAIL。
+
+不得只寫「測 G1–G3」、「測第 1、6 項」或測試代號，除非同時附上白話操作步驟。不需要操作時可省略此區。
+
+**【下一步】**
+
+- 下一位：Claude / Codex / 怡恩 / GPT。
+- 要做什麼：用白話說明。
+
+額外規則：
+
+- 不要把本檔裡的「下一位：Codex」原封不動當成給怡恩的回覆；應依實際完成狀態更新下一步。
+- checkpoint 已 PASS 時，不重複 Review 同一個 commit range，除非有新 commit 或怡恩明確要求。
+- 下一位是 Claude，且 finding 已寫入本檔時，只告訴怡恩：「請叫 Claude 讀 AI_HANDOFF.md」，不要要求她人工轉述技術內容。
+- 下一位是怡恩時，必須提供完整操作步驟；缺少可操作的網址或必要資訊時，先明確說明缺少什麼，不把她留在無法操作的狀態。
 
 ## 目前 Checkpoint
 
 | 項目 | 內容 |
 |---|---|
-| Phase / Task | Phase 2 ETF 詳細頁／Codex review 修正（Round 1） |
+| Phase / Task | Phase 2 ETF 詳細頁／Codex Blocker 第二輪（延遲搜尋的取消範圍） |
+| 本輪修正 commit | `1958cdc0`（程式與測試，不含文件） |
+| 本輪 Review 範圍 | `369f3616..1958cdc0`（涵蓋 `1ca7cf08` 與本輪修正；Codex 上一輪 `d88da242..369f3616` 已完成，結果 NEED FIX） |
+| 上一個修正 commit | `1ca7cf08` |
 | Phase 2 實作 commit | `6033ecb8fd94cf973e97d27c205494c30f26d909` |
-| 修正 commit | `bb9d59e68be8da4e3f7fc18bfbd936a0776e1a42` |
-| Review 範圍 | `6033ecb8..bb9d59e6`（本檔所在 commit 僅更新本檔） |
+| Round 1 修正 commit | `bb9d59e68be8da4e3f7fc18bfbd936a0776e1a42`（Review 範圍 `6033ecb8..bb9d59e6`） |
 | Plan 依據 | `PHASE2_PLAN.md` Rev. 3（GPT Final Gate 核准） |
 | Changelog | `PHASE2_CHANGELOG.md` |
 
-## Claude 做了什麼
+## 本輪 Blocker：延遲搜尋未在離開 Detail 時取消
+
+**問題**：按搜尋後有 300ms 延遲。若期間按 ✕、按 Back、或點搜尋列以外的地方，舊的延遲請求仍會開啟 Detail，或把下拉重新叫出來。`1ca7cf08` 只補了清除、改查、直接選取、切換分頁四種情況。
+
+**修正**（commit `1958cdc0`，只改下列三處，沒有重構）：
+- `closeDetail()` 開頭呼叫 `cancelPendingSearch()`（✕ 與 Esc 都走這裡）。
+- popstate（Back）開頭呼叫 `cancelPendingSearch()`。
+- 點搜尋列外側的 click 處理呼叫 `cancelPendingSearch()`。
+- `index.html` 資源版本號 bump 為 `20261004o`。
+
+**新增回歸測試**：`tests/browser/search_compact_test.py` 的 X5–X8（桌面模擬，以程式直接呼叫送出流程）。
+
+| 編號 | 情境 | 修正前 | 修正後 |
+|---|---|---|---|
+| X5 | 開著詳細頁，送出 0050，期間呼叫 closeDetail | FAIL | PASS |
+| X6 | 開著詳細頁，送出「高股息」，期間呼叫 closeDetail，下拉不得重現 | FAIL | PASS |
+| X7 | 送出 0050 期間按 Back，不得開出 0050 詳細頁 | FAIL | PASS |
+| X8 | 送出「高股息」期間點搜尋列外側，下拉不得重現 | FAIL | PASS |
+
+**未修改**：收合測試 C7、C9（見下方「測試結果」），本輪不處理。
+
+## Round 1 修正（`bb9d59e6`）
 
 - **Finding 1（Blocker）**：pending restore 可能在使用者已離開 Detail entry 後被延遲 callback 還原。
   - `_tryRestoreDetail()` 先清除 `_restoreCode`，且只在 `history.state` 仍是同代碼的 `etfDetail` entry 時還原。
@@ -41,9 +107,16 @@
 
 | 測試 | 結果 |
 |---|---|
+| `tests/browser/search_compact_test.py` | 38 / 38 PASS（含本輪 X5–X8；修正前 X5–X8 為 FAIL） |
 | `tests/browser/detail_ui_test.py` | 42 / 42 PASS |
 | `tests/browser/detail_history_fix_test.py` | 14 / 14 PASS |
 | `tests/browser/regression_test.py` | 14 / 14 PASS |
+| `tests/browser/detail_collapse_test.py` | **19 / 21**，C7、C9 FAIL（既有問題，見下） |
+
+**收合測試 C7、C9 失敗（與本輪無關）**：
+- 在 `1ca7cf08` 的匯出版（另一個埠）執行同一支測試，結果完全相同：C7 實測溢出 217px（預期 60–160px），C9 切回 overview 後仍維持收合。
+- 原因尚未查清。推測是測試依賴即時 `market.json`，內容變動後 0050 詳細頁高度改變，導致 spacer 前置條件失效。這是推測，尚未證實。
+- 本輪未修改收合測試。請 Codex 以 HEAD 對照結果為準，不要把這兩項算在本輪修正上。
 | 靜態：殘留 `gsClosePanel` / `gsGoFlow` | 0 筆 |
 | 靜態：頂層全域名稱重複宣告 | 無 |
 | 執行期未捕捉例外 | 無 |
@@ -61,10 +134,23 @@
 |---|---|---|
 | F1 pending restore 在基底 entry 被還原 | Blocker | 已修正，待 Codex 複查 |
 | F2 Back 關閉 Detail 時下拉未收起 | Risk | 已修正，待 Codex 複查 |
+| 延遲搜尋：✕／Back／點搜尋列外側未取消（Codex 上一輪 NEED FIX） | Blocker | 已修正（`1958cdc0`），待 Codex 複審 |
 
-**Ready for Codex re-review.**
+**Ready for Codex re-review**（範圍 `369f3616..1958cdc0`）。
 
-## Android 真機驗收（第一輪，測試版本 bb9d59e6）
+## 真機環境更正（怡恩 2026-10-04）
+
+- 今天實際真機測試的環境是 **iPhone + iOS + Google Chrome**，不是 Samsung／Android。
+- 文件中原本標為 Android、Samsung 的真機紀錄是誤歸類，已改寫為 iPhone + Chrome 的紀錄。若某一輪實際不是這台手機，請怡恩指出，再更正。
+- 今天量到的 `innerHeight` 20 → 276，以及「0050 → 按鍵盤搜尋 → 鍵盤收起 → Detail 開啟 PASS」，都是 iPhone + Chrome 真機結果。
+- 先前依 Samsung 瀏覽器推論的「標題列與工具列佔掉大部分高度」，尚未在 iPhone 上驗證，視為待確認，不是已證實的原因。
+- 今後 QA 矩陣：
+  1. **iPhone + Chrome**：主要驗收環境。
+  2. **iPhone + Safari**：相容性抽測，只測首頁、搜尋與鍵盤、直橫向、Detail、返回。
+  3. **Samsung + Chrome**：相容性抽測，同樣只測關鍵流程。
+- QA 紀錄不得從截圖或上下文推測裝置、OS 或瀏覽器。只有怡恩明確確認的環境，才能標記為真機 PASS。
+
+## 真機驗收（第一輪，測試版本 bb9d59e6）
 
 | # | 項目 | 結果 | 說明 |
 |---|---|---|---|
@@ -82,7 +168,7 @@
 - Q1：詳細頁開著時，頂部區域怎麼處理？
 - Q2：↻ 按鈕要保留詳細頁，還是維持目前的關閉行為？
 
-## Android 真機驗收第二輪（修正 commit `0c679655`）
+## 真機驗收第二輪（修正 commit `0c679655`）
 
 | 項目 | 狀態 |
 |---|---|
@@ -112,9 +198,10 @@
 
 ## 尚待處理事項
 
-- Codex 複審 `9ece2c6d`。
-- 複審通過後，怡恩回測第 1、6 項（需要新版網址，屆時重新匯出）。
-- iOS Safari：未實測，列為 Known Limitation。
+- Codex 複審 `369f3616..1958cdc0`（本輪 Blocker 修正）。
+- 複審通過後，怡恩在 iPhone + Chrome 回測：按搜尋後，若按 ✕ 或 Back，不應再跳出舊結果（需要新版測試網址，屆時重新匯出）。
+- 收合測試 C7、C9 的既有失敗：原因待查（見上）。
+- 相容性抽測：iPhone + Safari、Samsung + Chrome，只測關鍵流程。
 - 尚未 push。push 後 GitHub Pages 會直接上線。
 - 已知限制（不在本 Phase 修正）：
   - `fetch_etf.py:882-884` 在歷史不足時寫入 `0.0`，前端無法與真實 0% 區分。
