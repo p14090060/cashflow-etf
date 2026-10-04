@@ -201,12 +201,28 @@
 
 **Ready for Codex re-review**（範圍 `6bf51c54..9ece2c6d`）。
 
+## iPhone + Google Chrome 真機回測（怡恩，測試版本 `b5af04c3`）
+
+環境：怡恩確認為 **iPhone + iOS + Google Chrome**（iOS／Chrome 版本號未提供，未記錄）。測試網址為 `http://192.168.68.52:8080/index.html?r=b5af04c3`（HEAD `b5af04c3` 匯出，區網服務）。
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 1 | 直向搜尋 0050 → 點結果開 Detail → ✕ 關閉 | **PASS** |
+| 2 | Detail 開著按返回 → 關閉，搜尋下拉不殘留 | **PASS** |
+| 3 | 橫向＋鍵盤輸入 0050 → 按「搜尋」→ 鍵盤收起 → Detail 開啟 | **PASS** |
+| 4 | 橫向＋鍵盤輸入「高股息」→ 按「搜尋」→ 鍵盤收起 → 列表顯示、不開 Detail | **PASS** |
+| 5 | 直向 Detail 配息頁 → 點股數輸入框 → 輸入框在鍵盤上方可見、結果可讀（原第 1 項） | **PASS** |
+| 6 | 橫向 Detail 捲動 → 收起／回頂部恢復，無閃動（原第 6 項） | **PASS** |
+
+- 延遲取消（✕／返回／點外側）的 300ms 競態無法手動精準重現，由桌面自動測試 X5–X8 涵蓋；真機只確認主流程。
+- 本次回測屬於 iPhone + Chrome。**不代表** Samsung + Chrome 或 iPhone + Safari 的結果。
+
 ## 尚待處理事項
 
-- Codex 複審 `369f3616..1958cdc0`（本輪 Blocker 修正）。
-- 複審通過後，怡恩在 iPhone + Chrome 回測：按搜尋後，若按 ✕ 或 Back，不應再跳出舊結果（需要新版測試網址，屆時重新匯出）。
-- 收合測試 C7、C9：測試條件已修正（`82dc1dde`），待 Codex 複審。
-- 相容性抽測：iPhone + Safari、Samsung + Chrome，只測關鍵流程。
+- Codex 複審 `369f3616..b5af04c3`（搜尋 Blocker 修正、收合測試條件修正、交接本）：Codex 結論 PASS。
+- 相容性抽測尚未進行：iPhone + Safari、Samsung + Chrome，只測關鍵流程（首頁、搜尋與鍵盤、直橫向、Detail、返回）。
+- Phase 2 是否結案：待 GPT Gate 確認。
+- 文件中仍有 Android 字樣的位置（PHASE1_CHANGELOG.md、PHASE2_PLAN.md 的測試代號）尚未更正，待怡恩決定。
 - 尚未 push。push 後 GitHub Pages 會直接上線。
 - 已知限制（不在本 Phase 修正）：
   - `fetch_etf.py:882-884` 在歷史不足時寫入 `0.0`，前端無法與真實 0% 區分。
