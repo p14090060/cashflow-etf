@@ -71,12 +71,14 @@ click('#catSortBtn')
 
 # ── 次要區切換：只 replace，不增加 history ──
 L = ev("history.length")
+ev("(function(){ if (document.getElementById('catMain').classList.contains('cat-inside')) document.getElementById('catExpand').click(); return true; })()"); wait_ms(200)
 ev("(function(){ const b=document.querySelector('#catStrip button[data-k=\"mcap\"]'); b.click(); return true; })()"); wait_ms(120)
 check('STRIP switch folder to 市值 replaces (no new entry)', ev("history.length") == L, '%s vs %s' % (ev("history.length"), L))
 check('STRIP switch: router folder key = mcap', ev("Router.state().stack[0].key") == 'mcap')
 check('STRIP switch: title shows 市值型', ev("document.getElementById('catName').textContent") == '市值型')
 check('STRIP switch: 市值型 shows first 10 (resets shown)', ev("document.querySelectorAll('#catList .cat-row').length") == 10)
 check('STRIP switch: more says 還有 6 檔', ev("document.getElementById('catMore').textContent") == '查看更多（還有 6 檔）')
+ev("(function(){ if (document.getElementById('catMain').classList.contains('cat-inside')) document.getElementById('catExpand').click(); return true; })()"); wait_ms(200)
 click('#catStrip button[data-k="active"]')
 
 # ── 持股異動分段：可見、treemap 有畫、選檔後 ui 記住 ──
@@ -287,7 +289,7 @@ bl_shown_after = ev("Router.state().stack[0].ui.shown")
 set_view(390, 844, 'portraitPrimary'); wait_ms(400)
 check('BACK-TO-NORMAL layer removed (no cat-tight3 on page or main)', ev("document.getElementById('catMain').classList.contains('cat-tight3') || document.getElementById('page-cat').classList.contains('cat-tight3')") is False)
 check('BACK-TO-NORMAL list height >= 110px and visible', ev("(function(){ const l=document.getElementById('catList'); return !l.hidden && l.getBoundingClientRect().height >= 110; })()") is True, ev("document.getElementById('catList').getBoundingClientRect().height"))
-check('BACK-TO-NORMAL no inner more row, external more shown', ev("document.querySelectorAll('#catList .cat-more-in').length") == 0 and ev("getComputedStyle(document.getElementById('catMore')).display") != 'none')
+check('BACK-TO-NORMAL 查看更多 inside list (D4, portrait list); external hidden', ev("document.querySelectorAll('#catList .cat-more-in').length") == 1 and ev("getComputedStyle(document.getElementById('catMore')).display") == 'none')
 check('BACK-TO-NORMAL folder state kept (sort, shown)', ev("Router.state().stack[0].ui.sort") == bl_sort and ev("Router.state().stack[0].ui.shown") == bl_shown_after, (ev("Router.state().stack[0].ui.sort"), ev("Router.state().stack[0].ui.shown")))
 check('BACK-TO-NORMAL no horizontal overflow', ev("document.documentElement.scrollWidth <= innerWidth") is True)
 
@@ -369,6 +371,112 @@ check('LR-8 SELF-TEST (stub): region below the search → checker reports search
 ev("(function(){ const i=document.getElementById('gsearch'); i.blur(); i.dispatchEvent(new Event('blur')); return true; })()"); wait_ms(300)
 
 set_view(390, 844, 'portraitPrimary')
+# ── PT（PHASE3 Gate：直向 inside／doorway）：主 TAB ▾／▴、其他分類收合、清單取得空間、導覽列不遮擋、footer 可正常捲到 ──
+PT_JS = """(function(){
+  const q = id => document.getElementById(id);
+  const r = el => el ? el.getBoundingClientRect() : null;
+  const list = q('catList'), nav = document.querySelector('.bottom-nav'), inner = document.querySelector('#catList .cat-more-in');
+  const lr = r(list), nr = r(nav);
+  return { ctl: q('catMain').classList.contains('cat-ctl'), inside: q('catMain').classList.contains('cat-inside'),
+           expText: q('catExpand').textContent, expAria: q('catExpand').getAttribute('aria-expanded'),
+           expDisp: getComputedStyle(q('catExpand')).display, stripDisp: getComputedStyle(q('catStrip')).display,
+           listTop: Math.round(lr.top), listH: Math.round(lr.height), listBottom: Math.round(lr.bottom), navTop: Math.round(nr.top),
+           listScroll: list.scrollTop, footDisp: getComputedStyle(q('catFoot')).display,
+           extMoreDisp: getComputedStyle(q('catMore')).display, innerCount: document.querySelectorAll('#catList .cat-more-in').length,
+           scrollY: Math.round(scrollY), docH: document.documentElement.scrollHeight, title: q('catName').textContent,
+           portrait: matchMedia('(orientation: portrait)').matches };
+})()"""
+PT_CLICK = lambda sel: ev("(function(){ const el=document.querySelector(%s); if(el) el.click(); return !!el; })()" % json.dumps(sel))
+PT_EMPTY = {'ctl': False, 'inside': False, 'expText': None, 'expAria': None, 'expDisp': None, 'stripDisp': None, 'listTop': 0, 'listH': 0, 'listBottom': 0, 'navTop': 0, 'listScroll': 0, 'footDisp': None, 'extMoreDisp': None, 'innerCount': 0, 'scrollY': 0, 'docH': 0, 'title': None, 'portrait': False}
+def pt():
+    r = ev(PT_JS)   # 缺少元素（例如舊版）時 JS 會出錯：回傳空值，讓各檢查判為 FAIL，而不是中斷測試
+    return r if isinstance(r, dict) else PT_EMPTY
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("Router.toBase({base:'home'}); true"); wait_ms(200)
+ev("switchPage('cat'); true"); wait_ms(200)
+ev("document.querySelector('.cat-band[data-k=\"mcap\"]').click(); true"); wait_ms(450)
+p0 = pt()
+check('PT-1 portrait open: 進入 inside（其他分類收合，▾ 可見）', p0['ctl'] and p0['inside'] and p0['stripDisp'] == 'none' and p0['expText'] == '▾' and p0['expAria'] == 'false' and p0['expDisp'] != 'none', p0)
+check('PT-1 inside: 說明列與外部「查看更多」隱藏，清單內有「查看更多」（D4／D5）', p0['footDisp'] == 'none' and p0['extMoreDisp'] == 'none' and p0['innerCount'] == 1, p0)
+check('PT-1 inside: 清單底部在導覽列上方（頁面未捲動）', p0['listBottom'] <= p0['navTop'] and p0['scrollY'] == 0, p0)
+# 排序／已展開數／捲動在 inside ↔ doorway 切換前後保留（Router 資料夾層）
+PT_click_sort = ev("(function(){ document.getElementById('catSortBtn').click(); return true; })()"); wait_ms(120)
+ev("(function(){ const m=document.querySelector('#catList .cat-more-in'); if(m) m.click(); return true; })()"); wait_ms(150)
+ev("document.getElementById('catList').scrollTop = 40; true"); wait_ms(300)
+ui_before = ev("JSON.stringify(Router.state().stack[0].ui)")
+ls_before = ev("document.getElementById('catList').scrollTop")
+h_inside = pt()['listH']
+PT_CLICK('#catExpand'); wait_ms(250)
+p1 = pt()
+check('PT-2 ▾ → doorway：其他分類顯示、▴、清單高度減少（約一列）', p1['inside'] is False and p1['stripDisp'] != 'none' and p1['expText'] == '▴' and p1['expAria'] == 'true' and p1['listH'] < h_inside, (p1['listH'], h_inside))
+check('PT-2 inside→doorway：清單多出的空間為次要標籤列高度（±4px）', abs((h_inside - p1['listH']) - 48) <= 4, (h_inside, p1['listH']))
+check('PT-2 doorway：排序、已展開數、捲動保留（Router 資料夾層不變）', ev("JSON.stringify(Router.state().stack[0].ui)") == ui_before, (ev("JSON.stringify(Router.state().stack[0].ui)"), ui_before))
+check('PT-2 doorway：清單捲動位置不跳動', ev("document.getElementById('catList').scrollTop") == ls_before, (ev("document.getElementById('catList').scrollTop"), ls_before))
+PT_CLICK('#catExpand'); wait_ms(250)
+p2 = pt()
+check('PT-3 ▴ → inside 再次（其他分類收合，清單高度回復）', p2['inside'] and p2['stripDisp'] == 'none' and p2['listH'] == h_inside, (p2['listH'], h_inside))
+check('PT-3 inside again：捲動位置與 Router 狀態不變', ev("document.getElementById('catList').scrollTop") == ls_before and ev("JSON.stringify(Router.state().stack[0].ui)") == ui_before, (ev("document.getElementById('catList').scrollTop"), ls_before))
+# 點主 TAB 標題區也能切換
+ev("document.querySelector('#catMain .cat-title').click(); true"); wait_ms(200)
+check('PT-4 點主 TAB 標題區：inside → doorway', pt()['inside'] is False)
+ev("document.querySelector('#catMain .cat-title').click(); true"); wait_ms(200)
+check('PT-4 點主 TAB 標題區：doorway → inside', pt()['inside'] is True)
+# doorway 選另一分類 → 立即新的 inside
+PT_CLICK('#catExpand'); wait_ms(250)
+PT_CLICK('#catStrip button[data-k="div"]'); wait_ms(350)
+p3 = pt()
+check('PT-5 doorway 選「高股息」→ 新分類立即 inside（主 TAB 改名、其他分類收合）', p3['title'] == '高股息' and p3['inside'] and p3['stripDisp'] == 'none' and p3['expText'] == '▾', p3)
+# 高股息清單：查看更多在清單底部、捲到底可見、可點、導覽列不遮擋
+ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
+ib = ev("(function(){ const b=document.querySelector('#catList .cat-more-in'); if(!b) return null; const r=b.getBoundingClientRect(); const l=document.getElementById('catList').getBoundingClientRect(); const n=document.querySelector('.bottom-nav').getBoundingClientRect(); return {top:r.top, bottom:r.bottom, lTop:l.top, lBottom:l.bottom, navTop:n.top}; })()")
+check('PT-6 查看更多：捲到清單底部後可見、在清單內、在導覽列上方', isinstance(ib, dict) and ib['top'] >= ib['lTop'] - 0.5 and ib['bottom'] <= ib['lBottom'] + 0.5 and ib['bottom'] <= ib['navTop'], ib)
+hit_more = ev("(function(){ const b=document.querySelector('#catList .cat-more-in'); const r=b.getBoundingClientRect(); const e=document.elementFromPoint(r.left+r.width/2, (r.top+r.bottom)/2); return !!e && (e===b || b.contains(e)); })()")
+check('PT-6 查看更多：elementFromPoint 命中按鈕（未被導覽列或其他元素蓋住）', hit_more is True)
+rows_before = ev("document.querySelectorAll('#catList .cat-row').length")
+ev("document.querySelector('#catList .cat-more-in').click(); true"); wait_ms(200)
+check('PT-6 查看更多：點擊後多列出 10 檔', ev("document.querySelectorAll('#catList .cat-row').length") == rows_before + 10, (rows_before, ev("document.querySelectorAll('#catList .cat-row').length")))
+# 導覽列不遮擋：頁面捲動後，清單底部仍在導覽列上方（清單高度不隨捲動改變）
+ev("window.scrollTo(0, 150); true"); wait_ms(300)
+p4 = pt()
+check('PT-7 頁面捲動 150px：清單底部仍在導覽列上方（不被遮住）', p4['listBottom'] <= p4['navTop'] + 0.5, p4)
+ev("window.dispatchEvent(new Event('resize')); true"); wait_ms(250)
+p4b = pt()
+check('PT-7 頁面捲動後觸發 resize：清單高度不因捲動改變（以未捲動位置計算）', p4b['listH'] == p4['listH'] and p4b['listBottom'] <= p4b['navTop'] + 0.5, (p4['listH'], p4b['listH'], p4b['listBottom'], p4b['navTop']))
+ev("window.scrollTo(0, 0); true"); wait_ms(300)
+p5 = pt()
+check('PT-7 頁面回到頂端：清單高度與位置與 inside 一致（未因捲動改變）', p5['listH'] == pt()['listH'] and p5['listBottom'] <= p5['navTop'], p5)
+# footer 仍可透過正常頁面捲動看到（D6 未採用，不鎖定）
+ev("window.scrollTo(0, 99999); true"); wait_ms(300)
+foot = ev("(function(){ const f=document.querySelector('.site-footer').getBoundingClientRect(); const n=document.querySelector('.bottom-nav').getBoundingClientRect(); return {top:f.top, bottom:f.bottom, navTop:n.top, scrollY:scrollY, docH:document.documentElement.scrollHeight, innerH:innerHeight}; })()")
+check('PT-8 footer：正常捲動可到達（scrollY > 0，footer 完整在導覽列上方）', foot['scrollY'] > 0 and foot['top'] >= 0 and foot['bottom'] <= foot['navTop'] + 1, foot)
+ev("window.scrollTo(0, 0); true"); wait_ms(250)
+# flow（持股異動）：不啟用 inside；次要標籤列顯示。回到清單：重新進入 inside
+PT_CLICK('#catExpand'); wait_ms(250)
+PT_CLICK('#catStrip button[data-k="active"]'); wait_ms(350)
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"flow\"]').click(); return true; })()"); wait_ms(300)
+pf = pt()
+check('PT-9 持股異動檢視：不啟用 inside，次要標籤列與 ▾ 不影響（展開控制隱藏）', pf['ctl'] is False and pf['expDisp'] == 'none' and pf['stripDisp'] != 'none', pf)
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click(); return true; })()"); wait_ms(300)
+check('PT-9 回到清單：重新進入 inside（其他分類收合）', pt()['inside'] is True)
+# Detail 開關不改變模式（doorway 保留）
+PT_CLICK('#catExpand'); wait_ms(250)
+ev("(function(){ document.querySelector('#catList .cat-row').click(); return true; })()"); wait_ms(300)
+check('PT-10 doorway 中開 Detail', ev("!document.getElementById('gsPanel').hidden") is True)
+ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(320)
+check('PT-10 關閉 Detail 後仍為 doorway（模式不變）', pt()['inside'] is False and pt()['expText'] == '▴')
+# 收合回到總覽：✕ → overview，展開控制與清單模式移除
+ev("document.getElementById('catClose').click(); true"); wait_ms(320)
+po = pt()
+check('PT-11 ✕ 回到總覽：不再有 cat-ctl／cat-inside', po['ctl'] is False and po['inside'] is False)
+# 橫向：路徑不變（無展開控制、次要標籤列顯示、清單可見）
+set_view(844, 390, 'landscapePrimary'); wait_ms(300)
+ev("document.querySelector('.cat-band[data-k=\"mcap\"]').click(); true"); wait_ms(450)
+pl = pt()
+check('PT-12 橫向：無 inside／▾，次要標籤列顯示（不 regression）', pl['ctl'] is False and pl['inside'] is False and pl['expDisp'] == 'none' and pl['stripDisp'] != 'none', pl)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+check('PT-12 回到直向：inside 重新啟用', pt()['inside'] is True and pt()['ctl'] is True)
+ev("document.getElementById('catClose').click(); true"); wait_ms(320)
+
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))
 fails = [r for r in results if r[1] is False]

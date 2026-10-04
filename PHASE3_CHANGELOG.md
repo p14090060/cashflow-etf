@@ -315,3 +315,92 @@ LR-4 恢復檢查中的「查看更多」改為同時接受清單內按鈕（`.c
 ### 版本
 
 - `index.html` 資源版本號 `20261005k`。
+
+## 直向 inside／doorway（PHASE3 Gate 核准，UX 調整）
+
+PO 真機回饋：分類開啟後，其他 7 個分類 TAB 占用主要垂直空間，清單太小。Gate 核准狀態模型與 D4、D5；D6（鎖定頁面）不採用，頁面維持正常捲動。
+
+### 狀態模型（Category 內部，不寫入 Router）
+
+| 狀態 | 條件 | 畫面（直向列表） |
+|---|---|---|
+| overview | 沒有開啟分類 | 8 個分類總覽（不變） |
+| inside | 進入任一分類（含換分類、從持股異動切回清單） | 主 TAB＋▾；其他 7 個分類收合（`#catStrip` 隱藏） |
+| doorway | 在 inside 點主 TAB 或 ▾ | 主 TAB＋▴；其他 7 個分類重新顯示 |
+
+- inside → doorway：點主 TAB 標題區，或點 ▾。
+- doorway → inside：點主 TAB 標題區，或點 ▴。
+- doorway → 新分類 inside：點另一個次要標籤，`Router.openFolder` 之後立即進入 inside。
+- 任一狀態 → overview：點 ✕。
+- Detail 開關、Back／Forward 回到同一分類：模式不變（key 與 view 不變）。
+- 不做「回頂自動展開」。
+
+### 主 TAB 的展開 affordance
+
+- `#catExpand`：44×44px，文字 ▾（inside）／▴（doorway），`aria-expanded`、`aria-label` 同步。
+- 點擊區：▾ 按鈕與主 TAB 標題區（`.cat-title`）都可切換。
+- 只在直向、列表檢視、非 gs-ckm 顯示（`#catMain.cat-ctl`）。橫向與鍵盤模式隱藏，次要標籤列依現有路徑顯示或隱藏。
+
+### 避免 Bottom Nav 遮擋清單（D4、D5，未鎖定頁面）
+
+1. **清單底部位置**：`fit()` 在直向時以「頁面未捲動」的清單頂端計算（`rect.top + scrollY`），清單底部固定在導覽列頂端 − 8px。頁面捲動或 resize 時，清單高度不會因捲動而改變（PT-7 覆蓋；拿掉 `scrollY` 項會 FAIL）。
+2. **查看更多**（D4）：直向列表也移入清單底部（`.cat-more-in`），外部按鈕在 `#catMain.cat-ctl` 下隱藏。清單捲到底時，按鈕在清單內、位於導覽列上方，可點擊（PT-6）。
+3. **分類說明文字 `#catFoot`**（D5）：直向列表（inside／doorway）隱藏，它是清單下方、會被導覽列蓋住的重複文字。`.site-footer` 不隱藏，也不改動。
+4. **頁面捲動**：不鎖定，footer 透過正常捲動可到達（PT-8：scrollY > 0，footer 完整在導覽列上方）。
+
+### 高度變化（390×844，主動式，D2 暫緩，說明列保留）
+
+- inside 清單 422px，doorway 清單 374px，inside 多 48px（實測 PT-2、PT-3）。
+
+### 不變的項目
+
+- sort、shown、scroll：仍在 Router 的資料夾層；模式只存在 Category（PT-2、PT-3）。
+- 橫向：無 ▾、次要標籤列顯示、清單可見（PT-12）。
+- LR-4 鍵盤 fallback、844×390 無鍵盤 blocker：橫向路徑，全部 PASS。
+- Router、Detail、Flow：未修改。
+
+### 自動驗收（`category_test.py` PT 區塊，390×844）
+
+| 編號 | 檢查 |
+|---|---|
+| PT-1 | 開啟分類 → inside；▾ 可見；次要標籤列隱藏；說明列與外部「查看更多」隱藏；清單內有「查看更多」；清單底部在導覽列上方 |
+| PT-2 | ▾ → doorway；清單高度減少約 48px；排序、已展開數、捲動保留；捲動位置不跳動 |
+| PT-3 | ▴ → inside；清單高度與 Router 狀態回復 |
+| PT-4 | 點主 TAB 標題區，inside ↔ doorway |
+| PT-5 | doorway 選「高股息」→ 新分類立即 inside |
+| PT-6 | 查看更多：捲到底可見、在清單內、在導覽列上方；elementFromPoint 命中；點擊多列 10 檔 |
+| PT-7 | 頁面捲動 150px：清單底部仍在導覽列上方；捲動後 resize 不改變清單高度；回到頂端一致 |
+| PT-8 | footer 可透過正常捲動到達，完整在導覽列上方 |
+| PT-9 | 持股異動檢視不啟用 inside；回到清單重新進入 inside |
+| PT-10 | doorway 開 Detail 後關閉，模式保留 |
+| PT-11 | ✕ 回到總覽，移除 inside／ctl |
+| PT-12 | 橫向：無 ▾、次要標籤列顯示；回到直向 inside 重新啟用 |
+
+### 負向對照
+
+- 還原 `29681bf2` 的 index.html、category.js、category.css：PT 區塊 16 項 FAIL（inside、▾、D4、點擊、模式保留等）。
+- 移除 `fit()` 的 `scrollY` 項：PT-7 resize 檢查 FAIL（清單被撐到 620px）。
+
+### 測試結果（headless Chrome）
+
+| 測試 | 結果 |
+|---|---|
+| `router_test.py` | 64 / 64 PASS |
+| `search_compact_test.py`（Phase 1） | 38 / 38 PASS |
+| `detail_ui_test.py`（Phase 2） | 42 / 42 PASS |
+| `detail_history_fix_test.py`（Phase 2） | 14 / 14 PASS |
+| `regression_test.py`（Phase 2） | 14 / 14 PASS |
+| `detail_collapse_test.py`（Phase 2） | 25 / 25 PASS |
+| `detail_state_test.py` | 42 / 42 PASS |
+| `category_test.py` | 146 PASS，0 FAIL，**1 DEFER**（LR-8 真機） |
+
+### 已知限制（記錄）
+
+- doorway 模式不寫入 history：Back／Forward 回到同一分類時，模式依 Category 目前狀態，不依 entry。
+- 頁面向下捲動後，標題列與 ▾ 會捲出畫面，需要向上捲回才能展開（不做回頂自動展開，依 Gate）。
+- 直向鍵盤開啟（gs-ckm）時，展開控制與次要標籤列隱藏，依既有 gs-ckm 路徑。
+- LR-8（鍵盤開啟的可視區偏移）仍留給 iPhone Chrome 真機。
+
+### 版本
+
+- `index.html` 資源版本號 `20261005l`。

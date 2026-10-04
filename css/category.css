@@ -128,6 +128,19 @@ body.gs-ckm .cat-foot { display: none; }
 #page-cat .cat-tight3 .cat-btn { min-height: 28px; padding: 2px 8px; font-size: 13px; }
 #page-cat .cat-tight3 .cat-title { font-size: 15px; }
 #page-cat .cat-tight3 > .cat-more { display: none; }
+/* 直向店內／店門口（PHASE3 Gate 核准）：主 TAB 的 ▾／▴ 控制（44×44）；inside 時其他分類收合；
+   查看更多在清單底部（外部按鈕隱藏）；分類說明文字（catFoot）隱藏。只在 #catMain.cat-ctl（直向、列表、非鍵盤）生效。 */
+.cat-expand { display: none; }
+#catMain.cat-ctl .cat-expand {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  width: 44px; height: 44px; padding: 0; margin: 0;
+  background: none; color: var(--dim); border: 1px solid var(--border); border-radius: 8px;
+  font: inherit; font-size: 16px; line-height: 1; cursor: pointer;
+}
+#catMain.cat-ctl .cat-title { cursor: pointer; }
+#catMain.cat-inside > #catStrip { display: none; }
+#catMain.cat-ctl > .cat-more { display: none; }
+#catMain.cat-ctl > .cat-foot { display: none; }
 .cat-more-in {
   display: block; width: 100%; min-height: 44px;
   background: var(--card2); color: var(--dim); border: none; border-top: 1px solid var(--border);

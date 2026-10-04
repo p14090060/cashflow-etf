@@ -14,6 +14,10 @@ const Category = (function () {
   let state = 'overview';    // overview | opening | open | closing
   let timer = null;
   let scrollTimer = null;
+  // 直向「店內／店門口」（PHASE3 Gate 核准）：stripOpen=false 為 inside（其他分類收合），true 為 doorway（其他分類顯示）。
+  // 只存在 Category，不寫入 Router；不做回頂自動展開。
+  let stripOpen = false;
+  let lastKey = null, lastView = null;
 
   function $(id) { return document.getElementById(id); }
   function reducedMotion() {
@@ -92,7 +96,7 @@ const Category = (function () {
     const list = $('catList'), more = $('catMore'), main = $('catMain');
     if (!list || !more || !main) return;
     let inner = list.querySelector('.cat-more-in');
-    const want = main.classList.contains('cat-tight3') && !more.hidden && !list.hidden;
+    const want = (main.classList.contains('cat-tight3') || main.classList.contains('cat-ctl')) && !more.hidden && !list.hidden;
     if (!want) { if (inner) inner.remove(); return; }
     if (!inner) {
       inner = document.createElement('button');
@@ -103,10 +107,36 @@ const Category = (function () {
     inner.textContent = more.textContent;
   }
 
+  // 直向、列表檢視、非鍵盤模式才有 inside／doorway；其他情況（橫向、鍵盤、持股異動）完全維持原本版面
+  function portraitNow() {
+    return !!(window.matchMedia && window.matchMedia('(orientation: portrait)').matches);
+  }
+  function ctlActive() {
+    return !!open && open.view === 'list' && portraitNow() && !document.body.classList.contains('gs-ckm');
+  }
+  function syncMode() {
+    const main = $('catMain'), btn = $('catExpand');
+    if (!main || !btn) return;
+    const ctl = ctlActive();
+    main.classList.toggle('cat-ctl', ctl);
+    main.classList.toggle('cat-inside', ctl && !stripOpen);
+    btn.textContent = (ctl && stripOpen) ? '▴' : '▾';
+    btn.setAttribute('aria-expanded', String(ctl && stripOpen));
+    btn.setAttribute('aria-label', (ctl && stripOpen) ? '收合其他分類' : '展開其他分類');
+  }
+  function toggleStrip() {
+    if (!ctlActive()) return;
+    stripOpen = !stripOpen;
+    syncMode();
+    fit();
+  }
+
   function fit() {
     const list = $('catList'), main = $('catMain'), hint = $('catHint'), more = $('catMore');
     const pg = $(PAGE_ID);
     if (!list || !open || state === 'overview') return;
+    syncMode();
+    const ctl = ctlActive();
     const vv = window.visualViewport;
     const visTop = vv ? vv.offsetTop : 0;
     const visBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
@@ -114,7 +144,9 @@ const Category = (function () {
     const navOn = !!nav && getComputedStyle(nav).display !== 'none';
     const avail = (pad) => {
       const bottom = Math.min(visBottom, navOn ? nav.getBoundingClientRect().top : visBottom);
-      return Math.max(0, bottom - list.getBoundingClientRect().top - pad);
+      // 直向：清單頂端以「頁面未捲動」的位置計算。這樣清單底部固定在導覽列上方，頁面捲動時不會越過導覽列。
+      const top = list.getBoundingClientRect().top + (ctl ? window.scrollY : 0);
+      return Math.max(0, bottom - top - pad);
     };
     // 注意：不可先清空 max-height 再量測——內容完整展開時沒有捲動範圍，瀏覽器會把 scrollTop 夾成 0。
     // 清單頂端位置不受 max-height 影響，直接量測即可。
@@ -161,6 +193,7 @@ const Category = (function () {
     $('catSeg').hidden = !isActive;
     $('catSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === open.view));
     buildStrip();
+    syncMode();
     document.querySelectorAll('#catStackL .cat-band, #catStackR .cat-band')
       .forEach(b => b.classList.toggle('is-pulled', b.dataset.k === open.key));
     const isFlow = open.view === 'flow';
@@ -202,11 +235,16 @@ const Category = (function () {
   // Router 呼叫：依已確認的 folder 層更新畫面（不重設 ui）
   function applyFolder(layer) {
     if (!layer) {
-      if (open) { open = null; closeUi(); }
+      if (open) { open = null; lastKey = null; lastView = null; closeUi(); }
+      syncMode();
       return;
     }
     const wasOpen = !!open;
     open = JSON.parse(JSON.stringify(layer));
+    // 進入分類、換分類、從持股異動回到清單：一律進入「店內」，其他分類立即收合（不需先捲動）。
+    // Detail 開關、返回同一分類時 key 與 view 不變，保留目前模式。
+    if (!wasOpen || open.key !== lastKey || (open.view === 'list' && lastView === 'flow')) stripOpen = false;
+    lastKey = open.key; lastView = open.view;
     if (!wasOpen) openUi();
     else refreshAll();
   }
@@ -250,6 +288,7 @@ const Category = (function () {
     $('catMain').addEventListener('click', function (ev) {
       const row = ev.target.closest('.cat-row');
       if (row) { openDetail(row.dataset.code); return; }
+      if (ev.target.closest('#catExpand, .cat-title')) { toggleStrip(); return; }
       const st = ev.target.closest('#catStrip button');
       if (st) { Router.openFolder(st.dataset.k); return; }
       const sg = ev.target.closest('#catSeg button');
