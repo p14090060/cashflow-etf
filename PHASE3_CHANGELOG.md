@@ -177,3 +177,63 @@ Codex 複審 `99ec4b14..8e3e59bb`：Finding 2（flow visualViewport）與 Findin
 - **負向對照**：暫時還原 `8e3e59bb` 的 router 與 category，DS-9、DS-10 的 Forward 捲動都變成 40px（資料夾的捲動值，取代了 Detail 的 120px 與 52px），修正版 PASS。
 - **測試結果（修正版）**：Router 64/64、search_compact 38/38、detail_ui 42/42、detail_history_fix 14/14、regression 14/14、detail_collapse 25/25、category 91 PASS／0 FAIL／2 DEFER（LR-4、LR-8 真機，不變）、detail_state 42/42。
 - **未處理**：LR-4（PO 決策）。
+
+## LR-4 responsive fallback（PO 決策：方案 B）
+
+PO 決定（2026-10-05）：LR-4 採方案 B。核准為 responsive fallback，不再視為 DEFER／FAIL。
+
+### 規格（PO 原文要點）
+
+- 極低高度／虛擬鍵盤開啟、剩餘空間不足 44px 可用清單時：保留既有免責聲明，不隱藏、不修改 Phase 1 法遵呈現。
+- 不強制顯示不足 44px 的清單；顯示提示「收起鍵盤以查看 ETF 清單」。
+- 鍵盤收起、viewport 恢復足夠高度後，分類清單自動恢復。
+- 分類狀態（排序、已展開數、捲動）不因 fallback 遺失。
+
+### 實作
+
+- `js/category.js` `fit()`：
+  - fallback 條件：`body.gs-ckm`（鍵盤開啟）且可用高度 < 44px（`LINE_H`）且清單可見。
+  - fallback 時清單加上 `cat-off`（收合但仍留在版面中，不用 `display:none`，因此 scrollTop 不會被重置）；「查看更多」加上 `cat-gone`；提示文字改為「收起鍵盤以查看 ETF 清單」並顯示。
+  - 非 fallback：清單 `max-height = max(44, 可用高度)`（PHASE3_PLAN §11.4 的「最小 44px 並可捲動」）。
+  - `snapshot()` 與清單捲動處理在 `cat-off` 時不寫入，避免收合期間的值被寫進資料夾層。
+  - 新增 `MutationObserver` 監看 `body` 的 class，`gs-ckm` 切換時重算，不依賴 visualViewport 事件先後順序。
+- `css/category.css`：`.cat-list.cat-off`（max-height 0、無邊框、visibility hidden）、`.cat-gone`（display none）。另修正 `gs-ckm` 註解：免責本來就沒有被隱藏，註解原寫錯。
+- `index.html` 資源版本號 `20261005i` → `20261005j`。
+
+### 為什麼非鍵盤的低高度不走 fallback
+
+第一版實作把所有「可用高度 < 44px」都當成 fallback，結果 844×390 橫向、沒有鍵盤時，清單也被收合，而提示卻寫「收起鍵盤」，文字不符合實際狀態。PO 的規格與提示文字都是針對鍵盤開啟的情況，因此 fallback 限定在 `gs-ckm`。沒有鍵盤時，依 PHASE3_PLAN §11.4 把清單保持在最小 44px 並可捲動。
+
+### 測試（`tests/browser/category_test.py`）
+
+- LR-4（844×170，鍵盤開，清單先捲到約 40px）：
+  - 清單收合（visibility hidden、高度 0），不強制顯示。
+  - 「查看更多」收合。
+  - 提示文字正確，位於可視區內。
+  - 免責 `.disclaimer` 未被隱藏。
+  - 資料夾狀態（sort、shown、scrollTop）與進入 fallback 前完全相同。
+  - 搜尋框仍在可視區內。
+- LR-4 恢復（放在 LR-9 之後，因為 LR-7 會沿用 LR-4 的焦點狀態）：
+  - 提示隱藏，清單恢復為可見且高度 ≥ 44px。
+  - 清單捲動位置（約 40px）、sort／shown／scrollTop 保留。
+  - 「查看更多」恢復（剩餘 12 檔）。
+- 原本的 LR-4 DEFER 已移除。LR-8 維持 DEFER（真機）。
+
+### 已知限制（記錄，未改）
+
+- 844×390 橫向、沒有鍵盤時，分類清單的位置落在底部導覽列下方（清單頂端約 363px，導覽列頂端約 328px）。header 與分類頂部內容佔去大部分高度。清單雖有 44px 最小高度，但需要頁面捲動才看得到。這是 Plan LR-3（清單可用高度 ≥ 110px）尚未達成的版面問題，超出 LR-4 範圍，未修改。需要時再由 PO 決定是否處理。
+
+### 測試結果（headless Chrome，LR-4 修正版）
+
+| 測試 | 結果 |
+|---|---|
+| `router_test.py` | 64 / 64 PASS |
+| `search_compact_test.py`（Phase 1） | 38 / 38 PASS |
+| `detail_ui_test.py`（Phase 2） | 42 / 42 PASS |
+| `detail_history_fix_test.py`（Phase 2） | 14 / 14 PASS |
+| `regression_test.py`（Phase 2） | 14 / 14 PASS |
+| `detail_collapse_test.py`（Phase 2） | 25 / 25 PASS |
+| `detail_state_test.py` | 42 / 42 PASS |
+| `category_test.py`（Phase 3） | 102 PASS，0 FAIL，**1 DEFER**（LR-8 真機） |
+
+LR-4 不再是 DEFER。LR-8 的真機項目不變。

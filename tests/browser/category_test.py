@@ -174,20 +174,29 @@ check('TOOLS card opens 配息 subpage', ev("document.getElementById('page-div')
 ev("(function(){ history.back(); return true; })()"); wait_ms(250)
 check('TOOLS back returns to tools list', ev("document.getElementById('page-tools').classList.contains('active')") is True)
 
-# ── 低高度：Phase 1 gs-ckm 觸發時，次要區與說明讓位；清單仍可用 ──
+# ── 低高度：Phase 1 gs-ckm 觸發時，次要區與說明讓位；清單不足一列時走 fallback ──
+# LR-4（PO 決策方案 B，responsive fallback，已核准；不是 DEFER）：844×170 鍵盤開、可用高度 < 44px
+#   → 不強制顯示清單、顯示「收起鍵盤以查看 ETF 清單」、免責保留、分類狀態不遺失；鍵盤收起後自動恢復（見 LR-9 之後的 LR-4 恢復檢查）。
 ev("switchPage('cat'); true"); wait_ms(150)
 click('.cat-band[data-k="active"]'); wait_ms(400)
 set_view(844, 390, 'landscapePrimary'); wait_ms(200)
+ev("document.getElementById('catMore').click(); true"); wait_ms(120)     # 20 檔，使清單可捲動
+ev("document.getElementById('catList').scrollTop = 40; true"); wait_ms(300)
+lr4_scroll = ev("document.getElementById('catList').scrollTop")
+lr4_ui = ev("JSON.stringify(Router.state().stack[0].ui)")
+check('LR-4 precondition: list scrollable and scrolled to ~40px before keyboard', lr4_scroll > 0 and ev("document.getElementById('catList').scrollHeight > document.getElementById('catList').clientHeight") is True, lr4_scroll)
 ev("(function(){ const i=document.getElementById('gsearch'); i.focus(); i.dispatchEvent(new Event('focus')); return true; })()"); wait_ms(300)
 set_view(844, 170, 'landscapePrimary'); wait_ms(400)
 check('LR-4 ckm on at 844x170 (keyboard)', ev("document.body.classList.contains('gs-ckm')") is True)
-check('LR-4 strip hidden in ckm', ev("getComputedStyle(document.getElementById('catStrip')).display") == 'none')
-list_h = ev("document.getElementById('catList').getBoundingClientRect().height") or 0
-# 844×170 鍵盤開：全站免責 .disclaimer（85px，Phase 1 既有、法遵）不在分類頁內，無法在不改 Phase 1 行為的前提下騰出 44px。
-# 這是需要決策的已知限制，不是 PASS：決策前記為 DEFER，並驗證使用者看得到的 fallback（提示列在標題列內、可視區內）。
-defer('LR-4 list >= 44px at 844x170 keyboard (blocked by Phase 1 global disclaimer; needs decision)', 'list height=%s' % list_h)
-hint_ok = ev("(function(){ const h=document.getElementById('catHint'); if(!h||h.hidden) return false; const r=h.getBoundingClientRect(); const vv=window.visualViewport; const top=vv?vv.offsetTop:0; const bot=vv?vv.offsetTop+vv.height:innerHeight; return r.bottom>top && r.top<bot && h.textContent==='收起鍵盤可看完整清單'; })()")
-check('LR-4 fallback hint "收起鍵盤可看完整清單" is inside the visible region', hint_ok is True)
+check('LR-4 strip hidden in ckm (Phase 1 behavior)', ev("getComputedStyle(document.getElementById('catStrip')).display") == 'none')
+check('LR-4 fallback: list not forced (collapsed, 0px, hidden)', ev("(function(){ const l=document.getElementById('catList'); return getComputedStyle(l).visibility==='hidden' && l.getBoundingClientRect().height===0; })()") is True,
+      ev("document.getElementById('catList').getBoundingClientRect().height"))
+check('LR-4 fallback: more button collapsed', ev("getComputedStyle(document.getElementById('catMore')).display") == 'none')
+check('LR-4 fallback: hint shows "收起鍵盤以查看 ETF 清單"', ev("(function(){ const h=document.getElementById('catHint'); return !h.hidden && h.textContent==='收起鍵盤以查看 ETF 清單'; })()") is True)
+hint_ok = ev("(function(){ const h=document.getElementById('catHint'); if(!h||h.hidden) return false; const r=h.getBoundingClientRect(); const vv=window.visualViewport; const top=vv?vv.offsetTop:0; const bot=vv?vv.offsetTop+vv.height:innerHeight; return r.bottom>top && r.top<bot; })()")
+check('LR-4 fallback hint is inside the visible region', hint_ok is True)
+check('LR-4 Phase 1 disclaimer kept (not hidden by fallback)', ev("getComputedStyle(document.querySelector('.disclaimer')).display") != 'none')
+check('LR-4 fallback keeps folder state (sort/shown/scroll in Router layer)', ev("JSON.stringify(Router.state().stack[0].ui)") == lr4_ui, (ev("JSON.stringify(Router.state().stack[0].ui)"), lr4_ui))
 check('LR-4 search input is visible inside viewport', ev("(function(){const r=document.getElementById('gsearch').getBoundingClientRect(); return r.top>=0 && r.bottom<=innerHeight;})()") is True)
 
 # LR-7：20px，offsetTop = 0（使用者看得到的搜尋框）
@@ -207,6 +216,13 @@ check('LR-9 restore: ckm off after keyboard closes', ev("document.body.classList
 check('LR-9 restore: strip visible again', ev("getComputedStyle(document.getElementById('catStrip')).display") != 'none')
 check('LR-9 restore: category list visible', ev("!document.getElementById('catList').hidden && document.getElementById('catList').getBoundingClientRect().height > 0") is True)
 check('LR-9 restore: bottom nav visible', ev("getComputedStyle(document.querySelector('.bottom-nav')).display") != 'none')
+# LR-4 恢復（PO 核准：鍵盤收起後分類清單必須自動恢復；狀態不得遺失）
+check('LR-4 restore: fallback hint hidden after keyboard closes', ev("document.getElementById('catHint').hidden") is True)
+check('LR-4 restore: list expanded again (>= 44px, visible)', ev("(function(){ const l=document.getElementById('catList'); return getComputedStyle(l).visibility!=='hidden' && l.getBoundingClientRect().height >= 44; })()") is True,
+      ev("document.getElementById('catList').getBoundingClientRect().height"))
+check('LR-4 restore: list scroll position kept (~40px)', abs((ev("document.getElementById('catList').scrollTop") or 0) - (lr4_scroll or 0)) <= 2, (ev("document.getElementById('catList').scrollTop"), lr4_scroll))
+check('LR-4 restore: sort/shown/scroll kept in Router layer', ev("JSON.stringify(Router.state().stack[0].ui)") == lr4_ui, (ev("JSON.stringify(Router.state().stack[0].ui)"), lr4_ui))
+check('LR-4 restore: more button back (12 remaining)', ev("getComputedStyle(document.getElementById('catMore')).display") != 'none' and ev("document.getElementById('catMore').textContent") == '查看更多（還有 12 檔）')
 
 # ── LR-8（PHASE3_PLAN §11.6 B、C）：鍵盤開、可視區下移（visualViewport.offsetTop > 0）──
 # headless 目前產生不了 offsetTop > 0。已試過：setPageScaleFactor + 捲動手勢、pinch（touch 模擬）、

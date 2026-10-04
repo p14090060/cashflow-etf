@@ -87,7 +87,7 @@ const Category = (function () {
 
   // 低高度讓位（PHASE3_PLAN §11）：量測實際可用高度，依序收合次要說明、再把次要標籤壓成單列
   function fit() {
-    const list = $('catList'), main = $('catMain'), hint = $('catHint');
+    const list = $('catList'), main = $('catMain'), hint = $('catHint'), more = $('catMore');
     if (!list || !open || state === 'overview') return;
     const vv = window.visualViewport;
     const visTop = vv ? vv.offsetTop : 0;
@@ -104,10 +104,18 @@ const Category = (function () {
     let a = avail();
     if (a < MIN_LIST_H) { main.classList.add('cat-tight'); a = avail(); }
     if (a < MIN_LIST_H) { main.classList.add('cat-tight2'); a = avail(); }
-    list.style.maxHeight = a + 'px';
+    // LR-4（PO 核准 responsive fallback，方案 B）：鍵盤開啟（gs-ckm）且可用高度不足一列（44px）時，
+    // 不強制顯示清單，改顯示「收起鍵盤以查看 ETF 清單」。清單收合但仍留在版面中（不用 display:none），
+    // scrollTop、排序、展開數都保留；鍵盤收起後自動展開。
+    // 沒有鍵盤的低高度不走 fallback（提示文字是針對鍵盤）：清單至少 44px 並可捲動（PHASE3_PLAN §11.4）。
+    const kbd = document.body.classList.contains('gs-ckm');
+    const short = kbd && a < LINE_H && !list.hidden;
+    list.classList.toggle('cat-off', short);
+    more.classList.toggle('cat-gone', short);
+    if (!short) list.style.maxHeight = Math.max(LINE_H, a) + 'px';
     if (hint) {
-      hint.textContent = '收起鍵盤可看完整清單';
-      hint.hidden = !(a < LINE_H && !list.hidden);
+      hint.textContent = '收起鍵盤以查看 ETF 清單';
+      hint.hidden = !short;
     }
   }
 
@@ -178,7 +186,7 @@ const Category = (function () {
 
   // 導航前把捲動位置寫入當前 entry（Router.navigate 會呼叫）
   function snapshot() {
-    if (!open || open.view !== 'list' || !$('catList')) return;
+    if (!open || open.view !== 'list' || !$('catList') || $('catList').classList.contains('cat-off')) return;
     const v = $('catList').scrollTop;
     open.ui.scrollTop = v;
     Router.updateUi({ scrollTop: v }, 'folder');
@@ -242,7 +250,7 @@ const Category = (function () {
     $('catList').addEventListener('scroll', function () {
       clearTimeout(scrollTimer);
       scrollTimer = setTimeout(function () {
-        if (!open || open.view !== 'list') return;
+        if (!open || open.view !== 'list' || $('catList').classList.contains('cat-off')) return;
         const v = $('catList').scrollTop;
         open.ui.scrollTop = v;
         Router.updateUi({ scrollTop: v }, 'folder');
@@ -259,6 +267,10 @@ const Category = (function () {
   build();
   bind();
   updateCounts();
+  // 鍵盤開合（gs-ckm 切換）時重算，不依賴 visualViewport 事件的先後順序
+  if (typeof MutationObserver !== 'undefined') {
+    new MutationObserver(fit).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
 
   return {
     applyFolder: applyFolder,

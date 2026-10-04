@@ -95,7 +95,7 @@
 }
 
 /* ── 低高度讓位（PHASE3_PLAN §11.4）──
-   gs-ckm（Phase 1 低高度搜尋）：隱藏次要標籤、說明與免責 */
+   gs-ckm（Phase 1 低高度搜尋）：隱藏次要標籤與分類說明。全站免責（.disclaimer）不在此隱藏，Phase 1 法遵呈現不變 */
 body.gs-ckm .cat-strip,
 body.gs-ckm .cat-sub,
 body.gs-ckm .cat-note,
@@ -104,6 +104,10 @@ body.gs-ckm .cat-foot { display: none; }
 .cat-tight .cat-foot { display: none; }
 .cat-tight2 .cat-strip { flex-wrap: nowrap; overflow-x: auto; height: 40px; }
 .cat-tight2 .cat-strip button { flex: 0 0 auto; }
+/* LR-4 responsive fallback（PO 核准方案 B）：可用高度不足一列時收合清單，但仍留在版面中（不 display:none），
+   scrollTop 等狀態保留；高度恢復後移除 class 即展開。 */
+.cat-list.cat-off { max-height: 0 !important; border-width: 0 !important; visibility: hidden; }
+.cat-gone { display: none !important; }
 
 /* ── 處理中指示（PHASE3_PLAN §7.8）：只顯示，不改狀態 ── */
 .router-proc {
