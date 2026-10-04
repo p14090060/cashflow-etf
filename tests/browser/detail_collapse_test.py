@@ -2,6 +2,15 @@ import sys, json, time
 src = open('tests/browser/detail_ui_test.py', encoding='utf-8').read()
 exec(src.split("# ── T2 開啟 0050")[0])   # 載入頁面、helper、T0
 
+# 固定視窗尺寸（390×844 直向）。未固定時 headless 預設約 764×485，總覽會溢出 217px，C7 前置條件就不成立。
+def set_view(w, h, orient):
+    cdp('Emulation.setDeviceMetricsOverride', {'width': w, 'height': h, 'deviceScaleFactor': 1, 'mobile': True,
+        'screenOrientation': {'type': orient, 'angle': 90 if orient.startswith('landscape') else 0}})
+    wait_ms(500)
+
+set_view(390, 844, 'portraitPrimary')
+check('V0 fixed viewport 390x844', ev("innerWidth") == 390 and ev("innerHeight") == 844, '%sx%s' % (ev("innerWidth"), ev("innerHeight")))
+
 hdr_display = "getComputedStyle(document.querySelector('.app-hdr')).display"
 panel_top = "getComputedStyle(document.getElementById('gsPanel')).top"
 
@@ -45,10 +54,19 @@ ev("closeDetail(); true"); wait_ms(300)
 
 # ── C7 略有溢出（約 100px）：不得收合，也不得閃動
 ev("gsPick('0050'); true"); wait_ms(300)
-ev("(()=>{ const sp=document.createElement('div'); sp.id='__spacer'; document.getElementById('gsPanelBody').appendChild(sp); const p=document.getElementById('gsPanel'); sp.style.height='0px'; const ov=p.scrollHeight-p.clientHeight; sp.style.height=Math.max(0,100-ov)+'px'; return true; })()")
+# 量內容實際高度（spacer 高度 0，spacer 頂端即內容底端）。scrollHeight 在內容較矮時會夾成 client，不能直接拿來算溢出。
+# spacer 只能往下加，不能縮短原本內容，所以內容高必須 ≤ 視窗高＋100 才成立。
+c7 = ev("(()=>{ const sp=document.createElement('div'); sp.id='__spacer'; sp.style.height='0px'; document.getElementById('gsPanelBody').appendChild(sp); const p=document.getElementById('gsPanel'); const content = sp.getBoundingClientRect().top - (p.getBoundingClientRect().top + p.clientTop) + p.scrollTop; return {content: content, client: p.clientHeight}; })()")
+content7 = c7.get('content') if isinstance(c7, dict) else None
+client7 = c7.get('client') if isinstance(c7, dict) else None
+check('C7 precondition: natural content <= viewport + 100px', isinstance(content7, (int, float)) and content7 <= client7 + 100, 'content=%s client=%s' % (content7, client7))
+ev("(()=>{ const sp=document.getElementById('__spacer'); const p=document.getElementById('gsPanel'); const c=sp.getBoundingClientRect().top-(p.getBoundingClientRect().top+p.clientTop)+p.scrollTop; sp.style.height=Math.max(0,p.clientHeight+100-c)+'px'; return true; })()")
+wait_ms(100)
+# 第一次估算會多出 body 底部 padding（約 20px），校正一次到約 100px
+ev("(()=>{ const sp=document.getElementById('__spacer'); const p=document.getElementById('gsPanel'); const ov=p.scrollHeight-p.clientHeight; sp.style.height=Math.max(0,sp.offsetHeight-(ov-100))+'px'; return true; })()")
 wait_ms(100)
 ov7 = ev("(()=>{ const p=document.getElementById('gsPanel'); return p.scrollHeight - p.clientHeight; })()")
-check('C7 precondition: overflow about 100px', isinstance(ov7, (int, float)) and 60 <= ov7 <= 160, ov7)
+check('C7 overflow set to about 100px', isinstance(ov7, (int, float)) and 60 <= ov7 <= 160, 'overflow=%s' % ov7)
 ev("document.getElementById('gsPanel').scrollTop = 100; true"); wait_ms(600)
 check('C7 slight overflow does not collapse', ev("document.body.classList.contains('dt-collapsed')") is False)
 check('C7 scroll position not forced to 0', (ev("document.getElementById('gsPanel').scrollTop") or 0) > 50, ev("document.getElementById('gsPanel').scrollTop"))
@@ -63,11 +81,18 @@ check('C8 stays collapsed, no bounce to top', ev("document.body.classList.contai
 ev("closeDetail(); true"); wait_ms(300)
 
 # ── C9 收合中切到短分頁：應自動展開一次並穩定，不來回閃動
-ev("gsPick('0050'); detailTab('perf'); true"); wait_ms(300)
+ev("gsPick('0050'); true"); wait_ms(300)
+# 短分頁必須實際放得進畫面：量總覽的內容高度（展開狀態）
+ov9 = ev("(()=>{ const p=document.getElementById('gsPanel'); return p.scrollHeight; })()")
+ov9_c = ev("document.getElementById('gsPanel').clientHeight")
+check('C9 precondition: overview content fits expanded panel', isinstance(ov9, (int, float)) and ov9 <= ov9_c, 'overview scroll=%s client=%s' % (ov9, ov9_c))
+ev("detailTab('perf'); true"); wait_ms(300)
 ev("(()=>{ const sp=document.createElement('div'); sp.id='__spacer'; sp.style.height='2000px'; document.querySelector('[data-pane=perf]').appendChild(sp); return true; })()")
 wait_ms(100)
 ev("document.getElementById('gsPanel').scrollTop = 300; true"); wait_ms(400)
+cl9 = ev("document.getElementById('gsPanel').clientHeight")
 check('C9 precondition: collapsed on long tab', ev("document.body.classList.contains('dt-collapsed')") is True)
+check('C9 precondition: overview content fits collapsed panel', isinstance(ov9, (int, float)) and ov9 <= cl9, 'overview scroll=%s collapsed client=%s' % (ov9, cl9))
 ev("window.__cls = 0; window.__mo = new MutationObserver(() => { window.__cls++; }); window.__mo.observe(document.body, { attributes: true, attributeFilter: ['class'] }); true")
 ev("detailTab('overview'); true"); wait_ms(1000)
 toggles = ev("(()=>{ window.__mo.disconnect(); return window.__cls; })()")
