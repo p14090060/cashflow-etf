@@ -98,10 +98,22 @@
 
 **Ready for Codex re-review**（範圍 `7a7831c8..0c679655`）。
 
+## Codex 複審結果（收合修正）與 Claude 修正（commit `9ece2c6d`）
+
+| 項目 | 狀態 |
+|---|---|
+| Blocker：收合後 scrollTop 被壓回 0，立即展開造成閃動 | 已修正。收合前檢查收合後仍在範圍內；展開只看真的回到頂部 |
+| Blocker 測試缺口（略溢出、切短分頁） | 已補 C7–C10，並以舊版邏輯重現（舊版：未收合、scrollTop=0） |
+| Risk：鍵盤與橫向需真機回測 | 仍待怡恩回測第 1、6 項 |
+
+**驗證**：桌面瀏覽器測試共 91 項全數通過（收合 21、互動 42、history 14、迴歸 14）。
+
+**Ready for Codex re-review**（範圍 `6bf51c54..9ece2c6d`）。
+
 ## 尚待處理事項
 
-- Android 真機回測第 1、5、6 項（怡恩）。
-- Codex 複審收合修正（`0c679655`）。
+- Codex 複審 `9ece2c6d`。
+- 複審通過後，怡恩回測第 1、6 項（需要新版網址，屆時重新匯出）。
 - iOS Safari：未實測，列為 Known Limitation。
 - 尚未 push。push 後 GitHub Pages 會直接上線。
 - 已知限制（不在本 Phase 修正）：
