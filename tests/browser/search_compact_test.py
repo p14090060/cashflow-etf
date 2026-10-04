@@ -74,6 +74,43 @@ ev("document.getElementById('gsearch').dispatchEvent(new KeyboardEvent('keydown'
 check('P1 portrait Enter still picks first row (Phase 1)', ev("!document.getElementById('gsPanel').hidden") is True)
 ev("closeDetail(); true"); wait_ms(300)
 
+
+# 送出後的延遲操作：期間被清除／改查／直接選取／切換分頁，舊請求都必須作廢
+def submit_flow(setup_js):
+    set_view(844, 170, 'landscapePrimary')
+    ev("(()=>{ const i=document.getElementById('gsearch'); i.focus(); i.dispatchEvent(new Event('focus')); i.value='0050'; i.dispatchEvent(new Event('input')); return true; })()"); wait_ms(300)
+    ev("document.getElementById('gsearch').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})); true")
+    ev(setup_js); wait_ms(700)
+
+submit_flow("gsClear(); true")
+check('X1 clear during pending submit: no detail', ev("document.getElementById('gsPanel').hidden") is True)
+check('X1 input cleared', ev("document.getElementById('gsearch').value") == '')
+set_view(844, 390, 'landscapePrimary')
+
+submit_flow("switchPage('div'); true")
+check('X2 switch page during pending submit: no detail', ev("document.getElementById('gsPanel').hidden") is True)
+check('X2 stays on requested page', ev("document.getElementById('page-div').classList.contains('active')") is True)
+ev("switchPage('today'); true"); set_view(844, 390, 'landscapePrimary')
+
+submit_flow("(()=>{ const i=document.getElementById('gsearch'); i.value='0056'; i.dispatchEvent(new Event('input')); return true; })()")
+check('X3 new query during pending submit: no 0050 detail', ev("document.getElementById('gsPanel').hidden") is True)
+set_view(844, 390, 'landscapePrimary')
+
+submit_flow("gsPick('0056'); true")
+check('X4 direct pick during pending submit wins', ev("!document.getElementById('gsPanel').hidden && document.getElementById('gsPanelTitle').textContent.includes('0056')") is True)
+ev("closeDetail(); true"); set_view(390, 844, 'portraitPrimary')
+
+
+# 極低可視高度（Samsung 鍵盤開啟時約 20px）→ 恢復到 276px
+set_view(844, 390, 'landscapePrimary')
+ev("(()=>{ const i=document.getElementById('gsearch'); i.focus(); i.dispatchEvent(new Event('focus')); return true; })()"); wait_ms(300)
+set_view(844, 20, 'landscapePrimary')
+check('H1 20px visible height: compact on', ckm() is True, ev("innerHeight"))
+set_view(844, 276, 'landscapePrimary')
+check('H2 restore to 276px: compact off', ckm() is False, ev("innerHeight"))
+check('H2 topbar restored', disp('.topbar') != 'none')
+set_view(390, 844, 'portraitPrimary')
+
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))
 fails = [r for r in results if not r[1]]

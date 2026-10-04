@@ -4,6 +4,7 @@
 //   HTML 裡有 15 個行內 onclick 需要這些函式掛在 window 上。
 // ── Page switch ──
 function switchPage(id) {
+  cancelPendingSearch();
   closeDetail();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));

@@ -105,6 +105,7 @@ function _gsMatch(e, q) {
 }
 
 function gsSearch() {
+  cancelPendingSearch();
   const input = document.getElementById('gsearch');
   const list  = document.getElementById('gsearchList');
   const q = (input.value || '').trim().toUpperCase();
@@ -171,13 +172,28 @@ function gsFormSubmit(ev) {
 }
 
 // 低高度模式按搜尋：唯一精確代碼直接開啟詳細頁；其他情況先收起鍵盤，再顯示結果列表。
+// 送出後會延遲一下等鍵盤收起，期間若清除、改查、直接選取或切換分頁，舊的延遲操作必須作廢。
+let _gsSubmitTimer = null;
+let _gsSubmitSeq = 0;
+
+function cancelPendingSearch() {
+  _gsSubmitSeq++;
+  clearTimeout(_gsSubmitTimer);
+  _gsSubmitTimer = null;
+}
+
 function gsSubmitKey() {
   const input = document.getElementById('gsearch');
   const q = (input.value || '').trim().toUpperCase();
   if (!q) return;
   const exact = (ETFS || []).find(e => (e.code || '').toUpperCase() === q);
+  cancelPendingSearch();
+  const seq = _gsSubmitSeq;
   input.blur();
-  setTimeout(() => {
+  _gsSubmitTimer = setTimeout(() => {
+    _gsSubmitTimer = null;
+    if (seq !== _gsSubmitSeq) return;
+    if ((input.value || '').trim().toUpperCase() !== q) return;
     _gsSyncAll();
     if (exact) gsPick(exact.code);
     else gsSearch();
@@ -185,6 +201,7 @@ function gsSubmitKey() {
 }
 
 function gsClear() {
+  cancelPendingSearch();
   const input = document.getElementById('gsearch');
   input.value = '';
   document.getElementById('gsearchClear').hidden = true;
@@ -193,6 +210,7 @@ function gsClear() {
 }
 
 function gsPick(code) {
+  cancelPendingSearch();
   if (!(ETFS || []).some(e => e.code === code)) return;
   document.getElementById('gsearchList').hidden = true;
   openDetail(code);

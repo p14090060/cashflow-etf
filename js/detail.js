@@ -325,6 +325,7 @@ function detailPatch() {
 
 // ── 開啟／關閉（history 規則見 PHASE2_PLAN.md 第 6 節）─────
 function openDetail(code, opts) {
+  cancelPendingSearch();
   const fromHistory = !!(opts && opts.fromHistory);
   if (_pendingPop > 0) { _queuedOpen = { code: code, fromHistory: fromHistory }; return; }
   if (!_detailOpen) {
