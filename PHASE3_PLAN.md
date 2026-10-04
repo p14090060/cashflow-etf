@@ -1,6 +1,6 @@
 # PHASE3_PLAN.md — 分類瀏覽與導覽重組（Phase 3）
 
-狀態：**Plan Rev.3，待 Codex 複審。尚未開始 Coding。**
+狀態：**Plan Rev.3.1，待 Codex 最後複審。尚未開始 Coding。**
 前置：Phase 2 VERIFIED / CLOSED（功能 baseline `1958cdc0`；封版文件 `74c61106`）。
 Rev.3 只修正 Codex 對 Rev.2（`eebc1794`）的 findings，不擴張 scope。
 
@@ -22,6 +22,8 @@ Rev.3 只修正 Codex 對 Rev.2（`eebc1794`）的 findings，不擴張 scope。
 **已採預設、不再詢問 Product Owner**：D11（桌機第一版維持 430 欄）、D12（重整還原資料夾與 Detail）、D13（排序與已展開數不跨開啟記憶）、D15（↻ 維持 Phase 2 行為）、D16（首頁標籤改為「首頁」）、D17（持股異動入口在 分類 → 主動式）。
 
 **仍 pending**：D-ESG（三檔歸類）、D14（自選分頁內容）。
+
+**Rev.3.1 只修兩項**（不改其他章節）：(1) §7.8 的 timeout 與晚到事件規則，及對應測試 RT-14～RT-18；(2) §11.1–11.2 的 visualViewport 座標系，及對應低高度與鍵盤測試 LR-7～LR-9、§11.6。另修正 §18.2 的一句錯誤敘述。
 
 ---
 
@@ -371,15 +373,40 @@ popstate 遇到 Phase 2 格式或 `null` 時，同樣只 normalize 當前 entry�
 
 **同一次導航只有一次 go**，沒有迴圈。
 
-### 7.8 busy 鎖生命週期
+### 7.8 busy 鎖、timeout 與 orphan navigation（Rev.3.1）
 
-| 階段 | 行為 |
-|---|---|
-| 設定 | 發出 `closeTop()` 的 back 或 `navigate()` 的 go 時設定 |
-| 清除 | 對應 popstate 到達（R4 續行完成後） |
-| 逾時 | 500ms 內沒有 popstate（例如已在第一個 entry、back 無效）→ 清除 busy，並以 `history.state` 重新渲染一次 |
-| 期間 | Esc、✕、點 ETF、點頁籤、搜尋選取等導航請求一律忽略（不排隊） |
-| 過場 | OPENING／CLOSING 有獨立的過場鎖，與 busy 分開，只影響點擊 |
+**追蹤模型**
+- router 維護 `expected`：路由器相信目前所在的 entry（stack 與 nonce）。每次發出 go、push、replace 都同步更新 `expected`。
+- 每個 entry 在 push 或 replace 時寫入一個隨機 `nonce` 到 `history.state`。
+- 每次 `navigate` 發出的 go 產生一個 **traversal**：`{targetNonce, continuation, issuedAt}`。
+- **新 navigation 的 k 一律由 `expected` 計算，不由畫面渲染狀態計算。** 瀏覽器依序執行 traversal，尚未抵達的舊 traversal 仍會移動位置，因此 `expected` 必須已包含它。
+
+**正常完成**：popstate 的 nonce 等於 active traversal 的 `targetNonce` → 執行 continuation（只 push／replace），再渲染最終 state。
+
+**timeout（500ms 內沒有對應 popstate）**
+1. 清除 busy。
+2. **取消該 traversal 的 continuation**，並且之後永不執行。
+3. 該 traversal 轉為 **orphan**，記錄其 `targetNonce`。
+4. `expected` 維持為 orphan 的目標（瀏覽器仍會移動過去）。畫面**不因 timeout 渲染中間狀態**。
+5. busy 已清除，使用者可以開始新操作。
+
+**orphan 晚到的事件**
+- 事件的 nonce 等於某個 orphan 的 `targetNonce` 時：
+  - 永不執行該 orphan 的 continuation。
+  - 若此時**沒有**更新的 active traversal：渲染事件的實際 state（畫面對齊瀏覽器實際位置）。
+  - 若**有**更新的 active traversal：只消耗該 orphan，**不渲染**（最終畫面由更新的 traversal 決定）。
+- 瀏覽器依發出順序抵達事件，因此 orphan 一定早於較新的 traversal 抵達。新 traversal 的事件到達時，清空 orphan 清單。
+
+**timeout 之後的新操作**
+- 新 navigation 以 `expected`（orphan 目標）計算 k，因此 k 正確。
+- 新 traversal 成為 active，其 continuation 只屬於它自己。
+- 只有 nonce 等於新 traversal `targetNonce` 的事件會觸發新 continuation。
+
+**期間（timeout 之前）**：busy 期間，Esc、✕、點 ETF、點頁籤、搜尋選取等導航請求一律忽略（不排隊）。
+
+**過場**：OPENING／CLOSING 的過場鎖與 busy 分開，只影響點擊。
+
+**測試 hook**：為了讓 timeout 可重現，router 提供測試專用的 `window.__routerForceTimeout()`，只在測試環境呼叫，行為等同 500ms 逾時。
 
 ### 7.9 Esc
 
@@ -530,20 +557,27 @@ R4 的續行在 popstate 任務內完成，渲染只發生一次，因此不會�
 
 ## 11. 響應式與低高度讓位（Rev.3 修正）
 
-### 11.1 可視區定義
+### 11.1 座標系（Rev.3.1）
 
-- **可視高度**：`visualViewport.height`；不支援時 `window.innerHeight`。
-- **元素可見**：元素的 `getBoundingClientRect()` 與 `[0, 可視高度]` 有交集，且 `display` 不為 `none`。
-- **不重複扣 safe area**：`env(safe-area-inset-*)` 已由 `:root` 的 padding 處理。量測時直接用 rect，**不再額外扣除**。
-- **底部導覽的位置**：以導覽實際 rect 的 top 為準，若導覽隱藏則以可視高度為準。
+所有量測使用**同一個座標系**：`getBoundingClientRect()` 的座標，相對於 layout viewport。
 
-### 11.2 可用高度公式
+- **可視區（visible region）**：`visTop = visualViewport.offsetTop`，`visBottom = visualViewport.offsetTop + visualViewport.height`。不支援 visualViewport 時：`visTop = 0`，`visBottom = innerHeight`。
+- **元素在可視區內**：`rect.bottom > visTop` 且 `rect.top < visBottom`，且 `display` 不為 `none`。
+- **使用者實際看得到（未被遮住）**：
+  - 可視區內的可見高度 ≥ `min(元素高度, 12px)`；
+  - 且 `document.elementFromPoint(元素在可視區內的中心點)` 命中該元素或其後代（不是被其他固定元件蓋住）。
+- **不重複扣 safe area**：`env(safe-area-inset-*)` 已由 `:root` 的 padding 處理；量測直接用 rect，不額外扣除。
+- **offsetTop 不為 0 時**：所有比較一律用 `visTop`、`visBottom`，**不得**用 `0` 或 `innerHeight` 代替。
+
+### 11.2 可用高度公式（Rev.3.1）
 
 ```
-清單可用高度 = min(可視高度, 導覽 rect.top（若導覽可見）) − 清單頂端 rect.top
+清單頂端     = 清單 rect.top
+清單底界     = min(visBottom, 導覽 rect.top（若導覽可見）)
+清單可用高度 = max(0, 清單底界 − 清單頂端)
 ```
 
-清單的 `max-height` 由 JS 依此公式設定，於 resize、orientationchange、visualViewport resize／scroll 時重算（沿用 Phase 2 的 `_gsSyncAll` 模式）。
+清單的 `max-height` 依此公式設定，於 resize、orientationchange、visualViewport resize，以及 visualViewport scroll（offsetTop 變化）時重算（沿用 Phase 2 的 `_gsSyncAll` 模式）。
 
 ### 11.3 讓位優先序
 
@@ -580,23 +614,34 @@ Rev.3 在 `gs-ckm` 下額外讓位：
 | LR-4 | 844×170 | 鍵盤開（ckm） | P0、P1、P2 可見；P4、P5 隱藏；清單可用高度 ≥ 44px；P0 的 rect 與可視區有交集 |
 | LR-5 | 844×20 | 鍵盤開（極端） | 見 11.6 |
 | LR-6 | 1280×800 桌機 | 無鍵盤 | 同 430 欄置中（D11） |
+| LR-7 | 844×20，offsetTop = 0 | 鍵盤開（極端） | 見 11.6 A |
+| LR-8 | 844×20 與 844×170，offsetTop > 0 | 鍵盤開（可視區下移） | 見 11.6 B；可視區下界為 offsetTop；搜尋框仍在可視區內，且 elementFromPoint 命中搜尋框 |
+| LR-9 | 鍵盤關閉後恢復 | — | 見 11.6 C |
 
 ### 11.6 20px 極端情境（使用者可見的 fallback）
 
-**不得只驗證 DOM 中存在文字。** 必須以 rect 驗證使用者實際看得見的內容：
+**不得只驗證 DOM 中存在文字。** 必須以 rect、可視區與 `elementFromPoint` 驗證使用者實際看得見的內容。
 
-1. **鍵盤開（844×20）**：
-   - 搜尋框的 rect 頂端 ≤ 2px，且與可視區的交集高度 ≥ 12px（使用者看得見搜尋框的上半部）。
-   - 清單的 rect 與可視區沒有交集（不可見，屬於已知限制，見 11.7）。
-   - 不產生水平捲動。
-   - 頁面不因此捲到空白區。
-2. **鍵盤關閉（恢復）**：
-   - 可視高度回到 ≥ 276px（以模擬的 Chrome 狀態為準）。
-   - `body.gs-ckm` 移除。
-   - P4、P5、P6、P7 的 rect 再次與可視區有交集。
-   - 清單可見，folder 標題可見。
-   - 清單捲動位置與鍵盤開啟前相同。
-   - 展開數、排序保留。
+**前置條件（同 C7、C9 的做法）**：測試 B 必須先確認 `visualViewport.offsetTop > 0`；若無法在 headless 產生，測試標記為「前置條件不成立」，不得判為 PASS。此情況需以 iPhone Chrome 真機補測（鍵盤開啟時會實際產生 offsetTop 的情境）。
+
+**A. offsetTop = 0，鍵盤開（844×20）**
+- 搜尋框 `rect.top ≤ 2px`，且與可視區 `[0, 20]` 的交集高度 ≥ 12px。
+- `elementFromPoint` 於搜尋框在可視區內的中心點命中搜尋框。
+- 清單與可視區沒有交集（已知限制，§11.7）。
+- 不產生水平捲動；頁面不捲到空白區。
+
+**B. offsetTop > 0，鍵盤開（可視區下移）**
+- 可視區為 `[offsetTop, offsetTop + 20]`。
+- 搜尋框與該可視區的交集高度 ≥ 12px（以 offsetTop 為下界量測，不是以 0 為下界）。
+- `elementFromPoint` 於搜尋框在可視區內的中心點命中搜尋框。
+- 不因此在可視區外顯示其他 UI 造成誤會（導覽與標題不應出現在可視區內但被遮住）。
+
+**C. 鍵盤關閉（恢復）**
+- `visualViewport.height ≥ 276`（以模擬的 Chrome 狀態為準），offsetTop 回到恢復後的值。
+- `body.gs-ckm` 移除。
+- P4、P5、P6、P7 的 rect 與可視區有交集，且 `elementFromPoint` 命中該元素。
+- 清單與分類標題可見。
+- 清單捲動位置與鍵盤開啟前相同；展開數與排序保留。
 
 ### 11.7 已知限制
 
@@ -749,7 +794,11 @@ Rev.3 在 `gs-ckm` 下額外讓位：
 | RT-11 | 切換 ETF 不累積層（Phase 2 語意） | Detail 開著切換 A→B→C，`history.length` 不變，一次 Back 直接離開 Detail |
 | RT-12 | 工具子頁 → Back | 回工具列表 |
 | RT-13 | Phase 2 格式的 state（`etfDetail`）載入 | normalize 為 v2；`history.length` 不變；Back 到基底不產生額外 entry（MG-1） |
-| RT-14 | 500ms 無 popstate 的 busy 逾時 | busy 清除；畫面與 history 一致 |
+| RT-14 | timeout：清除 busy 與 continuation；畫面不渲染中間狀態（沿用 timeout 前的畫面） |
+| RT-15 | timeout → 舊事件晚到（期間無新操作） | 舊 continuation 不執行：`history.length` 不因晚到事件增加；畫面等於事件的實際 state；base 與 stack 不變成舊目標 |
+| RT-16 | timeout → 使用者新 navigation → 新操作完成 | 新操作正常完成；最終 state = 新目標；`history.length` 只增加新 continuation 的 push 數（舊 continuation 為 0） |
+| RT-17 | timeout → 新 navigation 已發出 → 舊事件才抵達 | 舊事件不渲染（畫面不閃回舊 state）；新 traversal 抵達後畫面 = 新目標 |
+| RT-18 | 測試 hook | `window.__routerForceTimeout()` 只在測試使用；行為等同 500ms 逾時 |
 
 ### 16.6 Detail 導航與持股異動
 
@@ -781,8 +830,8 @@ Rev.3 在 `gs-ckm` 下額外讓位：
 
 | 編號 | 測試 |
 |---|---|
-| LR-1～LR-6 | 見 §11.5 |
-| LR-7 | 20px 極端：鍵盤開的 rect 驗證與鍵盤關閉恢復（§11.6） |
+| LR-1～LR-9 | 見 §11.5 |
+| LR-7～LR-9 | 20px 與 offsetTop：rect、可視區與 elementFromPoint 驗證；鍵盤關閉恢復（§11.6） |
 | UI-1 | 8 個頁籤 rect 不重疊、≥ 44px、名稱完整 |
 | UI-2 | 開啟與收合狀態正確；連點只開一次 |
 | UI-3 | reduced-motion：過場時間為 0 |
@@ -816,10 +865,10 @@ Coding 完成後依協定提供逐步操作。預計項目：分類頁 8 個頁�
 | 來源 | 驗證位置 |
 |---|---|
 | Codex 1（Detail 語意） | §6、RT-11 |
-| Codex 2（退層規則） | §7.1、RT-9、RT-10、RT-14 |
+| Codex 2（退層規則）＋ Rev.3.1 timeout | §7.1、§7.8、RT-9～RT-18 |
 | Codex 3（導航順序） | §8、NV-A～NV-E |
 | Codex 4（首次失敗與測試政策） | §7.10、§16.1、HF-1、HF-2 |
-| Codex 5（低高度） | §11、LR-1～LR-7 |
+| Codex 5（低高度） | §11、LR-1～LR-9 |
 | Codex 6（flow） | §9、FL-1～FL-8 |
 | Codex 7（細部分布） | §2.2 |
 | Codex 8（D-ESG、D14） | §3.4、§10.3、§18 |
@@ -842,7 +891,7 @@ D11、D12、D13、D15、D16、D17（見第 0 節）。
 
 | 編號 | 問題 | 證據與選項 | 現行預設 |
 |---|---|---|---|
-| **D-ESG-1** | 00923、009809、00920 的歸類 | 見 §3.4：證據指向 00923、009809 為策略型（其他），00920 為綠能主題或全球（海外）。Rev.2 的市值型與主題型歸類**與證據不一致**，但 Codex 要求分布維持 Rev.2 驗證值，因此 pending | Rev.2 分布（市值 18、主題 19、其他 8） |
+| **D-ESG-1** | 00923、009809、00920 的歸類 | 見 §3.4：證據指向 00923、009809 為策略型（其他），00920 為綠能主題或全球（海外）。Rev.2 的市值型與主題型歸類**與證據不一致**。最終數量可依 Product Owner 的 ESG 分類決策改變；Rev.2 驗證值只是待決前的預設，不是固定數量 | Rev.2 分布（市值 18、主題 19、其他 8） |
 | **D-ESG-2** | 名稱來源（R-N1）：是否建立人工覆寫清單，讓規則看見官方全名 | 00920 的官方全名含「全球」；覆寫清單需附來源 | 不建立覆寫清單 |
 | **D14** | 自選分頁內容（是否只顯示「尚未開放」） | Product Owner 決策 | 待決策；不實作 |
 

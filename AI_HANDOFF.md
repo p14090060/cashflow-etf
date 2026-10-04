@@ -229,31 +229,30 @@
 
 **Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
 
-## Phase 3 Plan（Rev.3，待 Codex 複審）
+## Phase 3 Plan（Rev.3.1，待 Codex 最後複審）
 
-- 來源：Codex 對 Rev.2（`eebc1794`）的 NEED FIX。本次只修 Plan 與交接本，**未修改程式、未 Coding、未 push**。
-- 文件：`PHASE3_PLAN.md`（Rev.3）。
+- 來源：Codex 對 Rev.3（`32e92d47`）的 NEED FIX，只剩 2 個 Coding blocker。本次只做最小修訂，**未修改程式、未 Coding、未 push**。
+- 文件：`PHASE3_PLAN.md`（Rev.3.1）。
 
-**Rev.3 實際修正**
-1. Detail history 保留 Phase 2 語意：未開啟 → push；已開啟切換另一檔 → replace；切換多檔不累積層；一次 Back 直接離開 Detail（§6、RT-11）。撤回 Rev.2 的「openDetail 一律 push」。
-2. 退層規則選定單一方案（§7.1）：popstate 只渲染；單層關閉 back 一次；多層導航由 router 一次 `go(-k)` 加 pending 續行（續行只 push/replace，不 back）；busy 鎖生命週期定義（500ms 逾時、期間忽略不排隊）；移除 Rev.2 的 back 迴圈。
-3. 「查看持股異動」改為先退到共同層級、再 push 目標層，最終 `分類 → 主動式 → 持股異動`，不留 Detail 層；四種來源與 Back／Forward 驗證（§8、NV-A～NV-E）。
-4. 首次載入失敗依 `showDataError()` 實際行為修正：失敗時 Detail 立即還原並顯示「資料暫時無法取得」（不是延後還原）；history 深度與畫面一致（§7.10、HF-1、HF-2）。Phase 2 測試政策：行為斷言保留，內部 state 斷言改寫為 v2 等價，不保留兩套 history（§16.1）。
-5. 低高度：沿用 Phase 1 `_gsSyncCkm` 觸發；讓位優先序；可視區以 rect 量測、不重複扣 safe area；20px 驗證使用者可見的 fallback 與鍵盤關閉後恢復（§11）。
-6. flow.js：列出觸發與容器調整（F-a～F-f）、`page-check` 相關 CSS 與 onclick／id 風險、FL-1～FL-8（§9）。
-7. 細部分布修正：人工高股息標籤中移至市值型 9 檔、移至其他 1 檔；總分布維持 18／22／32／20／78／19／6／8 = 203（§2.2、§2.3）。
-8. D-ESG：補上三檔的標的指數證據（§3.4）。證據指向 00923、009809 為 ESG／淨零策略型，00920 為綠能主題或全球（海外）；Rev.2 的市值型歸類與證據不一致，但依指示分布維持 Rev.2 驗證值，決定仍 pending。D14 維持 PO 決策。
+**Rev.3.1 實際修正**
+1. **Router timeout 與 pending 取消**（§7.8、RT-14～RT-18）：
+   - timeout 時取消並清除該次 pending navigation（continuation 永不執行）。
+   - timeout 的 traversal 轉為 orphan；晚到事件不執行舊目標。
+   - 新 navigation 的 k 以 `expected`（含 orphan 目標）計算，不以畫面狀態計算。
+   - 舊事件在新 traversal 之前抵達時不渲染；新 traversal 到達後畫面為新目標。
+   - 測試 hook：`window.__routerForceTimeout()`，僅測試使用。
+2. **visualViewport 座標**（§11.1–11.2、§11.6、LR-7～LR-9）：
+   - 所有量測使用同一座標系（`getBoundingClientRect` 相對於 layout viewport）。
+   - 可視區為 `[visualViewport.offsetTop, offsetTop + height]`，不再假設 `[0, height]`。
+   - 「看得到」以可視區交集與 `elementFromPoint` 命中判定，不以 DOM 存在判定。
+   - 測試涵蓋 offsetTop = 0、offsetTop > 0、20px 極端、鍵盤關閉恢復。offsetTop > 0 若無法在 headless 產生，標記為前置條件不成立，需 iPhone Chrome 真機補測。
+3. **§18.2 文件修正**：D-ESG-1 的敘述已改為「最終數量可依 Product Owner 的 ESG 分類決策改變；Rev.2 驗證值只是待決前的預設」。原敘述寫成「Codex 要求分布維持 Rev.2 驗證值」，這是錯誤歸因，已撤回。交接本第 8 項有同一錯誤，也一併修正。
 
-**採預設、不再詢問 PO**：D11、D12、D13、D15、D16、D17。
-
-**仍 pending（需怡恩決定）**
-- D-ESG-1：00923、009809、00920 的歸類（替代數字：E1 市值 16／其他 10；E2 市值 16／海外 79／主題 18／其他 10，見 §3.4）。
-- D-ESG-2：是否建立人工覆寫清單，因為規則只看簡稱（00920 官方全名含「全球」）。
-- D14：自選分頁內容。
+**D-ESG 與 D14 維持 pending**，本次不要求 Product Owner 回答，也未自行決定。
 
 **下一步**
-- Codex 複審 `PHASE3_PLAN.md` Rev.3。重點：router 退層規則（§7）、`navigate` 協議（§7.7）、導航四種來源（§8）、低高度讓位與 20px 驗證（§11）、flow 觸發（§9）。
-- 怡恩決定 D-ESG-1、D-ESG-2、D14 後，才開始 Coding。
+- Codex 做最後複審 `PHASE3_PLAN.md` Rev.3.1（重點：§7.8 orphan 規則、RT-14～RT-18、§11.1 座標系、§11.6 三種情境）。
+- Codex 通過後，才依 PO 決策進入 Coding；D-ESG 與 D14 仍待 PO。
 
 ## Phase 2 封版狀態
 
