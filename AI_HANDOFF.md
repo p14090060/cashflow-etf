@@ -13,7 +13,8 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 Resync blocker：RESOLVED**（Rev.3.3 已通過）。
 - **Phase 3：APPROVED FOR CODING。**
 - **Phase 3 Coding commit：`99ec4b14`。** Codex 複審結果：**NEED FIX**（三項必修）。
-- **Phase 3 必修修正 commit：`8e3e59bb`。** 本機，尚未 push。等待 Codex 複審。內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審修正」一節。
+- **Phase 3 必修修正 commit：`8e3e59bb`。** 本機，尚未 push。Codex 複審 `99ec4b14..8e3e59bb`：Finding 2（flow visualViewport）與 Finding 3（LR-8）RESOLVED；唯一待修 Finding 1 已在後續 fix commit 修正（見下）。
+- **Phase 3 Finding 1 fix commit：`c050c719`**（本機，未 push）。Detail scroll 被分類 snapshot 覆蓋；修正內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審 Finding 1 修正」一節。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -44,7 +45,8 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.5 Phase 3 Coding 狀態（目前）
 
-- **實作**：`99ec4b14`（Coding）→ Codex 複審 NEED FIX → 必修修正 `8e3e59bb` 已完成。**目前等待 Codex 再次複審。**
+- **實作**：`99ec4b14`（Coding）→ Codex 複審 NEED FIX → 必修修正 `8e3e59bb` → Finding 1 fix `c050c719`。**目前等待 Codex 只複審 Finding 1。**
+- **Finding 1 修正（`c050c719`）**：關閉 Detail 前，分類的 snapshot 寫入資料夾層（`updateUi(patch, 'folder')`），不再覆蓋 Detail 層的分頁與捲動。X、Esc 關閉後 Forward 都還原原分頁與捲動。測試：`detail_state_test.py` DS-9、DS-10、DS-11（共 42 項）。
 - **Codex 必修三項（`8e3e59bb` 已修正）**：
   1. **Detail 分頁與捲動在 Back → Forward 還原（Plan RT-2）**。分頁與捲動寫入所在層的 ui；捲動先進記憶體快取，Back 前最後一次捲動也不會遺失。測試：`tests/browser/detail_state_test.py` DS-1～DS-8（26 項）。
   2. **Flow visualViewport 重繪（Plan §9.2 F-d）**。resize、orientationchange、visualViewport resize／scroll，持股異動可見時重繪。測試：`category_test.py` FD-1～FD-6。
@@ -52,8 +54,8 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **自動測試（`8e3e59bb`）**：
   - router_test 64/64；search_compact_test 38/38；detail_ui_test 42/42；detail_history_fix_test 14/14；regression_test 14/14；detail_collapse_test 25/25。
   - category_test 91 PASS、0 FAIL、**2 DEFER**。
-  - detail_state_test 26/26。
-  - 負向對照：pre-fix 的 router／detail 讓 DS 出現 8 項 FAIL；pre-fix 的 flow.js 讓 FD-1～FD-4 FAIL。
+  - detail_state_test 42/42（含 DS-9～DS-11）。
+  - 負向對照：pre-fix 的 router／detail 讓 DS 出現 8 項 FAIL；pre-fix 的 flow.js 讓 FD-1～FD-4 FAIL；pre-fix 的 router＋category（8e3e59bb）讓 DS-9、DS-10 的 Forward 捲動 FAIL。
 - **靜態**：頂層名稱無重複；history API 只在 `js/router.js`；`index.html` 無 module script；資源版本號 `20261005h`。
 - **DEFER（不算 PASS）**：
   - **LR-4**（844×170 鍵盤開，清單實測 2px）：需 PO 決策（見 0.2）。Fallback 提示已放在可視區內的標題列。
@@ -72,7 +74,10 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.6 Codex 下一步
 
-- **Code Review 對象**：`99ec4b14..8e3e59bb`（必修修正）。對照 `PHASE3_PLAN.md` Rev.3.3 與 `PHASE3_CHANGELOG.md` 的「Codex 複審修正」一節。
+- **Code Review 對象（本輪）**：只複審 Finding 1，範圍 `8e3e59bb..c050c719`。Finding 2、3 已 RESOLVED，不要重審。
+- **Finding 1 重點**：`js/router.js` 的 `layerIndexOf`、`setUi`／`updateUi(patch, type)`；`js/category.js` 的 5 處寫入是否全部指定 `folder`；`detail_state_test.py` DS-9～DS-11 的前置條件與斷言。
+- **前次重點（已通過）**：`99ec4b14..8e3e59bb` 中的 Detail 還原、flow F-d、LR-8 測試。
+- **以下為前一輪（歷史，僅供參考）**：
 - **重點審查**：
   - `js/router.js` 的層 id、`uiCache`、`setUi`／`updateUi`、popstate 的 `restoreUi`。
   - `js/detail.js` 的 `detailShow(code, ui)`、分頁切換即時寫入、捲動 150ms 合併、`pagehide` flush；確認只在頂層是同一檔 Detail 時寫入。
@@ -104,7 +109,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.9 文件與 Git
 
-- 尚未 push：`origin/main` 之後的 Phase 3 相關 commit（截至 `8e3e59bb` 共 9 個；以 `git rev-list --count origin/main..HEAD` 為準）。
+- 尚未 push：`origin/main` 之後的 Phase 3 相關 commit（以 `git rev-list --count origin/main..HEAD` 為準）。
 - 文件債（需 PO 決定是否更正，不阻擋 Phase 3）：`PHASE1_CHANGELOG.md`、`PHASE2_PLAN.md` 仍有 Android 字樣（例如 PLAN 的 G1 測試代號）。
 - 第 2 節的歷史紀錄全部已 RESOLVED，包括 Phase 2 blockers、Plan Rev.1～Rev.3.3 blockers、resync blocker、visualViewport、3 秒處理中、QA C7／C9 等。不要把它們當成目前待辦。
 
