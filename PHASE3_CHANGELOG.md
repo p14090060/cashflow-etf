@@ -404,3 +404,63 @@ PO 真機回饋：分類開啟後，其他 7 個分類 TAB 占用主要垂直空
 ### 版本
 
 - `index.html` 資源版本號 `20261005l`。
+
+## 真機 Bug：D4「查看更多」滑到底後消失、約 5 秒後恢復（底部錨定修正）
+
+### 現象（iPhone + Google Chrome，直向，fdc1d139）
+
+高股息 inside，10 檔，「查看更多（還有 12 檔）」正常。第二次滑到底後，按鈕整列消失，清單以 00907 為最後一列；手離開後約 5 秒按鈕自行出現。
+
+### 根因（已調查，GPT Gate 通過）
+
+- 清單的 `max-height` 由 `fit()` 依 visualViewport 的可視底部與導覽列頂端計算。iPhone 工具列伸縮會觸發 visualViewport `resize`／`scroll`，於是 `fit()` 改變清單高度。
+- 清單已捲到底時，高度縮短，但 `scrollTop` 不會跟著移到新的底部，「查看更多」就被裁切在清單外框之下。按鈕仍在 DOM 中（不是移除）。
+- 「5 秒後恢復」對應工具列回到原狀時的 visualViewport 事件，`fit()` 再把高度放大，按鈕重新可見。程式中沒有 5 秒的計時器。
+- 探針重現（390×844，高股息，清單捲到底）：高度 470 → 426、`scrollTop` 維持 16（新的最大值是 60）、按鈕頂端 729、清單底部 730，只露出 1px。第 10 檔確實是 00907。
+
+### 修正（只在 `fit()` 內，`js/category.js`）
+
+- 改高度前，記下清單是否原本已在底部：清單可見、未 `cat-off`、距底部 ≤ 4px。
+- 只有原本在底部，改完 `max-height` 後才把 `scrollTop` 設為新的最大值。
+- 原本在中段：不改動閱讀位置（不錨定）。
+- `cat-off`（LR-4 鍵盤 fallback）：不錨定，LR-4 的 scroll 保留行為不變。
+- 不取消 visualViewport 邏輯，不採 sticky 查看更多，不製作診斷 UI，不修改 Router、Detail、Flow。
+
+### 自動驗收（`category_test.py` AB 區塊）
+
+| 編號 | 檢查 |
+|---|---|
+| AB precondition A | 高股息 inside，10 檔，「查看更多（還有 12 檔）」在清單內（PO 真機情境） |
+| AB-1 | 原本在底部 → 視窗縮短（800px）：清單高度確實改變；仍在底部（scrollTop = 新最大值）；查看更多完整在清單可視範圍內；elementFromPoint 命中按鈕 |
+| AB-2 | 視窗恢復（844px）：高度回到原本；仍在底部，查看更多可見 |
+| AB-3 | 主動式 20 檔，中段（≈120px）：縮短與恢復後閱讀位置不變（未跳到底部） |
+| AB-4 | D4「查看更多」仍可點：+10（20 → 30）；捲到底仍可見、可再點；再點 +10（30 → 32） |
+
+### 負向對照
+
+還原修正前的 `js/category.js`（HEAD）：AB-1 三項 FAIL（清單停在 16px，最大值是 60px，查看更多在可視範圍外，elementFromPoint 未命中按鈕）。AB-2、AB-3 修正前也通過（它們是 regression 保護，不是修正的證明）。
+
+### 測試結果（headless Chrome，修正版）
+
+| 測試 | 結果 |
+|---|---|
+| `router_test.py` | 64 / 64 PASS |
+| `search_compact_test.py`（Phase 1） | 38 / 38 PASS |
+| `detail_ui_test.py`（Phase 2） | 42 / 42 PASS |
+| `detail_history_fix_test.py`（Phase 2） | 14 / 14 PASS |
+| `regression_test.py`（Phase 2） | 14 / 14 PASS |
+| `detail_collapse_test.py`（Phase 2） | 25 / 25 PASS |
+| `detail_state_test.py` | 42 / 42 PASS |
+| `category_test.py` | 160 PASS，0 FAIL，**1 DEFER**（LR-8 真機） |
+
+LR-4 恢復的 scroll 保留（40px）、BL-1～BL-8（844×390 無鍵盤）、PT-1～PT-12（直向 inside／doorway）全部維持 PASS。
+
+### 已知的剩餘邊界（待 GPT 決定，未在本次處理）
+
+- **中段但距底部小於視窗高度變化的位置**：工具列收合（視窗變大）時，清單 max 變小，若使用者原本在中段且距底部 ≤ 約 44px，瀏覽器會把 `scrollTop` 夾到新底部。探針：距底部 20px，800→844 時 `scrollTop` 從 576 變為 552（新底部）。這是瀏覽器的捲動範圍夾制，錨定邏輯沒有參與，修正前也會發生。
+- 可能的處理方式（需 GPT 決定，會改變版面）：在清單內容尾端加入等於最大視窗變化量的 padding（例如 56px）。代價是清單在底部時，查看更多下方會多出一段空白。
+- 本次依 GPT 指示只處理底部錨定，不擴大範圍。
+
+### 版本
+
+- `index.html` 資源版本號 `20261005l` → `20261005m`（`js/category.js` 有改動，升版才能讓 iPhone Chrome 取得新檔，避免沿用快取的舊 JS）。

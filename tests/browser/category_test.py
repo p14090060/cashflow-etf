@@ -477,6 +477,64 @@ set_view(390, 844, 'portraitPrimary'); wait_ms(300)
 check('PT-12 回到直向：inside 重新啟用', pt()['inside'] is True and pt()['ctl'] is True)
 ev("document.getElementById('catClose').click(); true"); wait_ms(320)
 
+# ── AB（真機 D4 消失 bug）：visualViewport／工具列伸縮改變清單高度時的底部錨定 ──
+# AB-1 原本在底部 → 縮短 → 仍在底部、查看更多完整可見；AB-2 恢復後仍在底部；
+# AB-3 原本在中段 → 不跳到底部；AB-4 D4 查看更多仍可點、+10 正常。
+AB_JS = """(function(){
+  const l = document.getElementById('catList'), b = document.querySelector('#catList .cat-more-in');
+  const lr = l.getBoundingClientRect();
+  const br = b ? b.getBoundingClientRect() : null;
+  return { h: Math.round(lr.height), scrollTop: Math.round(l.scrollTop), max: l.scrollHeight - l.clientHeight,
+           inner: !!b, innerVisible: !!br && br.top >= lr.top - 0.5 && br.bottom <= lr.bottom + 0.5,
+           rows: document.querySelectorAll('#catList .cat-row').length, listVis: getComputedStyle(l).visibility,
+           remainText: b ? b.textContent : null };
+})()"""
+def ab(): return ev(AB_JS)
+# ── A 段：PO 真機情境（高股息、10 檔、剩餘 12 檔、inside，直向 390×844）──
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("Router.toBase({base:'home'}); true"); wait_ms(200)
+ev("switchPage('cat'); true"); wait_ms(200)
+ev("document.querySelector('.cat-band[data-k=\"div\"]').click(); true"); wait_ms(450)
+ab0 = ab()
+check('AB precondition A: 高股息 inside, 10 rows shown, 「查看更多（還有 12 檔）」在清單內', ab0['inner'] and ab0['rows'] == 10 and ab0['remainText'] == '查看更多（還有 12 檔）', ab0)
+ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
+bot = ab()
+check('AB-1a precondition: list scrolled to bottom, 查看更多 visible', bot['scrollTop'] == bot['max'] and bot['innerVisible'], bot)
+set_view(390, 800, 'portraitPrimary'); wait_ms(600)
+s1 = ab()
+check('AB-1 原本在底部 → viewport 縮短：清單高度確實改變（fit 生效）', s1['h'] < bot['h'], (s1['h'], bot['h']))
+check('AB-1 原本在底部 → viewport 縮短：仍保持在底部（scrollTop = 新的最大值）', s1['scrollTop'] == s1['max'], s1)
+check('AB-1 原本在底部 → viewport 縮短：「查看更多」完整在清單可視範圍內', s1['innerVisible'], s1)
+hit_s1 = ev("(function(){ const b=document.querySelector('#catList .cat-more-in'); const r=b.getBoundingClientRect(); const e=document.elementFromPoint(r.left+r.width/2,(r.top+r.bottom)/2); return !!e && (e===b || b.contains(e)); })()")
+check('AB-1 viewport 縮短：查看更多 elementFromPoint 命中（未被導覽列蓋住）', hit_s1 is True)
+set_view(390, 844, 'portraitPrimary'); wait_ms(600)
+s2 = ab()
+check('AB-2 viewport 恢復：清單高度回到原本', s2['h'] == bot['h'], (s2['h'], bot['h']))
+check('AB-2 viewport 恢復：仍保持在底部，查看更多可見', s2['scrollTop'] == s2['max'] and s2['innerVisible'], s2)
+# ── B 段：主動式（32 檔）：中段閱讀位置與 D4 +10 ──
+ev("document.getElementById('catExpand').click(); true"); wait_ms(250)
+ev("document.querySelector('#catStrip button[data-k=\"active\"]').click(); true"); wait_ms(400)
+ev("(function(){ if (document.getElementById('catMain').classList.contains('cat-inside')) document.getElementById('catExpand').click(); return true; })()"); wait_ms(250)
+ev("(function(){ const m=document.querySelector('#catList .cat-more-in'); if(m) m.click(); return true; })()"); wait_ms(200)   # 20 檔
+ev("document.getElementById('catList').scrollTop = 120; true"); wait_ms(300)
+mid = ab()
+check('AB-3 precondition: 主動式 20 檔，清單在中段（≈120px，非底部）', mid['rows'] == 20 and abs(mid['scrollTop'] - 120) <= 2 and mid['max'] - mid['scrollTop'] > 40, mid)
+set_view(390, 800, 'portraitPrimary'); wait_ms(600)
+m1 = ab()
+check('AB-3 中段 → viewport 縮短：閱讀位置不變（未跳到底部）', abs(m1['scrollTop'] - 120) <= 2 and m1['scrollTop'] != m1['max'], m1)
+set_view(390, 844, 'portraitPrimary'); wait_ms(600)
+m2 = ab()
+check('AB-3 中段 → viewport 恢復：閱讀位置不變（未跳到底部）', abs(m2['scrollTop'] - 120) <= 2 and m2['scrollTop'] != m2['max'], m2)
+ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
+rows0 = ab()['rows']
+ev("document.querySelector('#catList .cat-more-in').click(); true"); wait_ms(250)
+check('AB-4 查看更多（D4）：點擊後 +10 檔（20 → 30）', ab()['rows'] == rows0 + 10, (rows0, ab()['rows']))
+ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
+d4 = ab()
+check('AB-4 查看更多（D4）：點擊後再捲到底仍可見、可再點', d4['inner'] and d4['innerVisible'], d4)
+ev("document.querySelector('#catList .cat-more-in').click(); true"); wait_ms(250)
+check('AB-4 查看更多（D4）：再次點擊 +10（30 → 32，主動式總數）', ab()['rows'] == 32, ab()['rows'])
+
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))
 fails = [r for r in results if r[1] is False]

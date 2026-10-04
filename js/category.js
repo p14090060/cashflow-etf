@@ -135,6 +135,11 @@ const Category = (function () {
     const list = $('catList'), main = $('catMain'), hint = $('catHint'), more = $('catMore');
     const pg = $(PAGE_ID);
     if (!list || !open || state === 'overview') return;
+    // 底部錨定：visualViewport／工具列伸縮會改變清單的 max-height。清單若原本已捲到底，縮短後 scrollTop 不會跟著移到新底部，
+    // 「查看更多」會被裁切在清單外框下方（真機 D4 消失）。改高度前先記下是否在底部（距底部 ≤ 4px、清單可見、未 cat-off）；
+    // 只有這種情況，改高度後才回到新的底部。使用者原本在中段時不改動閱讀位置。cat-off（LR-4 鍵盤 fallback）時不錨定。
+    const wasAtBottom = !list.classList.contains('cat-off') && !list.hidden &&
+      list.scrollHeight > list.clientHeight && (list.scrollHeight - list.clientHeight - list.scrollTop) <= 4;
     syncMode();
     const ctl = ctlActive();
     const vv = window.visualViewport;
@@ -170,7 +175,10 @@ const Category = (function () {
     const short = kbd && a < LINE_H && !list.hidden;
     list.classList.toggle('cat-off', short);
     more.classList.toggle('cat-gone', short);
-    if (!short) list.style.maxHeight = Math.max(LINE_H, a) + 'px';
+    if (!short) {
+      list.style.maxHeight = Math.max(LINE_H, a) + 'px';
+      if (wasAtBottom) list.scrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
+    }
     if (hint) {
       hint.textContent = '收起鍵盤以查看 ETF 清單';
       hint.hidden = !short;
