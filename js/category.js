@@ -18,6 +18,8 @@ const Category = (function () {
   // 只存在 Category，不寫入 Router；不做回頂自動展開。
   let stripOpen = false;
   let lastKey = null, lastView = null;
+  // 最近一次把清單畫到畫面上的分類與檢視（renderList 用來判斷「同一分類的重建」）
+  let renderedKey = null, renderedView = null;
 
   function $(id) { return document.getElementById(id); }
   function reducedMotion() {
@@ -75,12 +77,28 @@ const Category = (function () {
     }
     const sorted = all.slice().sort(open.ui.sort === 'name' ? catCompareName : catCompareCode);
     const n = Math.min(open.ui.shown || 10, sorted.length);
+    // 重建前記下位置。同一分類（資料輪詢、Detail 關閉、排序、更多）以畫面上的 scrollTop 為準；
+    // 換分類或檢視時以該層記住的位置為準。只有「同一分類」且原本在底部時才算底部（換分類時舊清單的底部不適用）。
+    // 「cat-off」（LR-4 鍵盤 fallback）與隱藏時沒有可視高度，不判斷底部，只保留位置。
+    const sameFolder = renderedKey === open.key && renderedView === open.view;
+    const geomOK = !list.classList.contains('cat-off') && !list.hidden && list.scrollHeight > list.clientHeight;
+    const atBottom = sameFolder && geomOK && (list.scrollHeight - list.clientHeight - list.scrollTop) <= 4;
+    const keepVal = sameFolder ? list.scrollTop : (open.ui.scrollTop || 0);
     list.innerHTML = sorted.slice(0, n).map(rowHtml).join('');
     const rest = sorted.length - n;
     more.hidden = rest <= 0;
     more.textContent = '查看更多（還有 ' + rest + ' 檔）';
-    list.scrollTop = open.ui.scrollTop || 0;
+    // 先插回「查看更多」，之後的捲動範圍才包含它；再還原到完整內容的合法範圍（不可先設 scrollTop，否則會被夾到 0）
     syncInnerMore();
+    const maxNow = Math.max(0, list.scrollHeight - list.clientHeight);
+    const target = atBottom ? maxNow : Math.min(keepVal, maxNow);
+    list.scrollTop = target;
+    renderedKey = open.key; renderedView = open.view;
+    // 同步記住的位置（夾制後的實際值）。這裡是程式性的還原，直接寫入，不依賴之後的 scroll 事件（防抖後才讀取）
+    if (open.ui.scrollTop !== target) {
+      open.ui = Object.assign({}, open.ui, { scrollTop: target });
+      Router.updateUi({ scrollTop: target }, 'folder');
+    }
   }
 
   function buildStrip() {
@@ -243,7 +261,7 @@ const Category = (function () {
   // Router 呼叫：依已確認的 folder 層更新畫面（不重設 ui）
   function applyFolder(layer) {
     if (!layer) {
-      if (open) { open = null; lastKey = null; lastView = null; closeUi(); }
+      if (open) { open = null; lastKey = null; lastView = null; renderedKey = null; renderedView = null; closeUi(); }
       syncMode();
       return;
     }
@@ -252,6 +270,8 @@ const Category = (function () {
     // 進入分類、換分類、從持股異動回到清單：一律進入「店內」，其他分類立即收合（不需先捲動）。
     // Detail 開關、返回同一分類時 key 與 view 不變，保留目前模式。
     if (!wasOpen || open.key !== lastKey || (open.view === 'list' && lastView === 'flow')) stripOpen = false;
+    // 分類或檢視改變：畫面上的清單不再代表這一層（例如持股異動隱藏清單時 scrollTop 不可靠），之後以該層記住的位置還原
+    if (open.key !== lastKey || open.view !== lastView) { renderedKey = null; renderedView = null; }
     lastKey = open.key; lastView = open.view;
     if (!wasOpen) openUi();
     else refreshAll();

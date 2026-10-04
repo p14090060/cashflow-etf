@@ -464,3 +464,75 @@ LR-4 恢復的 scroll 保留（40px）、BL-1～BL-8（844×390 無鍵盤）、P
 ### 版本
 
 - `index.html` 資源版本號 `20261005l` → `20261005m`（`js/category.js` 有改動，升版才能讓 iPhone Chrome 取得新檔，避免沿用快取的舊 JS）。
+
+## 真機 Bug（測試 A 確認）：Detail 關閉／Back／Forward／資料輪詢後「查看更多」消失
+
+### 真機結果（iPhone + Google Chrome，直向，3be2d19c）
+
+1. 高股息滑到底，「查看更多（還有 12 檔）」正常可見。
+2. 點 00907 開啟 Detail。
+3. 按 Detail 右上角 × 關閉。
+4. 回到高股息，畫面未滑動。
+5. 「查看更多（還有 12 檔）」立即消失。
+
+### 根因（已由真機確認）
+
+`renderList()` 在 `js/category.js` 中先把 `scrollTop` 設回已儲存的值，之後才把「查看更多」插回清單。插回前，清單內容只有列（10 檔為 440px），清單高 470px，沒有捲動範圍，`scrollTop` 因此被夾到 0。按鈕插回底部後落在可視區外，scroll 事件再把 0 寫入 `ui.scrollTop`，之後也不會自動恢復。
+
+同一路徑由以下事件觸發，都會發生：
+
+- Detail 開啟與關閉（`applyFolder` → `refreshAll` → `renderList`）。
+- Back／Forward 回到資料夾（同一條路徑）。
+- 資料輪詢（30 秒，`renderAll` → `Category.refresh` → `refreshAll` → `renderList`）。
+- 排序、查看更多等會重建清單的操作。
+
+3be2d19c 的底部錨定修正處理的是 visualViewport 縮短造成的裁切，不影響這條路徑。因此修正後，原本可見的按鈕會在下一次重建時消失。
+
+### 修正（只在 `renderList()`，`js/category.js`）
+
+- 重建前記下位置：
+  - 「同一分類」（`renderedKey`、`renderedView` 與目前相同）時，以畫面上的 scrollTop 為準；否則以該層記住的 `ui.scrollTop` 為準。
+  - 只有「同一分類」且清單可見、未 `cat-off`、距底部 ≤ 4px 時才算在底部。
+- 先插回「查看更多」（`syncInnerMore`），之後捲動範圍才包含它。
+- 再還原：在底部 → 新的最大 scrollTop；否則 → 夾到合法範圍內的原位置（中段不被送到底部）。
+- 還原後直接寫入 `open.ui.scrollTop`，並同步 Router（`updateUi`）。不依賴 150ms 防抖之後的 scroll 事件（防抖讀到的是最終值，不會寫回錯誤的 0）。
+- `applyFolder`：分類或檢視改變時清除 `renderedKey`／`renderedView`（例如持股異動隱藏清單時 scrollTop 不可靠）。
+- 不修改 visualViewport 錨定（3be2d19c）、Router、Detail、Flow。
+
+### 自動驗收（`category_test.py` RL 區塊）
+
+| 編號 | 檢查 |
+|---|---|
+| RL-1 | 底部 → 開 00907 Detail → × 關閉：仍在底部、查看更多可見；防抖後 `ui.scrollTop` 與畫面一致（不為 0） |
+| RL-2 | 資料輪詢重建（`Category.refresh`）在底部：仍在底部、查看更多可見、`ui` 一致 |
+| RL-3 | 中段（120px）：資料輪詢重建與 Detail 關閉後，位置不變，未被送到底部；查看更多仍在清單內 |
+| RL-4 | 底部 → Detail → Back（關閉）→ Forward（再開）→ Back：每一步仍在底部、查看更多可見 |
+
+### 負向對照
+
+還原 3be2d19c 的 `js/category.js`：RL-1（三項）、RL-2、RL-4（三項）FAIL。失敗狀態與真機一致：`st` 0、查看更多不可見、`ui.scrollTop` 0。修正版全部 PASS。
+
+### 測試結果（headless Chrome，修正版）
+
+| 測試 | 結果 |
+|---|---|
+| `router_test.py` | 64 / 64 PASS |
+| `search_compact_test.py`（Phase 1） | 38 / 38 PASS |
+| `detail_ui_test.py`（Phase 2） | 42 / 42 PASS |
+| `detail_history_fix_test.py`（Phase 2） | 14 / 14 PASS |
+| `regression_test.py`（Phase 2） | 14 / 14 PASS |
+| `detail_collapse_test.py`（Phase 2） | 25 / 25 PASS |
+| `detail_state_test.py` | 42 / 42 PASS |
+| `category_test.py` | 173 PASS，0 FAIL，**1 DEFER**（LR-8 真機） |
+
+LR-4 恢復的 scroll 保留（40px，cat-off 路徑）、AB（3be2d19c 錨定）、BL（844×390 無鍵盤、橫向）、PT（直向 inside／doorway）全部維持 PASS。
+
+### 未處理（另案）
+
+- UX-1：警語與分類內容間的垂直空白過大。
+- UX-2：▼／▲ 改為「切換分類 ▼／▲」。
+- 中段距底部 ≤ 約 44px 時，工具列收合會被瀏覽器夾到底部（3be2d19c 已記錄，未處理）。
+
+### 版本
+
+- `index.html` 資源版本號 `20261005m` → `20261005n`（JS 有改動）。

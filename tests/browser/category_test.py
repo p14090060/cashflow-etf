@@ -535,6 +535,70 @@ check('AB-4 查看更多（D4）：點擊後再捲到底仍可見、可再點', 
 ev("document.querySelector('#catList .cat-more-in').click(); true"); wait_ms(250)
 check('AB-4 查看更多（D4）：再次點擊 +10（30 → 32，主動式總數）', ab()['rows'] == 32, ab()['rows'])
 
+# ── RL（真機測試 A FAIL 已確認）：Detail 關閉／Back／Forward／資料輪詢重建清單時，底部與中段位置保持正確；ui.scrollTop 不寫入錯誤的 0 ──
+RL_JS = """(function(){
+  const l = document.getElementById('catList'), b = document.querySelector('#catList .cat-more-in');
+  const lr = l.getBoundingClientRect(), br = b ? b.getBoundingClientRect() : null;
+  const st = Router.state().stack[0];
+  return { st: Math.round(l.scrollTop), max: l.scrollHeight - l.clientHeight, inner: !!b,
+           vis: !!br && br.top >= lr.top - 0.5 && br.bottom <= lr.bottom + 0.5,
+           ui: st && st.ui ? Math.round(st.ui.scrollTop) : null, rows: document.querySelectorAll('#catList .cat-row').length,
+           detailOpen: !document.getElementById('gsPanel').hidden };
+})()"""
+def rl(): return ev(RL_JS)
+def rl_open_detail(code):
+    ev("(function(){ const r=document.querySelector('#catList .cat-row[data-code=\"%s\"]'); if(r) r.click(); return !!r; })()" % code); wait_ms(320)
+def rl_close_x():
+    ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(350)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("Router.toBase({base:'home'}); true"); wait_ms(200)
+ev("switchPage('cat'); true"); wait_ms(200)
+ev("document.querySelector('.cat-band[data-k=\"div\"]').click(); true"); wait_ms(450)
+# RL-1：底部 → 開 Detail（00907）→ × 關閉：清單仍在底部、查看更多可見、ui 與畫面一致（不得被寫成 0）
+ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
+r1a = rl()
+check('RL-1 precondition: 高股息 at bottom, 查看更多 visible, 10 rows', r1a['st'] == r1a['max'] and r1a['vis'] and r1a['rows'] == 10, r1a)
+rl_open_detail('00907')
+check('RL-1 Detail 00907 opened from the list', rl()['detailOpen'] is True)
+rl_close_x()
+r1 = rl()
+check('RL-1 Detail × 關閉後：清單仍在底部（st = 合法最大值）', r1['st'] == r1['max'] and r1['max'] > 0, r1)
+check('RL-1 Detail × 關閉後：「查看更多」完整可見（真機測試 A）', r1['inner'] and r1['vis'], r1)
+ev("true"); wait_ms(400)   # 讓 150ms 防抖也跑完，確認之後不會被寫成錯誤的值
+r1b = rl()
+check('RL-1 防抖結束後 ui.scrollTop 仍與畫面一致（沒有被寫回 0）', r1b['ui'] == r1b['st'] and r1b['vis'], r1b)
+# RL-2：資料輪詢（Category.refresh，與 30 秒輪詢走同一條 renderList 路徑）：底部與中段
+ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
+Category_refresh = ev("(function(){ Category.refresh(); return true; })()"); wait_ms(300)
+r2 = rl()
+check('RL-2 資料輪詢重建（底部）：仍在底部，查看更多可見', r2['st'] == r2['max'] and r2['vis'] and r2['ui'] == r2['st'], r2)
+# 把清單放到中段（先 +10 讓捲動範圍足夠）
+ev("(function(){ const m=document.querySelector('#catList .cat-more-in'); if(m) m.click(); return true; })()"); wait_ms(200)   # 20 檔
+ev("document.getElementById('catList').scrollTop = 120; true"); wait_ms(300)
+mid0 = rl()
+check('RL-3 precondition: 中段（120px，非底部）', abs(mid0['st'] - 120) <= 2 and mid0['max'] - mid0['st'] > 40, mid0)
+ev("(function(){ Category.refresh(); return true; })()"); wait_ms(300)
+r3 = rl()
+check('RL-3 資料輪詢重建（中段）：閱讀位置不變，未被送到底部', abs(r3['st'] - mid0['st']) <= 2 and r3['st'] != r3['max'], (mid0['st'], r3['st'], r3['max']))
+check('RL-3 資料輪詢重建（中段）：查看更多仍在清單內（D4）', r3['inner'], r3)
+rl_open_detail('00907')
+rl_close_x()
+r3b = rl()
+check('RL-3 Detail 關閉（中段）：閱讀位置不變，未被送到底部', abs(r3b['st'] - mid0['st']) <= 2 and r3b['st'] != r3b['max'], (mid0['st'], r3b['st'], r3b['max']))
+# RL-4：底部 → Detail → Back（關閉）→ Forward（再開）→ Back：每一步都在底部、查看更多可見
+ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
+bot4 = rl()
+rl_open_detail('00907')
+ev("history.back(); true"); wait_ms(350)
+b1 = rl()
+check('RL-4 Back（Detail 關閉）：仍在底部，查看更多可見', b1['st'] == b1['max'] and b1['vis'] and not b1['detailOpen'], (bot4, b1))
+ev("history.forward(); true"); wait_ms(350)
+f1 = rl()
+check('RL-4 Forward（Detail 再開）：Detail 開啟，清單仍在底部', f1['detailOpen'] and f1['st'] == f1['max'], f1)
+ev("history.back(); true"); wait_ms(350)
+b2 = rl()
+check('RL-4 再次 Back：仍在底部，查看更多可見', b2['st'] == b2['max'] and b2['vis'] and not b2['detailOpen'], b2)
+
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))
 fails = [r for r in results if r[1] is False]
