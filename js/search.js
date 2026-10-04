@@ -166,20 +166,20 @@ if (window.visualViewport) {
 }
 _gsSyncAll();
 
-// 橫向時鍵盤會平移整個可視畫面，搜尋框會被推出畫面上方。搜尋框有焦點且畫面被平移時，
-// 把頂部區域反向平移同樣距離，讓搜尋框留在可見範圍最上方；頁面仍可正常上下捲動。
+// 矮螢幕（橫向）鍵盤出現時，版面視窗只剩很小一塊；頂部是 sticky，會釘在視窗頂端，
+// 搜尋框露不出來。搜尋框取得焦點時，改讓頂部隨頁面捲動，並把搜尋框捲到最上方。
+// 直向螢幕夠高，不進入這個狀態。
 (function () {
-  const hdr = document.querySelector('.app-hdr');
   const input = document.getElementById('gsearch');
-  const vv = window.visualViewport;
-  if (!hdr || !input || !vv) return;
-  function _gsKbSync() {
-    const panned = document.activeElement === input && vv.offsetTop > 0;
-    document.body.classList.toggle('gs-kb-pan', panned);
-    hdr.style.transform = panned ? 'translateY(' + vv.offsetTop + 'px)' : '';
-  }
-  input.addEventListener('focus', _gsKbSync);
-  input.addEventListener('blur', () => setTimeout(_gsKbSync, 0));
-  vv.addEventListener('scroll', _gsKbSync);
-  vv.addEventListener('resize', _gsKbSync);
+  if (!input) return;
+  input.addEventListener('focus', function () {
+    if (window.innerHeight >= 600) return;
+    document.body.classList.add('gs-kb');
+    setTimeout(() => input.scrollIntoView({ block: 'start' }), 350);
+  });
+  input.addEventListener('blur', function () {
+    setTimeout(() => {
+      if (document.activeElement !== input) document.body.classList.remove('gs-kb');
+    }, 250);
+  });
 })();
