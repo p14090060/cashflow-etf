@@ -190,6 +190,6 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   }).join('');
 
   renderRank();
-  detailOnMarketUpdate();
+  Router.onMarketUpdate();
 }
 

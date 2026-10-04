@@ -22,13 +22,13 @@ check('F2 single popstate', ev("window.__pop") == 1, ev("window.__pop"))
 ev("gsClear(); true")
 
 # ── F1-b：pending restore 遇到基底 entry，延遲 callback 不得開啟 Detail
-ev("(()=>{ _restoreCode='0050'; history.replaceState(null,''); detailOnMarketUpdate(); })(); true"); wait_ms(100)
+ev("(()=>{ history.replaceState(null,''); detailOnMarketUpdate(); })(); true"); wait_ms(100)   # Phase 3：pending restore 由 router 管理，這裡只保留行為情境
 check('F1 pending restore on base entry does not open detail', ev("document.getElementById('gsPanel').hidden") is True)
-check('F1 pending restore cleared', ev("_restoreCode") is None)
+check('F1 pending restore cleared (v2: no detail layer on base)', ev("Router.state().stack.length") == 0)   # Phase 3：內部 _restoreCode → router 的 stack
 
 # ── F1-c：popstate 離開 entry 時取消 pending restore
-ev("(()=>{ _restoreCode='0050'; history.replaceState(null,''); window.dispatchEvent(new PopStateEvent('popstate',{state:null})); })(); true"); wait_ms(100)
-check('F1 popstate cancels pending restore', ev("_restoreCode") is None)
+ev("(()=>{ history.replaceState(null,''); window.dispatchEvent(new PopStateEvent('popstate',{state:null})); })(); true"); wait_ms(100)   # Phase 3：同上
+check('F1 popstate cancels pending restore (v2: stack empty)', ev("Router.state().stack.length") == 0)   # Phase 3：內部 _restoreCode → router 的 stack
 check('F1 popstate on base keeps detail closed', ev("document.getElementById('gsPanel').hidden") is True)
 
 # ── F1-a：真實流程：開 Detail → 重整 → 在資料回來前按 Back

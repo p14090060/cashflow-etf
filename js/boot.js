@@ -6,14 +6,14 @@
 function reloadData() {
   window.location.replace(window.location.pathname + '?v=' + Date.now());
 }
-// 重整前若 Detail 開著，history.state 會帶著標記；交給 detail.js 在資料到位後還原
-_restoreCode = (history.state && history.state.etfDetail) ? history.state.code : null;
+// history 由 router.js 管理（Phase 3）：啟動時正規化當前 entry，不 push；資料到位後才渲染 folder／detail 層
+Router.init();
 let _pollTimer = null;
 // 排行榜要知道哪幾檔有 PCF 持股資料才能決定可不可點，所以開場先抓一次，
 // 回來後補畫一次排行（之後 30 秒輪詢的 renderRank 就都帶得到了）。
 fetchFlow().then(d => { if (d) renderRank(); });
 
-function openFlow(code) { _flowSel = code; switchPage('check'); }
+function openFlow(code) { _flowSel = code; Router.openFlow(code); }
 
 // ── 資料載入失敗的處理（2026-10-03）────────────────────────────
 // 以前抓失敗會改畫 STATIC_ETFS：0050 寫死 175.3、行事曆停在 5 月。
@@ -38,7 +38,7 @@ function showDataError(err) {
     box.hidden = false;
   }
   console.warn('[ETF] market.json 載入失敗：', err);
-  _tryRestoreDetail();
+  Router.onDataError();
 }
 
 function hideDataError() {

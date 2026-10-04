@@ -229,32 +229,33 @@
 
 **Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
 
-## Phase 3 Plan（Rev.3.3，待 Codex 複審：只驗 resync blocker）
+## Phase 3 Coding（待 Codex Code Review）
 
-- 來源：Codex 複審 Rev.3.2 後，只剩 3 秒 resync 一項。本次只修 resync 規則與 RT-19，**未修改程式、未 Coding、未 push**。其他章節視為已通過，未重新設計。
-- 文件：`PHASE3_PLAN.md`（Rev.3.3）。
+- 依據：`PHASE3_PLAN.md` Rev.3.3（Codex 最終 Review：PASS FOR CODING AFTER PRODUCT DECISIONS）。
+- PO 決策：D-ESG（00920、00923、009809 → 主題型）；D14（自選 = 空狀態頁「自選 ETF 功能即將開放」）；其他 D11–D13、D15–D17 依 Plan 預設。
+- Coding commit：見 `git log -1`（程式、測試、fixture、changelog、本檔同一個 commit）。**未 push。**
+- 變更與細節：`PHASE3_CHANGELOG.md`。
 
-**最終規則（取代 Rev.3.2 的 3 秒 resync）**
-- `history.go(-k)` 發出後，即使超過 3 秒，也**不能**因 timeout 或計時器而假定 traversal 已完成或取消。
-- 500ms timeout：只取消舊 continuation；`inflight` 仍存在；`parked` intent 保留。
-- 3 秒到達：只顯示「處理中」。**不清除 inflight、不執行 parked、不發出第二個 traversal、不以 `history.state` 宣告完成。**
-- 只有真正的 popstate 才算完成。完成後才更新 `confirmed`、清除 `inflight`，並依新的 `confirmed` 求值 parked，且只執行一次。
-- orphan traversal 的 continuation 永遠不復活。
-- 「處理中」無法自行結束時（理論上只在歷史入口不存在時發生），復原方式是重新整理，從實際 `history.state` 還原。
+**實作範圍**
+- 導覽：首頁／分類／自選／工具。配息、排行、頻道為工具子頁；持股異動為分類 → 主動式分段。
+- 分類：8 份文件夾（左右各 4）、展開清單（前 10、查看更多 +10、代碼／名稱排序）、次要標籤、低高度讓位、空與錯誤狀態。
+- Router：`js/router.js` 為唯一 history 管理者，依 Rev.3.3 狀態機（confirmed、inflight、orphan、parked、3 秒處理中）。Phase 2 Detail 語意保留。
+- 分類規則：`js/category-rules.js`（純函式），fixture 203 檔，分布 16／22／32／20／78／21／6／8。
 
-**RT-19 必測流程**：舊 traversal deferred → 500ms timeout（orphan）→ 新 navigation parked → 3 秒處理中（驗證沒有第二個 traversal、沒有提前 push／replace）→ release 舊 traversal → 依 confirmed 執行 parked 一次 → 最終目標正確 → Back／Forward 正確。
+**測試（headless，CDP）**
+- 既有 Phase 1／2：detail_ui 42、detail_history_fix 14、regression 14、detail_collapse 25、search_compact 38，全部 PASS。
+- 新增：router 64／64 PASS；category 82 PASS、0 FAIL、2 DEFER。
+- 內部 state 斷言改寫為 v2 等價（列於 changelog）；行為斷言未放寬。
 
-**驗證點**：3 秒前後 history 都未被提前寫入；同時間最多一個 traversal；舊 traversal 晚到不會被誤認為另一個 traversal（`__routerCompletions` = 1）；舊 continuation 未執行；parked 只執行一次（`__routerParkedRuns` = 1）。
+**DEFER（不算 PASS，需決策或真機）**
+- LR-4：844×170 鍵盤開，清單無法達到 44px。全站免責（85px，Phase 1 既有）不在分類頁內。需決策是否在鍵盤模式隱藏全站免責（會改變 Phase 1 行為）。Fallback 提示已放在可視區內的標題列。
+- LR-8：headless 無法產生 offsetTop > 0；需 iPhone Chrome 真機補測（本次不要求）。
 
-**新增測試 hook**：`__routerForceProcessingMark`、`__routerInflightState`、`__routerCompletions`、`__routerParkedRuns`、`__routerProcessing`。
-
-**Rev.3.2 中已刪除的敘述**：「3 秒 resync 可清除 inflight 或執行 parked」、「resync 以 history.state 為已確認位置」、「resync 是 no-op 的保險」。
-
-**D-ESG 與 D14 維持 pending**，本次未要求 Product Owner 回答。
+**已知限制**：R-N3（traversal 永不抵達 → 處理中，靠重新整理復原，需真機確認）；base 切換 replace 造成舊 Detail 的 forward entry（與 Phase 2 相同）；↻ 仍為 `location.replace`；動畫為簡化版。
 
 **下一步**
-- Codex 只驗這一個 resync blocker：§7.8、§7.8.1、RT-19，以及 §7.1 R7 與 confirmed 定義。
-- 通過後，才依 PO 決策進入 Coding。
+- Codex 做 Code Review（程式、測試、fixture、router 與 Plan Rev.3.3 的一致性）。
+- 目前不要求 Product Owner 真機測試。Codex 審查通過後，再由 Claude 整理真機操作步驟（含 LR-4、LR-8 的 DEFER 項目）。
 
 ## Phase 2 封版狀態
 

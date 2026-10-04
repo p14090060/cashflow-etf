@@ -21,7 +21,7 @@ function fetchFlow() {
   const ok = r => { if (!r.ok) throw 0; return r.json(); };
   return fetch('data/active_flow.json?t=' + Date.now()).then(ok)
     .catch(() => fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/active_flow.json?t=' + Date.now()).then(ok))
-    .then(d => { _flowData = d; _flowStatus = 'ok'; detailOnFlowUpdate(); return d; })
+    .then(d => { _flowData = d; _flowStatus = 'ok'; detailOnFlowUpdate(); if (typeof Category !== "undefined") Category.onFlowData(); return d; })
     .catch(() => { _flowStatus = 'failed'; detailOnFlowUpdate(); return null; });
 }
 
@@ -75,7 +75,7 @@ function _trim(list, keep) {
   return head;
 }
 
-function flowSelect(code) { _flowSel = code; renderFlow(); }
+function flowSelect(code) { _flowSel = code; if (typeof Category !== "undefined") Category.setFlowCode(code); renderFlow(); }
 
 // 海外持股（美股、日股…）查不到台股收盤價，算不出金額也畫不進 treemap。
 // 但 PCF 本來就寫了增減股數，條列出來至少看得到「買賣了什麼、幾股」。
@@ -285,6 +285,6 @@ function flowTap(idx) {
 }
 
 window.addEventListener('resize', () => {
-  if (document.getElementById('page-check').classList.contains('active')) renderFlow();
+  if (typeof Category !== "undefined" && Category.isFlowVisible()) renderFlow();
 });
 

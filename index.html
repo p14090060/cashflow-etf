@@ -9,9 +9,10 @@
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261004o">
-<link rel="stylesheet" href="css/components.css?v=20261004o">
-<link rel="stylesheet" href="css/pages.css?v=20261004o">
+<link rel="stylesheet" href="css/base.css?v=20261005g">
+<link rel="stylesheet" href="css/components.css?v=20261005g">
+<link rel="stylesheet" href="css/pages.css?v=20261005g">
+<link rel="stylesheet" href="css/category.css?v=20261005g">
 </head>
 <body>
 
@@ -53,6 +54,7 @@
 <!-- 資料抓不到時由 boot.js 的 showDataError() 填內容並取消 hidden -->
 <div class="data-error" id="dataError" hidden></div>
 
+<div class="router-proc" id="routerProc" hidden>處理中…</div>
 <div class="pages">
 
   <!-- ══ PAGE 1: 今日 ══ -->
@@ -89,7 +91,160 @@
     </div>
     <div class="custom-msg" id="todayMsg" style="display:none"></div>
     <div id="todayResult"></div>
+    <button class="entry-card" type="button" onclick="switchPage('yt')">YouTube 頻道：金流黑盒子 ›</button>
 
+  </div>
+
+  <!-- ══ PAGE 分類（Phase 3）：8 份文件夾；持股異動移入主動式資料夾 ══ -->
+  <div class="page" id="page-cat" data-state="overview">
+    <div class="cat-stage" id="catStage">
+      <div class="cat-stack" id="catStackL"></div>
+      <div class="cat-stack" id="catStackR"></div>
+      <p class="cat-note" id="catNote">分類是主要方向，不代表 ETF 的全部特徵。想找特定條件的 ETF，請用上方搜尋。</p>
+    </div>
+    <section class="cat-main" id="catMain">
+      <div class="cat-head">
+        <div class="cat-title"><b id="catName"></b><span id="catCount"></span></div>
+        <div class="cat-hint" id="catHint" hidden></div>
+        <button class="cat-btn" id="catSortBtn" type="button">排序：代碼</button>
+        <button class="cat-btn" id="catClose" type="button" aria-label="收合資料夾">✕</button>
+      </div>
+      <div class="cat-sub" id="catSub"></div>
+      <div class="cat-seg" id="catSeg" hidden>
+        <button type="button" data-v="list">ETF 清單</button>
+        <button type="button" data-v="flow">持股異動</button>
+      </div>
+      <div class="cat-strip" id="catStrip"></div>
+      <div class="cat-list" id="catList"></div>
+      <button class="cat-more" id="catMore" type="button" hidden></button>
+      <div class="cat-flow-host" id="catFlowHost">
+    <!-- ══ PAGE 4: 主動式 ETF 買賣超 ══ -->
+    <div class="cat-flow" id="page-check">
+  
+      <div class="flow-head">
+        <div class="flow-title">主動式 ETF 持股異動</div>
+        <div class="flow-meta" id="flowMeta">載入中…</div>
+      </div>
+  
+      <div class="flow-chips" id="flowChips"></div>
+  
+      <div class="flow-totals">
+        <div class="flow-tot"><span>加碼</span><b class="buy"  id="flowBuy">–</b></div>
+        <div class="flow-tot"><span>減碼</span><b class="sell" id="flowSell">–</b></div>
+      </div>
+  
+      <div id="treemap" class="treemap"></div>
+      <div class="flow-tip" id="flowTip"></div>
+      <div id="flowForeign"></div>
+  
+      <!-- 內容由 draw() 依「下面實際畫出了什麼」決定，見 flowNote 那段 -->
+      <div class="flow-note" id="flowNote"></div>
+      <div class="flow-cover" id="flowCover"></div>
+  
+      <!-- ↓ 2026-09-23 下架：持倉健檢 + 財務試算，整頁改放主動式 ETF 買賣超。
+           用 <template> 保存而非刪除（這段本身就含註解，用 HTML 註解會提前收尾）。
+           要恢復：拿掉 template 標籤，並解開下方 JS「健診頁邏輯」的 /* */ 區塊。 -->
+      <template id="archived-check">
+      <div class="check-section">
+        <div class="check-title">🩺 持倉健檢</div>
+        <div style="font-size:16px;color:var(--dim);margin-bottom:14px">輸入代碼、張數、成本價，查看今日持倉現況</div>
+        <input class="num-input" id="hldCode" placeholder="ETF 代碼（如 0056）" maxlength="8"
+               style="width:100%;text-transform:uppercase;font-family:var(--mono);font-size:17px;margin-bottom:8px;box-sizing:border-box"
+               onkeydown="if(event.key==='Enter')runHoldingCheck()">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <input class="num-input" id="hldShares" type="number" placeholder="持有張數" min="1" step="1"
+                 style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
+          <input class="num-input" id="hldCost" type="number" placeholder="成本價" min="0" step="0.1"
+                 style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
+        </div>
+        <button class="check-calc-btn" onclick="runHoldingCheck()">健檢 →</button>
+        <div id="holdingResult" style="margin-top:12px"></div>
+      </div>
+  
+      <!-- 財務試算（D-2） -->
+      <div class="check-section">
+        <div class="check-title">💰 財務試算</div>
+  
+        <div class="check-row">
+          <div class="check-lbl">可用資金</div>
+          <div class="input-prefix">
+            <span>NT$</span>
+            <input type="number" id="chkCapital" value="100000" min="0" step="10000">
+          </div>
+        </div>
+  
+        <div class="check-row">
+          <div class="check-lbl">定期定額</div>
+          <div class="dca-toggle">
+            <button class="dca-btn active" id="dcaYes" onclick="setDCA(true)">是</button>
+            <button class="dca-btn" id="dcaNo" onclick="setDCA(false)">否</button>
+          </div>
+        </div>
+        <div class="dca-tip" id="dcaTip">
+          💡 每月固定投入相同金額，不管漲跌都持續買進，以時間平均成本降低選時風險。適合上班族穩健累積資產，不需要猜何時是最低點。
+        </div>
+        <div class="check-row" id="monthlyRow">
+          <div class="check-lbl">每月投入</div>
+          <div class="input-prefix">
+            <span>NT$</span>
+            <input type="number" id="chkMonthly" value="5000" min="0" step="1000">
+          </div>
+        </div>
+  
+        <div class="check-lbl" style="margin-bottom:8px">期望年報酬率</div>
+        <div class="rate-presets">
+          <button class="rate-btn" id="rateBtn5" onclick="setRate(5)">穩健 5%<small>高息 ETF</small></button>
+          <button class="rate-btn active" id="rateBtn8" onclick="setRate(8)">成長 8%<small>指數型</small></button>
+          <button class="rate-btn" id="rateBtn12" onclick="setRate(12)">積極 12%<small>主題型</small></button>
+        </div>
+        <div class="rate-slider-row">
+          <input type="range" id="chkRate" min="3" max="15" step="0.5" value="8" oninput="updateRate(this.value)">
+          <div class="rate-num"><span id="rateVal">8</span>%</div>
+        </div>
+        <div style="font-size:16px;color:var(--dim);margin-bottom:12px;margin-top:-8px">
+          參考區間：台灣高息 ETF 配息約 5–8%／年；大盤指數型歷史年化約 7–10%
+        </div>
+  
+        <button class="check-calc-btn" onclick="runCalc()">開始試算 →</button>
+  
+        <div id="calcResult" style="display:none">
+          <table class="proj-table">
+            <thead>
+              <tr><th>年限</th><th>期末總資產</th><th>月配息估算</th></tr>
+            </thead>
+            <tbody id="projBody"></tbody>
+          </table>
+          <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px">
+            <div style="font-size:16px;color:var(--dim);margin-bottom:4px">依您的設定，適合的 ETF 類型：</div>
+            <div id="riskBadge" class="risk-badge"></div>
+            <div id="suggestRow" class="suggest-row"></div>
+            <div style="font-size:16px;color:var(--dim);margin-top:10px">⚠ 試算為複利估算，未扣稅費；實際報酬因市場波動而異，非投資建議</div>
+          </div>
+        </div>
+      </div>
+      </template>
+  
+    </div>
+      </div>
+      <div class="cat-foot" id="catFoot">本站資訊僅供參考，非個別標的買賣建議。</div>
+    </section>
+  </div>
+
+  <!-- ══ PAGE 自選（Phase 3 空狀態；功能於 Phase 4） ══ -->
+  <div class="page" id="page-watch">
+    <div class="empty-state">
+      <div class="es-title">我的自選</div>
+      <div class="es-sub">自選 ETF 功能即將開放</div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE 工具（Phase 3）：子頁為 配息／排行／頻道 ══ -->
+  <div class="page" id="page-tools">
+    <div class="tool-list">
+      <button class="tool-card" type="button" onclick="switchPage('div')"><b>配息工具</b><span>配息計算機、近期配息日曆</span></button>
+      <button class="tool-card" type="button" onclick="switchPage('rank')"><b>排行</b><span>依成交量排行</span></button>
+    </div>
+    <button class="tool-link" type="button" onclick="switchPage('yt')">YouTube 頻道：金流黑盒子 ›</button>
   </div>
 
   <!-- ══ PAGE 2: 配息 ══ -->
@@ -138,113 +293,6 @@
 
   </div>
 
-  <!-- ══ PAGE 4: 主動式 ETF 買賣超 ══ -->
-  <div class="page" id="page-check">
-
-    <div class="flow-head">
-      <div class="flow-title">主動式 ETF 持股異動</div>
-      <div class="flow-meta" id="flowMeta">載入中…</div>
-    </div>
-
-    <div class="flow-chips" id="flowChips"></div>
-
-    <div class="flow-totals">
-      <div class="flow-tot"><span>加碼</span><b class="buy"  id="flowBuy">–</b></div>
-      <div class="flow-tot"><span>減碼</span><b class="sell" id="flowSell">–</b></div>
-    </div>
-
-    <div id="treemap" class="treemap"></div>
-    <div class="flow-tip" id="flowTip"></div>
-    <div id="flowForeign"></div>
-
-    <!-- 內容由 draw() 依「下面實際畫出了什麼」決定，見 flowNote 那段 -->
-    <div class="flow-note" id="flowNote"></div>
-    <div class="flow-cover" id="flowCover"></div>
-
-    <!-- ↓ 2026-09-23 下架：持倉健檢 + 財務試算，整頁改放主動式 ETF 買賣超。
-         用 <template> 保存而非刪除（這段本身就含註解，用 HTML 註解會提前收尾）。
-         要恢復：拿掉 template 標籤，並解開下方 JS「健診頁邏輯」的 /* */ 區塊。 -->
-    <template id="archived-check">
-    <div class="check-section">
-      <div class="check-title">🩺 持倉健檢</div>
-      <div style="font-size:16px;color:var(--dim);margin-bottom:14px">輸入代碼、張數、成本價，查看今日持倉現況</div>
-      <input class="num-input" id="hldCode" placeholder="ETF 代碼（如 0056）" maxlength="8"
-             style="width:100%;text-transform:uppercase;font-family:var(--mono);font-size:17px;margin-bottom:8px;box-sizing:border-box"
-             onkeydown="if(event.key==='Enter')runHoldingCheck()">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <input class="num-input" id="hldShares" type="number" placeholder="持有張數" min="1" step="1"
-               style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
-        <input class="num-input" id="hldCost" type="number" placeholder="成本價" min="0" step="0.1"
-               style="font-size:16px" onkeydown="if(event.key==='Enter')runHoldingCheck()">
-      </div>
-      <button class="check-calc-btn" onclick="runHoldingCheck()">健檢 →</button>
-      <div id="holdingResult" style="margin-top:12px"></div>
-    </div>
-
-    <!-- 財務試算（D-2） -->
-    <div class="check-section">
-      <div class="check-title">💰 財務試算</div>
-
-      <div class="check-row">
-        <div class="check-lbl">可用資金</div>
-        <div class="input-prefix">
-          <span>NT$</span>
-          <input type="number" id="chkCapital" value="100000" min="0" step="10000">
-        </div>
-      </div>
-
-      <div class="check-row">
-        <div class="check-lbl">定期定額</div>
-        <div class="dca-toggle">
-          <button class="dca-btn active" id="dcaYes" onclick="setDCA(true)">是</button>
-          <button class="dca-btn" id="dcaNo" onclick="setDCA(false)">否</button>
-        </div>
-      </div>
-      <div class="dca-tip" id="dcaTip">
-        💡 每月固定投入相同金額，不管漲跌都持續買進，以時間平均成本降低選時風險。適合上班族穩健累積資產，不需要猜何時是最低點。
-      </div>
-      <div class="check-row" id="monthlyRow">
-        <div class="check-lbl">每月投入</div>
-        <div class="input-prefix">
-          <span>NT$</span>
-          <input type="number" id="chkMonthly" value="5000" min="0" step="1000">
-        </div>
-      </div>
-
-      <div class="check-lbl" style="margin-bottom:8px">期望年報酬率</div>
-      <div class="rate-presets">
-        <button class="rate-btn" id="rateBtn5" onclick="setRate(5)">穩健 5%<small>高息 ETF</small></button>
-        <button class="rate-btn active" id="rateBtn8" onclick="setRate(8)">成長 8%<small>指數型</small></button>
-        <button class="rate-btn" id="rateBtn12" onclick="setRate(12)">積極 12%<small>主題型</small></button>
-      </div>
-      <div class="rate-slider-row">
-        <input type="range" id="chkRate" min="3" max="15" step="0.5" value="8" oninput="updateRate(this.value)">
-        <div class="rate-num"><span id="rateVal">8</span>%</div>
-      </div>
-      <div style="font-size:16px;color:var(--dim);margin-bottom:12px;margin-top:-8px">
-        參考區間：台灣高息 ETF 配息約 5–8%／年；大盤指數型歷史年化約 7–10%
-      </div>
-
-      <button class="check-calc-btn" onclick="runCalc()">開始試算 →</button>
-
-      <div id="calcResult" style="display:none">
-        <table class="proj-table">
-          <thead>
-            <tr><th>年限</th><th>期末總資產</th><th>月配息估算</th></tr>
-          </thead>
-          <tbody id="projBody"></tbody>
-        </table>
-        <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px">
-          <div style="font-size:16px;color:var(--dim);margin-bottom:4px">依您的設定，適合的 ETF 類型：</div>
-          <div id="riskBadge" class="risk-badge"></div>
-          <div id="suggestRow" class="suggest-row"></div>
-          <div style="font-size:16px;color:var(--dim);margin-top:10px">⚠ 試算為複利估算，未扣稅費；實際報酬因市場波動而異，非投資建議</div>
-        </div>
-      </div>
-    </div>
-    </template>
-
-  </div>
 
   <!-- ══ PAGE 5: 排行 ══ -->
   <div class="page" id="page-rank">
@@ -285,55 +333,52 @@
 
 </div><!-- /pages -->
 
-<!-- Bottom nav -->
+<!-- Bottom nav（Phase 3：首頁／分類／自選／工具） -->
 <nav class="bottom-nav">
   <button class="nav-btn active" id="nav-today" onclick="switchPage('today')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
     </svg>
-    <span>今日</span>
+    <span>首頁</span>
   </button>
-  <button class="nav-btn" id="nav-div" onclick="switchPage('div')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-    </svg>
-    <span>配息</span>
-  </button>
-  <button class="nav-btn" id="nav-yt" onclick="switchPage('yt')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/>
-    </svg>
-    <span>頻道</span>
-  </button>
-  <button class="nav-btn" id="nav-check" onclick="switchPage('check')">
+  <button class="nav-btn" id="nav-cat" onclick="switchPage('cat')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="10" height="11" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/>
       <rect x="15" y="11" width="6" height="10" rx="1"/><rect x="3" y="16" width="10" height="5" rx="1"/>
     </svg>
-    <span>主動</span>
+    <span>分類</span>
   </button>
-  <button class="nav-btn" id="nav-rank" onclick="switchPage('rank')">
+  <button class="nav-btn" id="nav-watch" onclick="switchPage('watch')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="13" width="5" height="8" rx="1"/><rect x="9.5" y="8" width="5" height="13" rx="1"/><rect x="17" y="3" width="5" height="18" rx="1"/>
+      <path d="M12 3l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5-4.7-4.6 6.5-.9z"/>
     </svg>
-    <span>排行</span>
+    <span>自選</span>
+  </button>
+  <button class="nav-btn" id="nav-tools" onclick="switchPage('tools')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>
+    </svg>
+    <span>工具</span>
   </button>
 </nav>
 
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
-<script src="js/config.js?v=20261004o"></script>
-<script src="js/nav.js?v=20261004o"></script>
-<script src="js/flow.js?v=20261004o"></script>
-<script src="js/archived-check.js?v=20261004o"></script>
-<script src="js/format.js?v=20261004o"></script>
-<script src="js/calc.js?v=20261004o"></script>
-<script src="js/lookup.js?v=20261004o"></script>
-<script src="js/render.js?v=20261004o"></script>
-<script src="js/rank.js?v=20261004o"></script>
-<script src="js/search.js?v=20261004o"></script>
-<script src="js/detail.js?v=20261004o"></script>
-<script src="js/boot.js?v=20261004o"></script>
+<script src="js/config.js?v=20261005g"></script>
+<script src="js/nav.js?v=20261005g"></script>
+<script src="js/flow.js?v=20261005g"></script>
+<script src="js/archived-check.js?v=20261005g"></script>
+<script src="js/format.js?v=20261005g"></script>
+<script src="js/calc.js?v=20261005g"></script>
+<script src="js/lookup.js?v=20261005g"></script>
+<script src="js/render.js?v=20261005g"></script>
+<script src="js/rank.js?v=20261005g"></script>
+<script src="js/search.js?v=20261005g"></script>
+<script src="js/category-rules.js?v=20261005g"></script>
+<script src="js/category.js?v=20261005g"></script>
+<script src="js/detail.js?v=20261005g"></script>
+<script src="js/router.js?v=20261005g"></script>
+<script src="js/boot.js?v=20261005g"></script>
 
 </body>
 </html>

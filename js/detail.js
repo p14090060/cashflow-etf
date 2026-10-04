@@ -5,10 +5,6 @@
 let _curEtfCode = null;      // 目前 Detail 的代碼，獨立於 selETF
 let _detailOpen = false;     // 等同 #gsPanel 可見
 let _detailTab = 'overview';
-let _detailPushed = false;   // 本次開啟對應的是我們推的 history entry
-let _pendingPop = 0;         // 我們呼叫 history.back() 後尚未收到 popstate 的次數
-let _queuedOpen = null;      // 等 _pendingPop 歸零後才執行的開啟請求
-let _restoreCode = null;     // 重整前開著的代碼，資料到位後還原（boot.js 設定）
 let _dtSkeleton = false;     // 骨架只在一次開啟中建一次，股數輸入框因此保留
 
 const _DT_TABS = [['overview', '總覽'], ['dividend', '配息'], ['perf', '績效'], ['holdings', '成分']];
@@ -323,14 +319,22 @@ function detailPatch() {
   _dtSyncCollapse();
 }
 
-// ── 開啟／關閉（history 規則見 PHASE2_PLAN.md 第 6 節）─────
-function openDetail(code, opts) {
+// ── 開啟／關閉（Phase 3：history 由 js/router.js 統一管理；語意與 Phase 2 相同）──
+// openDetail：未開啟 → push 一層；已開啟且代碼不同 → replace 當前 Detail；相同 → 不動。
+// closeDetail：關閉頂層 Detail（一次 back）。✕、Back、Esc 都走 router。
+function openDetail(code) {
   cancelPendingSearch();
-  const fromHistory = !!(opts && opts.fromHistory);
-  if (_pendingPop > 0) { _queuedOpen = { code: code, fromHistory: fromHistory }; return; }
+  Router.openDetail(code);
+}
+
+function closeDetail() {
+  cancelPendingSearch();
+  Router.closeDetail();
+}
+
+// 只由 router 的 apply() 呼叫：依已確認的 detail 層顯示
+function detailShow(code) {
   if (!_detailOpen) {
-    if (!fromHistory) history.pushState({ etfDetail: 1, code: code }, '', location.href);
-    _detailPushed = true;
     _detailTab = 'overview';
     _curEtfCode = code;
     _dtBuild();
@@ -338,7 +342,6 @@ function openDetail(code, opts) {
     _dtEl('gsPanel').hidden = false;
     _detailOpen = true;
   } else if (code !== _curEtfCode) {
-    if (!fromHistory) history.replaceState({ etfDetail: 1, code: code }, '', location.href);
     _curEtfCode = code;
     _dtEl('gsPanel').scrollTop = 0;
   }
@@ -356,18 +359,6 @@ function hideDetail() {
   }
 }
 
-// 唯一的關閉入口。同一次開啟最多一次 history.back()：_detailPushed 在送出 back 前就清掉。
-function closeDetail() {
-  cancelPendingSearch();   // 延遲中的搜尋送出不可在 Detail 關閉後再開啟 Detail 或重新顯示下拉
-  if (!_detailOpen) { _queuedOpen = null; return; }
-  hideDetail();
-  if (_detailPushed) {
-    _detailPushed = false;
-    _pendingPop++;
-    history.back();
-  }
-}
-
 function detailTab(k) {
   _detailTab = k;
   _dtSyncTabs();
@@ -375,23 +366,12 @@ function detailTab(k) {
 }
 
 function detailGoFlow(code) {
-  closeDetail();
   gsClear();
   openFlow(code);
 }
 
-// 只在「目前 entry 仍是那筆 etfDetail」時還原；已離開（例如先按了 Back）就直接取消。
-function _tryRestoreDetail() {
-  const code = _restoreCode;
-  _restoreCode = null;
-  if (!code) return;
-  const st = history.state;
-  if (!(st && st.etfDetail && st.code === code)) return;
-  openDetail(code, { fromHistory: true });
-}
-
+// 資料更新時只補內容（Router.onMarketUpdate 會處理首次還原）
 function detailOnMarketUpdate() {
-  _tryRestoreDetail();
   detailPatch();
 }
 
@@ -399,31 +379,5 @@ function detailOnFlowUpdate() {
   if (!_detailOpen) return;
   detailPatch();
 }
-
-window.addEventListener('popstate', function (ev) {
-  // 任何 popstate 都代表使用者已離開重整前的那個 entry，尚未還原的 Detail 就此作廢
-  _restoreCode = null;
-  cancelPendingSearch();
-  if (_pendingPop > 0) {
-    _pendingPop--;
-    if (_pendingPop === 0 && _queuedOpen) {
-      const q = _queuedOpen;
-      _queuedOpen = null;
-      openDetail(q.code, { fromHistory: q.fromHistory });
-    }
-    return;
-  }
-  const st = ev.state;
-  if (st && st.etfDetail) { openDetail(st.code, { fromHistory: true }); return; }
-  if (_detailOpen) {
-    hideDetail();
-    _detailPushed = false;
-    document.getElementById('gsearchList').hidden = true;
-  }
-});
-
-document.addEventListener('keydown', function (ev) {
-  if (ev.key === 'Escape' && _detailOpen) closeDetail();
-});
 
 document.getElementById('gsPanel').addEventListener('scroll', _dtSyncCollapse, { passive: true });

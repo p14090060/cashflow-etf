@@ -1,0 +1,1233 @@
+{
+ "_note": "203 檔快照（code、name、div_category 來自 data/market.json，2026-10-04）。expected 為 Phase 3 核准規則（含 PO ESG 決策）的期望分類；由獨立的 Python 參照實作產生，供瀏覽器端 JS 比對。",
+ "expected_distribution": {
+  "mcap": 16,
+  "div": 22,
+  "active": 32,
+  "tech": 20,
+  "overseas": 78,
+  "theme": 21,
+  "bond": 6,
+  "other": 8
+ },
+ "etfs": [
+  {
+   "code": "0056",
+   "name": "元大高股息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00713",
+   "name": "台灣高息低波",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "0050",
+   "name": "元大台灣50",
+   "div_category": "指數型",
+   "category": "mcap"
+  },
+  {
+   "code": "00919",
+   "name": "群益台灣精選高息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "006208",
+   "name": "富邦台50",
+   "div_category": "指數型",
+   "category": "mcap"
+  },
+  {
+   "code": "00981A",
+   "name": "統一台股增長",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00403A",
+   "name": "統一台股升級50",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00878",
+   "name": "國泰永續高息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00940",
+   "name": "元大台灣價值高息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00929",
+   "name": "復華台灣科技優息",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00850",
+   "name": "元大ESG永續",
+   "div_category": "ESG",
+   "category": "other"
+  },
+  {
+   "code": "00928",
+   "name": "中信上櫃ESG 30",
+   "div_category": "ESG",
+   "category": "other"
+  },
+  {
+   "code": "006201",
+   "name": "元大富櫃50",
+   "div_category": "指數型",
+   "category": "mcap"
+  },
+  {
+   "code": "00400A",
+   "name": "主動國泰動能高息",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00401A",
+   "name": "主動摩根台灣鑫收",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00402A",
+   "name": "主動安聯美國科技",
+   "div_category": null,
+   "category": "active"
+  },
+  {
+   "code": "00404A",
+   "name": "主動聯博動能50",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00405A",
+   "name": "主動富邦台灣龍耀",
+   "div_category": null,
+   "category": "active"
+  },
+  {
+   "code": "00406A",
+   "name": "主動中信台灣收益",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00407A",
+   "name": "主動凱基台灣",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00408A",
+   "name": "主動第一金優股息",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00409A",
+   "name": "主動復華全球50",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00410A",
+   "name": "主動永豐科技趨勢",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "0051",
+   "name": "元大中型100",
+   "div_category": "指數型",
+   "category": "mcap"
+  },
+  {
+   "code": "0052",
+   "name": "富邦科技",
+   "div_category": "科技",
+   "category": "tech"
+  },
+  {
+   "code": "0053",
+   "name": "元大電子",
+   "div_category": null,
+   "category": "tech"
+  },
+  {
+   "code": "0055",
+   "name": "元大MSCI金融",
+   "div_category": "指數型",
+   "category": "theme"
+  },
+  {
+   "code": "0057",
+   "name": "富邦摩台",
+   "div_category": null,
+   "category": "other"
+  },
+  {
+   "code": "0061",
+   "name": "元大寶滬深",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "006203",
+   "name": "元大MSCI台灣",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "006204",
+   "name": "永豐臺灣加權",
+   "div_category": null,
+   "category": "mcap"
+  },
+  {
+   "code": "006205",
+   "name": "富邦上証",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "006206",
+   "name": "元大上證50",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "006207",
+   "name": "復華滬深",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00625K",
+   "name": "富邦上証+R",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00636",
+   "name": "國泰中國A50",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00636K",
+   "name": "國泰中國A50+U",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00639",
+   "name": "富邦深100",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00643",
+   "name": "群益深証中小",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00643K",
+   "name": "群益深証中小+R",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00645",
+   "name": "富邦日本",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00646",
+   "name": "元大S&P500",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "00652",
+   "name": "富邦印度",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00657",
+   "name": "國泰日經225",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00657K",
+   "name": "國泰日經225+U",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00660",
+   "name": "元大歐洲50",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00661",
+   "name": "元大日經225",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00662",
+   "name": "富邦NASDAQ",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "00668",
+   "name": "國泰美國道瓊",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00668K",
+   "name": "國泰美國道瓊+U",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00678",
+   "name": "群益那斯達克生技",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00682U",
+   "name": "期元大美元指數",
+   "div_category": null,
+   "category": "other"
+  },
+  {
+   "code": "00690",
+   "name": "兆豐藍籌30",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "00692",
+   "name": "富邦公司治理",
+   "div_category": "ESG",
+   "category": "other"
+  },
+  {
+   "code": "00693U",
+   "name": "期街口S&P黃豆",
+   "div_category": null,
+   "category": "other"
+  },
+  {
+   "code": "00700",
+   "name": "富邦恒生國企",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00701",
+   "name": "國泰股利精選30",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00702",
+   "name": "國泰標普低波高息",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00703",
+   "name": "台新MSCI中國",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00709",
+   "name": "富邦歐洲",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00714",
+   "name": "群益道瓊美國地產",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00717",
+   "name": "富邦美國特別股",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00728",
+   "name": "第一金工業30",
+   "div_category": "高股息",
+   "category": "theme"
+  },
+  {
+   "code": "00730",
+   "name": "富邦臺灣優質高息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00731",
+   "name": "復華富時高息低波",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00733",
+   "name": "富邦臺灣中小",
+   "div_category": "指數型",
+   "category": "mcap"
+  },
+  {
+   "code": "00735",
+   "name": "國泰臺韓科技",
+   "div_category": "指數型",
+   "category": "overseas"
+  },
+  {
+   "code": "00736",
+   "name": "國泰新興市場",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00737",
+   "name": "國泰AI機器人",
+   "div_category": null,
+   "category": "tech"
+  },
+  {
+   "code": "00739",
+   "name": "元大MSCI A股",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00752",
+   "name": "中信中國50",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00757",
+   "name": "統一FANG+",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "00762",
+   "name": "元大全球AI",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00763U",
+   "name": "期街口道瓊銅",
+   "div_category": null,
+   "category": "other"
+  },
+  {
+   "code": "00770",
+   "name": "國泰北美科技",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00771",
+   "name": "元大US高息特別股",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00783",
+   "name": "富邦中証500",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00830",
+   "name": "國泰費城半導體",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00851",
+   "name": "台新全球AI",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00861",
+   "name": "元大全球未來通訊",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00875",
+   "name": "國泰網路資安",
+   "div_category": null,
+   "category": "tech"
+  },
+  {
+   "code": "00876",
+   "name": "元大全球5G",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00881",
+   "name": "國泰台灣科技龍頭",
+   "div_category": "科技",
+   "category": "tech"
+  },
+  {
+   "code": "00882",
+   "name": "中信中國高股息",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00885",
+   "name": "富邦越南",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00891",
+   "name": "中信關鍵半導體",
+   "div_category": "科技",
+   "category": "tech"
+  },
+  {
+   "code": "00892",
+   "name": "富邦台灣半導體",
+   "div_category": "科技",
+   "category": "tech"
+  },
+  {
+   "code": "00893",
+   "name": "國泰智能電動車",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00894",
+   "name": "中信小資高價30",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00895",
+   "name": "富邦未來車",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00896",
+   "name": "中信綠能及電動車",
+   "div_category": "高股息",
+   "category": "theme"
+  },
+  {
+   "code": "00897",
+   "name": "富邦基因免疫生技",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00898",
+   "name": "國泰基因免疫革命",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00899",
+   "name": "FT潔淨能源",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00900",
+   "name": "富邦特選高股息30",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00901",
+   "name": "永豐智能車供應鏈",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00902",
+   "name": "中信電池及儲能",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00903",
+   "name": "富邦元宇宙",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00904",
+   "name": "台新臺灣半導體30",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00905",
+   "name": "FT臺灣SMART",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00907",
+   "name": "永豐優息存股",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00909",
+   "name": "國泰數位支付服務",
+   "div_category": "高股息",
+   "category": "theme"
+  },
+  {
+   "code": "00910",
+   "name": "第一金太空衛星",
+   "div_category": "主題型",
+   "category": "theme"
+  },
+  {
+   "code": "00911",
+   "name": "兆豐洲際半導體",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00912",
+   "name": "中信臺灣智慧50",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "00913",
+   "name": "兆豐台灣晶圓製造",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00915",
+   "name": "凱基優選高股息30",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00916",
+   "name": "國泰全球品牌50",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00917",
+   "name": "中信特選金融",
+   "div_category": "高股息",
+   "category": "theme"
+  },
+  {
+   "code": "00918",
+   "name": "大華優利高填息30",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00920",
+   "name": "富邦ESG綠色電力",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00921",
+   "name": "兆豐龍頭等權重",
+   "div_category": "科技",
+   "category": "mcap"
+  },
+  {
+   "code": "00922",
+   "name": "國泰台灣領袖50",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "00923",
+   "name": "群益台ESG低碳50",
+   "div_category": "高股息",
+   "category": "theme"
+  },
+  {
+   "code": "00924",
+   "name": "復華S&P500成長",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00926",
+   "name": "凱基全球菁英55",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00927",
+   "name": "群益半導體收益",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00930",
+   "name": "永豐ESG低碳高息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00932",
+   "name": "兆豐永續高息等權",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00934",
+   "name": "中信成長高股息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00935",
+   "name": "野村臺灣新科技50",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00936",
+   "name": "台新永續高息中小",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00938",
+   "name": "凱基優選30",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00939",
+   "name": "統一台灣高息動能",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00941",
+   "name": "中信上游半導體",
+   "div_category": null,
+   "category": "tech"
+  },
+  {
+   "code": "00943",
+   "name": "兆豐電子高息等權",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00944",
+   "name": "野村趨勢動能高息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00946",
+   "name": "群益科技高息成長",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00947",
+   "name": "台新臺灣IC設計",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00949",
+   "name": "復華日本龍頭",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00951",
+   "name": "台新日本半導體",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00952",
+   "name": "凱基台灣AI50",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00954",
+   "name": "中信日本半導體",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00956",
+   "name": "中信日經高股息",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00960",
+   "name": "野村全球航運龍頭",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00961",
+   "name": "FT臺灣永續高息",
+   "div_category": "高股息",
+   "category": "div"
+  },
+  {
+   "code": "00962",
+   "name": "台新AI優息動能",
+   "div_category": "高股息",
+   "category": "tech"
+  },
+  {
+   "code": "00963",
+   "name": "中信全球高股息",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00964",
+   "name": "中信亞太高股息",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "00965",
+   "name": "元大航太防衛科技",
+   "div_category": null,
+   "category": "tech"
+  },
+  {
+   "code": "00971",
+   "name": "野村美國研發龍頭",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009800",
+   "name": "中信NASDAQ",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009801",
+   "name": "中信美國創新科技",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "009802",
+   "name": "富邦旗艦50",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "009803",
+   "name": "玉山市值動能50",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "009804",
+   "name": "聯邦台精彩50",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "009805",
+   "name": "台新美國電力基建",
+   "div_category": "高股息",
+   "category": "overseas"
+  },
+  {
+   "code": "009808",
+   "name": "華南永昌優選50",
+   "div_category": "高股息",
+   "category": "mcap"
+  },
+  {
+   "code": "009809",
+   "name": "富邦淨零ESG50",
+   "div_category": "ESG",
+   "category": "theme"
+  },
+  {
+   "code": "00980A",
+   "name": "主動野村臺灣優選",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "009810",
+   "name": "玉山全球藍籌100",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "009811",
+   "name": "統一美國50",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "009812",
+   "name": "野村日本東證",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009813",
+   "name": "貝萊德標普卓越50",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009816",
+   "name": "凱基台灣TOP50",
+   "div_category": null,
+   "category": "mcap"
+  },
+  {
+   "code": "009818",
+   "name": "華南永昌NASDAQxT",
+   "div_category": "指數型",
+   "category": "overseas"
+  },
+  {
+   "code": "009819",
+   "name": "中信數據及電力",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "009820",
+   "name": "元大納斯達克精選",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009821",
+   "name": "野村稀土關鍵資源",
+   "div_category": "主題型",
+   "category": "theme"
+  },
+  {
+   "code": "009824",
+   "name": "群益美國科技巨頭",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "009826",
+   "name": "貝萊德世界股票",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "009827",
+   "name": "玉山未來全球算力",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "009828",
+   "name": "中信台日韓PCB",
+   "div_category": "產業型",
+   "category": "overseas"
+  },
+  {
+   "code": "009829",
+   "name": "大華韓國KOSPI50",
+   "div_category": "海外",
+   "category": "overseas"
+  },
+  {
+   "code": "00982A",
+   "name": "主動群益台灣強棒",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00982D",
+   "name": "主動富邦動態入息",
+   "div_category": "高股息",
+   "category": "bond"
+  },
+  {
+   "code": "00983A",
+   "name": "主動中信ARK創新",
+   "div_category": null,
+   "category": "active"
+  },
+  {
+   "code": "00983D",
+   "name": "主動富邦複合收益",
+   "div_category": "高股息",
+   "category": "bond"
+  },
+  {
+   "code": "00984A",
+   "name": "主動安聯台灣高息",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00984D",
+   "name": "主動聯博全球非投",
+   "div_category": "高股息",
+   "category": "bond"
+  },
+  {
+   "code": "00985A",
+   "name": "主動野村台灣50",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00986A",
+   "name": "主動台新龍頭成長",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00987A",
+   "name": "主動台新優勢成長",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00988A",
+   "name": "主動統一全球創新",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00989A",
+   "name": "主動摩根美國科技",
+   "div_category": null,
+   "category": "active"
+  },
+  {
+   "code": "00990A",
+   "name": "主動元大AI新經濟",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00991A",
+   "name": "主動復華未來50",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00992A",
+   "name": "主動群益科技創新",
+   "div_category": "主動型",
+   "category": "active"
+  },
+  {
+   "code": "00993A",
+   "name": "主動安聯台灣",
+   "div_category": null,
+   "category": "active"
+  },
+  {
+   "code": "00994A",
+   "name": "主動第一金台股優",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00995A",
+   "name": "主動中信台灣卓越",
+   "div_category": null,
+   "category": "active"
+  },
+  {
+   "code": "00996A",
+   "name": "主動兆豐台灣豐收",
+   "div_category": null,
+   "category": "active"
+  },
+  {
+   "code": "00997A",
+   "name": "主動群益美國增長",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "00999A",
+   "name": "主動野村臺灣高息",
+   "div_category": "高股息",
+   "category": "active"
+  },
+  {
+   "code": "020032",
+   "name": "元大綠能N",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "00411A",
+   "name": "主動統一前沿科技",
+   "div_category": "科技",
+   "category": "active"
+  },
+  {
+   "code": "00840B",
+   "name": "凱基IG精選15+",
+   "div_category": "債券",
+   "category": "bond"
+  },
+  {
+   "code": "00858",
+   "name": "永豐美國500大",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00877",
+   "name": "復華中國5G",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00886",
+   "name": "永豐美國科技",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00887",
+   "name": "永豐中國科技50大",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00888",
+   "name": "永豐台灣ESG",
+   "div_category": "高股息",
+   "category": "other"
+  },
+  {
+   "code": "00955",
+   "name": "中信日本商社",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009806",
+   "name": "台新標普500",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009807",
+   "name": "台新標普科技精選",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00980D",
+   "name": "主動聯博投等入息",
+   "div_category": "債券",
+   "category": "bond"
+  },
+  {
+   "code": "009814",
+   "name": "富邦標普500",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009815",
+   "name": "大華美國MAG7+",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009822",
+   "name": "華南永昌未來金融",
+   "div_category": null,
+   "category": "theme"
+  },
+  {
+   "code": "009823",
+   "name": "群益S&P500",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "009825",
+   "name": "聯邦美國金融創新",
+   "div_category": null,
+   "category": "overseas"
+  },
+  {
+   "code": "00985D",
+   "name": "主動貝萊德優投等",
+   "div_category": "債券",
+   "category": "bond"
+  },
+  {
+   "code": "00998A",
+   "name": "主動復華金融股息",
+   "div_category": "高股息",
+   "category": "active"
+  }
+ ]
+}

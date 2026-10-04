@@ -113,7 +113,7 @@ ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true")
 wait_ms(400)
 check('T8 X button hides detail', ev("document.getElementById('gsPanel').hidden") is True)
 check('T8 exactly one popstate', ev("window.__pop") == 1, ev("window.__pop"))
-check('T8 pending back cleared', ev("_pendingPop") == 0)
+check('T8 pending back cleared (v2: no inflight traversal)', ev("__routerInflightState()") is None)   # Phase 3：內部 _pendingPop → router 的 inflight
 
 # ── T9 Esc（input + document）只消耗一次
 ev("gsPick('0050'); true")
@@ -152,7 +152,7 @@ L = ev("history.length")
 ev("gsPick('0056'); true")
 wait_ms(200)
 check('T12 switch ETF no new entry', ev("history.length") == L, '%s vs %s' % (ev("history.length"), L))
-check('T12 state code updated', ev("history.state && history.state.code") == '0056', ev("history.state && history.state.code"))
+check('T12 state code updated (v2 stack)', ev("Router.state().stack.slice(-1)[0].code") == '0056', ev("Router.state().stack.slice(-1)[0].code"))   # Phase 3：舊 history.state.code → v2 stack
 check('T12 title 0056', ev("document.getElementById('gsPanelTitle').textContent.includes('0056')") is True)
 ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true")
 wait_ms(400)
@@ -163,7 +163,7 @@ wait_ms(200)
 ev("window.__pop=0; true")
 ev("detailGoFlow('00981A'); true")
 wait_ms(400)
-check('T13 flow page active', ev("document.getElementById('page-check').classList.contains('active')") is True)
+check('T13 flow page active (Phase 3: 分類 → 主動式 持股異動)', ev("document.getElementById('page-cat').classList.contains('active') && Category.isFlowVisible()") is True)   # Phase 3：舊 page-check.active → 分類頁 + 持股異動檢視
 check('T13 detail closed', ev("document.getElementById('gsPanel').hidden") is True)
 check('T13 single popstate', ev("window.__pop") == 1, ev("window.__pop"))
 ev("switchPage('today'); true")
@@ -230,7 +230,7 @@ ev("window.__pop=0; true")
 ev("closeDetail(); closeDetail(); closeDetail(); true")
 wait_ms(400)
 check('T19 repeated closeDetail => one popstate', ev("window.__pop") == 1, ev("window.__pop"))
-check('T19 pending cleared', ev("_pendingPop") == 0)
+check('T19 pending cleared (v2: no inflight traversal)', ev("__routerInflightState()") is None)   # Phase 3：內部 _pendingPop → router 的 inflight
 
 # ── 錯誤蒐集
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
