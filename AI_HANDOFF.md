@@ -15,14 +15,15 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 Coding commit：`99ec4b14`。** Codex 複審結果：**NEED FIX**（三項必修）。
 - **Phase 3 必修修正 commit：`8e3e59bb`。** 本機，尚未 push。Codex 複審 `99ec4b14..8e3e59bb`：Finding 2（flow visualViewport）與 Finding 3（LR-8）RESOLVED；唯一待修 Finding 1 已在後續 fix commit 修正（見下）。
 - **Phase 3 Finding 1 fix commit：`c050c719`**（本機，未 push）。Detail scroll 被分類 snapshot 覆蓋；修正內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審 Finding 1 修正」一節。
-- **Phase 3 LR-4 responsive fallback commit：`7b750336`**（本機，未 push）。PO 決策方案 B，已實作並有自動驗收；內容見 `PHASE3_CHANGELOG.md` 的「LR-4 responsive fallback」一節。
+- **Phase 3 LR-4 responsive fallback commit：`7b750336`**（本機，未 push）。**Codex 唯讀確認：LR-4 PASS / CLOSED。不再修改。**
+- **Phase 3 844×390 無鍵盤 blocker fix commit：`1f636d86`**（本機，未 push）。LR-3／§11.4：清單初始實際可見 ≥ 44px、不被導覽列遮住。內容見 `PHASE3_CHANGELOG.md` 的「Blocker：844×390 無鍵盤時分類清單初始可見高度為 0」一節。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
 - **00920 富邦ESG綠色電力、00923 群益台ESG低碳50、009809 富邦淨零ESG50 → 主題型。** 依一般使用者瀏覽時的直覺歸類。不建立僅為 00920 的名稱覆寫。
 - **自選：Phase 3 僅做空狀態頁**「我的自選／自選 ETF 功能即將開放」。收藏、取消收藏、localStorage、排序等完整功能留到 Phase 4。
 - D11–D13、D15–D17：採 Plan 預設，不需再詢問。
-- **LR-4：已決定（PO 2026-10-05，方案 B）。** 鍵盤開啟且可用清單高度不足 44px 時，不強制顯示清單，改顯示「收起鍵盤以查看 ETF 清單」。免責聲明保留、不隱藏。鍵盤收起後清單自動恢復，排序、已展開數、捲動不遺失。這是 PO 核准的 responsive fallback，不是 FAIL／DEFER。
+- **LR-4：已決定（PO 2026-10-05，方案 B），Codex 已確認 PASS／CLOSED。** 鍵盤開啟且可用清單高度不足 44px 時，不強制顯示清單，改顯示「收起鍵盤以查看 ETF 清單」。免責聲明保留、不隱藏。鍵盤收起後清單自動恢復，排序、已展開數、捲動不遺失。
 
 ### 0.3 Phase 3 核心產品原則
 
@@ -46,26 +47,20 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.5 Phase 3 Coding 狀態（目前）
 
-- **實作鏈**：`99ec4b14`（Coding）→ Codex NEED FIX → 必修修正 `8e3e59bb` → Finding 1 fix `c050c719` → LR-4 responsive fallback `7b750336`。**目前等待 Codex 做最後一次針對 LR-4 的唯讀確認。**
-- **Finding 1（`c050c719`，已交 Codex 複審）**：關閉 Detail 前，分類 snapshot 寫入資料夾層（`updateUi(patch, 'folder')`），不再覆蓋 Detail 層的分頁與捲動。X、Esc 後 Forward 都還原原分頁與捲動。測試：`detail_state_test.py` DS-9～DS-11。
-- **LR-4 responsive fallback（`7b750336`，本輪交 Codex 唯讀確認）**：
-  - 條件：`body.gs-ckm`（鍵盤開啟）且可用高度 < 44px。清單收合（`cat-off`，留在版面中，不 `display:none`），「查看更多」收合，顯示提示「收起鍵盤以查看 ETF 清單」。免責不隱藏。
-  - 鍵盤收起後自動恢復；sort、shown、scrollTop 保留。
-  - 沒有鍵盤的低高度：清單保持最小 44px 並可捲動（Plan §11.4）。
-  - `MutationObserver` 監看 `body` class，`gs-ckm` 切換即重算。
-  - 測試：`category_test.py` LR-4（fallback 七項）與 LR-4 恢復（五項）。
-- **Codex 必修三項（`8e3e59bb` 已修正，Finding 2、3 已 RESOLVED）**：
-  1. Detail 分頁與捲動在 Back → Forward 還原（RT-2）。測試：`detail_state_test.py` DS-1～DS-8。
-  2. Flow visualViewport 重繪（§9.2 F-d）。測試：`category_test.py` FD-1～FD-6。
-  3. LR-8 驗收測試重寫。offsetTop > 0 時驗證可視交集、遮擋、恢復；headless 產生不了偏移，維持 DEFER。
-- **自動測試（`7b750336`）**：
+- **實作鏈**：`99ec4b14`（Coding）→ Codex NEED FIX → `8e3e59bb`（必修）→ `c050c719`（Finding 1）→ `7b750336`（LR-4 fallback，Codex PASS／CLOSED）→ `1f636d86`（844×390 無鍵盤 blocker）。**目前等待 Codex 只複審這個 blocker。**
+- **Blocker（`1f636d86`）**：844×390、無鍵盤時，分類清單初始實際可見高度為 0（清單頂端 363px、導覽列頂端 328px）。
+  - 修正：只在無鍵盤且仍不足一列時啟用 `cat-tight3`：分類頁頂端間距歸零；標題列與持股異動分段併成同一列（grid）；次要標籤一列 40px；「查看更多」移入清單底部（`.cat-more-in`）。免責聲明不隱藏。
+  - 驗收：`category_test.py` BL 區塊以實際 rect 判斷。實測清單 277–324px（47px），導覽列 328px，不重疊。`elementFromPoint` 命中清單。真實滑鼠點擊開啟 Detail。無水平 overflow。回到直向 390×844 後版面與狀態正常。
+  - 負向對照：`7b750336` 的 category.js／css 下 BL-1～BL-8 FAIL（visH 0）。
+  - **偏差**：Plan §11.4 建議把次要標籤收合為「其他分類 ▾」。本次保留 7 個短標籤一列（40px，可橫向捲動），理由見 `PHASE3_CHANGELOG.md`。若 PO／Codex 要求「其他分類 ▾」，另行處理。
+- **Finding 1（`c050c719`）**：Detail 分頁與捲動在 X、Esc 關閉後 Forward 還原。測試：`detail_state_test.py` DS-9～DS-11。已交 Codex 複審，結果為唯一待修項，已修正。
+- **自動測試（`1f636d86`）**：
   - router_test 64/64；search_compact_test 38/38；detail_ui_test 42/42；detail_history_fix_test 14/14；regression_test 14/14；detail_collapse_test 25/25。
   - detail_state_test 42/42。
-  - category_test 102 PASS、0 FAIL、**1 DEFER**（LR-8 真機）。
-  - 負向對照：pre-fix 的 router／detail 讓 DS 出現 8 項 FAIL；pre-fix 的 flow.js 讓 FD-1～FD-4 FAIL；pre-fix 的 router＋category（`8e3e59bb`）讓 DS-9、DS-10 的 Forward 捲動 FAIL。
-- **靜態**：頂層名稱無重複；history API 只在 `js/router.js`；`index.html` 無 module script；資源版本號 `20261005j`。
+  - category_test 120 PASS、0 FAIL、**1 DEFER**（LR-8 真機）。
+- **靜態**：頂層名稱無重複；history API 只在 `js/router.js`；`index.html` 無 module script；資源版本號 `20261005k`。
 - **DEFER（不算 PASS）**：
-  - **LR-8 B／C**（offsetTop > 0 的真實鍵盤情境）：headless 已試 `setPageScaleFactor`＋捲動手勢、pinch、`positionY`、`viewport`，`visualViewport` 皆未改變；`user-scalable=no` 也不允許縮放。需 iPhone Chrome 真機。檢查程式已寫好；另以 stub 做檢查邏輯的自我檢查（SELF-TEST，不計為 PASS）。
+  - **LR-8 B／C**（offsetTop > 0 的真實鍵盤情境）：headless 已試 `setPageScaleFactor`＋捲動手勢、pinch、`positionY`、`viewport`，`visualViewport` 皆未改變；`user-scalable=no` 也不允許縮放。**依 PO 指示，留給之後 iPhone Chrome 真機驗收。** 檢查程式已寫好；另以 stub 做檢查邏輯的自我檢查（SELF-TEST，不計為 PASS）。
 - **尚未完成的 acceptance（Plan §11.4 真機項目）**，Codex 通過後才交 PO：
   1. 分類頁 8 個 TAB 都能辨識名稱。
   2. 點頁籤後抽出開啟。
@@ -80,18 +75,22 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.6 Codex 下一步
 
-- **Codex 本輪：唯讀確認 LR-4**。範圍 `c050c719..7b750336`（只看 `js/category.js` 的 `fit()`、`MutationObserver`、`snapshot()`／捲動守衛，`css/category.css` 的 `cat-off`／`cat-gone`，`category_test.py` 的 LR-4 與 LR-4 恢復區塊）。
-- **不要重審**：Finding 1、Finding 2、Finding 3、Router、Detail、Flow。它們已通過或已 RESOLVED。
-- **LR-4 重點**：
-  - fallback 只在 `gs-ckm` 時啟用，沒有鍵盤的低高度是否符合 Plan §11.4（最小 44px 可捲動）。
-  - 收合是否保留 scrollTop、sort、shown，且不會被 snapshot 寫成 0。
-  - 鍵盤收起後清單是否自動恢復。
-- **完成後**：若 PASS，LR-4 關閉；由 Claude 再整理 PO 真機步驟（§0.5 的 acceptance 與 LR-8、R-N3）。若 NEED FIX，依 finding 修正。
+- **Codex 本輪：只複審 blocker（844×390 無鍵盤）**。範圍 `7b750336..1f636d86`。只看 `js/category.js` 的 `fit()`（`cat-tight3` 分支、`avail(pad)`）、`syncInnerMore()`、點擊處理的 `.cat-more-in`，以及 `css/category.css` 的 `cat-tight3` grid 規則、`.cat-more-in`，以及 `category_test.py` 的 BL 區塊與 BACK-TO-NORMAL。
+- **不要重審**：LR-4（已 PASS／CLOSED）、Finding 1–3、Router、Detail、Flow。
+- **blocker 驗收重點**：
+  - 量測是否用實際 rect 與 `elementFromPoint`，而非 CSS 高度。
+  - 清單是否在導覽列上方實際可見 ≥ 44px。
+  - 「查看更多」在清單內是否可見、可點。
+  - 回到一般高度後版面與 folder state 是否正常。
+  - 「其他分類 ▾」的偏差是否可接受（見變更紀錄）。
+- **完成後**：若 PASS，LR-8 留給 iPhone Chrome 真機。若 NEED FIX，依 finding 修正。
 
 ### 0.7 已知限制（記錄，不是待辦）
 
 - LR-4：已決定為 responsive fallback（見 0.2）。
-- 844×390 橫向、沒有鍵盤時，分類清單位於底部導覽列下方（清單頂端約 363px，導覽列頂端約 328px），header 與分類頂部內容佔去大部分高度。清單雖有 44px 最小高度，需頁面捲動才看得到。這是 Plan LR-3（清單可用高度 ≥ 110px）尚未達成的版面問題，超出 LR-4 範圍，未修改。需要時由 PO 決定。
+- 844×390 無鍵盤的清單可見性：已由 blocker `1f636d86` 修正（清單 277–324px，見 0.5）。
+- Plan §11.4 偏差：次要標籤保留一列 40px，未收合為「其他分類 ▾」（見變更紀錄）。
+- 低高度下的「持股異動」檢視：`cat-tight3` 只作用於清單檢視，treemap 在 844×390 仍落在導覽列下方，需要頁面捲動。未處理，待 PO 決定是否在 Phase 3 範圍內處理。
 - LR-8：需真機（見 0.5）。
 - R-N3：traversal 永不抵達的復原方式為重新整理（從實際 `history.state` 還原）。
 - base 切換以 replaceState 進行，關閉 Detail 後留下的 forward entry 仍存在（與 Phase 2 相同）。
