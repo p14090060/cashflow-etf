@@ -64,9 +64,9 @@
 
 | 項目 | 內容 |
 |---|---|
-| Phase / Task | Phase 2 ETF 詳細頁：**VERIFIED / CLOSED**（2026-10-04，GPT Gate 通過） |
-| Verified baseline（功能程式） | `1958cdc0`。之後的提交只含測試與文件，`js/`、`css/`、`index.html` 無變動 |
-| 封版文件 commit | 見 `git log` 最新一筆 `docs(phase2): Phase 2 封版`（只含文件） |
+| Phase / Task | **Phase 3 ETF 分類瀏覽：Plan Rev.1，待 Codex Review。尚未開始 Coding** |
+| Phase 3 Plan | `PHASE3_PLAN.md`（Rev.1）。待怡恩決定 D1–D13（推薦預設已列出） |
+| 前一階段 | Phase 2 ETF 詳細頁：VERIFIED / CLOSED。Verified baseline（功能程式）`1958cdc0`；封版文件 `74c61106`；已 push |
 | 搜尋 Blocker 修正 commit | `1958cdc0`（程式與測試）— Codex 已確認解決 |
 | 收合測試條件修正 commit | `82dc1dde`（僅 `detail_collapse_test.py`，產品收合邏輯未改） |
 | 本輪 Review 範圍 | `369f3616..82dc1dde`（程式 `1958cdc0`、測試條件 `82dc1dde`；文件 `37ac3784` 僅更新文件）。Codex 上一輪 `d88da242..369f3616` 已完成，結果 NEED FIX |
@@ -228,6 +228,25 @@
 | Samsung + Google Chrome | **3/3 PASS** | 相容性抽測，關鍵流程；橫向＋鍵盤搜尋正常，0050 搜尋送出與 Detail 流程 PASS |
 
 **Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
+
+## Phase 3 Plan（Rev.1，待 Codex Review）
+
+- 需求來源：怡恩 2026-10-04 Phase 3 需求（15 項）。本階段只寫 Plan，**未修改程式、未開始 Coding**。
+- 文件：`PHASE3_PLAN.md`。內容包含 UI 狀態機、分類規則、排序與查看更多、Detail 銜接、history、responsive、動畫與 reduced-motion、空與錯誤狀態、測試與回歸範圍、需求追溯。
+
+**資料實測重點**
+- `div_category` 是人工配息標籤，不能直接當八類依據。例如 00981A、00402A（主動）與 00830、00929（科技）帶的標籤衝突。
+- 採用代號規則：末碼 B／D 為債券（6 檔），末碼 A 為主動式（32 檔，與 `active_flow.json` 完全一致）。
+- 名稱關鍵字分類，依優先序單一歸屬。推薦預設的 203 檔結果：市值型 16、高股息 22、主動式 32、科技／半導體 20、海外／區域 78、主題型 18、債券 6、其他 11（合計 203）。
+- 「其他」11 檔：ESG／公司治理／淨零 7 檔、期貨型 3 檔、名稱無法判定 1 檔（0057 富邦摩台，待查證）。
+- 人工標籤「高股息」76 檔中，只有 22 檔進高股息資料夾，其餘 54 檔分散在其他類別。全站搜尋的「高股息」仍用人工標籤，數字會不同（R2）。
+
+**需要怡恩決定（Plan 第 12 節）**
+- D1 分類分頁位置；D2 高股息判定方式；D3 海外 vs 高股息（6 檔）；D4 科技 vs 高股息（4 檔）；D5 科技 vs 主題（2 檔）；D6 ESG 歸其他（7 檔）；D7 單一產業歸主題型；D8 0057 暫歸其他；D9 代碼排序方式；D10 查看更多步距；D11 桌機版型；D12 重整是否還原資料夾；D13 排序是否跨開啟記憶。
+
+**下一步**
+- Codex 唯讀複審 `PHASE3_PLAN.md`，重點：分類規則與附錄 D 是否與資料一致、history 路由順序（6.4）、回歸範圍是否足夠。
+- 怡恩決定 D1–D13 後，才開始 Coding。
 
 ## Phase 2 封版狀態
 
