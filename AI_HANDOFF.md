@@ -15,13 +15,14 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 Coding commit：`99ec4b14`。** Codex 複審結果：**NEED FIX**（三項必修）。
 - **Phase 3 必修修正 commit：`8e3e59bb`。** 本機，尚未 push。Codex 複審 `99ec4b14..8e3e59bb`：Finding 2（flow visualViewport）與 Finding 3（LR-8）RESOLVED；唯一待修 Finding 1 已在後續 fix commit 修正（見下）。
 - **Phase 3 Finding 1 fix commit：`c050c719`**（本機，未 push）。Detail scroll 被分類 snapshot 覆蓋；修正內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審 Finding 1 修正」一節。
+- **Phase 3 LR-4 responsive fallback commit：`7b750336`**（本機，未 push）。PO 決策方案 B，已實作並有自動驗收；內容見 `PHASE3_CHANGELOG.md` 的「LR-4 responsive fallback」一節。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
 - **00920 富邦ESG綠色電力、00923 群益台ESG低碳50、009809 富邦淨零ESG50 → 主題型。** 依一般使用者瀏覽時的直覺歸類。不建立僅為 00920 的名稱覆寫。
 - **自選：Phase 3 僅做空狀態頁**「我的自選／自選 ETF 功能即將開放」。收藏、取消收藏、localStorage、排序等完整功能留到 Phase 4。
 - D11–D13、D15–D17：採 Plan 預設，不需再詢問。
-- **未決（PO 之後決定，不阻擋 Codex 審查）**：LR-4。844×170 鍵盤開啟時，全站免責 `.disclaimer`（85px，Phase 1 既有、法遵內容）是否在鍵盤模式隱藏。隱藏會改變 Phase 1 已驗證行為，因此未擅自修改。
+- **LR-4：已決定（PO 2026-10-05，方案 B）。** 鍵盤開啟且可用清單高度不足 44px 時，不強制顯示清單，改顯示「收起鍵盤以查看 ETF 清單」。免責聲明保留、不隱藏。鍵盤收起後清單自動恢復，排序、已展開數、捲動不遺失。這是 PO 核准的 responsive fallback，不是 FAIL／DEFER。
 
 ### 0.3 Phase 3 核心產品原則
 
@@ -45,20 +46,25 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.5 Phase 3 Coding 狀態（目前）
 
-- **實作**：`99ec4b14`（Coding）→ Codex 複審 NEED FIX → 必修修正 `8e3e59bb` → Finding 1 fix `c050c719`。**目前等待 Codex 只複審 Finding 1。**
-- **Finding 1 修正（`c050c719`）**：關閉 Detail 前，分類的 snapshot 寫入資料夾層（`updateUi(patch, 'folder')`），不再覆蓋 Detail 層的分頁與捲動。X、Esc 關閉後 Forward 都還原原分頁與捲動。測試：`detail_state_test.py` DS-9、DS-10、DS-11（共 42 項）。
-- **Codex 必修三項（`8e3e59bb` 已修正）**：
-  1. **Detail 分頁與捲動在 Back → Forward 還原（Plan RT-2）**。分頁與捲動寫入所在層的 ui；捲動先進記憶體快取，Back 前最後一次捲動也不會遺失。測試：`tests/browser/detail_state_test.py` DS-1～DS-8（26 項）。
-  2. **Flow visualViewport 重繪（Plan §9.2 F-d）**。resize、orientationchange、visualViewport resize／scroll，持股異動可見時重繪。測試：`category_test.py` FD-1～FD-6。
-  3. **LR-8 驗收測試重寫**。offsetTop > 0 時驗證可視交集、遮擋、恢復；headless 產生不了偏移，維持 DEFER。
-- **自動測試（`8e3e59bb`）**：
+- **實作鏈**：`99ec4b14`（Coding）→ Codex NEED FIX → 必修修正 `8e3e59bb` → Finding 1 fix `c050c719` → LR-4 responsive fallback `7b750336`。**目前等待 Codex 做最後一次針對 LR-4 的唯讀確認。**
+- **Finding 1（`c050c719`，已交 Codex 複審）**：關閉 Detail 前，分類 snapshot 寫入資料夾層（`updateUi(patch, 'folder')`），不再覆蓋 Detail 層的分頁與捲動。X、Esc 後 Forward 都還原原分頁與捲動。測試：`detail_state_test.py` DS-9～DS-11。
+- **LR-4 responsive fallback（`7b750336`，本輪交 Codex 唯讀確認）**：
+  - 條件：`body.gs-ckm`（鍵盤開啟）且可用高度 < 44px。清單收合（`cat-off`，留在版面中，不 `display:none`），「查看更多」收合，顯示提示「收起鍵盤以查看 ETF 清單」。免責不隱藏。
+  - 鍵盤收起後自動恢復；sort、shown、scrollTop 保留。
+  - 沒有鍵盤的低高度：清單保持最小 44px 並可捲動（Plan §11.4）。
+  - `MutationObserver` 監看 `body` class，`gs-ckm` 切換即重算。
+  - 測試：`category_test.py` LR-4（fallback 七項）與 LR-4 恢復（五項）。
+- **Codex 必修三項（`8e3e59bb` 已修正，Finding 2、3 已 RESOLVED）**：
+  1. Detail 分頁與捲動在 Back → Forward 還原（RT-2）。測試：`detail_state_test.py` DS-1～DS-8。
+  2. Flow visualViewport 重繪（§9.2 F-d）。測試：`category_test.py` FD-1～FD-6。
+  3. LR-8 驗收測試重寫。offsetTop > 0 時驗證可視交集、遮擋、恢復；headless 產生不了偏移，維持 DEFER。
+- **自動測試（`7b750336`）**：
   - router_test 64/64；search_compact_test 38/38；detail_ui_test 42/42；detail_history_fix_test 14/14；regression_test 14/14；detail_collapse_test 25/25。
-  - category_test 91 PASS、0 FAIL、**2 DEFER**。
-  - detail_state_test 42/42（含 DS-9～DS-11）。
-  - 負向對照：pre-fix 的 router／detail 讓 DS 出現 8 項 FAIL；pre-fix 的 flow.js 讓 FD-1～FD-4 FAIL；pre-fix 的 router＋category（8e3e59bb）讓 DS-9、DS-10 的 Forward 捲動 FAIL。
-- **靜態**：頂層名稱無重複；history API 只在 `js/router.js`；`index.html` 無 module script；資源版本號 `20261005h`。
+  - detail_state_test 42/42。
+  - category_test 102 PASS、0 FAIL、**1 DEFER**（LR-8 真機）。
+  - 負向對照：pre-fix 的 router／detail 讓 DS 出現 8 項 FAIL；pre-fix 的 flow.js 讓 FD-1～FD-4 FAIL；pre-fix 的 router＋category（`8e3e59bb`）讓 DS-9、DS-10 的 Forward 捲動 FAIL。
+- **靜態**：頂層名稱無重複；history API 只在 `js/router.js`；`index.html` 無 module script；資源版本號 `20261005j`。
 - **DEFER（不算 PASS）**：
-  - **LR-4**（844×170 鍵盤開，清單實測 2px）：需 PO 決策（見 0.2）。Fallback 提示已放在可視區內的標題列。
   - **LR-8 B／C**（offsetTop > 0 的真實鍵盤情境）：headless 已試 `setPageScaleFactor`＋捲動手勢、pinch、`positionY`、`viewport`，`visualViewport` 皆未改變；`user-scalable=no` 也不允許縮放。需 iPhone Chrome 真機。檢查程式已寫好；另以 stub 做檢查邏輯的自我檢查（SELF-TEST，不計為 PASS）。
 - **尚未完成的 acceptance（Plan §11.4 真機項目）**，Codex 通過後才交 PO：
   1. 分類頁 8 個 TAB 都能辨識名稱。
@@ -74,21 +80,18 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.6 Codex 下一步
 
-- **Code Review 對象（本輪）**：只複審 Finding 1，範圍 `8e3e59bb..c050c719`。Finding 2、3 已 RESOLVED，不要重審。
-- **Finding 1 重點**：`js/router.js` 的 `layerIndexOf`、`setUi`／`updateUi(patch, type)`；`js/category.js` 的 5 處寫入是否全部指定 `folder`；`detail_state_test.py` DS-9～DS-11 的前置條件與斷言。
-- **前次重點（已通過）**：`99ec4b14..8e3e59bb` 中的 Detail 還原、flow F-d、LR-8 測試。
-- **以下為前一輪（歷史，僅供參考）**：
-- **重點審查**：
-  - `js/router.js` 的層 id、`uiCache`、`setUi`／`updateUi`、popstate 的 `restoreUi`。
-  - `js/detail.js` 的 `detailShow(code, ui)`、分頁切換即時寫入、捲動 150ms 合併、`pagehide` flush；確認只在頂層是同一檔 Detail 時寫入。
-  - `js/flow.js` 的 `flowRedrawIfVisible`（F-d）。
-  - `tests/browser/category_test.py` 的 LR-8 區塊：真實分支（`offsetTop > 0`）在 headless 沒有執行，只有 stub 自我檢查；DEFER 標示是否合理。
-  - 前一輪審查的重點仍有效：router 狀態機、history 委派、category 規則與 fixture、測試政策、2 項 DEFER。
-- **Codex 完成後**：若 PASS，才由 Claude 提供 PO 真機步驟（§0.5 的 acceptance 與 LR-8、R-N3）。若 NEED FIX，依 finding 修正。
+- **Codex 本輪：唯讀確認 LR-4**。範圍 `c050c719..7b750336`（只看 `js/category.js` 的 `fit()`、`MutationObserver`、`snapshot()`／捲動守衛，`css/category.css` 的 `cat-off`／`cat-gone`，`category_test.py` 的 LR-4 與 LR-4 恢復區塊）。
+- **不要重審**：Finding 1、Finding 2、Finding 3、Router、Detail、Flow。它們已通過或已 RESOLVED。
+- **LR-4 重點**：
+  - fallback 只在 `gs-ckm` 時啟用，沒有鍵盤的低高度是否符合 Plan §11.4（最小 44px 可捲動）。
+  - 收合是否保留 scrollTop、sort、shown，且不會被 snapshot 寫成 0。
+  - 鍵盤收起後清單是否自動恢復。
+- **完成後**：若 PASS，LR-4 關閉；由 Claude 再整理 PO 真機步驟（§0.5 的 acceptance 與 LR-8、R-N3）。若 NEED FIX，依 finding 修正。
 
 ### 0.7 已知限制（記錄，不是待辦）
 
-- LR-4：全站免責在鍵盤模式的空間（見 0.2）。
+- LR-4：已決定為 responsive fallback（見 0.2）。
+- 844×390 橫向、沒有鍵盤時，分類清單位於底部導覽列下方（清單頂端約 363px，導覽列頂端約 328px），header 與分類頂部內容佔去大部分高度。清單雖有 44px 最小高度，需頁面捲動才看得到。這是 Plan LR-3（清單可用高度 ≥ 110px）尚未達成的版面問題，超出 LR-4 範圍，未修改。需要時由 PO 決定。
 - LR-8：需真機（見 0.5）。
 - R-N3：traversal 永不抵達的復原方式為重新整理（從實際 `history.state` 還原）。
 - base 切換以 replaceState 進行，關閉 Detail 後留下的 forward entry 仍存在（與 Phase 2 相同）。
