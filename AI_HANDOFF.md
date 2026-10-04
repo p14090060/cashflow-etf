@@ -65,8 +65,9 @@
 | 項目 | 內容 |
 |---|---|
 | Phase / Task | Phase 2 ETF 詳細頁／Codex Blocker 第二輪（延遲搜尋的取消範圍） |
-| 本輪修正 commit | `1958cdc0`（程式與測試，不含文件） |
-| 本輪 Review 範圍 | `369f3616..1958cdc0`（涵蓋 `1ca7cf08` 與本輪修正；Codex 上一輪 `d88da242..369f3616` 已完成，結果 NEED FIX） |
+| 搜尋 Blocker 修正 commit | `1958cdc0`（程式與測試）— Codex 已確認解決 |
+| 收合測試條件修正 commit | `82dc1dde`（僅 `detail_collapse_test.py`，產品收合邏輯未改） |
+| 本輪 Review 範圍 | `369f3616..82dc1dde`（程式 `1958cdc0`、測試條件 `82dc1dde`；文件 `37ac3784` 僅更新文件）。Codex 上一輪 `d88da242..369f3616` 已完成，結果 NEED FIX |
 | 上一個修正 commit | `1ca7cf08` |
 | Phase 2 實作 commit | `6033ecb8fd94cf973e97d27c205494c30f26d909` |
 | Round 1 修正 commit | `bb9d59e68be8da4e3f7fc18bfbd936a0776e1a42`（Review 範圍 `6033ecb8..bb9d59e6`） |
@@ -92,7 +93,7 @@
 | X7 | 送出 0050 期間按 Back，不得開出 0050 詳細頁 | FAIL | PASS |
 | X8 | 送出「高股息」期間點搜尋列外側，下拉不得重現 | FAIL | PASS |
 
-**未修改**：收合測試 C7、C9（見下方「測試結果」），本輪不處理。
+**收合測試**：C7、C9 的前置條件修正見下方「測試結果」（commit `82dc1dde`）。
 
 ## Round 1 修正（`bb9d59e6`）
 
@@ -111,12 +112,15 @@
 | `tests/browser/detail_ui_test.py` | 42 / 42 PASS |
 | `tests/browser/detail_history_fix_test.py` | 14 / 14 PASS |
 | `tests/browser/regression_test.py` | 14 / 14 PASS |
-| `tests/browser/detail_collapse_test.py` | **19 / 21**，C7、C9 FAIL（既有問題，見下） |
+| `tests/browser/detail_collapse_test.py` | 25 / 25 PASS（固定 390×844，連跑兩次結果相同） |
 
-**收合測試 C7、C9 失敗（與本輪無關）**：
-- 在 `1ca7cf08` 的匯出版（另一個埠）執行同一支測試，結果完全相同：C7 實測溢出 217px（預期 60–160px），C9 切回 overview 後仍維持收合。
-- 原因尚未查清。推測是測試依賴即時 `market.json`，內容變動後 0050 詳細頁高度改變，導致 spacer 前置條件失效。這是推測，尚未證實。
-- 本輪未修改收合測試。請 Codex 以 HEAD 對照結果為準，不要把這兩項算在本輪修正上。
+**收合測試 C7、C9：已修正測試條件（產品收合邏輯未改）**
+- **原因一（視窗）**：測試未固定視窗尺寸。headless 預設約 764×485，此時 0050 總覽超出視窗 217px，C7「略微溢出 100px」的前置條件不成立。
+- **原因二（spacer 算式）**：測試用 `scrollHeight − clientHeight` 計算溢出，但內容比視窗矮時這個值會被夾成 0，spacer 只加了 100px，溢出仍是 0。改為量內容實際高度（497px）再計算 spacer；校正一次後溢出為 100px。
+- **更正我先前的說法**：我前一輪推測是即時 `market.json` 變動所致。該推測錯誤，已撤回。
+- **C9**：切換前先量總覽內容是否放得進展開（659px ≤ 659px）與收合（659px ≤ 781px）後的視窗，前置條件不成立時直接 FAIL。
+- **量測證據（390×844 直向）**：總覽 scrollHeight 659 = clientHeight 659（無溢出）；持股配息 scrollHeight 821、clientHeight 659（溢出 162px）；C7 校正後溢出 100px；C9 切到總覽後未收合、scrollTop 0。
+- **未重跑其他四組**：本輪只改收合測試檔，產品程式沒有變動。
 | 靜態：殘留 `gsClosePanel` / `gsGoFlow` | 0 筆 |
 | 靜態：頂層全域名稱重複宣告 | 無 |
 | 執行期未捕捉例外 | 無 |
@@ -134,9 +138,10 @@
 |---|---|---|
 | F1 pending restore 在基底 entry 被還原 | Blocker | 已修正，待 Codex 複查 |
 | F2 Back 關閉 Detail 時下拉未收起 | Risk | 已修正，待 Codex 複查 |
-| 延遲搜尋：✕／Back／點搜尋列外側未取消（Codex 上一輪 NEED FIX） | Blocker | 已修正（`1958cdc0`），待 Codex 複審 |
+| 延遲搜尋：✕／Back／點搜尋列外側未取消（Codex 上一輪 NEED FIX） | Blocker | 已解決（`1958cdc0`），Codex 已確認 |
+| 收合測試 C7、C9 前置條件未成立（未固定視窗、spacer 算式錯誤） | QA | 已修正測試條件（`82dc1dde`），待 Codex 複審 |
 
-**Ready for Codex re-review**（範圍 `369f3616..1958cdc0`）。
+**Ready for Codex re-review**（範圍 `369f3616..82dc1dde`）。
 
 ## 真機環境更正（怡恩 2026-10-04）
 
@@ -200,7 +205,7 @@
 
 - Codex 複審 `369f3616..1958cdc0`（本輪 Blocker 修正）。
 - 複審通過後，怡恩在 iPhone + Chrome 回測：按搜尋後，若按 ✕ 或 Back，不應再跳出舊結果（需要新版測試網址，屆時重新匯出）。
-- 收合測試 C7、C9 的既有失敗：原因待查（見上）。
+- 收合測試 C7、C9：測試條件已修正（`82dc1dde`），待 Codex 複審。
 - 相容性抽測：iPhone + Safari、Samsung + Chrome，只測關鍵流程。
 - 尚未 push。push 後 GitHub Pages 會直接上線。
 - 已知限制（不在本 Phase 修正）：
