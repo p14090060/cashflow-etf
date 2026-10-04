@@ -17,7 +17,8 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 Finding 1 fix commit：`c050c719`**（本機，未 push）。Detail scroll 被分類 snapshot 覆蓋；修正內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審 Finding 1 修正」一節。
 - **Phase 3 LR-4 responsive fallback commit：`7b750336`**（本機，未 push）。**Codex 唯讀確認：LR-4 PASS / CLOSED。不再修改。**
 - **Phase 3 844×390 無鍵盤 blocker fix commit：`1f636d86`**（本機，未 push）。LR-3／§11.4：清單初始實際可見 ≥ 44px、不被導覽列遮住。內容見 `PHASE3_CHANGELOG.md` 的「Blocker：844×390 無鍵盤時分類清單初始可見高度為 0」一節。
-- **Phase 3 直向 inside／doorway commit：`fdc1d139`**（本機，未 push）。PO 真機回饋後的 UX 調整（Gate 核准）：進入分類後其他分類立即收合，主 TAB 的 ▾／▴ 重新展開。內容見 `PHASE3_CHANGELOG.md` 的「直向 inside／doorway」一節。
+- **Phase 3 直向 inside／doorway commit：`fdc1d139`**（本機，未 push）。PO 真機回饋後的 UX 調整（Gate 核准）：進入分類後其他分類立即收合，主 TAB 的 ▾／▴ 重新展開。內容見 `PHASE3_CHANGELOG.md` 的「直向 inside／doorway」一節。**Codex PASS。**
+- **Phase 3 真機 Bug fix commit：`3be2d19c`**（本機，未 push）。iPhone 真機：高股息 inside 滑到底後「查看更多（還有 12 檔）」消失、約 5 秒後恢復。根因：visualViewport 縮短時 `fit()` 縮短清單，已在底部的 `scrollTop` 未重新錨定。修正：只有原本在底部時，改高度後才錨定到新底部。內容見 `PHASE3_CHANGELOG.md` 的「真機 Bug：D4「查看更多」滑到底後消失」一節。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -54,43 +55,38 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.5 Phase 3 Coding 狀態（目前）
 
-- **實作鏈**：`99ec4b14`（Coding）→ Codex NEED FIX → `8e3e59bb` → `c050c719`（Finding 1）→ `7b750336`（LR-4，Codex PASS／CLOSED）→ `1f636d86`（844×390 無鍵盤 blocker）→ **`fdc1d139`（直向 inside／doorway，PO 真機回饋）**。**目前等待 Codex 只複審 `fdc1d139`。**
-- **fdc1d139 內容**：
-  - 狀態：inside（進入分類，其他分類收合）與 doorway（▾／▴ 重新展開）。doorway 選另一分類 → 新 inside。模式只存在 Category，不寫入 Router。
-  - 主 TAB 的 `#catExpand`：44×44，▾／▴，`aria-expanded`、`aria-label`；標題區也可切換。只在直向、列表、非 gs-ckm。
-  - 清單底部：`fit()` 在直向時以頁面未捲動的清單頂端計算（`rect.top + scrollY`）；頁面捲動或 resize 不改變清單高度。
-  - 查看更多（D4）移入清單底部（直向）；`#catFoot` 在直向列表隱藏（D5）；`.site-footer` 與頁面捲動不變（D6 未採用）。
-  - 高度：inside 比 doorway 多 48px（390×844，主動式清單 422px ↔ 374px）。D2 說明列保留。
-- **Codex 本輪範圍（只看 `fdc1d139`）**：
-  - `js/category.js`：`syncMode`、`ctlActive`、`toggleStrip`、`applyFolder` 的 stripOpen 規則、`fit()` 的 `scrollY` 項、`syncInnerMore` 的 cat-ctl 條件、點擊處理。
-  - `css/category.css`：`#catMain.cat-ctl`、`cat-inside`、`.cat-expand`、外部 `.cat-more`／`.cat-foot` 隱藏。
-  - `tests/browser/category_test.py`：PT-1～PT-12，以及舊 BL／BACK-TO-NORMAL 期望的更新（D4 之後清單內有查看更多）。
-- **不要重審**：LR-4、Finding 1–3、844×390 blocker、Router、Detail、Flow。它們已通過或未修改。
-- **自動測試（`fdc1d139`）**：
+- **實作鏈**：`99ec4b14` → Codex NEED FIX → `8e3e59bb` → `c050c719`（Finding 1）→ `7b750336`（LR-4，Codex PASS／CLOSED）→ `1f636d86`（844×390 無鍵盤 blocker）→ `fdc1d139`（直向 inside／doorway，**Codex PASS**）→ **`3be2d19c`（真機 Bug fix：底部錨定）**。**目前等待 Codex 複審 `3be2d19c`。**
+- **3be2d19c 內容**：
+  - 根因（已調查，GPT Gate 通過）：iPhone 工具列伸縮觸發 visualViewport `resize`／`scroll` → `fit()` 縮短清單 `max-height` → 已在底部的清單 `scrollTop` 未重新錨定 → 「查看更多」被裁切在清單外框之下（按鈕仍在 DOM）。「約 5 秒後恢復」對應工具列回到原狀時的 visualViewport 事件，不是程式計時器。
+  - 修正（只在 `js/category.js` 的 `fit()`）：改高度前記下是否在底部（距底部 ≤ 4px、清單可見、未 cat-off）；只有原本在底部，改高度後才錨定到新的最大 `scrollTop`。中段不改閱讀位置。cat-off（LR-4）不錨定。
+  - 不取消 visualViewport 邏輯，不採 sticky，不製作診斷 UI，不修改 Router、Detail、Flow。
+  - 版本號 `20261005m`（JS 有改動，升版避免快取舊檔）。
+- **Codex 本輪範圍（只看 `fdc1d139..3be2d19c`）**：
+  - `js/category.js` 的 `fit()`：`wasAtBottom` 的判斷與 `scrollTop` 錨定的位置（只在 `!short` 分支內）。
+  - `tests/browser/category_test.py` 的 AB 區塊（AB-1～AB-4）。
+  - 確認 LR-4（cat-off）、LR-8（stub，真機 DEFER 保留）、cat-tight3、844×390、橫向路徑未受影響。
+- **不要重審**：LR-4、Finding 1–3、844×390 blocker、inside／doorway 的既有結論（已 PASS）、Router、Detail、Flow。
+- **自動測試（`3be2d19c`）**：
   - router_test 64/64；search_compact_test 38/38；detail_ui_test 42/42；detail_history_fix_test 14/14；regression_test 14/14；detail_collapse_test 25/25；detail_state_test 42/42。
-  - category_test 146 PASS、0 FAIL、**1 DEFER**（LR-8 真機）。
-  - 負向對照：還原 `29681bf2` 的 index／js／css 時 PT 區塊 16 項 FAIL；移除 `fit()` 的 `scrollY` 項時 PT-7 FAIL。
-- **靜態**：Router、Detail、Flow 未修改；無 `cat-lock`；資源版本號 `20261005l`。
+  - category_test 160 PASS、0 FAIL、**1 DEFER**（LR-8 真機）。
+  - 負向對照：HEAD 的 category.js 下 AB-1 三項 FAIL（清單停在 16px，最大值 60px，查看更多在可視範圍外）。
 - **DEFER（不算 PASS）**：
   - **LR-8 B／C**：headless 無法產生 `offsetTop > 0`。依 PO 指示，留給 iPhone Chrome 真機。
-- **真機驗收（尚未交 PO，等 Codex PASS 後）**：上次的 9 項（§11.4）以 `fdc1d139` 重新確認，另加 inside／doorway 操作：
-  1. 進入分類 → 其他分類立即收合，清單上移，不需捲動。
-  2. 點 ▾ → 其他分類重新顯示；點 ▴ 或主 TAB 標題區 → 回到 inside。
-  3. doorway 點另一分類 → 新分類立即 inside。
-  4. inside 中清單上下捲動；點列開 Detail，關閉後仍在同一模式；查看更多在清單底部，可點。
-  5. 直向捲動頁面，footer 可見（正常捲動）；清單底部不被導覽列遮住。
-  6. 排序、已展開數、捲動位置在切換模式後保留。
-  7. 橫向：次要標籤列與清單與之前一致。
+- **已知剩餘邊界（需 GPT 決定，未處理）**：中段且距底部 ≤ 約 44px 時，工具列收合（視窗變大）會被瀏覽器夾到新底部（修正前亦然）。探針：距底部 20px，800→844 時 `scrollTop` 576 → 552。可能的處理：在清單尾端加入等於最大視窗變化量的 padding（代價：底部多一段空白）。
+- **UX 項目（已確認，本 fix 未處理，之後另 commit）**：
+  - UX-1：警語與分類內容間垂直空白過大。
+  - UX-2：▼／▲ 改為「切換分類 ▼／▲」。
+- **真機驗收（尚未交 PO，等 Codex PASS 後）**：PO 重新測試 D4 滑到底消失的情境（高股息 inside 滑到底，手離開後按鈕應保持可見），以及 §0.5 中 inside／doorway 的 7 項。
 
 ### 0.6 Codex 下一步
 
-- **Codex 本輪：只複審 `fdc1d139`（直向 inside／doorway）**，範圍 `29681bf2..fdc1d139`。
+- **Codex 本輪：只複審 `3be2d19c`（真機 Bug fix：底部錨定）**，範圍 `fdc1d139..3be2d19c`。
 - **重點**：
-  - 狀態模型：進入 inside、▾／▴ 切換、doorway 選分類後 inside、✕ 回總覽、Detail 開關不改模式。
-  - 清單底部不被導覽列遮擋（頁面未捲動時與捲動後皆然）；查看更多在清單內可見可點。
-  - footer 可透過正常捲動到達，未鎖定頁面。
-  - 橫向、LR-4、cat-tight3、844×390 blocker 未 regression。
-- **完成後**：若 PASS，才由 Claude 提供 PO 真機步驟（§0.5 的 7 項）。若 NEED FIX，依 finding 修正。
+  - `fit()` 的 `wasAtBottom` 判斷（可見、未 cat-off、距底部 ≤ 4px）與錨定只在 `!short` 分支。
+  - 中段位置不被改動；cat-off（LR-4）不被錨定影響。
+  - D4「查看更多」仍可點，+10 正常。
+  - 已知剩餘邊界（§0.5）是否需要在本輪處理，或記錄後另案。
+- **完成後**：若 PASS，才由 Claude 提供 PO 真機步驟。若 NEED FIX，依 finding 修正。
 
 ### 0.7 已知限制（記錄，不是待辦）
 
@@ -99,6 +95,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - 直向 doorway 模式不寫入 history：Back／Forward 回到同一分類時，模式依 Category 目前狀態。
 - 直向頁面向下捲動後，標題列與 ▾ 會捲出畫面，需向上捲回才能展開（依 Gate，不做回頂自動展開）。
 - 直向鍵盤開啟（gs-ckm）時，展開控制與次要標籤列隱藏，依既有 gs-ckm 路徑。
+- 中段但距底部 ≤ 約 44px 時，工具列收合（視窗變大）會被瀏覽器夾到新底部（修正前亦然，見 §0.5）。
 - Plan §11.4 偏差：次要標籤保留一列 40px，未收合為「其他分類 ▾」（見變更紀錄）。
 - 低高度下的「持股異動」檢視：`cat-tight3` 只作用於清單檢視，treemap 在 844×390 仍落在導覽列下方，需要頁面捲動。未處理，待 PO 決定是否在 Phase 3 範圍內處理。
 - LR-8：需真機（見 0.5）。
