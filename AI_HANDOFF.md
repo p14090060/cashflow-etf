@@ -229,32 +229,31 @@
 
 **Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
 
-## Phase 3 Plan（Rev.2，待 Codex 複審）
+## Phase 3 Plan（Rev.3，待 Codex 複審）
 
-- 需求來源：怡恩 2026-10-04 Phase 3 需求；Codex Rev.1 Review（NEED FIX）；怡恩 Rev.2 產品決策。本階段只修 Plan 與交接本，**未修改程式、未開始 Coding、未 push**。
-- 文件：`PHASE3_PLAN.md`（Rev.2）。
+- 來源：Codex 對 Rev.2（`eebc1794`）的 NEED FIX。本次只修 Plan 與交接本，**未修改程式、未 Coding、未 push**。
+- 文件：`PHASE3_PLAN.md`（Rev.3）。
 
-**Rev.2 主要修訂**
-- 導覽固定為 **首頁／分類／自選／工具**（不新增第 5、第 6 個主導覽）。既有功能遷移：配息與排行 → 工具；主動持股異動 → 分類 → 主動式；YouTube 頻道 → 工具底部連結與首頁小入口。Phase 3 不刪除既有功能。
-- 分類維持單一歸屬；高股息資料夾 22 檔與搜尋「高股息」76 檔可共存；資料夾說明用「主要以高股息策略為特色的 ETF」。
-- 分類優先例外依怡恩決定：科技＋高息→科技、海外＋高息→海外、AI 機器人與航太防衛→科技、金融／工業／數位支付→主題型、0057 暫歸其他／待查證。
-- ESG 規則依怡恩意見：不因名稱有 ESG 就強制歸其他。00920 → 主題型；00923、009809 → 市值型（**待怡恩確認**）。
-- **history 改為單一 router**：所有 pushState／replaceState／back 集中在 `js/router.js`；popstate 只有一個 listener，只渲染、不呼叫 back；每層一個 entry；E0 唯一；busy 鎖。Phase 2 Detail 的 history 程式會搬到 router 下（Rev.1 的「只 hook」是錯的，已更正）。
-- 測試涵蓋 Codex 指定情境：Browser Forward、Detail reload、Detail 開著切換導覽、Esc 只退一層、返回資料夾後的排序／已展開數／捲動位置、不產生重複基底 entry。
-- Responsive 改依實際剩餘可用高度（扣除頁首、標題、次要區、導覽、安全區域）驗證，並列出 390×844、360×780、844×390、844×170、844×20 等情境。
-- 補上：開啟期間資料更新、移類、消失、成功後更新、更新失敗保留 last-good、reduced-motion、空分類與錯誤狀態、203 檔固定 fixture 測試。數字只作為 fixture 的 assertion，不作永久 assertion。
+**Rev.3 實際修正**
+1. Detail history 保留 Phase 2 語意：未開啟 → push；已開啟切換另一檔 → replace；切換多檔不累積層；一次 Back 直接離開 Detail（§6、RT-11）。撤回 Rev.2 的「openDetail 一律 push」。
+2. 退層規則選定單一方案（§7.1）：popstate 只渲染；單層關閉 back 一次；多層導航由 router 一次 `go(-k)` 加 pending 續行（續行只 push/replace，不 back）；busy 鎖生命週期定義（500ms 逾時、期間忽略不排隊）；移除 Rev.2 的 back 迴圈。
+3. 「查看持股異動」改為先退到共同層級、再 push 目標層，最終 `分類 → 主動式 → 持股異動`，不留 Detail 層；四種來源與 Back／Forward 驗證（§8、NV-A～NV-E）。
+4. 首次載入失敗依 `showDataError()` 實際行為修正：失敗時 Detail 立即還原並顯示「資料暫時無法取得」（不是延後還原）；history 深度與畫面一致（§7.10、HF-1、HF-2）。Phase 2 測試政策：行為斷言保留，內部 state 斷言改寫為 v2 等價，不保留兩套 history（§16.1）。
+5. 低高度：沿用 Phase 1 `_gsSyncCkm` 觸發；讓位優先序；可視區以 rect 量測、不重複扣 safe area；20px 驗證使用者可見的 fallback 與鍵盤關閉後恢復（§11）。
+6. flow.js：列出觸發與容器調整（F-a～F-f）、`page-check` 相關 CSS 與 onclick／id 風險、FL-1～FL-8（§9）。
+7. 細部分布修正：人工高股息標籤中移至市值型 9 檔、移至其他 1 檔；總分布維持 18／22／32／20／78／19／6／8 = 203（§2.2、§2.3）。
+8. D-ESG：補上三檔的標的指數證據（§3.4）。證據指向 00923、009809 為 ESG／淨零策略型，00920 為綠能主題或全球（海外）；Rev.2 的市值型歸類與證據不一致，但依指示分布維持 Rev.2 驗證值，決定仍 pending。D14 維持 PO 決策。
 
-**目前資料分布（Rev.2 推薦預設，203 檔）**
-市值型 18、高股息 22、主動式 32、科技／半導體 20、海外／區域 78、主題型 19、債券 6、其他 8（合計 203）。
+**採預設、不再詢問 PO**：D11、D12、D13、D15、D16、D17。
 
-- 與 Gavin 引用的 16／22／32／20／78／18／6／11 不同，差異來自 ESG 規則（00920、00923、009809）。若要保留舊數字，見 D-ESG。
-
-**需要怡恩決定（Plan 第 16.2 節）**
-- D-ESG（三檔歸類）、D14（自選占位）、D15（↻ 行為）、D11（桌機版型）、D12（重整還原）、D13（排序是否記憶）、D16（首頁標籤）、D17（持股異動入口）。
+**仍 pending（需怡恩決定）**
+- D-ESG-1：00923、009809、00920 的歸類（替代數字：E1 市值 16／其他 10；E2 市值 16／海外 79／主題 18／其他 10，見 §3.4）。
+- D-ESG-2：是否建立人工覆寫清單，因為規則只看簡稱（00920 官方全名含「全球」）。
+- D14：自選分頁內容。
 
 **下一步**
-- Codex 複審 `PHASE3_PLAN.md` Rev.2。重點：router 設計（第 7 節）、RT 測試清單（第 14.5 節）、responsive 公式（第 9 節）、遷移表（第 1.2 節）。
-- 怡恩決定 D-ESG 與 D14–D17 後，才開始 Coding。
+- Codex 複審 `PHASE3_PLAN.md` Rev.3。重點：router 退層規則（§7）、`navigate` 協議（§7.7）、導航四種來源（§8）、低高度讓位與 20px 驗證（§11）、flow 觸發（§9）。
+- 怡恩決定 D-ESG-1、D-ESG-2、D14 後，才開始 Coding。
 
 ## Phase 2 封版狀態
 

@@ -1,74 +1,62 @@
 # PHASE3_PLAN.md — 分類瀏覽與導覽重組（Phase 3）
 
-狀態：**Plan Rev.2，待 Codex 複審。尚未開始 Coding。**
+狀態：**Plan Rev.3，待 Codex 複審。尚未開始 Coding。**
 前置：Phase 2 VERIFIED / CLOSED（功能 baseline `1958cdc0`；封版文件 `74c61106`）。
-Rev.1 → Rev.2 的主要修訂見第 0 節與第 15 節。
+Rev.3 只修正 Codex 對 Rev.2（`eebc1794`）的 findings，不擴張 scope。
 
 ---
 
-## 0. Rev.2 修訂摘要與已確認決策
+## 0. Rev.3 修訂摘要
 
-### 0.1 怡恩已確認（不再討論）
+| Codex finding | Rev.3 處理 | 章節 |
+|---|---|---|
+| 1. Detail history 須保留 Phase 2 語意（未開啟→push；已開啟切換→replace；一次 Back 離開） | 明列 Phase 2 現行語意；router 只委派 history 操作，語意不變 | §6、§7.5 |
+| 2. 退層規則 Rev.2 §7.3 與 §7.6 矛盾 | 選定單一方案（§7.1）；移除 Rev.2 的 back 迴圈 | §7 |
+| 3. 「查看持股異動」導航順序錯誤 | 改為先退到共同層級，再 push 目標層；四種來源都驗證 | §8 |
+| 4. 首次載入失敗的 Detail 行為被誤寫成「延後還原」 | 依 `showDataError()` 實際行為修正；history 與畫面一致 | §7.10、§12 |
+| 5. 170px 低高度不可能同時容納所有 UI | 定義讓位優先序，沿用 Phase 1 `gs-ckm` 觸發條件；以可視區量測驗證；20px fallback 驗證恢復 | §11 |
+| 6. flow.js 仍綁 `page-check.active` | 列出所有顯示、resize、redraw 觸發點與回歸測試 | §9 |
+| 7. 細部分布錯誤 | 依 Codex 核對：市值型 9、其他 1；總分布維持 18／22／32／20／78／19／6／8 | §2.2 |
+| 8. D-ESG 與 D14 維持 pending | D-ESG 補上三檔的標的指數證據（§3.4），不以「50」判定；D14 保留 PO 決策 | §3.4、§18 |
 
-| 項目 | 確認內容 |
-|---|---|
-| 核心原則 | 「分類是拿來逛的，搜尋是拿來找的。」分類服務不知道要找哪一檔的新手；搜尋服務已知代碼或名稱、或不知道歸類的人。 |
-| 底部導覽 | 固定為 **首頁／分類／自選／工具**。不新增第 5、第 6 個主導航。 |
-| 單一歸屬 | 八大資料夾維持單一歸屬。 |
-| 高股息數量 | 「高股息資料夾 22 檔」與搜尋「高股息」約 76 檔可以共存，不要求一致。 |
-| 資料夾說明 | 高股息資料夾使用「主要以高股息策略為特色的 ETF」，避免讓人以為包含全站所有高股息特徵的 ETF。 |
-| 不新增篩選器 | 不新增「高股息標籤篩選器」。 |
-| 分類優先例外 | 科技＋高息 → 科技／半導體；海外＋高息 → 海外／區域；AI 機器人、航太防衛科技 → 科技／半導體；金融、工業、數位支付 → 主題型；0057 暫歸其他／待查證。 |
-| 列表行為 | 預設代碼數字感知排序；打開資料夾先顯示最多 10 檔；查看更多每次 +10；可切換代碼／名稱排序；點 ETF 沿用 Phase 2 Detail；分類頁仍可使用全域搜尋；不 hard-code 示意 ETF。 |
-| 視覺方向 | 桌面上 8 份有頁籤的文件夾，左右各 4 份、有堆疊感，8 個頁籤都能辨識；點選後抽出、放大打開，其他退到次要位置；動畫約 200–300ms，支援 prefers-reduced-motion；實際分類與資料夾是 HTML/CSS 可操作元件。 |
+**已採預設、不再詢問 Product Owner**：D11（桌機第一版維持 430 欄）、D12（重整還原資料夾與 Detail）、D13（排序與已展開數不跨開啟記憶）、D15（↻ 維持 Phase 2 行為）、D16（首頁標籤改為「首頁」）、D17（持股異動入口在 分類 → 主動式）。
 
-### 0.2 本 Rev.2 新增的決策（需怡恩確認，見第 16 節）
-
-- **ESG 規則**（依怡恩「不能只因名稱出現 ESG 就強制歸其他」）：00920 富邦ESG綠色電力 → 主題型；00923 群益台ESG低碳50、009809 富邦淨零ESG50 → 市值型。這三檔使數量與 Rev.1 不同（見附錄 B）。
-- **自選**：導覽需要有這個位置，但目前沒有既有功能，也沒有需求定義。Phase 3 只放「尚未開放」占位頁（D14）。
-- **↻ 重新整理**：沿用 Phase 2 行為（D15）。
-
-### 0.3 Rev.1 的錯誤更正
-
-- Rev.1 寫「detail.js 只做 hook、不改內容」。這不足以滿足 Codex 的要求：Phase 2 的 history 程式（`_pendingPop`、`_queuedOpen`、`_detailPushed`、popstate listener）必須**搬到共用 router 下**，由單一路由統一管理。Detail 的畫面內容與行為不變，但 history 實作會被改寫，因此需要 Phase 2 全部回歸測試作為閘門。
-- Rev.1 的分布 16／22／32／20／78／18／6／11 來自舊的 ESG 規則，Rev.2 不再使用。
+**仍 pending**：D-ESG（三檔歸類）、D14（自選分頁內容）。
 
 ---
 
 ## 1. 導覽與既有功能遷移
 
-### 1.1 新的底部導覽
+### 1.1 底部導覽
 
 | 位置 | 名稱 | 內容 | 狀態 |
 |---|---|---|---|
-| 1 | **首頁** | 原「今日」頁（A-1～A-4），內容不變，只改標籤 | 既有 |
-| 2 | **分類** | 八大資料夾（第 3 節）；內含「主動式」資料夾的持股異動 | 新增 |
-| 3 | **自選** | 占位頁：「自選功能尚未開放」 | 占位（D14） |
-| 4 | **工具** | 工具列表：配息工具、排行、YouTube 頻道 | 新增（承接既有） |
+| 1 | 首頁 | 原「今日」頁（A-1～A-4），內容不變 | 既有（標籤改名，D16） |
+| 2 | 分類 | 八大資料夾（§4）；主動式資料夾內含持股異動 | 新增 |
+| 3 | 自選 | 內容待 PO 決策（D14） | 待決策 |
+| 4 | 工具 | 工具列表：配息工具、排行、YouTube 頻道 | 新增（承接既有） |
 
 既有 5 個分頁（今日、配息、頻道、主動、排行）收斂為 4 個主導覽。既有頁面全部保留，只改入口與容器。
 
-### 1.2 既有功能遷移表（Phase 3 不刪除任何既有功能）
+### 1.2 既有功能遷移（Phase 3 不刪除任何既有功能）
 
 | 既有位置 | 既有內容 | Phase 3 新位置 | 進入方式 | 備註 |
 |---|---|---|---|---|
-| 今日（`page-today`） | A-1 大盤、A-2 值得留意、A-3 熱門、A-4 查詢 | 首頁 | 導覽 1 | 內容不變。 |
-| 配息（`page-div`） | B-1 配息計算機、B-2 配息行事曆 | 工具 → 配息工具 | 工具卡片 | 子頁；Back 回工具列表。 |
-| 排行（`page-rank`） | E-1 成交量排行 | 工具 → 排行 | 工具卡片 | 子頁；Back 回工具列表。 |
-| 頻道（`page-yt`） | C-1～C-3 | 工具底部「YouTube 頻道」連結；首頁保留一張小入口卡 | 工具卡片、首頁入口 | 子頁；不佔導覽。 |
-| 主動（`page-check`） | 持股異動：ETF 切換鍵（chips）、treemap、加減碼總計 | 分類 → 主動式 → 「持股異動」分段 | 分類內切換分段 | 既有 DOM 與功能保留，只換容器。 |
-| Detail「查看完整持股異動 ›」 | `detailGoFlow` → `openFlow` → 切到主動頁 | 關閉 Detail，切到分類 → 主動式 → 持股異動，並選定該代碼 | Detail 按鈕 | 行為見第 6.4 節。 |
-| 健診（`archived-check`） | 已下架 | 不變（不在導覽） | — | 保留 template，不在本階段恢復。 |
+| 今日（`page-today`） | A-1～A-4 | 首頁 | 導覽 1 | 內容不變 |
+| 配息（`page-div`） | B-1 計算機、B-2 行事曆 | 工具 → 配息工具 | 工具卡片 | 子頁；Back 回工具列表 |
+| 排行（`page-rank`） | E-1 成交量排行 | 工具 → 排行 | 工具卡片 | 子頁；Back 回工具列表 |
+| 頻道（`page-yt`） | C-1～C-3 | 工具底部連結；首頁保留小入口卡 | 工具卡片、首頁入口 | 子頁 |
+| 主動（`page-check`） | 持股異動：chips、treemap、加減碼總計 | 分類 → 主動式 → 持股異動分段 | 分類內切換分段 | DOM 與功能保留，只換容器（§9） |
+| Detail「查看完整持股異動 ›」 | `detailGoFlow` → `openFlow` | 分類 → 主動式 → 持股異動，並選定代碼 | Detail 按鈕 | 導航順序見 §8 |
+| 健診（`archived-check`） | 已下架 | 不變 | — | 不在導覽 |
 
-**不刪除原則**：`page-div`、`page-rank`、`page-yt`、`page-check` 的 DOM 與功能保留。Phase 3 只改它們的入口與容器。
+### 1.3 呼叫點
 
-### 1.3 呼叫點調整
-
-既有程式有 `switchPage('check')`、`switchPage('div')`、`switchPage('rank')`、`switchPage('yt')`、`openFlow(code)`。Phase 3 會把這些呼叫改為 router 的開啟方式（第 8 節），並保留舊函式名稱作為相容入口，避免遺漏。實作前需列出所有呼叫點（PHASE3_CHANGELOG 記錄）。
+既有程式中 `switchPage('check' | 'div' | 'rank' | 'yt')`、`openFlow(code)`、`detailGoFlow(code)` 都會改為 router 的導航入口。實作前須列出全部呼叫點（PHASE3_CHANGELOG 記錄），並保留舊函式名作為相容入口。
 
 ---
 
-## 2. 資料現況（實測）
+## 2. 資料現況與分布
 
 來源：`data/market.json`（203 檔；bot 於 2026-10-04 14:25 更新）、`data/active_flow.json`（32 檔）、`data/dividend_info.json`（人工維護）。
 
@@ -76,139 +64,20 @@ Rev.1 → Rev.2 的主要修訂見第 0 節與第 15 節。
 
 | 欄位／線索 | 實測 | 能否作為分類依據 |
 |---|---|---|
-| `div_category`（人工配息標籤） | 高股息 76、指數型 8、主動型 12、海外 10、科技 6、ESG 4、債券 3、主題型 2、產業型 1、無 81 | **只作備援**。與產業、地區、主動衝突很多（例：00981A、00402A 主動但標籤為高股息或無；00830、00929 科技但標高股息）。 |
-| 代號末碼 `B`／`D` | 6 檔：00840B、00980D、00982D、00983D、00984D、00985D | **可用**。與專案既有 `is_bond_etf` 規則一致。 |
-| 代號末碼 `A` | 32 檔，與 `active_flow.json` 的 32 檔**完全一致**（已逐一核對） | **可用**。執行期不需讀 `active_flow.json`。 |
-| 名稱關鍵字 | — | **可用**，依第 4 節規則表。 |
+| `div_category`（人工配息標籤） | 高股息 76、指數型 8、主動型 12、海外 10、科技 6、ESG 4、債券 3、主題型 2、產業型 1、無 81 | 只作備援（§4.1 第 10 順位） |
+| 代號末碼 `B`／`D` | 6 檔：00840B、00980D、00982D、00983D、00984D、00985D | 可用（與 `is_bond_etf` 一致） |
+| 代號末碼 `A` | 32 檔，與 `active_flow.json` 完全一致（已逐一核對） | 可用；執行期不讀 `active_flow.json` |
+| 名稱關鍵字 | 市場資料的 `name` 為簡稱 | 可用，但有名稱來源限制（§3.5） |
 
-### 2.2 `div_category` 與分類不一致（實測）
+### 2.2 人工標籤「高股息」的細部分布（Codex 核對）
 
-- 人工標籤為「高股息」的 76 檔中，只有 22 檔在高股息資料夾。其餘 54 檔：海外 14、主動式 12、科技 11、市值型 8、主題型 4、債券 3、其他 2。
-- 這就是「搜尋 76 檔、資料夾 22 檔」的來源（第 3.4 節說明）。
+人工標籤為「高股息」的 76 檔中，只有 22 檔在高股息資料夾（名稱命中 19 ＋ 備援 3）。其餘 54 檔：
 
----
+- **移至市值型：9 檔**（含 00923 群益台ESG低碳50，見 §3.4，此項 pending）
+- **移至其他：1 檔**（00888 永豐台灣ESG）
+- 其餘 44 檔：海外 14、主動式 12、科技 11、主題型 4、債券 3
 
-## 3. 分類與資料夾 UI
-
-### 3.1 八大分類（單一歸屬）
-
-| 順序 | 分類 | 資料夾說明文案（UI） |
-|---|---|---|
-| 1 | 市值型 | 主要追蹤大型、中型或特定市值範圍指數的 ETF |
-| 2 | 高股息 | 主要以高股息策略為特色的 ETF |
-| 3 | 主動式 | 由經理人主動操作持股的 ETF |
-| 4 | 科技／半導體 | 主要投資科技與半導體產業的 ETF |
-| 5 | 海外／區域 | 主要投資海外市場或特定地區的 ETF |
-| 6 | 主題型 | 聚焦特定主題或產業（如金融、工業、數位支付）的 ETF |
-| 7 | 債券 | 主要投資債券的 ETF |
-| 8 | 其他 | 不屬於前述分類，或以 ESG 等篩選策略為主、期貨型等的 ETF |
-
-資料夾底部固定一行說明：「分類是主要方向，不代表 ETF 的全部特徵。想找特定條件的 ETF，請用上方搜尋。」
-
-### 3.2 總覽（OVERVIEW）：8 份文件夾
-
-- 左右各一堆，每堆 4 份，合計 8 份。
-- 每份只露出頁籤：高 44px，文字 15px，含分類名與檔數（例「海外／區域 · 78」）。
-- 堆疊感：後面的頁籤在上，前面的在下；頁籤彼此不重疊。
-- 些微錯位：同一堆內頁籤水平交錯 ±3px，**不旋轉**文字。
-- 8 個分類名稱都顯示完整名稱。
-
-### 3.3 狀態機
-
-| 狀態 | 畫面 | 進入 | 離開 |
-|---|---|---|---|
-| **OVERVIEW** | 8 份頁籤堆疊，無清單 | 進入分類導覽；Back 回到此狀態 | 點頁籤 → OPENING |
-| **OPENING** | 被點文件夾抽出到主閱讀區；其他 7 份退到次要區 | OVERVIEW 點頁籤 | 動畫結束（reduced-motion 立即）→ OPEN |
-| **OPEN** | 主閱讀區：分類名、說明、檔數、排序、ETF 清單（前 10 檔）、查看更多；次要區 7 個短標籤 | OPENING 結束；次要標籤切換完成 | ✕／Esc／Back → CLOSING；點次要標籤 → 切換；點 ETF → DETAIL；（主動式）切分段 → 持股異動 |
-| **FLOW**（主動式的分段） | 既有持股異動畫面：chips、treemap、加減碼總計 | 主動式資料夾內切換分段 | 切回清單分段；Back 離開資料夾 |
-| **DETAIL** | Phase 2 Detail 疊在 OPEN 上方 | OPEN 點 ETF；搜尋選取 | Detail ✕／Back／Esc → 回到 OPEN（資料夾保留） |
-| **CLOSING** | 文件夾回到堆疊位置 | ✕／Esc／Back | OVERVIEW |
-
-**重入保護**：OPENING、CLOSING 期間忽略點擊（`pointer-events:none`）。過場結束以 `transitionend` 為主，另加 240ms 保險計時器。
-
-### 3.4 搜尋與分類並存
-
-- 全域搜尋不變（Phase 1／2 比對規則，仍用 `div_category`）。
-- 搜尋「高股息」可能得到約 76 檔；高股息資料夾為 22 檔。兩者回答不同問題（分類：主要方向；搜尋：哪些與輸入相關）。這是怡恩確認的設計，不是缺陷。
-- 分類頁開著時，搜尋框仍在頂部，下拉與選取行為與 Phase 2 相同（第 7.4 節）。
-
-### 3.5 次要區短標籤
-
-OPEN 狀態下其他 7 份以短標籤一列：市值、高股息、主動、科技、海外、主題、債券、其他。每個最小 44×44px。
-
-### 3.6 主閱讀區（OPEN）
-
-- 標題列：「海外／區域 · 78 檔」＋說明文案＋排序鈕（代碼／名稱）＋ ✕。
-- 主動式資料夾多一個分段：「ETF 清單」｜「持股異動」。
-- 清單列：代碼（等寬）、名稱（超出省略）、殖利率（沿用排行頁顯示規則；查無顯示「--」）。
-- 整列可點，點擊 → 開啟 Detail（第 7 節）。列高 ≥ 44px。
-- 底部「查看更多（還有 N 檔）」，全部顯示後隱藏。
-- 文字不出現買賣字樣（法遵）。
-
-### 3.7 焦點與無障礙
-
-- 開啟後焦點移到主閱讀區標題；收合後回到原頁籤。
-- 頁籤為 `<button>`，帶 `aria-expanded`。
-- Esc 只退一層（第 8.6 節）。
-
----
-
-## 4. 分類規則
-
-### 4.1 優先順序（依序判斷，命中即停止，單一歸屬）
-
-| 順序 | 類別 | 規則 | 說明 |
-|---|---|---|---|
-| 1 | 債券 | 代號末碼 `B` 或 `D` | 代號規則 |
-| 2 | 主動式 | 代號末碼 `A`，或名稱含「主動」 | 主動產品的身分優先於行業 |
-| 3 | 其他 | 名稱以「期」開頭 | 期貨型，非股票籃 |
-| 4 | 海外／區域 | 名稱含地區、國家、國際指數關鍵字（附錄 A） | **海外＋高息 → 海外**（怡恩確認） |
-| 5 | 科技／半導體 | 名稱含科技、半導體、電子、晶圓、IC設計、AI、PCB、資安、5G、通訊 | **科技＋高息 → 科技**（怡恩確認）；AI 機器人、航太防衛科技 → 科技（怡恩確認） |
-| 6 | 高股息 | 名稱含高股息、高息、股利、優息、高填息 | |
-| 7 | 市值型 | 名稱含 50、100、中型、中小、加權、藍籌、領袖、龍頭、MSCI台灣、台灣50、臺灣50 | 「50」排在海外與科技之後，避免誤判；ESG＋50 歸市值（見 4.3） |
-| 8 | 主題型 | 名稱含太空、稀土、元宇宙、機器人、生技、基因、綠能、電動車、智能車、未來車、車、潔淨、能源、電池、儲能、電力、數據、算力、航運、航太、防衛、數位、金融、工業 | **金融、工業、數位支付 → 主題型**（怡恩確認） |
-| 9 | 其他 | 名稱含 ESG、公司治理、淨零（策略型）且未被以上規則命中 | 策略型原則歸其他，但見 4.3 |
-| 10 | 高股息（人工備援） | 以上皆未命中，且 `div_category` 為「高股息」 | 只作最後備援，不作主依據 |
-| 11 | 其他 | 以上皆未命中 | 包含 0057（待查證，見 4.4） |
-
-**注意**：順序 7（市值）在 8（主題）之前，所以「中信臺灣智慧50」等名稱中有 50 的歸市值型。這個順序需要 Codex 複審。
-
-### 4.2 例外與理由
-
-- **地區優先於策略**：「國泰標普低波高息」「元大US高息特別股」歸海外，與「富邦美國特別股」一致。
-- **科技優先於高股息**：「復華台灣科技優息」「兆豐電子高息等權」歸科技。
-- **地區規則排在科技之前**：009828 中信台日韓PCB 命中「韓」，歸海外／區域（區域型 ETF）。這是刻意的，因為它的投資範圍是三國，不是單一產業。
-- **主動優先於行業**：「主動安聯美國科技」歸主動式，不歸科技。
-
-### 4.3 ESG 與策略型（怡恩規則）
-
-依怡恩「不能只因名稱出現 ESG 就強制歸其他；若有更明確的主要產品定位，應優先使用較明確的分類」：
-
-| 代碼 | 名稱 | 判定 | 理由 |
-|---|---|---|---|
-| 00920 | 富邦ESG綠色電力 | **主題型** | 「綠色電力」是產品定位（電力與能源主題），比 ESG 更明確 |
-| 00923 | 群益台ESG低碳50 | **市值型** | 「50」指數定位更明確 |
-| 009809 | 富邦淨零ESG50 | **市值型** | 同上 |
-| 00850 | 元大ESG永續 | 其他 | 無更明確定位 |
-| 00888 | 永豐台灣ESG | 其他 | 無更明確定位 |
-| 00928 | 中信上櫃ESG 30 | 其他 | 無更明確定位（「30」不作市值依據） |
-| 00692 | 富邦公司治理 | 其他 | 策略型 |
-| 00930 | 永豐ESG低碳高息 | 高股息 | 「高息」是更明確的定位 |
-
-**待怡恩確認**：00920、00923、009809 的歸類是依規則做的判定，會改變數字（附錄 B）。
-
-### 4.4 0057 富邦摩台：暫歸其他／待查證
-
-名稱無法判定。依 CLAUDE.md 的靜態資料鐵則，**不得憑記憶或名稱推測**。查證前歸其他；查證後以附註方式記錄來源再調整規則。這也是 fixture 中唯一的「待查證」項目。
-
-### 4.5 不做的事
-
-- 不以 `div_category` 作為主依據。
-- 不為單一 ETF 寫死代碼（0057 除外，它只是「未命中」的預設）。
-- 不在執行期讀取 `active_flow.json` 判斷分類。
-- 不新增第 9 類。
-
-### 4.6 目前資料的分布（Rev.2 推薦預設，203 檔）
+### 2.3 八大分類總分布（Rev.2 驗證值，Rev.3 維持）
 
 | 分類 | 檔數 |
 |---|---|
@@ -222,14 +91,152 @@ OPEN 狀態下其他 7 份以短標籤一列：市值、高股息、主動、科
 | 其他 | 8 |
 | **合計** | **203** |
 
-**這組數字只是目前資料的驗證結果，不是永久 assertion。** 測試中：
-- 固定 fixture（203 檔快照）的分類數字可以作為 assertion。
-- 即時資料只檢查不變條件：每檔恰一類、加總等於 `ETFS.length`、無遺漏。
+這組數字只是目前資料的驗證結果，不是永久 assertion（§16.2）。其中 00920、00923、009809 的歸類待 D-ESG 決定，替代數字見 §3.4 與附錄 B。
 
-### 4.7 新 ETF 與未命中
+---
 
-- 新 ETF 自動套用同一規則；未命中進其他，**不會消失**。
-- 規則表改動必須附受影響代碼清單，並記錄在 PHASE3_CHANGELOG。
+## 3. 分類規則
+
+### 3.1 單一歸屬與優先順序
+
+依序判斷，命中即停止。
+
+| 順序 | 類別 | 規則 | 說明 |
+|---|---|---|---|
+| 1 | 債券 | 代號末碼 `B` 或 `D` | 代號規則 |
+| 2 | 主動式 | 代號末碼 `A`，或名稱含「主動」 | 主動產品的身分優先於行業 |
+| 3 | 其他 | 名稱以「期」開頭 | 期貨型，非股票籃 |
+| 4 | 海外／區域 | 名稱含地區、國家、國際指數關鍵字（附錄 A） | 海外＋高息 → 海外（怡恩確認） |
+| 5 | 科技／半導體 | 名稱含科技、半導體、電子、晶圓、IC設計、AI、PCB、資安、5G、通訊 | 科技＋高息 → 科技（怡恩確認）；AI 機器人、航太防衛 → 科技（怡恩確認） |
+| 6 | 高股息 | 名稱含高股息、高息、股利、優息、高填息 | |
+| 7 | 市值型 | 名稱含 50、100、中型、中小、加權、藍籌、領袖、龍頭、MSCI台灣、台灣50、臺灣50 | 見 §3.4：「50」單獨不足以判定市值型 |
+| 8 | 主題型 | 名稱含太空、稀土、元宇宙、機器人、生技、基因、綠能、電動車、智能車、未來車、車、潔淨、能源、電池、儲能、電力、數據、算力、航運、航太、防衛、數位、金融、工業 | 金融、工業、數位支付 → 主題（怡恩確認） |
+| 9 | 其他 | 名稱含 ESG、公司治理、淨零（策略型） | 策略型原則歸其他（怡恩規則）；見 §3.4 |
+| 10 | 高股息（人工備援） | 以上皆未命中，且 `div_category` 為「高股息」 | 只作最後備援 |
+| 11 | 其他 | 以上皆未命中 | 包含 0057（待查證，§3.6） |
+
+### 3.2 例外與理由
+
+- **地區優先於策略**：「國泰標普低波高息」「元大US高息特別股」歸海外，與「富邦美國特別股」一致。
+- **科技優先於高股息**：「復華台灣科技優息」「兆豐電子高息等權」歸科技。
+- **地區規則排在科技之前**：009828 中信台日韓PCB 命中「韓」，歸海外（區域型），因為投資範圍是三國，不是單一產業。
+- **主動優先於行業**：「主動安聯美國科技」歸主動式。
+
+### 3.3 策略型與「不能只因 ESG 強制其他」
+
+依怡恩規則：ESG、公司治理、淨零等策略型原則歸其他，但若有更明確的主要產品定位，應優先使用較明確的分類。
+
+| 代碼 | 名稱 | 規則結果（Rev.2） | 理由 |
+|---|---|---|---|
+| 00930 | 永豐ESG低碳高息 | 高股息 | 「高息」是更明確的定位 |
+| 00850 | 元大ESG永續 | 其他 | 無更明確定位 |
+| 00888 | 永豐台灣ESG | 其他 | 無更明確定位 |
+| 00928 | 中信上櫃ESG 30 | 其他 | 無更明確定位 |
+| 00692 | 富邦公司治理 | 其他 | 策略型 |
+| 00920 | 富邦ESG綠色電力 | 主題型（待 D-ESG） | 見 §3.4 |
+| 00923 | 群益台ESG低碳50 | 市值型（待 D-ESG） | 見 §3.4 |
+| 009809 | 富邦淨零ESG50 | 市值型（待 D-ESG） | 見 §3.4 |
+
+### 3.4 D-ESG：三檔的分類依據（Rev.3 補證據，決定仍待怡恩）
+
+**不以「50」判定市值型。** 以下依各檔的標的指數與選股方法，來源為公開網頁（次級來源與投信頁面）：
+
+| 代碼 | 標的指數與選股方法 | 證據指向 | Rev.2 現行 | 證據支持的替代 |
+|---|---|---|---|---|
+| **00923 群益台ESG低碳50** | 追蹤「臺灣指數公司特選臺灣 ESG 低碳 50 指數」。先篩流動性，剔除博弈、菸草、色情、軍事等爭議業，保留 ESG 評等 BBB 以上，再依碳密度低選出 50 檔。成分約六成集中於半導體。 | ESG 低碳篩選策略。「50」是成分檔數，不是市值範圍定位。 | 市值型 | **其他（策略型）** |
+| **009809 富邦淨零ESG50** | 追蹤「S&P TIP 臺灣淨零轉型 ESG 50 指數」。母體為 S&P 臺灣中大型股，排除爭議業、EPS<0、無碳排資料的公司，再以碳排強度與 ESG 分數做權重優化。 | 淨零／ESG 策略。母體是中大型股，但指數的定義來自 ESG 與碳排條件。 | 市值型 | **其他（策略型）**；若怡恩認為母體定位較明確，則維持市值型 |
+| **00920 富邦ESG綠色電力**（官方全名：富邦全球ESG綠色電力） | 追蹤「NYSE FactSet 全球綠能 ESG 指數」。投資全球綠電產業（太陽能、風能、氫能、水力、地熱、生質能、儲能），涵蓋 25 國。 | 綠能主題，且範圍為全球。 | 主題型 | **海外（全球）**，與 00762 元大全球AI、00876 元大全球5G 一致；或維持主題型 |
+
+**名稱來源限制（R-N1）**：規則比對的是市場資料中的簡稱。00920 的簡稱「富邦ESG綠色電力」不含「全球」，所以目前落在主題型；官方全名含「全球」，依同一規則應落在海外。這是名稱來源造成的不一致，需怡恩一併決定（見 D-ESG-2）。
+
+**證據來源**：
+- 00923：[StockFeel 股感](https://www.stockfeel.com.tw/00923-%E7%BE%A4%E7%9B%8A%E5%8F%B0%E7%81%A3esg%E4%BD%8E%E7%A2%B350-etf/)、[豐存股](https://aiinvest.sinotrade.com.tw/Stock/Content/TW/00923)、[財富101](https://rich101.tw/00923-constituents-and-dividend/)。三個來源對指數與選股條件描述一致；**群益投信官方頁尚未直接核對**（查證等級：次級來源）。
+- 009809：[富邦投信 ETF 投資網](https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=009809)（投信頁，含追蹤指數）、[StockFeel 股感](https://www.stockfeel.com.tw/009809-%E5%AF%8C%E9%82%A6%E5%8F%B0%E7%81%A3%E6%B7%A8%E9%9B%B6%E8%BD%89%E5%9E%8Besg50-etf/)。
+- 00920：[TWSE ETF 資訊](https://www.twse.com.tw/zh/ETFortune/etfInfo/00920)（官方名稱與基本資料）、[StockFeel 股感](https://www.stockfeel.com.tw/00920-%E5%AF%8C%E9%82%A6%E5%85%A8%E7%90%83esg%E7%B6%A0%E8%89%B2%E9%9B%BB%E5%8A%9B-etf/)（指數與持股）。
+
+**D-ESG 替代數字（僅供決定，本 Rev 不套用）**：
+
+| 方案 | 市值型 | 高股息 | 主動式 | 科技 | 海外 | 主題 | 債券 | 其他 | 合計 |
+|---|---|---|---|---|---|---|---|---|---|
+| **Rev.3 現行（pending 預設，§2.3）** | 18 | 22 | 32 | 20 | 78 | 19 | 6 | 8 | 203 |
+| E1：三檔依證據（00920→主題） | 16 | 22 | 32 | 20 | 78 | 19 | 6 | 10 | 203 |
+| E2：三檔依證據（00920→海外） | 16 | 22 | 32 | 20 | 79 | 18 | 6 | 10 | 203 |
+
+E1、E2 的市值型為 16，與 Gavin 最初引用的數字一致。
+
+### 3.5 名稱來源（R-N1）
+
+規則的輸入是市場資料的 `name`（簡稱）。若官方全名含有簡稱沒有的地區或策略字眼，分類可能不一致。Rev.3 不改 pipeline，也不新增欄位；這個限制列為 R-N1，由 D-ESG-2 決定是否建立人工覆寫清單（覆寫清單需附來源，並進 CHANGELOG）。
+
+### 3.6 0057 富邦摩台：暫歸其他／待查證
+
+名稱無法判定。依 CLAUDE.md 的靜態資料鐵則，不得憑記憶或名稱推測。查證前歸其他；查證後以附註記錄來源。
+
+### 3.7 不做的事
+
+- 不以 `div_category` 作為主依據。
+- 不為單一 ETF 寫死代碼（0057 除外，它只是未命中的預設）。
+- 不在執行期讀取 `active_flow.json` 判斷分類。
+- 不新增第 9 類。
+
+### 3.8 新 ETF 與未命中
+
+- 新 ETF 自動套規則；未命中進其他，**不會消失**。
+- 規則表的任何改動都要附受影響代碼清單，並記入 CHANGELOG。
+
+---
+
+## 4. 分類與資料夾 UI
+
+### 4.1 八大分類
+
+| 順序 | 分類 | 資料夾說明（UI 文案） |
+|---|---|---|
+| 1 | 市值型 | 主要追蹤大型、中型或特定市值範圍指數的 ETF |
+| 2 | 高股息 | 主要以高股息策略為特色的 ETF |
+| 3 | 主動式 | 由經理人主動操作持股的 ETF |
+| 4 | 科技／半導體 | 主要投資科技與半導體產業的 ETF |
+| 5 | 海外／區域 | 主要投資海外市場或特定地區的 ETF |
+| 6 | 主題型 | 聚焦特定主題或產業（如金融、工業、數位支付）的 ETF |
+| 7 | 債券 | 主要投資債券的 ETF |
+| 8 | 其他 | 不屬於前述分類，或以 ESG 等篩選策略為主、期貨型等的 ETF |
+
+資料夾底部固定一行：「分類是主要方向，不代表 ETF 的全部特徵。想找特定條件的 ETF，請用上方搜尋。」
+
+### 4.2 總覽（OVERVIEW）
+
+- 左右各一堆，每堆 4 份，合計 8 份。
+- 每份只露出頁籤：高 44px，文字 15px，含分類名與檔數。
+- 後面的頁籤在上，前面的在下；頁籤彼此不重疊。
+- 同一堆內頁籤水平交錯 ±3px，**不旋轉**文字。
+
+### 4.3 狀態機
+
+| 狀態 | 畫面 | 進入 | 離開 |
+|---|---|---|---|
+| **OVERVIEW** | 8 份頁籤堆疊 | 進入分類導覽；router 回到此層 | 點頁籤 → OPENING |
+| **OPENING** | 被點文件夾抽出到主區；其他 7 份退到次要區 | OVERVIEW 點頁籤 | 過場結束（reduced-motion 立即）→ OPEN |
+| **OPEN** | 主區：分類名、說明、檔數、排序、清單（前 10 檔）、查看更多；次要區 7 個短標籤 | OPENING 結束；次要標籤切換完成 | ✕／Esc／Back → CLOSING；點次要標籤 → 切換；點 ETF → DETAIL；（主動式）切分段 → FLOW |
+| **FLOW**（主動式的分段） | 持股異動畫面 | 主動式資料夾內切換分段；§8 的導航 | 切回清單分段；Back 離開資料夾 |
+| **DETAIL** | Phase 2 Detail 疊在 OPEN 上方 | OPEN 點 ETF；搜尋選取 | ✕／Back／Esc → OPEN（資料夾保留） |
+| **CLOSING** | 文件夾回到堆疊位置 | ✕／Esc／Back | OVERVIEW |
+
+OPENING 與 CLOSING 期間忽略點擊（`pointer-events:none`）。過場結束以 `transitionend` 為主，另加 240ms 保險計時器。
+
+### 4.4 主區（OPEN）
+
+- 標題列：「海外／區域 · 78 檔」＋ 說明文案 ＋ 排序鈕（代碼／名稱）＋ ✕。
+- 主動式資料夾多一個分段：「ETF 清單」｜「持股異動」。
+- 清單列：代碼（等寬）、名稱（超出省略）、殖利率（沿用排行頁規則；查無顯示「--」）。
+- 整列可點，點擊 → 開啟 Detail。列高 ≥ 44px。
+- 底部「查看更多（還有 N 檔）」，全部顯示後隱藏。
+- 文字不出現買賣字樣。
+
+### 4.5 焦點與無障礙
+
+- 開啟後焦點移到主區標題；收合後回到原頁籤。
+- 頁籤為 `<button>`，帶 `aria-expanded`。
+- Esc 只退一層（§7.9）。
 
 ---
 
@@ -237,233 +244,387 @@ OPEN 狀態下其他 7 份以短標籤一列：市值、高股息、主動、科
 
 | 項目 | 規則 |
 |---|---|
-| 預設排序 | **代碼由小到大，數字感知**：先比數字部分，再比字母後綴。例：0050 → 0051 → 0056 → 0061 → 00400A → 00401A → 00625K → 00981A → 006201 → 009800 |
+| 預設排序 | 代碼由小到大，數字感知：先比數字部分，再比字母後綴。例：0050 → 0051 → 0056 → 0061 → 00400A → 00401A → 00625K → 00981A → 006201 → 009800 |
 | 名稱排序 | `Intl.Collator('zh-Hant', {numeric:true})`；不支援時退回 `localeCompare`，再退回 `<` |
-| 切換 | 排序鈕在代碼與名稱之間切換；兩者皆由小到大（不做降冪） |
+| 切換 | 排序鈕在代碼與名稱之間切換，皆由小到大 |
 | 首次顯示 | 最多 10 檔 |
-| 查看更多 | 每次 +10；按鈕顯示剩餘檔數；全部顯示後隱藏 |
-| 上限 | 不限制分類只能有 10 檔（最大海外 78 檔，約 8 次查看更多） |
-| 狀態保存 | 排序、已展開數、清單捲動位置，保存於 router 的 folder layer（第 8.4 節） |
-| 重設 | 從總覽重新開啟資料夾時重設為代碼排序、10 檔。從 Detail 返回時**不重設**（第 8.5 節） |
+| 查看更多 | 每次 +10；全部顯示後隱藏 |
+| 狀態保存 | 排序、已展開數、清單捲動位置，保存在 router 的 folder 層（§7.2） |
+| 重設 | 從總覽重新開啟資料夾時重設（D13）。從 Detail 返回時**不重設** |
 
 ---
 
-## 6. Detail 與持股異動銜接
+## 6. Detail 的語意與 Phase 2 相容（Rev.3 新增）
 
-### 6.1 點 ETF
+### 6.1 Phase 2 現行語意（需保留，已由既有測試驗證）
 
-清單點 ETF、搜尋選取，都呼叫同一個開啟 Detail 的入口（Phase 2 的 `openDetail`，改為經由 router）。Detail 的畫面與內容不改。
+| 情境 | 行為 | history 操作 | 既有驗證 |
+|---|---|---|---|
+| 尚未開啟 Detail，開啟 ETF A | 顯示 A | **push 一層 Detail** | detail_ui T2 |
+| Detail 已開啟 A，切換到另一檔 B | 顯示 B | **replace 當前 Detail state**（code 改為 B），不增加 entry | detail_ui T12（`history.length` 不變） |
+| Detail 已開啟，再點同一檔 | 無變化 | 無 | — |
+| 關閉 Detail（✕、Esc、Back） | 關閉 | 只做一次 back；一次 Back 直接離開 Detail，不因切過多檔而累積 | detail_ui T8、T9、T10、T19 |
+| 關閉後再開啟 | 正常 | 再 push 一層 | — |
 
-### 6.2 Detail 疊在資料夾上
+**重點**：切換 ETF 不得累積 history 層；一次 Back 必須直接離開 Detail。
 
-z-index 維持 Phase 2 規則：`#gsPanel` 40 < `.app-hdr` 50 < 搜尋下拉 60。
+### 6.2 Router 的 Detail 操作（委派，但語意不變）
 
-### 6.3 Detail 關閉
+- `router.openDetail(code)`：
+  - 若 stack 頂層不是 detail → **push** `{t:'detail', code}`。
+  - 若頂層已是 detail 且 code 不同 → **replaceTop** `{code}`（不增加 entry）。
+  - 若 code 相同 → 無 history 操作。
+- Rev.2 的「openDetail 一律 push」是錯的，Rev.3 撤回。
+- `router.closeTop()` 在頂層為 detail 時只做一次 back（§7.5）。
 
-✕、Back、Esc 關閉 Detail 後回到 OPEN，資料夾的排序、已展開數、捲動位置都保留。
+### 6.3 不改寫的部分
 
-### 6.4 查看完整持股異動
-
-- Detail 成分分頁「查看完整持股異動 ›」→ 先關閉 Detail（回到資料夾層），再把主動式資料夾切到「持股異動」分段並選定該代碼。
-- 這個切換是 **view 替換**（replaceState），不新增層。
-- 因此 Back 從持股異動離開資料夾回總覽，不回到 Detail。這是本 Rev 的明確行為，需 Codex 確認。
-- 若目前不在主動式資料夾（例如從搜尋開啟 Detail），會先 push 主動式資料夾（分段 = 持股異動）再關閉 Detail 的層。
-
-### 6.5 持股異動畫面
-
-- 內容與互動沿用既有 `flow.js`（chips、treemap、加減碼總計、來源與「未出新」「抓不到」的分開顯示）。
-- 不改 `flow.js` 的資料判斷。`fetchFlow()` 完成時的更新照舊。
-- 目前 32 檔都必須能從清單進入持股異動（測試 CT-F1）。
+Detail 的畫面、分頁、計算機、收合、刷新 slot patching、flow 區塊，都不改。只把 history 相關呼叫改成委派給 router。history 相關的內部變數（`_pendingPop`、`_queuedOpen`、`_detailPushed`、detail.js 內的 popstate listener）會移除，改由 router 管理，行為由 §10 的測試驗證。
 
 ---
 
-## 7. 共用 Router：history 協調（Rev.2 核心）
+## 7. 共用 Router：history 協調
 
-### 7.1 為什麼不能靠多個 listener
+### 7.1 退層規則（Rev.3 選定的唯一方案）
 
-Rev.1 的做法是讓 `detail.js` 與 `category.js` 各自註冊 popstate listener，依執行順序互相配合。Codex 指出這不可靠。Rev.2 改為：**單一 router 擁有全部 history 狀態**，所有 popstate 只經過一個 handler。
+以下五條是唯一規則，Rev.2 的 §7.3 與 §7.6 矛盾處已移除。
+
+| 規則 | 內容 |
+|---|---|
+| **R1 popstate 只渲染** | popstate 只讀 `history.state`（normalize 後）並渲染畫面。popstate 本身從不呼叫 `history.back()`／`go()`。 |
+| **R2 單層關閉** | 使用者關閉頂層（✕、Esc、Detail 的 ✕）→ `history.back()` 一次。前提：每層恰好對應一個 entry（§7.3）。 |
+| **R3 多層導航** | 需要退到共同層級或改基底時，由 router 呼叫 `navigate(target)`：計算 k = 目前深度 − 共同前綴深度，呼叫 `history.go(-k)` **一次**，並記下 pending。 |
+| **R4 pending 續行** | pending 的 push／replace 只在「popstate 深度等於預期」時執行，且在同一個 popstate 任務內、渲染之前執行，因此不會畫出中間狀態。續行**只做 push／replace，不做 back**。若深度不符（使用者在途中按了 Back），pending 放棄、不重試，以實際 state 為準。 |
+| **R5 busy 鎖** | 發出任何 back／go 時設 `busy`；收到對應 popstate 或 500ms 逾時才清除（§7.8）。busy 期間的關閉與導航請求**直接忽略，不排隊**。 |
+
+Rev.2 的「持續 back 直到 stack 為空」迴圈已移除，改為 R3 的單次 `go(-k)` 加 R4 的放棄規則。
 
 ### 7.2 狀態模型
 
-**layer（層）**：由下往上堆疊，每層是一個畫面覆蓋物。
+**層（layer）**：由下往上堆疊的覆蓋物。
 
-| 類型 | 欄位 | 說明 |
-|---|---|---|
-| `folder` | `key`、`view`（`list`／`flow`）、`ui`（`sort`、`shown`、`scrollTop`、`flowCode`） | 分類資料夾 |
-| `detail` | `code`、`ui`（`tab`、`scrollTop`） | Phase 2 Detail |
-| `tool` | `id`（`div`／`rank`／`yt`）、`ui` | 工具子頁 |
+| 類型 | 欄位 |
+|---|---|
+| `folder` | `key`、`view`（`list`／`flow`）、`ui`（`sort`、`shown`、`scrollTop`、`code`） |
+| `detail` | `code`、`ui`（`tab`、`scrollTop`） |
+| `tool` | `id`（`div`／`rank`／`yt`）、`ui` |
 
-**base（基底）**：`home`／`cat`／`watch`／`tools` 之一，不是層。
+**基底（base）**：`home`／`cat`／`watch`／`tools`，不是層。
 
-**history.state**（每個 entry 的完整快照）：
+**history.state**（每個 entry 都是完整快照）：
 
 ```
 { v: 2, base: 'cat', stack: [ {t:'folder', key:'active', view:'list', ui:{...}}, {t:'detail', code:'00981A', ui:{...}} ] }
 ```
 
-- 每個 entry 都保存**從基底到該層的完整 stack**，不是只存增量。
-- 因此 popstate 只要渲染 `event.state` 即可，不需要推算。
+popstate 只需渲染 `state`，不需要推算。
 
 ### 7.3 Entry 不變條件
 
-1. **E0 唯一**：應用程式啟動時，若 `history.state` 不是 v2，只用 `replaceState` 寫入 E0（`stack:[]`）。之後不再為基底建立 entry。
-2. **每層一個 entry**：push 一層 = 一次 `pushState`；stack 長度 = 從 E0 往回推的 entry 數。
-3. **不為基底變更建立 entry**：切換底部導覽只做 `replaceState`（且只在 stack 為空時）。
-4. **view 切換、排序、已展開數、捲動**：只做 `replaceState` 更新當前 entry，不 push。
-5. **popstate 只渲染，不呼叫 `history.back()`**。這是硬性規則。
+1. **E0 唯一**：stack 為空的 entry 即基底 entry。它只由 router 在啟動時 `replaceState` 寫入，之後不為基底變更建立新 entry。
+2. **每層一個 entry**：push 一層 = 一次 `pushState`，entry 的 stack 長度 = 從 E0 往上的層數。
+3. **同層更新只 replace**：切換 ETF（detail）、切換次要標籤、切換分段、排序、已展開數、捲動，全部只 `replaceState` 當前 entry，不新增 entry。
+4. **基底切換只在 E0 發生**：切換底部導覽時，若 stack 非空，先由 R3 退回 E0，再 `replaceState` 基底。
+5. **popstate 不呼叫 back**（R1）。
 
-### 7.4 UI 狀態快照
+### 7.4 Migration 與防止重複基底（Rev.3 新增）
 
-- **push 前快照**：push 任何層之前，先 `replaceState` 當前 entry，寫入當前所有層的最新 ui（排序、已展開數、捲動位置、view、tab）。這樣 Back 回來時狀態一致。
-- **即時快照**：排序、展開、切換分段、切換次要標籤等操作，立即 `replaceState` 當前 entry（捲動則在 scroll 結束後 150ms 寫入）。這樣 reload 也能還原。
+Phase 2 的 history 格式是 `{etfDetail:1, code}`，沒有 `v`，也沒有 base。Migration 規則：
 
-### 7.5 操作
-
-| 操作 | 作法 | history |
+| 啟動時 `history.state` | 處理 | 新增 entry？ |
 |---|---|---|
-| `open(layer)` | 快照 → `pushState(stack+[layer])` → 渲染 | 新增 1 entry |
-| `close(top)` | `busy=true` → `history.back()` | 退 1 entry（由 popstate 渲染） |
-| `replaceTop(patch)` | 更新 stack 最上層 → `replaceState` | 無新 entry |
-| `setBase(target)` | 只在 stack 為空時：`replaceState({base:target})` → 渲染 | 無新 entry |
-| `navigateBase(target)` | 若 stack 非空：記下 `queuedBase`，持續 `history.back()`，直到 popstate 的 stack 為空，再套用 `setBase` | 退到 E0 |
+| `v === 2` | 直接使用 | 否 |
+| `etfDetail`（Phase 2 格式，例如部署前開著的分頁重新載入） | normalize 為 `{v:2, base:'home', stack:[{t:'detail', code}]}`，`replaceState` 當前 entry | **否** |
+| `null` 或其他 | normalize 為 `{v:2, base:'home', stack:[]}`，`replaceState` 當前 entry | **否** |
+
+**啟動時絕不 push。** 因此不會產生第二個基底 entry。
+
+popstate 遇到 Phase 2 格式或 `null` 時，同樣只 normalize 當前 entry（`replaceState`），不新增 entry。
+
+**已知限制（沿用 Phase 2）**：↻ 使用 `location.replace` 時，跨文件的 history 會留下舊 entry（見 §7.11）。
+
+### 7.5 操作表
+
+| 操作 | 作法 | history 效果 |
+|---|---|---|
+| `open(folder／tool)` | 快照當前 entry → `pushState(stack+[layer])` | +1 entry |
+| `openDetail(code)` | §6.2 規則 | 未開啟 +1；已開啟不同 code 為 replace；相同不變 |
+| `closeTop()` | R2：`history.back()` 一次 | −1 entry（由 popstate 渲染） |
+| `replaceTop(patch)` | 更新頂層 ui／view／code，`replaceState` | 0 |
+| `navigate(target)` | R3／R4（§7.7） | 退 k 層，再 push |
 
 ### 7.6 popstate（唯一入口）
 
-1. 清除 `busy`（若有）。
-2. 取得 `state = event.state`。若不是 v2（例如 null）：視為 `{base: 上次基底, stack: []}`，並 `replaceState` 修正為 v2，避免留下無效 entry。
-3. **渲染** `state.base` 與 `state.stack`：
-   - 基底變化 → 切換底部導覽與主區域。
-   - 層差異：比較渲染中的 stack 與 `state.stack`，移除多的層，補上缺的層，並套用每層 ui。
-4. 若 `queuedBase` 存在且 `state.stack` 為空 → 套用 `queuedBase`（`replaceState`），清除 queue。
-5. 若 `queuedBase` 存在但 stack 仍非空 → 再 `history.back()`（只限 queue 流程）。
+1. 清除 busy（若有）。
+2. `state = normalize(event.state)`（§7.4）。
+3. 若有 pending 且 `state` 的深度等於 pending 的共同前綴深度 → 執行 pending 續行（R4），再取得最終 state。
+4. 若有 pending 但深度不符 → 放棄 pending（R4）。
+5. 渲染 `state.base` 與 `state.stack`：移除多的層、補上缺的層、套用每層 ui。
 
-**Browser Back 不會呼叫 close 路徑**：一般 Back 只會走到步驟 3。只有 `queuedBase` 流程會在步驟 5 呼叫 back，而該流程只由導覽操作啟動。
+### 7.7 navigate(target) 協議
 
-### 7.7 busy 鎖
+1. 計算共同前綴：逐層比對 **type + key + view + code**（完全相同才算共同）。基底不同則共同前綴為 0。
+2. k = 目前 stack 長度 − 共同前綴長度。
+3. 若 k > 0：設 busy，記下 pending = {depth: 共同前綴長度, base, layers: target 剩餘層}，呼叫 `history.go(-k)`。
+4. 若 k = 0：直接 push 剩餘層（不需 pop）。
+5. 續行（R4）：在 E0（或共同前綴深度）上：若基底不同則 `replaceState` 基底；然後依序 push 剩餘層。
 
-- `close` 與 `navigateBase` 呼叫 back 後設 `busy=true`；popstate 到達時清除。
-- `busy` 期間：Esc、✕、點 ETF、點頁籤一律忽略（避免一次按鍵退兩層）。
-- 保險：若 500ms 內沒有 popstate（例如已在第一個 entry 而 back 無效），清除 busy，並重新檢查 state。
+**同一次導航只有一次 go**，沒有迴圈。
 
-### 7.8 Esc
+### 7.8 busy 鎖生命週期
 
-- Esc 只呼叫 `close(top)` 一次。
-- 若 Detail 開著：Esc 關 Detail，資料夾保留。
-- 若只有資料夾：Esc 關資料夾。
-- 若 busy：忽略。
+| 階段 | 行為 |
+|---|---|
+| 設定 | 發出 `closeTop()` 的 back 或 `navigate()` 的 go 時設定 |
+| 清除 | 對應 popstate 到達（R4 續行完成後） |
+| 逾時 | 500ms 內沒有 popstate（例如已在第一個 entry、back 無效）→ 清除 busy，並以 `history.state` 重新渲染一次 |
+| 期間 | Esc、✕、點 ETF、點頁籤、搜尋選取等導航請求一律忽略（不排隊） |
+| 過場 | OPENING／CLOSING 有獨立的過場鎖，與 busy 分開，只影響點擊 |
 
-### 7.9 Phase 2 Detail 的改寫範圍
+### 7.9 Esc
 
-- `openDetail` → `router.open({t:'detail', code})`。
-- `closeDetail` → `router.close(top)`（top 必須是 detail）。
-- 移除 `_pendingPop`、`_queuedOpen`、`_detailPushed`、detail.js 內的 popstate listener；改由 router 渲染。
-- `_restoreCode`／`_tryRestoreDetail` 改為 router 的 pending restore（第 7.11 節）。
-- Phase 2 的行為（一次 Back 一層、Esc、✕、搜尋取消、重整還原）需由既有測試驗證，不得改測試。
+- Esc 只呼叫 `closeTop()` 一次。
+- busy 中忽略。
+- 頂層是 Detail → 只關 Detail，資料夾保留。
+- 頂層是資料夾 → 關資料夾。
 
-### 7.10 必須通過的情境（測試清單見第 14 節）
+### 7.10 首次載入失敗與 history 一致性（依 `showDataError()` 實際行為）
 
-- 分類總覽 → 打開資料夾 → ETF Detail → Back 回原資料夾 → Back 回分類總覽。
-- Browser Forward 還原同一層。
-- Detail reload：stack 還原為資料夾＋Detail。
-- Detail 開著切換底部導覽：Detail 與資料夾都關閉，導覽切換成功，無殘留條目。
-- Esc 只退一層。
-- 返回資料夾後排序、已展開數、捲動位置保留。
-- 不產生重複基底 entry（`history.length` 只在 push 時增加）。
+**Phase 2 現行行為（依程式碼）**：
+- `boot.js` 的 `showDataError()` 在首次失敗時顯示「資料暫時無法取得，請稍後按右上角 ↻」，並**立即**呼叫 `_tryRestoreDetail()`。
+- 因此，若重新整理前 Detail 開著，失敗時 Detail 會**立即**開啟，內容為「資料暫時無法取得」（`detailPatch()` 的空資料分支）。這不是「延後還原」。
+- 資料之後載入成功時，Detail 由 `detailOnMarketUpdate()` 補上內容。
 
-### 7.11 reload 與 pending restore
+**Phase 3 規則**：
+- 失敗時 router **不得移除任何層**，因為 history 與畫面必須一致。
+- 資料夾層在失敗時顯示空狀態（§12）。
+- Detail 層顯示與 Phase 2 相同的「資料暫時無法取得」。
+- 資料後來成功時，層的內容自動補上，**history 不變**。
 
-- 啟動時讀取 `history.state`：base 立即套用；stack 的層在**第一次成功取得資料後**才渲染（Detail 與資料夾都需要資料）。
-- 若首次載入失敗：資料夾顯示空狀態（第 11 節）；Detail 還原延後，直到資料可用（與 Phase 2 相同，見 `_tryRestoreDetail` 的 state 相符檢查）。
-- 還原時必須再次驗證 state 與 stack 相符，才渲染（避免錯配，Phase 2 Blocker 的教訓）。
-- ↻ 按鈕（`reloadData`）：維持 Phase 2 的行為（D15）：先回到 E0 再重新載入。若無法在 `location.replace` 前回到 E0，改為就地更新資料（需怡恩確認）。
+**測試**：HF-1 — 首次失敗時 `history.state` 的深度等於畫面上的層數；HF-2 — 失敗後成功，畫面補上內容且深度不變。
+
+### 7.11 Reload（D15、D12）
+
+- 啟動時 base 立即套用；stack 的層在**資料可用後**才渲染（資料夾與 Detail 都需要資料）。資料失敗時依 §7.10 立即渲染空狀態。
+- 還原前必須再次驗證 `state` 與畫面一致，避免錯配（Phase 2 Blocker 的教訓）。
+- ↻（D15）：維持 Phase 2 行為。Phase 2 以 `location.replace` 重新載入，**已知限制**：跨文件返回。Phase 3 不改此行為；若要改為就地更新，需另行決定。
 
 ### 7.12 不變條件摘要
 
-- 只有 router 會呼叫 `pushState`、`replaceState`、`history.back()`。
+- 只有 router 呼叫 `pushState`、`replaceState`、`history.back`、`history.go`。
 - popstate 只有一個 listener。
-- 任何 UI 元件不得自行記錄 history 狀態。
+- UI 元件不自行記錄 history 狀態。
 
 ---
 
-## 8. 工具頁與自選占位
+## 8. 「查看完整持股異動」導航（Rev.3 修正）
 
-### 8.1 工具頁（`tools`）
+### 8.1 目標
 
-- 列表卡片：配息工具、排行、YouTube 頻道。
-- 點卡片 → push `tool` 層（`div`／`rank`／`yt`），顯示既有子頁內容。Back 回工具列表。
-- 工具列表底部的「YouTube 頻道」為連結卡，不佔導覽。
+所有來源最終都應到達：**分類 → 主動式資料夾 → 持股異動內容**，且 history 中**不留下 Detail 層**。
 
-### 8.2 自選占位（`watch`）
+### 8.2 演算法
 
-- 只顯示「自選功能尚未開放」與一句說明。不顯示任何假資料。
-- **D14**：Phase 3 內只做占位；自選功能需另行定義（本地保存或其他），不在本 Phase。
+Detail 的按鈕呼叫 `navigate(T)`，其中：
 
-### 8.3 首頁小入口
+```
+T = { base: 'cat', stack: [ {t:'folder', key:'active', view:'flow', code: <code>} ] }
+```
 
-- 首頁保留一張小卡「YouTube 頻道」，點擊 → push `tool(yt)`。
-- 首頁內容其餘不變。
+- 共同前綴 = 0（T 的唯一層是 folder，當前 stack 的 folder 不會與 `view:'flow'` 且 code 完全相同，因為 Detail 不可能在持股異動畫面上開啟）。
+- 因此 k = 當前 stack 長度（含 Detail）。
+- 一次 `go(-k)` 回到 E0，再 `replaceState` 基底為 cat，再 push T 的 folder 層。
+- **不先 push 主動式資料夾再關 Detail。**
+
+### 8.3 四種來源
+
+| 來源 | 當前 stack（Detail 開著） | k | 續行結果 | Back | Forward |
+|---|---|---|---|---|---|
+| A 首頁搜尋 → Detail | `[detail]`（基底 home） | 1 | 基底改 cat；push `folder(active, flow)` | 回分類總覽 | 回到持股異動 |
+| B 工具子頁搜尋 → Detail | `[tool(div), detail]`（基底 tools） | 2 | 基底改 cat；push `folder(active, flow)` | 回分類總覽 | 回到持股異動 |
+| C 其他分類資料夾 → Detail | `[folder(X,list), detail]`（基底 cat） | 2 | push `folder(active, flow)` | 回分類總覽（不回 X） | 回到持股異動 |
+| D 原本在主動式 → Detail | `[folder(active,list), detail]`（基底 cat） | 2 | push `folder(active, flow)` | 回分類總覽（不回清單） | 回到持股異動 |
+
+**Back 後不回到 Detail 或 X，是本 Rev 的明確行為**（需 Codex 確認）。
+
+### 8.4 中間畫面
+
+R4 的續行在 popstate 任務內完成，渲染只發生一次，因此不會畫出中間的總覽。仍需真機確認（R-N2）。
+
+### 8.5 持股異動的資料
+
+- `flow.js` 的資料與判斷不改（§9）。
+- 32 檔都要能從清單進入（FL-1）。
 
 ---
 
-## 9. Responsive（依實際剩餘高度驗證）
+## 9. Flow（持股異動）遷移：顯示、resize、redraw（Rev.3 新增）
 
-### 9.1 規則
+### 9.1 現況（依程式碼）
 
-不得只用整個 viewport 高度推估。清單與持股異動區域的可用高度，以**實際量測**為準：
-
-```
-可用高度 = visualViewport.height
-         − 頁首（.app-hdr）實際高度
-         − 分類頁標題與說明實際高度
-         − 次要標籤列實際高度
-         − 底部導覽實際高度（若顯示）
-         − 安全區域 insets
-         − 8px 緩衝
-```
-
-- 清單容器 `max-height` 由 JS 依上式設定，於 `resize`、`orientationchange`、`visualViewport` 的 `resize`／`scroll` 時重算（沿用 Phase 2 的 `_gsSyncAll` 模式）。
-- 清單內部捲動；頁首與次要區不被擠掉。
-
-### 9.2 驗證高度（CT-8）
-
-| 情境 | 視窗 | 通過條件 |
+| 位置 | 現行觸發 | 問題（遷移後） |
 |---|---|---|
-| 手機直向 | 390×844 | 清單底部 ≤ 可視底部 − 導覽高；頁首可見 |
-| 手機最窄 | 360×780 | 次要 7 個標籤不溢出（需 ≥ 332px） |
-| 橫向 | 844×390 | 同上；清單可捲動 |
-| 鍵盤開啟（模擬） | 844×170 | 清單仍有可用高度（≥ 80px）；超出時不產生水平捲動 |
-| 極端 | 844×20 | 不崩潰；清單高度為 0 時顯示「請收起鍵盤」提示 |
-| 桌機 | 1280×800 | 同 430 欄置中（D11） |
+| `nav.js` `switchPage` | `if (id === 'check') renderFlow()` | 持股異動不再是頁面，要改為「主動式資料夾進入 FLOW」時觸發 |
+| `flow.js` `window.resize` | `if (page-check.active) renderFlow()` | 改檢查「FLOW 可見」，不是 `page-check` |
+| `flow.js` `renderFlow` | `if (_flowData) draw(); else fetchFlow().then(draw)` | 資料在持股異動開著時才回來，需要重繪 |
+| `flow.js` `draw` | `box.clientWidth`、`clientHeight` | 資料夾 OPENING 中量到的寬高不是最終值；隱藏時寬為 0 |
+| `boot.js` | `fetchFlow().then(renderRank)` | 只在啟動時抓一次；不影響分類頁 |
 
-### 9.3 通用
+### 9.2 Rev.3 的觸發規則
 
-- 不產生水平捲動。
-- 所有觸控目標 ≥ 44px。
-- 頁籤文字不截斷。
+| 編號 | 觸發 | 動作 |
+|---|---|---|
+| F-a | FLOW 進入（OPEN 結束，或 reduced-motion 立即） | `renderFlow()` |
+| F-b | `flowSelect(code)` | `renderFlow()`（沿用） |
+| F-c | `fetchFlow()` 完成，且 FLOW 可見 | `draw()` |
+| F-d | `resize`、`orientationchange`、`visualViewport` resize／scroll，且 FLOW 可見 | `renderFlow()`（低高度時高度也會變） |
+| F-e | 資料夾過場結束（OPENING／CLOSING） | 若 FLOW 可見，`draw()`（寬度此時才是最終值） |
+| F-f | `box.clientWidth === 0`（容器隱藏） | 跳過繪製，等 F-a／F-e 再畫 |
+
+**「FLOW 可見」的定義**：`router` 的頂層是 `folder(active)` 且 `view === 'flow'`，且資料夾處於 OPEN 狀態。不再使用 `page-check.active`。
+
+### 9.3 DOM 與 CSS
+
+- `#page-check` 內的元素搬到資料夾的 FLOW 容器（`#catFlowHost`）。
+- 以下 id 必須保持唯一：`flowMeta`、`flowChips`、`flowBuy`、`flowSell`、`treemap`、`flowTip`、`flowForeign`。
+- `css/pages.css` 中所有 `#page-check` 相關選擇器，實作前逐條 grep 並改寫；這是 Codex 指出的風險（R8）。
+
+### 9.4 flow.js 的 onclick 字串
+
+`flow.js` 內的 `onclick="flowSelect('…')"` 與 `flowTap(...)` 字串，搬移後要逐一核對。
+
+### 9.5 FLOW 測試
+
+| 編號 | 測試 |
+|---|---|
+| FL-1 | 32 檔主動式都能從清單進入持股異動，並選到該檔 |
+| FL-2 | Detail「查看完整持股異動」進入正確代碼（§8 四種來源） |
+| FL-3 | 視窗 resize 後 treemap 重繪，寬高與容器一致 |
+| FL-4 | 切換到其他資料夾再回來，treemap 有非零寬高 |
+| FL-5 | `fetchFlow` 在 FLOW 開著時完成，畫面更新 |
+| FL-6 | reduced-motion 下進入 FLOW 立即繪製 |
+| FL-7 | FLOW 隱藏時 resize 不繪製（F-f） |
+| FL-8 | 加減碼總計與「未出新／抓不到」分開顯示與現況一致 |
 
 ---
 
-## 10. 資料更新與分類
+## 10. 工具頁與自選（D14 pending）
 
-### 10.1 現況
+### 10.1 工具頁
 
-- `boot.js` 每 30 秒呼叫 `fetchData()`；成功時 `renderAll(d.etfs, …)`，失敗時 `showDataError`（不清除既有畫面）。
-- 失敗時既有 banner 會顯示「以下是 <上次更新時間> 的資料」（last-good 行為已存在）。
+- 卡片：配息工具、排行、YouTube 頻道。
+- 點卡片 → `open(tool)`，顯示既有子頁。Back 回工具列表。
+- 工具底部的「YouTube 頻道」為連結卡，不佔導覽。
 
-### 10.2 分類與更新規則
+### 10.2 首頁小入口
+
+首頁保留一張小卡「YouTube 頻道」，點擊 → `open(tool:yt)`。
+
+### 10.3 自選（D14，pending）
+
+- 自選分頁的內容**未決定**。
+- Rev.3 不實作任何自選功能，也不實作占位內容。
+- PO 決定前，導覽上的自選位置保留，內容以「待決策」處理（實作前需 PO 確認是否只顯示「尚未開放」）。
+
+---
+
+## 11. 響應式與低高度讓位（Rev.3 修正）
+
+### 11.1 可視區定義
+
+- **可視高度**：`visualViewport.height`；不支援時 `window.innerHeight`。
+- **元素可見**：元素的 `getBoundingClientRect()` 與 `[0, 可視高度]` 有交集，且 `display` 不為 `none`。
+- **不重複扣 safe area**：`env(safe-area-inset-*)` 已由 `:root` 的 padding 處理。量測時直接用 rect，**不再額外扣除**。
+- **底部導覽的位置**：以導覽實際 rect 的 top 為準，若導覽隱藏則以可視高度為準。
+
+### 11.2 可用高度公式
+
+```
+清單可用高度 = min(可視高度, 導覽 rect.top（若導覽可見）) − 清單頂端 rect.top
+```
+
+清單的 `max-height` 由 JS 依此公式設定，於 resize、orientationchange、visualViewport resize／scroll 時重算（沿用 Phase 2 的 `_gsSyncAll` 模式）。
+
+### 11.3 讓位優先序
+
+| 優先 | UI | 低高度時 |
+|---|---|---|
+| P0 | 全域搜尋框 | 永遠保留 |
+| P1 | 分類標題列（名稱、檔數、✕） | 保留 |
+| P2 | 清單 | 保留，取剩餘高度 |
+| P3 | 主動式的分段切換 | 與 P1 同列，縮為較小寬度 |
+| P4 | 次要 7 個短標籤列 | 先隱藏（見 11.4） |
+| P5 | 分類說明文案與底部免責 | 先隱藏 |
+| P6 | 頁首標題與 ↻ | 隱藏（Phase 1/2 既有） |
+| P7 | 底部導覽 | 隱藏（Phase 1/2 既有） |
+
+### 11.4 讓位觸發（沿用 Phase 1）
+
+**不另立門檻，沿用 Phase 1 的低高度搜尋觸發**：`_gsSyncCkm()` 的條件（搜尋框有焦點，且可視高度 < 「搜尋框未聚焦時量到的頁首高度」＋ `_GS_MIN_LIST_H`（110px））。進入此狀態時 `body.gs-ckm` 生效，Phase 1/2 已定義隱藏的 P6、P7 也隱藏。
+
+Rev.3 在 `gs-ckm` 下額外讓位：
+
+1. **先隱藏 P4、P5**（次要標籤列與說明文案）。
+2. 清單取剩餘高度。
+3. 若剩餘高度 < 1 列（44px），在清單區顯示一行「收起鍵盤可看完整清單」。
+
+**非 ckm 的低高度**（例如橫向、鍵盤關閉、但高度仍不足）：若清單可用高度 < `_GS_MIN_LIST_H`（110px），依序隱藏 P5，再把 P4 收合為一個「其他分類 ▾」按鈕（40px 高），仍不足則清單保持最小 44px 並可捲動。
+
+### 11.5 測試情境與通過條件
+
+| 編號 | 視窗（寬×高） | 狀態 | 通過條件（以 rect 量測） |
+|---|---|---|---|
+| LR-1 | 390×844 直向 | 無鍵盤 | P1–P5 全部可見；清單可用高度 ≥ 110px；無水平捲動 |
+| LR-2 | 360×780 直向 | 無鍵盤 | 次要 7 個標籤不溢出（需 ≥ 332px）；所有觸控目標 ≥ 44px |
+| LR-3 | 844×390 橫向 | 無鍵盤 | 清單可用高度 ≥ 110px，否則依 11.4 讓位；導覽可見 |
+| LR-4 | 844×170 | 鍵盤開（ckm） | P0、P1、P2 可見；P4、P5 隱藏；清單可用高度 ≥ 44px；P0 的 rect 與可視區有交集 |
+| LR-5 | 844×20 | 鍵盤開（極端） | 見 11.6 |
+| LR-6 | 1280×800 桌機 | 無鍵盤 | 同 430 欄置中（D11） |
+
+### 11.6 20px 極端情境（使用者可見的 fallback）
+
+**不得只驗證 DOM 中存在文字。** 必須以 rect 驗證使用者實際看得見的內容：
+
+1. **鍵盤開（844×20）**：
+   - 搜尋框的 rect 頂端 ≤ 2px，且與可視區的交集高度 ≥ 12px（使用者看得見搜尋框的上半部）。
+   - 清單的 rect 與可視區沒有交集（不可見，屬於已知限制，見 11.7）。
+   - 不產生水平捲動。
+   - 頁面不因此捲到空白區。
+2. **鍵盤關閉（恢復）**：
+   - 可視高度回到 ≥ 276px（以模擬的 Chrome 狀態為準）。
+   - `body.gs-ckm` 移除。
+   - P4、P5、P6、P7 的 rect 再次與可視區有交集。
+   - 清單可見，folder 標題可見。
+   - 清單捲動位置與鍵盤開啟前相同。
+   - 展開數、排序保留。
+
+### 11.7 已知限制
+
+在鍵盤開啟的極小可視區（約 20px）中，清單不可見。這是 Phase 2 已接受的 Known UX limitation，**不針對 20px 寫死任何數值，也不修改 Phase 2 功能**。
+
+---
+
+## 12. 資料更新與失敗
+
+### 12.1 現況（依程式碼）
+
+- `boot.js` 每 30 秒呼叫 `fetchData()`。
+- 成功時呼叫 `renderAll()`；失敗時呼叫 `showDataError()`，**不清除既有畫面**。
+- 失敗時的 banner 顯示上次更新時間（last-good 行為已存在）。
+
+### 12.2 分類與更新規則
 
 | 情境 | 行為 |
 |---|---|
-| 成功更新 | 重新計算分類（純函式）；清單與次數更新；**不重設** 排序、已展開數、捲動 |
-| 資料夾開著時更新 | 清單依新資料重排；已展開數不超過新總數（`shown = min(shown, total)`） |
-| ETF 移類 | 它從舊資料夾消失、進新資料夾；若 Detail 開著，Detail 不受影響 |
-| ETF 消失（不在 ETFS） | 清單移除；若 Detail 正在顯示它，顯示「此 ETF 已不在目前資料中」，**不自動關閉**，由使用者決定 |
-| 新增 ETF | 依規則進入對應資料夾；未命中進其他 |
-| 更新失敗 | **保留 last-good**：分類與清單維持上一次成功的資料；既有 banner 顯示更新時間 |
-| 首次載入失敗 | 八份頁籤仍顯示名稱，檔數「—」；開啟時顯示「資料暫時無法取得」 |
-| 資料夾計數為 0 | 頁籤顯示「0 檔」，仍可開啟；清單區顯示「目前沒有符合這個分類的 ETF」 |
+| 成功更新 | 重新計算分類（純函式）；清單與計數更新；排序、已展開數、捲動保留 |
+| 資料夾開著時更新 | 清單依新資料重排；`shown = min(shown, total)` |
+| ETF 移類 | 從舊資料夾消失、進新資料夾；Detail 不受影響 |
+| ETF 消失 | 清單移除；Detail 若正在顯示它，顯示「這檔目前不在清單中」（Phase 2 既有文案），不自動關閉 |
+| 新增 ETF | 依規則進入；未命中進其他 |
+| 更新失敗 | 保留 last-good：分類與清單維持上次資料，banner 顯示時間 |
+| 首次載入失敗 | 見 §7.10 |
 
-### 10.3 不做的事
+### 12.3 不做的事
 
 - 不因更新失敗而清空分類。
 - 不因更新而自動跳出或關閉任何層。
@@ -471,66 +632,49 @@ Rev.1 的做法是讓 `detail.js` 與 `category.js` 各自註冊 popstate listen
 
 ---
 
-## 11. 空分類與錯誤狀態
+## 13. 空分類與錯誤狀態
 
-| 狀況 | 畫面 | 規則 |
-|---|---|---|
-| 首次載入失敗 | 頁籤名稱仍在，檔數「—」；開啟時清單區「資料暫時無法取得」 | 不顯示「0 檔」 |
-| 某分類 0 檔 | 頁籤「0 檔」可開；清單區「目前沒有符合這個分類的 ETF」 | 不隱藏頁籤，維持 8 份 |
-| 欄位缺（如 `yld` 為 null） | 殖利率「--」 | 不補數字 |
-| 持股異動資料缺 | 沿用既有 `flow.js` 的「未出新／抓不到」分開顯示 | 不改 `flow.js` 判斷 |
-| 新 ETF 未命中規則 | 進其他 | 不消失 |
-| 同一檔命中兩類 | 不可能（單一優先序） | 測試檢查 |
+| 狀況 | 畫面 |
+|---|---|
+| 首次載入失敗 | 頁籤名稱仍在，檔數「—」；開啟時清單區「資料暫時無法取得」 |
+| 某分類 0 檔 | 頁籤「0 檔」可開；清單區「目前沒有符合這個分類的 ETF」 |
+| 欄位缺（如 `yld` 為 null） | 殖利率「--」，不補數字 |
+| 持股異動資料缺 | 沿用 `flow.js` 的「未出新／抓不到」分開顯示 |
+| 新 ETF 未命中 | 進其他 |
 
 ---
 
-## 12. 動畫與 reduced-motion
+## 14. 動畫與 reduced-motion
 
-### 12.1 設計
-
-- 只動 `transform` 與 `opacity`。
-- 開啟 220ms、收合 200ms、曲線 `cubic-bezier(.2,.8,.2,1)`。
+- 只動 `transform` 與 `opacity`；開啟 220ms、收合 200ms；曲線 `cubic-bezier(.2,.8,.2,1)`。
 - `will-change` 只在過場期間設置。
 - 不做循環動畫。
-
-### 12.2 reduced-motion
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  .cat-folder, .cat-main, .cat-strip { transition: none !important; }
-}
-```
-
-- 狀態仍切換，只是沒有位移與透明度變化。
-- reduced-motion 時 OPENING／CLOSING 立即完成，不等 `transitionend`。
-- 測試以 `Emulation.setEmulatedMedia` 驗證過場時間為 0（CT-7）。
-
-### 12.3 禁止
-
-- 閃爍、脈動、發光、閃框（專案既有決定：B 區格子動畫曾被移除）。
-- 超過 300ms 的過場。
+- `@media (prefers-reduced-motion: reduce)`：`transition: none !important`；狀態仍切換；OPENING／CLOSING 立即完成，不等 `transitionend`。
+- 禁止閃爍、脈動、發光、閃框（專案既有決定）。
+- 超過 300ms 的過場不允許。
 
 ---
 
-## 13. 檔案變更清單
+## 15. 檔案變更清單
 
 **新增**
-- `js/category-rules.js`：分類規則與排序，純函式、無 DOM。
-- `js/router.js`：history 協調（第 7 節）。
+- `js/category-rules.js`：分類規則與排序，純函式。
+- `js/router.js`：history 協調（§7）。
 - `js/category.js`：分類 UI、狀態機、資料夾層渲染。
-- `js/tools.js`：工具頁、自選占位。
-- `css/category.css`：文件夾樣式與動畫。
-- `tests/fixtures/etf_203.json`：203 檔快照（code、name、div_category，固定）。
+- `js/tools.js`：工具頁。
+- `css/category.css`：資料夾樣式與動畫。
+- `tests/fixtures/etf_203.json`：203 檔快照（code、name、div_category）。
 - `tests/browser/category_test.py`、`tests/browser/router_test.py`。
-- `PHASE3_PLAN.md`（本檔）、`PHASE3_CHANGELOG.md`（實作後）。
+- `PHASE3_PLAN.md`、`PHASE3_CHANGELOG.md`。
 
 **修改**
-- `index.html`：導覽改為 4 個按鈕；新增 `#page-cat`、`#page-watch`、`#page-tools`；載入新 JS／CSS；版本號 bump。
-- `js/nav.js`：`switchPage` 改為經 router 的 `navigateBase`；保留相容入口。
-- `js/detail.js`：history 相關程式改為經 router（第 7.9 節）；畫面與內容不改。
-- `js/boot.js`：`_restoreCode` 改為 router 的 pending restore；`openFlow` 改為開啟主動式資料夾的持股異動分段；`reloadData` 依 D15。
-- `js/render.js`：`renderAll` 尾端通知分類與 router（`onMarketUpdate`）。
-- `js/flow.js`：不改判斷；只允許容器改為資料夾內的分段容器。
+- `index.html`：導覽 4 個按鈕；`#page-cat`、`#page-watch`、`#page-tools`；載入新檔；版本號 bump。
+- `js/nav.js`：`switchPage` 改為 `navigate`；舊入口保留。
+- `js/detail.js`：history 相關程式委派給 router（§6.3）；畫面與內容不改。
+- `js/boot.js`：`_restoreCode` 改為 router 的 pending restore；`openFlow` 改為 `navigate(T)`；`showDataError` 的 `_tryRestoreDetail()` 改為 router 的一致性規則（§7.10）。
+- `js/render.js`：`renderAll` 尾端通知分類與 router。
+- `js/flow.js`：依 §9 修改觸發與容器；判斷與資料不改。
+- `css/pages.css`：`#page-check` 相關選擇器逐條改寫（§9.3）。
 
 **不改**
 - `fetch_etf.py`、`scripts/*`、`data/*` 的產生方式。
@@ -539,206 +683,201 @@ Rev.1 的做法是讓 `detail.js` 與 `category.js` 各自註冊 popstate listen
 
 ---
 
-## 14. 測試與回歸範圍
+## 16. 測試與回歸
 
-### 14.1 固定 fixture 測試（`tests/fixtures/etf_203.json`）
+### 16.1 Phase 2 回歸測試政策（Codex finding 4）
+
+**原則**：
+- 行為斷言（使用者看得見的結果）全部保留。
+- 只有「內部 history 格式」斷言可以隨 router 改造更新。
+- 不得為了讓舊測試通過而保留兩套 history 實作。
+- 修改前，先逐條列出每個斷言的分類（行為／內部），並附在實作 PR 中。
+
+**初步分類（依現有測試的斷言內容）**：
+
+| 測試檔 | 行為斷言（保留） | 內部 state 斷言（更新為 v2 等價） |
+|---|---|---|
+| `detail_ui_test.py` | 一次 Back 只產生一次 popstate（T8、T9、T10、T11、T13、T19 的 popstate 計數）；切換 ETF 不增加 entry（T12 的 `history.length`）；Detail 的所有內容、分頁、計算機斷言 | `_pendingPop == 0`（T8、T19）；`history.state.etfDetail`／`history.state.code`（T10、T12、T16）；`history.state === null` 形式的基底判斷（T10、T16） |
+| `detail_history_fix_test.py` | 單一 popstate（F2）；離開後不還原 Detail（以 DOM 判斷，F1 的行為面） | `_restoreCode` 內部變數（F1）；`history.state.etfDetail`（約第 41 行） |
+| `regression_test.py` | 分頁切換與原五頁行為 | 分頁切換清單需更新為新導覽（IA 變動的必要更新，不是放寬） |
+| `detail_collapse_test.py`、`search_compact_test.py` | 全部為行為斷言 | 無 |
+
+實作時每一條內部斷言改寫為 v2 等價斷言（例如 `history.state.stack` 中的 detail code），不刪除。
+
+### 16.2 固定 fixture（203 檔）
 
 | 編號 | 測試 | 通過條件 |
 |---|---|---|
-| FX-1 | 完整性 | 203 檔，代碼無重複，每檔恰一類 |
-| FX-2 | 單一歸屬 | 8 類加總 = 203，任一檔不得命中兩類 |
-| FX-3 | 分布 | 與附錄 B 的 Rev.2 推薦值一致（**僅在 fixture 上作為 assertion**） |
-| FX-4 | 規則抽樣 | 0050→市值；00981A、00402A→主動；00878→高股息；00929→科技；00702、00771→海外；00920→主題；00923、009809→市值；00850、0057、00682U→其他；00840B→債券；00894→高股息（備援） |
+| FX-1 | 完整性 | 203 檔、代碼不重複、每檔恰一類 |
+| FX-2 | 單一歸屬 | 8 類加總 = 203，任一檔不命中兩類 |
+| FX-3 | 分布 | 與 §2.3 一致（**只在 fixture 上作為 assertion**） |
+| FX-4 | 規則抽樣 | 0050→市值；00981A、00402A→主動；00878→高股息；00929→科技；00702、00771→海外；00850、0057、00682U→其他；00840B→債券；00894→高股息（備援）；00888→其他 |
 | FX-5 | 怡恩確認的例外 | 科技＋高息→科技（00929、00943、00946、00962）；海外＋高息→海外（00702、00771、00882、00956、00963、00964）；AI 機器人、航太防衛→科技（00737、00965）；金融／工業／數位支付→主題（0055、00728、00909、00917、009822） |
+| FX-6 | D-ESG 未決 | 00920、00923、009809 的分類依 §2.3 的 pending 預設；D-ESG 決定後，此測試的期望值同步更新 |
 
-### 14.2 即時資料不變條件（`market.json` 當下內容）
+### 16.3 即時資料不變條件
 
-| 編號 | 測試 | 通過條件 |
-|---|---|---|
-| LV-1 | 不變條件 | 每檔恰一類；加總 = `ETFS.length`；無遺漏 |
-| LV-2 | 不 hard-code | UI 程式不含 ETF 代碼；代碼只在規則表與 fixture |
+| 編號 | 測試 |
+|---|---|
+| LV-1 | 每檔恰一類；加總 = `ETFS.length`；無遺漏 |
+| LV-2 | UI 程式不含 ETF 代碼字串（代碼只在規則表與 fixture） |
 
-### 14.3 列表行為
+### 16.4 列表行為
 
 | 編號 | 測試 |
 |---|---|
 | LS-1 | 預設代碼 natural 排序（市值第一檔 0050） |
-| LS-2 | 切換名稱排序（zh-Hant collator） |
-| LS-3 | 查看更多：主動式 32 檔：10 → 20 → 30 → 32，按鈕消失 |
-| LS-4 | 從 Detail 返回：排序、已展開數、捲動位置保留（Codex 要求） |
+| LS-2 | 名稱排序（zh-Hant collator） |
+| LS-3 | 查看更多：主動式 32 檔 10 → 20 → 30 → 32，按鈕消失 |
+| LS-4 | 從 Detail 返回：排序、已展開數、捲動位置保留 |
 | LS-5 | 從總覽重新開啟：重設為代碼、10 檔 |
 
-### 14.4 資料更新
-
-| 編號 | 測試 |
-|---|---|
-| DU-1 | 資料夾開著時資料更新：清單重排，排序與已展開數保留 |
-| DU-2 | ETF 移類：從舊資料夾消失、進新資料夾 |
-| DU-3 | ETF 消失時 Detail 顯示「已不在目前資料中」，不自動關閉 |
-| DU-4 | 更新失敗：分類與清單保留上次資料，banner 顯示時間（last-good） |
-| DU-5 | 首次載入失敗：空狀態，不顯示 0 檔 |
-
-### 14.5 history 與 router（Codex 指定）
+### 16.5 Router 與 history
 
 | 編號 | 情境 | 通過條件 |
 |---|---|---|
 | RT-1 | 總覽 → 資料夾 → Detail → Back → 資料夾 → Back → 總覽 | 每步狀態正確 |
 | RT-2 | Browser Forward | Back 後 Forward 還原同一層與 ui |
-| RT-3 | Detail reload | 還原資料夾＋Detail；Back 不產生空白 entry |
-| RT-4 | Detail 開著切換底部導覽 | Detail 與資料夾都關閉；導覽正確；無殘留條目 |
-| RT-5 | Esc 只退一層 | Detail 開著按 Esc 只關 Detail；再按才關資料夾 |
+| RT-3 | Detail reload | 還原資料夾＋Detail（資料可用後）；Back 不產生空白 entry |
+| RT-4 | Detail 開著切換底部導覽 | Detail 與資料夾都關閉；導覽正確；history 深度正確 |
+| RT-5 | Esc 只退一層 | 第一次只關 Detail；第二次才關資料夾 |
 | RT-6 | 返回資料夾後排序與已展開數 | 保留 |
 | RT-7 | 返回資料夾後捲動位置 | 保留 |
-| RT-8 | 不產生重複基底 entry | `history.length` 只在 push 時增加；`replaceState` 不增加 |
-| RT-9 | popstate 不呼叫 back | 以 CDP 監看：Browser Back 不觸發額外 back |
-| RT-10 | busy 鎖 | 快速連按 Esc 兩次只退一層（除非 busy 已清除） |
-| RT-11 | 主動持股異動 → Back | 回總覽（第 6.4 節的明確行為） |
+| RT-8 | 不產生重複基底 entry | `history.length` 只在 push 時增加；replaceState 與 normalize 不增加 |
+| RT-9 | popstate 不呼叫 back／go | 以 CDP 監看：Browser Back 之後沒有額外的 back 或 go |
+| RT-10 | busy 鎖 | 快速連按 Esc 兩次只退一層；busy 期間的點擊被忽略 |
+| RT-11 | 切換 ETF 不累積層（Phase 2 語意） | Detail 開著切換 A→B→C，`history.length` 不變，一次 Back 直接離開 Detail |
 | RT-12 | 工具子頁 → Back | 回工具列表 |
+| RT-13 | Phase 2 格式的 state（`etfDetail`）載入 | normalize 為 v2；`history.length` 不變；Back 到基底不產生額外 entry（MG-1） |
+| RT-14 | 500ms 無 popstate 的 busy 逾時 | busy 清除；畫面與 history 一致 |
 
-### 14.6 UI 與響應式
+### 16.6 Detail 導航與持股異動
+
+| 編號 | 情境 | 通過條件 |
+|---|---|---|
+| NV-A | 首頁搜尋 → Detail → 查看持股異動 | 最終 `[folder(active,flow)]`、基底 cat；Back → 總覽；Forward → 持股異動；無 Detail 層 |
+| NV-B | 工具子頁搜尋 → Detail → 查看持股異動 | 同上；基底由 tools 變 cat |
+| NV-C | 其他分類資料夾 → Detail → 查看持股異動 | 同上；Back 回總覽而非 X |
+| NV-D | 原本在主動式 → Detail → 查看持股異動 | 同上；Back 回總覽而非清單 |
+| NV-E | 持股異動中按 Forward／Back 往返 | 狀態一致 |
+
+### 16.7 首次失敗與一致性
 
 | 編號 | 測試 |
 |---|---|
-| UI-1 | 8 個頁籤矩形不重疊、≥44px、名稱完整 |
-| UI-2 | 開啟與收合：狀態正確；連點只開一次 |
-| UI-3 | reduced-motion：過場時間為 0 |
-| UI-4 | 第 9.2 節高度表：清單可用高度與可視範圍 |
-| UI-5 | 鍵盤模擬高度（844×170）：清單仍可用 |
-| UI-6 | 無水平捲動 |
+| HF-1 | 首次失敗時 `history` 深度 = 畫面層數；Detail 顯示「資料暫時無法取得」 |
+| HF-2 | 失敗後成功，內容補上，深度不變 |
 
-### 14.7 全域搜尋與 Detail 回歸
+### 16.8 資料更新
+
+| 編號 | 測試 |
+|---|---|
+| DU-1 | 資料夾開著時資料更新：清單重排，排序與已展開數保留 |
+| DU-2 | ETF 移類：從舊資料夾消失、進新資料夾 |
+| DU-3 | ETF 消失：Detail 顯示「這檔目前不在清單中」，不自動關閉 |
+| DU-4 | 更新失敗：分類與清單保留上次資料；banner 顯示時間 |
+
+### 16.9 Responsive 與低高度
+
+| 編號 | 測試 |
+|---|---|
+| LR-1～LR-6 | 見 §11.5 |
+| LR-7 | 20px 極端：鍵盤開的 rect 驗證與鍵盤關閉恢復（§11.6） |
+| UI-1 | 8 個頁籤 rect 不重疊、≥ 44px、名稱完整 |
+| UI-2 | 開啟與收合狀態正確；連點只開一次 |
+| UI-3 | reduced-motion：過場時間為 0 |
+| UI-4 | 無水平捲動 |
+
+### 16.10 Flow
+
+見 §9.5（FL-1～FL-8）。
+
+### 16.11 全域搜尋與既有回歸
 
 | 編號 | 測試 |
 |---|---|
 | SR-1 | 分類頁開著時搜尋 0050 仍可開 Detail |
 | SR-2 | 下拉仍在資料夾之上 |
 | SR-3 | 搜尋選取後 Back 回資料夾 |
-| FL-1 | 32 檔主動式每檔都能從清單進入持股異動（CT-F1） |
-| FL-2 | Detail「查看完整持股異動」進入正確代碼 |
+| 既有 | `search_compact_test.py` 38、`detail_ui_test.py` 42、`detail_history_fix_test.py` 14、`regression_test.py` 14、`detail_collapse_test.py` 25。內部 state 斷言依 §16.1 更新；行為斷言不得放寬 |
 
-### 14.8 既有回歸（必須全數通過，不得修改測試）
+### 16.12 靜態檢查
 
-| 測試檔 | 項目數 |
-|---|---|
-| `search_compact_test.py` | 38 |
-| `detail_ui_test.py` | 42 |
-| `detail_history_fix_test.py` | 14 |
-| `regression_test.py` | 14（分頁切換清單需更新為新導覽） |
-| `detail_collapse_test.py` | 25（固定 390×844） |
-
-`regression_test.py` 的分頁切換項目會因導覽改為 4 個而需要更新——這是 IA 變動的必要更新，不是放寬測試。更新前需列出差異給 Codex 看。
-
-### 14.9 靜態檢查
-
-- 頂層名稱不重複（regex，新前綴 `ct`、`rt`、`tl`）。
+- 頂層名稱不重複（新前綴 `ct`、`rt`、`tl`）。
 - 無 `type="module"`。
-- `history.pushState`、`replaceState`、`history.back` 只出現在 `js/router.js`。
+- `history.pushState`、`replaceState`、`history.back`、`history.go` 只出現在 `js/router.js`。
 
-### 14.10 真機（怡恩；iPhone Chrome 為主，Safari、Samsung 抽測）
+### 16.13 真機（怡恩；iPhone Chrome 為主，Safari、Samsung 抽測）
 
-Coding 完成後依協定提供逐步操作。預計項目：
-1. 分類頁 8 個頁籤都看得出名稱。
-2. 點頁籤，文件夾抽出。
-3. 查看更多直到全部顯示。
-4. 切換排序。
-5. 點 ETF 開 Detail，按返回回資料夾，再返回總覽。
-6. 主動式資料夾切到持股異動，選一檔。
-7. 橫向看 8 個頁籤與清單。
-8. iOS 減少動態效果開啟時，點頁籤無滑動過場。
-9. 工具頁進入配息、排行、YouTube 頻道，Back 回工具列表。
+Coding 完成後依協定提供逐步操作。預計項目：分類頁 8 個頁籤可辨識；頁籤抽出；查看更多；排序；ETF → Detail → 返回；主動式持股異動選一檔；橫向看頁籤與清單；鍵盤開啟的低高度；工具頁進入與返回；減少動態效果；Detail「查看完整持股異動」。
 
-### 14.11 需求追溯
+### 16.14 需求追溯
 
-| 需求 | 驗證位置 |
+| 來源 | 驗證位置 |
 |---|---|
-| 核心原則與導覽 4 項 | 第 0、1 節；UI-1；真機 1、9 |
-| 單一歸屬與高股息 22 vs 76 | FX-2、第 3.4 節 |
-| 分類優先例外 | FX-5 |
-| 列表行為 | LS-1～LS-5 |
-| Detail 沿用、搜尋可用 | SR-1～SR-3 |
-| 不 hard-code | LV-2 |
-| history（Codex 清單） | RT-1～RT-12 |
-| 資料更新與 last-good | DU-1～DU-5 |
-| responsive（實際剩餘高度） | UI-4、UI-5、第 9.2 節 |
-| reduced-motion | UI-3、真機 8 |
-| 空與錯誤 | DU-5、第 11 節 |
-| 203 fixture | FX-1～FX-5 |
-| 既有功能遷移 | 第 1.2 節；FL-1、FL-2；真機 6、9 |
+| Codex 1（Detail 語意） | §6、RT-11 |
+| Codex 2（退層規則） | §7.1、RT-9、RT-10、RT-14 |
+| Codex 3（導航順序） | §8、NV-A～NV-E |
+| Codex 4（首次失敗與測試政策） | §7.10、§16.1、HF-1、HF-2 |
+| Codex 5（低高度） | §11、LR-1～LR-7 |
+| Codex 6（flow） | §9、FL-1～FL-8 |
+| Codex 7（細部分布） | §2.2 |
+| Codex 8（D-ESG、D14） | §3.4、§10.3、§18 |
 
 ---
 
-## 15. Rev.1 → Rev.2 修訂對照（Codex findings）
+## 17. Rev.2 → Rev.3 修訂對照
 
-| Codex 要求 | Rev.2 位置 |
-|---|---|
-| 不依賴兩個 popstate listener 執行順序 | 第 7.1、7.6 節（單一 router） |
-| 定義共用 routing／history 與 folder context | 第 7.2、7.5 節 |
-| 分類總覽 → 資料夾 → Detail → Back → 資料夾 → Back → 總覽 | RT-1 |
-| Browser Forward | RT-2 |
-| Detail reload | RT-3、第 7.11 節 |
-| Detail 開著切換頁面 | RT-4、第 7.5 節 `navigateBase` |
-| Esc 只退一層 | RT-5、第 7.8 節 |
-| 返回資料夾後排序狀態、已展開數、scroll | RT-6、RT-7、LS-4 |
-| 避免 replaceState 產生重複基底 entry | 第 7.3 節（E0 唯一）、RT-8 |
-| Browser Back 不得呼叫會再次 back() 的路徑 | 第 7.6 節（popstate 只渲染）、RT-9 |
-| Responsive 依實際剩餘可用內容高度 | 第 9.1 節公式、第 9.2 節表 |
-| 分類開啟期間資料更新／輪詢、移類、消失、成功後更新、失敗保留 last-good | 第 10 節、第 14.4 節 |
-| reduced-motion、空分類、錯誤狀態 | 第 11、12 節、UI-3 |
-| 203 fixture 完整性與單一歸屬 | 第 14.1 節 |
-| 不把分布當永久 assertion | 第 4.6 節、FX-3 |
-| 既有功能遷移說明 | 第 1 節 |
-| 底部導覽 4 個、不新增第 5、第 6 | 第 1.1 節 |
+見第 0 節。
 
 ---
 
-## 16. 開放決策
+## 18. 開放決策
 
-### 16.1 已確認（來自怡恩）
+### 18.1 已採預設（不再詢問）
 
-見第 0.1 節。
+D11、D12、D13、D15、D16、D17（見第 0 節）。
 
-### 16.2 需怡恩確認（Rev.2 新增）
+### 18.2 仍 pending
 
-| 編號 | 問題 | 推薦預設 | 替代與影響 |
+| 編號 | 問題 | 證據與選項 | 現行預設 |
 |---|---|---|---|
-| **D-ESG** | 00920 → 主題型；00923、009809 → 市值型 | 依 4.3 節規則 | 若要保留 Rev.1 的其他歸類，三檔回其他（其他 8 → 11；市值 18 → 16；主題 19 → 18） |
-| **D14** | 自選分頁內容 | 占位「尚未開放」，不做功能 | 另開一個 Phase 定義自選（本地保存、與搜尋／Detail 的關係） |
-| **D15** | ↻ 重新整理 | 維持 Phase 2：先回到基底再重新載入 | 改為就地更新資料（不重新載入）；需評估 Phase 2 既有行為是否改變 |
-| **D11** | 桌機版型 | 第一版維持 430 欄 | 三欄寬版（左堆｜主區｜右堆）；需放寬全站寬度，另列子項 |
-| **D12** | 重新整理後還原資料夾與 Detail | 還原（與 Detail 一致） | 回總覽 |
-| **D13** | 排序與已展開數是否跨開啟記憶 | 不記憶（從總覽重開即重設） | 記憶，需求未要求 |
-| **D16** | 首頁標籤「今日」改「首頁」 | 改（導覽已確認為首頁） | — |
-| **D17** | 主動持股異動的入口 | 分類 → 主動式 → 持股異動分段；Detail「查看完整持股異動」直接進入該分段 | 獨立入口（較不符合「主動式 ETF → 分類 → 主動式」的需求） |
+| **D-ESG-1** | 00923、009809、00920 的歸類 | 見 §3.4：證據指向 00923、009809 為策略型（其他），00920 為綠能主題或全球（海外）。Rev.2 的市值型與主題型歸類**與證據不一致**，但 Codex 要求分布維持 Rev.2 驗證值，因此 pending | Rev.2 分布（市值 18、主題 19、其他 8） |
+| **D-ESG-2** | 名稱來源（R-N1）：是否建立人工覆寫清單，讓規則看見官方全名 | 00920 的官方全名含「全球」；覆寫清單需附來源 | 不建立覆寫清單 |
+| **D14** | 自選分頁內容（是否只顯示「尚未開放」） | Product Owner 決策 | 待決策；不實作 |
 
 ---
 
-## 17. 風險
+## 19. 風險
 
 | 編號 | 風險 | 緩解 |
 |---|---|---|
-| R1 | Phase 2 history 程式被改寫，回歸風險高 | 第 7.9 節；Phase 2 五組測試不得改；先跑基線 |
-| R2 | 搜尋 76 檔與分類 22 檔並存 | 怡恩已確認；第 3.4 節說明文案 |
-| R3 | 規則需隨新 ETF 維護 | 未命中進其他，可見 |
-| R4 | 代號規則依賴命名慣例（B／D、A） | 與 CLAUDE.md 一致；交易所改規則需重檢 |
-| R5 | 名稱關鍵字誤判 | fixture 與附錄 D 逐檔複核 |
-| R6 | 360px 寬擠壓與鍵盤縮小高度 | UI-4、UI-5 |
-| R7 | 多層 history 在 iOS Safari 的 Back 行為差異 | 真機抽測（14.10） |
-| R8 | 持股異動 DOM 搬入資料夾，既有 chips 事件失效 | 測試 FL-1；實作時逐一核對 `flow.js` 的 onclick 字串 |
-| R9 | `regression_test.py` 分頁切換項目需改 | 第 14.8 節，需先給 Codex 看差異 |
+| R1 | Phase 2 history 改寫，回歸風險高 | §6、§16.1；Phase 2 行為斷言不得放寬 |
+| R2 | 搜尋 76 檔與分類 22 檔並存 | 已由怡恩確認；§4.4 說明 |
+| R3 | 規則需隨新 ETF 維護 | 未命中進其他；規則集中一檔 |
+| R4 | 代號規則依賴命名慣例 | 與 CLAUDE.md 一致 |
+| R5 | 名稱關鍵字誤判 | fixture 與 §3.4 的逐檔證據 |
+| R6 | 360px 寬與鍵盤縮小高度 | §11、LR-2、LR-4、LR-5 |
+| R7 | iOS Safari 的 history 行為差異 | 真機抽測（§16.13） |
+| R8 | 持股異動 DOM 搬入資料夾，既有 onclick 與 id 失效 | §9.3、§9.4、FL-1 |
+| R9 | `regression_test.py` 分頁切換項目需改 | §16.1，先給 Codex 看差異 |
+| R-N1 | 規則只看簡稱，官方全名可能含不同地區或策略字眼 | §3.5、D-ESG-2 |
+| R-N2 | 持股異動與中間畫面的真機表現 | §8.4；真機確認 |
 
 ---
 
-## 18. 完成條件
+## 20. 完成條件
 
-- 第 14 節所有測試通過（新增測試 + 既有五組）。
-- 需求 1–15（Rev.1）與 Codex findings（第 15 節）皆有對應。
+- §16 全部測試通過（新增測試與既有五組，內部 state 斷言依 §16.1 更新）。
+- Codex 的 8 項 findings 皆有對應章節與測試。
 - iPhone + Chrome 真機主要項目 PASS，由怡恩確認環境。
-- PHASE3_CHANGELOG.md、AI_HANDOFF.md 更新，標記實際結果。
+- D-ESG-1、D-ESG-2、D14 由怡恩決定。
+- PHASE3_CHANGELOG.md、AI_HANDOFF.md 更新。
 - 不 push，除非怡恩明確要求。
 
 ---
 
-## 附錄 A：分類關鍵字表（Rev.2）
+## 附錄 A：分類關鍵字（Rev.3）
 
 | 類別 | 關鍵字 |
 |---|---|
@@ -749,40 +888,24 @@ Coding 完成後依協定提供逐步操作。預計項目：
 | 主題型 | 太空、稀土、元宇宙、機器人、生技、基因、綠能、電動車、智能車、未來車、車、潔淨、能源、電池、儲能、電力、數據、算力、航運、航太、防衛、數位、金融、工業 |
 | 其他（策略） | ESG、公司治理、淨零 |
 
-比對：名稱字串包含即命中，依 4.1 順序；英文關鍵字大小寫不敏感。
+比對：名稱字串包含即命中，依 §3.1 順序；英文關鍵字大小寫不敏感。
 
 ---
 
-## 附錄 B：Rev.2 推薦預設的試算與差異
+## 附錄 B：分布與 D-ESG 替代
 
-試算方式：以 `data/market.json` 的 code、name、div_category 與代號末碼，依 4.1 順序判斷。試算腳本只在 scratchpad，未納入 repo；Codex 可以用同樣規則重現。
-
-| 分類 | Rev.1 | Rev.2 | 差異原因 |
-|---|---|---|---|
-| 市值型 | 16 | **18** | +00923 群益台ESG低碳50、+009809 富邦淨零ESG50（ESG＋50 歸市值） |
-| 高股息 | 22 | **22** | — |
-| 主動式 | 32 | **32** | — |
-| 科技／半導體 | 20 | **20** | — |
-| 海外／區域 | 78 | **78** | — |
-| 主題型 | 18 | **19** | +00920 富邦ESG綠色電力（綠色電力＝電力主題） |
-| 債券 | 6 | **6** | — |
-| 其他 | 11 | **8** | −00920、−00923、−009809 |
-| **合計** | 203 | **203** | |
-
-Gavin 在 Rev.2 指示中引用的「16／22／32／20／78／18／6／11」是 Rev.1 的數字，**已不適用於 Rev.2 規則**。若怡恩要維持該數字，請見 D-ESG。
-
-與人工標籤 `div_category` 的關係（Rev.2）：人工標籤為「高股息」的 76 檔中，22 檔進高股息資料夾，其餘 54 檔分散在其他分類（第 2.2 節）。
+見 §2.3 與 §3.4。試算方式：以 `data/market.json` 的 code、name、div_category 與代號末碼，依 §3.1 的順序判斷；試算腳本只在 scratchpad，未納入 repo。
 
 ---
 
-## 附錄 C：Rev.1 → Rev.2 試算修正紀錄
+## 附錄 C：修正紀錄
 
-- Rev.1 試算的 ESG 判定：全部歸其他（7 檔）。Rev.2 依怡恩規則改為：00920 → 主題；00923、009809 → 市值；其餘 ESG 仍歸其他。
-- 此前的修正（Rev.1 階段）：移除「30」與「洲際」關鍵字；補上「納斯達克」「MSCI台灣」「加權」；加入「US」。
+- Rev.1 → Rev.2：ESG 規則、導覽 4 項、單一 router 的初版。
+- Rev.2 → Rev.3：見第 0 節。
 
 ---
 
-## 附錄 D：各分類成員（Rev.2 推薦預設，試算輸出）
+## 附錄 D：各分類成員（Rev.2 驗證值，Rev.3 維持）
 
 以下由試算產生，與 4.1 的規則一致。
 
@@ -812,4 +935,3 @@ Gavin 在 Rev.2 指示中引用的「16／22／32／20／78／18／6／11」是 
 - 策略型：00692 富邦公司治理、00850 元大ESG永續、00888 永豐台灣ESG、00928 中信上櫃ESG 30
 - 期貨型：00682U 期元大美元指數、00693U 期街口S&P黃豆、00763U 期街口道瓊銅
 - 名稱無對應（待查證）：0057 富邦摩台
-
