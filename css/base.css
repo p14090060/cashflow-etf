@@ -111,6 +111,8 @@
     border-top:1px solid var(--border);
   }
   /* 詳細頁往下捲時收起頂部區域，回到頂部再出現（js/detail.js 的 _dtSyncCollapse） */
+  /* 搜尋框被鍵盤平移時，底部導覽會疊在頂部搜尋框上方，暫時收起（js/search.js） */
+  body.gs-kb-pan .bottom-nav { display:none; }
   body.dt-collapsed .app-hdr { display:none; }
   body.dt-collapsed #gsPanel { top:0; }
   body.dt-collapsed #gsPanel .gs-panel-hd { display:none; }
