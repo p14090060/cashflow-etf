@@ -12,7 +12,8 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 Plan：Rev.3.3，commit `8326f465`。** Codex 最終結論：**PASS FOR CODING AFTER PRODUCT DECISIONS**。
 - **Phase 3 Resync blocker：RESOLVED**（Rev.3.3 已通過）。
 - **Phase 3：APPROVED FOR CODING。**
-- **Phase 3 Coding commit：`99ec4b14`。** 本機，尚未 push。遠端 `origin/main` 之後，本機領先 7 個 commit（Plan Rev.1～Rev.3.3 與 Coding）。
+- **Phase 3 Coding commit：`99ec4b14`。** Codex 複審結果：**NEED FIX**（三項必修）。
+- **Phase 3 必修修正 commit：`8e3e59bb`。** 本機，尚未 push。等待 Codex 複審。內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審修正」一節。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -43,14 +44,20 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.5 Phase 3 Coding 狀態（目前）
 
-- **實作：完成**（commit `99ec4b14`）。內容見 `PHASE3_CHANGELOG.md`。
-- **自動測試**：
-  - 既有 Phase 1／2 回歸：detail_ui 42/42、detail_history_fix 14/14、regression 14/14、detail_collapse 25/25、search_compact 38/38，全部 PASS。
-  - 新增：router_test 64/64 PASS；category_test 82 PASS、0 FAIL、**2 DEFER**。
-  - 靜態：頂層名稱無重複；history API 只在 `js/router.js`；UI 程式無 ETF 代碼；無 `type="module"`。
+- **實作**：`99ec4b14`（Coding）→ Codex 複審 NEED FIX → 必修修正 `8e3e59bb` 已完成。**目前等待 Codex 再次複審。**
+- **Codex 必修三項（`8e3e59bb` 已修正）**：
+  1. **Detail 分頁與捲動在 Back → Forward 還原（Plan RT-2）**。分頁與捲動寫入所在層的 ui；捲動先進記憶體快取，Back 前最後一次捲動也不會遺失。測試：`tests/browser/detail_state_test.py` DS-1～DS-8（26 項）。
+  2. **Flow visualViewport 重繪（Plan §9.2 F-d）**。resize、orientationchange、visualViewport resize／scroll，持股異動可見時重繪。測試：`category_test.py` FD-1～FD-6。
+  3. **LR-8 驗收測試重寫**。offsetTop > 0 時驗證可視交集、遮擋、恢復；headless 產生不了偏移，維持 DEFER。
+- **自動測試（`8e3e59bb`）**：
+  - router_test 64/64；search_compact_test 38/38；detail_ui_test 42/42；detail_history_fix_test 14/14；regression_test 14/14；detail_collapse_test 25/25。
+  - category_test 91 PASS、0 FAIL、**2 DEFER**。
+  - detail_state_test 26/26。
+  - 負向對照：pre-fix 的 router／detail 讓 DS 出現 8 項 FAIL；pre-fix 的 flow.js 讓 FD-1～FD-4 FAIL。
+- **靜態**：頂層名稱無重複；history API 只在 `js/router.js`；`index.html` 無 module script；資源版本號 `20261005h`。
 - **DEFER（不算 PASS）**：
-  - **LR-4**（844×170 鍵盤開，清單無法達 44px）：需 PO 決策（見 0.2）。Fallback 提示已放在可視區內的標題列。
-  - **LR-8**（offsetTop > 0）：headless 無法產生可視區平移，需 iPhone Chrome 真機補測。
+  - **LR-4**（844×170 鍵盤開，清單實測 2px）：需 PO 決策（見 0.2）。Fallback 提示已放在可視區內的標題列。
+  - **LR-8 B／C**（offsetTop > 0 的真實鍵盤情境）：headless 已試 `setPageScaleFactor`＋捲動手勢、pinch、`positionY`、`viewport`，`visualViewport` 皆未改變；`user-scalable=no` 也不允許縮放。需 iPhone Chrome 真機。檢查程式已寫好；另以 stub 做檢查邏輯的自我檢查（SELF-TEST，不計為 PASS）。
 - **尚未完成的 acceptance（Plan §11.4 真機項目）**，Codex 通過後才交 PO：
   1. 分類頁 8 個 TAB 都能辨識名稱。
   2. 點頁籤後抽出開啟。
@@ -65,13 +72,14 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.6 Codex 下一步
 
-- **Code Review 對象**：commit `99ec4b14`，對照 `PHASE3_PLAN.md` Rev.3.3 與 `PHASE3_CHANGELOG.md`。
+- **Code Review 對象**：`99ec4b14..8e3e59bb`（必修修正）。對照 `PHASE3_PLAN.md` Rev.3.3 與 `PHASE3_CHANGELOG.md` 的「Codex 複審修正」一節。
 - **重點審查**：
-  - `js/router.js` 狀態機（confirmed、inflight、orphan、parked、3 秒處理中）。
-  - `detail.js`、`boot.js`、`nav.js`、`render.js`、`flow.js` 的 history 委派與持股異動可見性、重繪。
-  - `js/category-rules.js` 與 `tests/fixtures/etf_203.json` 的一致性（16／22／32／20／78／21／6／8）。
-  - 測試政策：內部 state 斷言的改寫清單（changelog）是否屬於 v2 等價，行為斷言是否未被放寬。
-  - 2 項 DEFER 是否合理標示。
+  - `js/router.js` 的層 id、`uiCache`、`setUi`／`updateUi`、popstate 的 `restoreUi`。
+  - `js/detail.js` 的 `detailShow(code, ui)`、分頁切換即時寫入、捲動 150ms 合併、`pagehide` flush；確認只在頂層是同一檔 Detail 時寫入。
+  - `js/flow.js` 的 `flowRedrawIfVisible`（F-d）。
+  - `tests/browser/category_test.py` 的 LR-8 區塊：真實分支（`offsetTop > 0`）在 headless 沒有執行，只有 stub 自我檢查；DEFER 標示是否合理。
+  - 前一輪審查的重點仍有效：router 狀態機、history 委派、category 規則與 fixture、測試政策、2 項 DEFER。
+- **Codex 完成後**：若 PASS，才由 Claude 提供 PO 真機步驟（§0.5 的 acceptance 與 LR-8、R-N3）。若 NEED FIX，依 finding 修正。
 
 ### 0.7 已知限制（記錄，不是待辦）
 
@@ -91,11 +99,12 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - 執行：`python tests/browser/<name>.py`。Windows 主控台需設定 `PYTHONIOENCODING=utf-8`。
 - 測試會讀取 `raw.githubusercontent.com` 的 `market.json`，需要網路。
 - 同一個 Chrome 分頁跨執行會保留 history 狀態。若遇到首次還原或計數異常，請換新的 `--user-data-dir`。
+- `detail_state_test.py` 與 `category_test.py` 開頭會停用快取並重新載入，避免瀏覽器拿到舊的 `js/*.js`（同一個 `?v=` 會命中快取）。其他測試若做負向對照，請先停用快取。
 - Phase 3 的 fixture 為 `tests/fixtures/etf_203.json`（期望分類由 Python 參照實作產生）。
 
 ### 0.9 文件與 Git
 
-- 尚未 push：Phase 3 相關 7 個 commit。
+- 尚未 push：`origin/main` 之後的 Phase 3 相關 commit（截至 `8e3e59bb` 共 9 個；以 `git rev-list --count origin/main..HEAD` 為準）。
 - 文件債（需 PO 決定是否更正，不阻擋 Phase 3）：`PHASE1_CHANGELOG.md`、`PHASE2_PLAN.md` 仍有 Android 字樣（例如 PLAN 的 G1 測試代號）。
 - 第 2 節的歷史紀錄全部已 RESOLVED，包括 Phase 2 blockers、Plan Rev.1～Rev.3.3 blockers、resync blocker、visualViewport、3 秒處理中、QA C7／C9 等。不要把它們當成目前待辦。
 
