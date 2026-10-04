@@ -229,29 +229,31 @@
 
 **Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
 
-## Phase 3 Plan（Rev.3.2，待 Codex 複審：只驗 router blocker）
+## Phase 3 Plan（Rev.3.3，待 Codex 複審：只驗 resync blocker）
 
-- 來源：Codex 最後複審 Rev.3.1 仍為 NEED FIX，只剩「router timeout 後的新操作」一項。本次只修 router 段落，**未修改程式、未 Coding、未 push**。visualViewport 章節（§11）未動。
-- 文件：`PHASE3_PLAN.md`（Rev.3.2）。
+- 來源：Codex 複審 Rev.3.2 後，只剩 3 秒 resync 一項。本次只修 resync 規則與 RT-19，**未修改程式、未 Coding、未 push**。其他章節視為已通過，未重新設計。
+- 文件：`PHASE3_PLAN.md`（Rev.3.3）。
 
-**核心修正**：`history.go(-k)` 的 timeout 不代表瀏覽器已抵達預期位置，因此 timeout 後不得依假定位置規劃。
+**最終規則（取代 Rev.3.2 的 3 秒 resync）**
+- `history.go(-k)` 發出後，即使超過 3 秒，也**不能**因 timeout 或計時器而假定 traversal 已完成或取消。
+- 500ms timeout：只取消舊 continuation；`inflight` 仍存在；`parked` intent 保留。
+- 3 秒到達：只顯示「處理中」。**不清除 inflight、不執行 parked、不發出第二個 traversal、不以 `history.state` 宣告完成。**
+- 只有真正的 popstate 才算完成。完成後才更新 `confirmed`、清除 `inflight`，並依新的 `confirmed` 求值 parked，且只執行一次。
+- orphan traversal 的 continuation 永遠不復活。
+- 「處理中」無法自行結束時（理論上只在歷史入口不存在時發生），復原方式是重新整理，從實際 `history.state` 還原。
 
-**採用的 timeout 後同步策略：「park 直到確認」**
-1. timeout 只取消 continuation，並把 traversal 標為 orphan；**槽位仍被佔用**，不視為完成（§7.8）。
-2. 區分兩種位置：`confirmed`（瀏覽器已確認；popstate 或 3 秒 resync 時更新）與 `requested`（在途目標，**不得用於規劃**）（§7.1）。
-3. 任一時間只允許一個 traversal 在途（R4）。在途期間的新導航一律 park（last wins），不計算 k、不寫 history、不 push／replace（R5、R8）。
-4. 完成後才依 `confirmed` 求值 parked intent 並執行（§7.6、§7.7）。orphan popstate 不執行任何 continuation；parked 的執行是它自己的，不是 orphan 的 continuation（§7.6 步驟 3）。
-5. 沒有 nonce，不以 nonce 宣告完成。完成只以 popstate 為準；3 秒 resync 是 no-op 的保險（R-N3 殘餘風險，需真機確認）。
-6. 沒有 back 迴圈；每次導航最多一次 `traverse`（R4、RT-21）。Phase 2 的 Detail push／replace 語意（§6.1）不變。
+**RT-19 必測流程**：舊 traversal deferred → 500ms timeout（orphan）→ 新 navigation parked → 3 秒處理中（驗證沒有第二個 traversal、沒有提前 push／replace）→ release 舊 traversal → 依 confirmed 執行 parked 一次 → 最終目標正確 → Back／Forward 正確。
 
-**測試**：RT-14～RT-21，包含「traversal 本身尚未完成」（`__routerDeferTraversal`）與 release 後的真實 traversal。核心測試 RT-16：release 前 parked 不寫入 history，`history.state` 仍為 Detail entry。
+**驗證點**：3 秒前後 history 都未被提前寫入；同時間最多一個 traversal；舊 traversal 晚到不會被誤認為另一個 traversal（`__routerCompletions` = 1）；舊 continuation 未執行；parked 只執行一次（`__routerParkedRuns` = 1）。
 
-**文件更正**：§18.2 與本交接本的 D-ESG 敘述已在 Rev.3.1 修正，這次不再變動。
+**新增測試 hook**：`__routerForceProcessingMark`、`__routerInflightState`、`__routerCompletions`、`__routerParkedRuns`、`__routerProcessing`。
+
+**Rev.3.2 中已刪除的敘述**：「3 秒 resync 可清除 inflight 或執行 parked」、「resync 以 history.state 為已確認位置」、「resync 是 no-op 的保險」。
 
 **D-ESG 與 D14 維持 pending**，本次未要求 Product Owner 回答。
 
 **下一步**
-- Codex 只驗這一個 blocker：§7.1、§7.5–§7.8、RT-14～RT-21。
+- Codex 只驗這一個 resync blocker：§7.8、§7.8.1、RT-19，以及 §7.1 R7 與 confirmed 定義。
 - 通過後，才依 PO 決策進入 Coding。
 
 ## Phase 2 封版狀態
