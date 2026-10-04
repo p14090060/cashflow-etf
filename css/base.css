@@ -93,8 +93,6 @@
              overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .gs-px   { font-family:var(--mono); font-size:13px; flex:0 0 auto; text-align:right; }
   .gs-chg  { margin-left:6px; }
-  .gs-kb-hint { padding:8px 12px; font-size:13px; color:var(--fair); background:var(--card2);
-                border-bottom:1px solid var(--border); line-height:1.5; }
   .gs-more { padding:9px 12px; font-size:12.5px; color:var(--dim); text-align:center;
              border-top:1px solid var(--border); background:var(--card2); }
   .gs-empty{ padding:16px 14px; font-size:14px; color:var(--dim); line-height:1.7; text-align:center; }
@@ -113,9 +111,15 @@
     border-top:1px solid var(--border);
   }
   /* 詳細頁往下捲時收起頂部區域，回到頂部再出現（js/detail.js 的 _dtSyncCollapse） */
-  /* 矮螢幕搜尋時：頂部隨頁面捲動、底部導覽暫時收起（js/search.js） */
-  body.gs-kb .app-hdr { position:static; }
-  body.gs-kb .bottom-nav { display:none; }
+  /* 橫向＋鍵盤的精簡搜尋模式（js/search.js 的 _gsSyncCkm）：
+     標題與次要元件讓位，搜尋框留在最上方，導覽與詳細頁暫時收起，鍵盤收起即恢復 */
+  body.gs-ckm .topbar { display:none; }
+  body.gs-ckm .app-hdr { position:static; }
+  body.gs-ckm .bottom-nav { display:none; }
+  body.gs-ckm #gsPanel { display:none; }
+  body.gs-ckm .gsearch-bar { padding-top:6px; padding-bottom:6px; }
+  body.gs-ckm .gsearch-bar input { font-size:17px; padding-top:8px; padding-bottom:8px; }
+  body.gs-ckm .gs-row { padding:6px 12px; }
   body.dt-collapsed .app-hdr { display:none; }
   body.dt-collapsed #gsPanel { top:0; }
   body.dt-collapsed #gsPanel .gs-panel-hd { display:none; }

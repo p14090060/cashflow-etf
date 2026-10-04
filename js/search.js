@@ -33,6 +33,12 @@ function _gsSyncListMax() {
   const list = document.getElementById('gsearchList');
   const hdr  = document.querySelector('.app-hdr');
   if (!list || !hdr) return;
+  if (_gsCkmOn) {
+    // 精簡模式：下拉用搜尋列以下的全部可視高度，不再留給標題與導覽
+    const avail = _gsViewH() - hdr.getBoundingClientRect().bottom - 6;
+    list.style.maxHeight = Math.max(40, Math.round(avail)) + 'px';
+    return;
+  }
   const vv = window.visualViewport;
   const viewH = (vv && vv.height) ? vv.height : window.innerHeight;
   const nav = document.querySelector('.bottom-nav');
@@ -42,7 +48,45 @@ function _gsSyncListMax() {
   list.style.maxHeight = Math.max(132, Math.round(avail)) + 'px';  // 至少露 3 筆
 }
 
-function _gsSyncAll() { _syncHdrH(); _gsSyncListMax(); }
+function _gsSyncAll() { _gsSyncCkm(); _syncHdrH(); _gsSyncListMax(); }
+
+// ── 橫向＋鍵盤：精簡搜尋模式（compact keyboard mode）────────────────
+// 搜尋是主要任務：鍵盤開著時，標題與次要元件讓位，搜尋框留在最上方，下拉用剩下的可視高度。
+// 全部判斷來自 viewport 狀態，不寫死機型尺寸：
+//   1. 裝置處於橫向（screen.orientation，不受鍵盤影響）
+//   2. 搜尋框有焦點
+//   3. 可視高度明顯低於「搜尋框沒有焦點時」量到的高度（鍵盤佔掉了）
+// 基準只在搜尋框沒有焦點時更新：旋轉過渡期的舊高度會被之後穩定的高度覆蓋，
+// 不會因為偏高的值讓鍵盤收起後仍被判成鍵盤開著。
+const _gsBaseH = { landscape: 0, portrait: 0 };
+let _gsCkmOn = false;
+
+function _gsIsLandscape() {
+  const o = screen.orientation;
+  return o ? o.type.indexOf('landscape') === 0
+           : window.matchMedia('(orientation: landscape)').matches;
+}
+
+function _gsViewH() {
+  const vv = window.visualViewport;
+  return vv ? Math.min(vv.height, window.innerHeight) : window.innerHeight;
+}
+
+function _gsKbOpen() {
+  const key = _gsIsLandscape() ? 'landscape' : 'portrait';
+  const h = _gsViewH();
+  const focused = document.activeElement === document.getElementById('gsearch');
+  if (!focused) _gsBaseH[key] = h;
+  return focused && _gsBaseH[key] > 0 && h < _gsBaseH[key] * 0.75;
+}
+
+function _gsSyncCkm() {
+  const on = _gsIsLandscape() && _gsKbOpen();
+  if (on === _gsCkmOn) return;
+  _gsCkmOn = on;
+  document.body.classList.toggle('gs-ckm', on);
+  if (on) document.getElementById('gsearch').scrollIntoView({ block: 'start' });
+}
 
 function _gsFmtChg(e) {
   const p = e.change_pct;
@@ -94,11 +138,7 @@ function gsSearch() {
     list.hidden = false;
     return;
   }
-  // 矮螢幕鍵盤開著時看不到下拉，提示放在第一列，收起鍵盤後就看得到
-  const kbHint = document.body.classList.contains('gs-kb')
-    ? '<div class="gs-kb-hint">橫向時螢幕空間不足，收起鍵盤即可看到完整結果，或轉直向搜尋</div>'
-    : '';
-  list.innerHTML = kbHint + _gsRows.map((e, i) =>
+  list.innerHTML = _gsRows.map((e, i) =>
     '<div class="gs-row" data-i="' + i + '" onclick="gsPick(\'' + e.code + '\')">'
     + '<div class="gs-code">' + e.code + '</div>'
     + '<div class="gs-name">' + (e.name || '') + '</div>'
@@ -170,25 +210,7 @@ if (window.visualViewport) {
 }
 _gsSyncAll();
 
-// 橫向時鍵盤出現，版面視窗只剩很小一塊；頂部是 sticky，會釘在視窗頂端，搜尋框露不出來。
-// 搜尋框取得焦點時，改讓頂部隨頁面捲動，並把搜尋框捲到最上方。
-// 用裝置方向判斷（不看視窗高度，因為鍵盤會讓視窗高度變小，直向也會誤判）。
-function _gsIsLandscape() {
-  const o = screen.orientation;
-  return o ? o.type.indexOf('landscape') === 0
-           : window.matchMedia('(orientation: landscape)').matches;
-}
-(function () {
-  const input = document.getElementById('gsearch');
-  if (!input) return;
-  input.addEventListener('focus', function () {
-    if (!_gsIsLandscape()) return;
-    document.body.classList.add('gs-kb');
-    setTimeout(() => input.scrollIntoView({ block: 'start' }), 350);
-  });
-  input.addEventListener('blur', function () {
-    setTimeout(() => {
-      if (document.activeElement !== input) document.body.classList.remove('gs-kb');
-    }, 250);
-  });
-})();
+// 焦點變化時重新判斷；離開時等鍵盤收起的動畫結束再判斷
+const _gsInput = document.getElementById('gsearch');
+_gsInput.addEventListener('focus', _gsSyncAll);
+_gsInput.addEventListener('blur', () => setTimeout(_gsSyncAll, 250));
