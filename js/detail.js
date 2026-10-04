@@ -358,6 +358,7 @@ function hideDetail() {
 
 // 唯一的關閉入口。同一次開啟最多一次 history.back()：_detailPushed 在送出 back 前就清掉。
 function closeDetail() {
+  cancelPendingSearch();   // 延遲中的搜尋送出不可在 Detail 關閉後再開啟 Detail 或重新顯示下拉
   if (!_detailOpen) { _queuedOpen = null; return; }
   hideDetail();
   if (_detailPushed) {
@@ -402,6 +403,7 @@ function detailOnFlowUpdate() {
 window.addEventListener('popstate', function (ev) {
   // 任何 popstate 都代表使用者已離開重整前的那個 entry，尚未還原的 Detail 就此作廢
   _restoreCode = null;
+  cancelPendingSearch();
   if (_pendingPop > 0) {
     _pendingPop--;
     if (_pendingPop === 0 && _queuedOpen) {

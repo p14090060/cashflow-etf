@@ -101,7 +101,33 @@ check('X4 direct pick during pending submit wins', ev("!document.getElementById(
 ev("closeDetail(); true"); set_view(390, 844, 'portraitPrimary')
 
 
-# 極低可視高度（Samsung 鍵盤開啟時約 20px）→ 恢復到 276px
+# 延遲搜尋期間離開 Detail（✕／closeDetail、Back／popstate）或點搜尋列外側：舊請求都必須作廢
+def open_detail_0056():
+    set_view(390, 844, 'portraitPrimary')
+    ev("gsClear(); gsPick('0056'); true"); wait_ms(400)
+
+open_detail_0056()
+ev("(()=>{ const i=document.getElementById('gsearch'); i.value='0050'; gsSubmitKey(); return true; })()")
+ev("closeDetail(); true"); wait_ms(700)
+check('X5 closeDetail during pending exact submit: no 0050 detail', ev("document.getElementById('gsPanel').hidden") is True)
+
+open_detail_0056()
+ev("(()=>{ const i=document.getElementById('gsearch'); i.value='高股息'; gsSubmitKey(); return true; })()")
+ev("closeDetail(); true"); wait_ms(700)
+check('X6 closeDetail during pending name submit: list not revived', ev("document.getElementById('gsearchList').hidden") is True)
+
+open_detail_0056()
+ev("(()=>{ const i=document.getElementById('gsearch'); i.value='0050'; gsSubmitKey(); return true; })()")
+ev("history.back(); true"); wait_ms(700)
+check('X7 Back during pending exact submit: no 0050 detail', ev("document.getElementById('gsPanel').hidden") is True)
+
+ev("gsClear(); true")
+ev("(()=>{ const i=document.getElementById('gsearch'); i.value='高股息'; gsSubmitKey(); return true; })()")
+ev("document.body.click(); true"); wait_ms(700)
+check('X8 tap outside search bar during pending name submit: list not revived', ev("document.getElementById('gsearchList').hidden") is True)
+
+
+# 極低可視高度（iPhone Chrome 鍵盤開啟時約 20px）→ 恢復到 276px
 set_view(844, 390, 'landscapePrimary')
 ev("(()=>{ const i=document.getElementById('gsearch'); i.focus(); i.dispatchEvent(new Event('focus')); return true; })()"); wait_ms(300)
 set_view(844, 20, 'landscapePrimary')

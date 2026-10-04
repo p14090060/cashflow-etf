@@ -217,9 +217,11 @@ function gsPick(code) {
 }
 
 // 點搜尋列以外的地方就收起下拉（面板不受影響，要按 ✕ 才關）
+// 延遲中的搜尋送出同樣要作廢，否則 300ms 後會把剛收起的下拉又叫出來
 document.addEventListener('click', function (ev) {
   const bar = document.querySelector('.gsearch-bar');
   if (bar && !bar.contains(ev.target)) {
+    cancelPendingSearch();
     const list = document.getElementById('gsearchList');
     if (list) list.hidden = true;
   }
