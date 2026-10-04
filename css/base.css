@@ -61,7 +61,10 @@
     width:100%; box-sizing:border-box;
     background:var(--card); color:var(--bright);
     border:1px solid var(--border); border-radius:9px;
-    padding:10px 34px 10px 32px; font-size:15px; font-family:var(--sans);
+    /* 16px 是下限不是美感選擇：iOS Safari 對字級 < 16px 的輸入框，
+       聚焦時會自動把頁面放大且不會縮回去（user-scalable=no 從 iOS 10 起無效）。
+       站上其他輸入框本來就都是 16px，這裡對齊。 */
+    padding:10px 34px 10px 32px; font-size:16px; font-family:var(--sans);
   }
   .gsearch-bar input::placeholder { color:var(--dim); }
   .gsearch-bar input:focus { outline:none; border-color:var(--cheap); }
@@ -73,7 +76,10 @@
   .gsearch-list {
     position:absolute; left:14px; right:14px; top:100%; z-index:60;
     background:var(--card); border:1px solid var(--border);
-    border-radius:10px; overflow:hidden auto; max-height:46vh;
+    border-radius:10px; overflow:hidden auto;
+    /* 最後防線。實際高度由 search.js 的 _gsSyncListMax() 依 visualViewport
+       逐次量測後以行內樣式覆蓋——vh 量不到虛擬鍵盤佔掉的空間。 */
+    max-height:46vh;
     box-shadow:0 10px 28px rgba(0,0,0,.45);
   }
   .gs-row {

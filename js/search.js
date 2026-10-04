@@ -19,6 +19,31 @@ function _syncHdrH() {
   if (el) document.documentElement.style.setProperty('--hdr-h', el.offsetHeight + 'px');
 }
 
+// 下拉的高度上限：量「表頭下緣」到「鍵盤或底部導覽列，誰先擋住」之間還剩多少。
+//
+// 原本寫 max-height:46vh，真機實測只看得到前 3 筆。兩個原因疊在一起：
+//   1. vh 不會因為虛擬鍵盤跳出來而變小，下拉以為自己有半個螢幕可用
+//   2. 底部導覽列是 position:fixed、z-index:100，直接壓在下拉上面
+//
+// 用 visualViewport 才量得到鍵盤佔掉多少。導覽列則直接量它自己的位置，
+// 不去猜鍵盤會不會把它推上來——Android 各家瀏覽器行為不一致（實測這台會推上來，
+// 但 resizes-visual 模式的瀏覽器不會），取兩者較小值兩種情況都成立。
+// 不支援 visualViewport 時退回 innerHeight；CSS 那層也留著 46vh 當最後防線。
+function _gsSyncListMax() {
+  const list = document.getElementById('gsearchList');
+  const hdr  = document.querySelector('.app-hdr');
+  if (!list || !hdr) return;
+  const vv = window.visualViewport;
+  const viewH = (vv && vv.height) ? vv.height : window.innerHeight;
+  const nav = document.querySelector('.bottom-nav');
+  // fixed 元素的 rect 是對版面視窗算的，可能超出可視視窗，所以取小的那個
+  const floor = nav ? Math.min(viewH, nav.getBoundingClientRect().top) : viewH;
+  const avail = floor - hdr.getBoundingClientRect().bottom - 10;   // 留 10px 喘息
+  list.style.maxHeight = Math.max(132, Math.round(avail)) + 'px';  // 至少露 3 筆
+}
+
+function _gsSyncAll() { _syncHdrH(); _gsSyncListMax(); }
+
 function _gsFmtChg(e) {
   const p = e.change_pct;
   if (p == null) return '';
@@ -56,6 +81,7 @@ function gsSearch() {
   // 開始查別的就把舊結果收掉，不然面板會壓著下拉
   gsClosePanel();
   if (!q) { list.hidden = true; list.innerHTML = ''; _gsRows = []; return; }
+  _gsSyncListMax();   // 鍵盤可能已經開著，先量一次再顯示
 
   // 同分再用成交量排，常被交易的排前面
   const hits = (ETFS || [])
@@ -155,5 +181,14 @@ document.addEventListener('click', function (ev) {
   }
 });
 
-window.addEventListener('resize', _syncHdrH);
-_syncHdrH();
+// 旋轉時 resize 有機會在版面定下來之前就觸發，量到舊尺寸，
+// 所以同一次事件算兩遍（當下一遍、下一個繪製影格再一遍）。
+function _gsOnResize() { _gsSyncAll(); requestAnimationFrame(_gsSyncAll); }
+window.addEventListener('resize', _gsOnResize);
+window.addEventListener('orientationchange', _gsOnResize);
+// 鍵盤開合只會動 visualViewport，window 的 resize 不一定會發
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', _gsSyncAll);
+  window.visualViewport.addEventListener('scroll', _gsSyncAll);
+}
+_gsSyncAll();

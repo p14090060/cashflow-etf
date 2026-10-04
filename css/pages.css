@@ -78,6 +78,12 @@
      表頭高度會隨狀態列字數變動，所以由 search.js 的 _syncHdrH() 量完寫進
      --hdr-h；fallback 的 104px 是 JS 還沒跑到時的近似值 */
   .rank-sticky   { position:sticky; top:var(--hdr-h, 104px); z-index:10; background:var(--bg); padding-bottom:4px; }
+  /* 矮螢幕（手機橫向約 350px 高）不要黏。真機實測：全站搜尋表頭 ~100px
+     ＋ 這塊 ~140px ＋ 底部導覽 62px ≈ 300px，整個排行清單一列都看不到。
+     寧可讓這塊捲走，也要讓使用者看得到排行內容。 */
+  @media (max-height: 520px) {
+    .rank-sticky { position:static; }
+  }
   .rank-caveat   { font-size:13px; color:var(--dim); margin-bottom:8px; line-height:1.5; }
   .rank-caveat b { color:var(--fair); }
   .rank-find     { position:relative; margin-bottom:6px; }
