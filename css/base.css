@@ -118,7 +118,7 @@
   body.gs-ckm .bottom-nav { display:none; }
   body.gs-ckm #gsPanel { display:none; }
   body.gs-ckm .gsearch-bar { padding-top:0; padding-bottom:4px; }
-  body.gs-ckm .gsearch-bar input { font-size:17px; padding-top:6px; padding-bottom:6px; }
+  body.gs-ckm .gsearch-bar input { font-size:17px; height:28px; line-height:28px; padding-top:0; padding-bottom:0; }
   body.gs-ckm .gs-row { padding:6px 12px; }
   body.dt-collapsed .app-hdr { display:none; }
   body.dt-collapsed #gsPanel { top:0; }
