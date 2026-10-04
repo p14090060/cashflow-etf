@@ -1,6 +1,106 @@
 # AI_HANDOFF — Claude × Codex 交接本
 
-## 協作協定
+## 0. 目前唯一有效狀態（Compact 後先讀這一節）
+
+Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 狀態」繼續。不要重新做產品規劃，不要重新開啟已標示 RESOLVED 的 blocker。
+
+### 0.1 專案與階段
+
+- 專案：ETF 存股雷達（`c:\專案\etf`）。靜態 PWA，部署於 GitHub Pages。傳統 `<script>`，無 build，無框架。
+- Phase 0–2：已完成（由 Product Owner 確認）。
+- **Phase 2：VERIFIED / CLOSED。** Verified functional baseline：`1958cdc0`。封版文件：`74c61106`。已 push。
+- **Phase 3 Plan：Rev.3.3，commit `8326f465`。** Codex 最終結論：**PASS FOR CODING AFTER PRODUCT DECISIONS**。
+- **Phase 3 Resync blocker：RESOLVED**（Rev.3.3 已通過）。
+- **Phase 3：APPROVED FOR CODING。**
+- **Phase 3 Coding commit：`99ec4b14`。** 本機，尚未 push。遠端 `origin/main` 之後，本機領先 7 個 commit（Plan Rev.1～Rev.3.3 與 Coding）。
+
+### 0.2 Product Owner 最終決策（不要重新詢問）
+
+- **00920 富邦ESG綠色電力、00923 群益台ESG低碳50、009809 富邦淨零ESG50 → 主題型。** 依一般使用者瀏覽時的直覺歸類。不建立僅為 00920 的名稱覆寫。
+- **自選：Phase 3 僅做空狀態頁**「我的自選／自選 ETF 功能即將開放」。收藏、取消收藏、localStorage、排序等完整功能留到 Phase 4。
+- D11–D13、D15–D17：採 Plan 預設，不需再詢問。
+- **未決（PO 之後決定，不阻擋 Codex 審查）**：LR-4。844×170 鍵盤開啟時，全站免責 `.disclaimer`（85px，Phase 1 既有、法遵內容）是否在鍵盤模式隱藏。隱藏會改變 Phase 1 已驗證行為，因此未擅自修改。
+
+### 0.3 Phase 3 核心產品原則
+
+- 「**分類是拿來逛的，搜尋是拿來找的。**」分類服務不知道要找哪一檔的新手；搜尋服務已知代碼或名稱，或不知道歸類的人。不要為了讓分類解決所有交叉屬性而把規則做得過度複雜。
+- **8 個 TAB 資料夾分類**：桌面式堆疊，左右各 4 份，有堆疊感，8 個 TAB 都必須能辨識。點選後：選定資料夾抽出 → 放大打開 → 顯示 ETF 清單；其他資料夾退至次要位置。動畫約 200–300ms，支援 prefers-reduced-motion。
+- **Bottom Navigation 固定：首頁｜分類｜自選｜工具。** 不新增第 5、第 6 個主導覽。
+  - 配息、排行 → 工具（子頁）。
+  - 主動式 ETF → 分類 → 主動式（持股異動為分段）。
+  - YouTube 頻道 → 工具底部連結，並保留首頁適當入口。
+- 八個資料夾維持單一歸屬。高股息資料夾 22 檔與搜尋「高股息」約 76 檔可以共存，不要求一致。資料夾說明用「主要以高股息策略為特色的 ETF」。
+- 不新增高股息標籤篩選器。不 hard-code 示意 ETF。分類內容由實際 `market.json` 產生。
+
+### 0.4 工作流程
+
+- **Claude = implementation**：寫程式、測試、文件、commit。
+- **Codex = code review / QA**：審查 commit，指出 blocker，驗證測試。
+- **Product Owner（怡恩）= 產品決策與真機測試。**
+- **Coding 完成後先交 Codex**，不直接要求 Product Owner 測試。Codex 通過後，才由 Claude 提供 Product Owner 真機測試步驟（逐步操作，附 PASS／FAIL 判準）。
+- 不 push，除非 Product Owner 明確要求。
+- 不擴張 scope。不因測試方便而降低或刪除既有行為驗證。
+
+### 0.5 Phase 3 Coding 狀態（目前）
+
+- **實作：完成**（commit `99ec4b14`）。內容見 `PHASE3_CHANGELOG.md`。
+- **自動測試**：
+  - 既有 Phase 1／2 回歸：detail_ui 42/42、detail_history_fix 14/14、regression 14/14、detail_collapse 25/25、search_compact 38/38，全部 PASS。
+  - 新增：router_test 64/64 PASS；category_test 82 PASS、0 FAIL、**2 DEFER**。
+  - 靜態：頂層名稱無重複；history API 只在 `js/router.js`；UI 程式無 ETF 代碼；無 `type="module"`。
+- **DEFER（不算 PASS）**：
+  - **LR-4**（844×170 鍵盤開，清單無法達 44px）：需 PO 決策（見 0.2）。Fallback 提示已放在可視區內的標題列。
+  - **LR-8**（offsetTop > 0）：headless 無法產生可視區平移，需 iPhone Chrome 真機補測。
+- **尚未完成的 acceptance（Plan §11.4 真機項目）**，Codex 通過後才交 PO：
+  1. 分類頁 8 個 TAB 都能辨識名稱。
+  2. 點頁籤後抽出開啟。
+  3. 查看更多直到全部顯示。
+  4. 切換代碼／名稱排序。
+  5. 點 ETF → Detail → 返回 → 返回資料夾 → 返回總覽。
+  6. 主動式資料夾切到持股異動並選一檔。
+  7. 橫向看 8 個 TAB 與清單。
+  8. iOS「減少動態效果」開啟時，點頁籤無滑動過場。
+  9. 工具頁進入配息、排行、頻道並返回。
+- **另需真機確認**：LR-8；R-N3（traversal 永不抵達時停在「處理中」，是否真的會發生）。
+
+### 0.6 Codex 下一步
+
+- **Code Review 對象**：commit `99ec4b14`，對照 `PHASE3_PLAN.md` Rev.3.3 與 `PHASE3_CHANGELOG.md`。
+- **重點審查**：
+  - `js/router.js` 狀態機（confirmed、inflight、orphan、parked、3 秒處理中）。
+  - `detail.js`、`boot.js`、`nav.js`、`render.js`、`flow.js` 的 history 委派與持股異動可見性、重繪。
+  - `js/category-rules.js` 與 `tests/fixtures/etf_203.json` 的一致性（16／22／32／20／78／21／6／8）。
+  - 測試政策：內部 state 斷言的改寫清單（changelog）是否屬於 v2 等價，行為斷言是否未被放寬。
+  - 2 項 DEFER 是否合理標示。
+
+### 0.7 已知限制（記錄，不是待辦）
+
+- LR-4：全站免責在鍵盤模式的空間（見 0.2）。
+- LR-8：需真機（見 0.5）。
+- R-N3：traversal 永不抵達的復原方式為重新整理（從實際 `history.state` 還原）。
+- base 切換以 replaceState 進行，關閉 Detail 後留下的 forward entry 仍存在（與 Phase 2 相同）。
+- ↻ 重新整理仍用 `location.replace`（Phase 2 既有限制：跨文件返回）。
+- 分類開啟動畫為簡化版（頁籤微抬起、主區淡入），未做完整幾何 FLIP。
+- 00850、00888、00928、00692 仍歸其他（PO 決策只涵蓋 00920、00923、009809）。
+- 工具頁與自選占位為靜態 HTML，未建立 Plan 中預計的 `js/tools.js`。
+
+### 0.8 測試環境（Compact 後需重建）
+
+- HTTP：在專案根目錄執行 `python -m http.server 8765 --bind 127.0.0.1`。
+- Chrome：`chrome --headless=new --remote-debugging-port=9223 --remote-allow-origins=* --user-data-dir=<獨立目錄>`。
+- 執行：`python tests/browser/<name>.py`。Windows 主控台需設定 `PYTHONIOENCODING=utf-8`。
+- 測試會讀取 `raw.githubusercontent.com` 的 `market.json`，需要網路。
+- 同一個 Chrome 分頁跨執行會保留 history 狀態。若遇到首次還原或計數異常，請換新的 `--user-data-dir`。
+- Phase 3 的 fixture 為 `tests/fixtures/etf_203.json`（期望分類由 Python 參照實作產生）。
+
+### 0.9 文件與 Git
+
+- 尚未 push：Phase 3 相關 7 個 commit。
+- 文件債（需 PO 決定是否更正，不阻擋 Phase 3）：`PHASE1_CHANGELOG.md`、`PHASE2_PLAN.md` 仍有 Android 字樣（例如 PLAN 的 G1 測試代號）。
+- 第 2 節的歷史紀錄全部已 RESOLVED，包括 Phase 2 blockers、Plan Rev.1～Rev.3.3 blockers、resync blocker、visualViewport、3 秒處理中、QA C7／C9 等。不要把它們當成目前待辦。
+
+
+## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
 - **Codex**：Reviewer / QA。
@@ -60,7 +160,11 @@
 - 下一位是 Claude，且 finding 已寫入本檔時，只告訴怡恩：「請叫 Claude 讀 AI_HANDOFF.md」，不要要求她人工轉述技術內容。
 - 下一位是怡恩時，必須提供完整操作步驟；缺少可操作的網址或必要資訊時，先明確說明缺少什麼，不把她留在無法操作的狀態。
 
-## 目前 Checkpoint
+## 2. 歷史紀錄（全部 RESOLVED，僅供追溯；不是待辦）
+
+> 以下所有 blocker、Findings、「待 Codex 複查」「Ready for Codex re-review」等字樣均已過時，已解決（RESOLVED）。它們不代表目前的待辦。目前狀態只以第 0 節為準。
+
+## 目前 Checkpoint（RESOLVED／歷史）
 
 | 項目 | 內容 |
 |---|---|
@@ -76,7 +180,7 @@
 | Plan 依據 | `PHASE2_PLAN.md` Rev. 3（GPT Final Gate 核准） |
 | Changelog | `PHASE2_CHANGELOG.md` |
 
-## 本輪 Blocker：延遲搜尋未在離開 Detail 時取消
+## 本輪 Blocker：延遲搜尋未在離開 Detail 時取消（RESOLVED／歷史）
 
 **問題**：按搜尋後有 300ms 延遲。若期間按 ✕、按 Back、或點搜尋列以外的地方，舊的延遲請求仍會開啟 Detail，或把下拉重新叫出來。`1ca7cf08` 只補了清除、改查、直接選取、切換分頁四種情況。
 
@@ -97,7 +201,7 @@
 
 **收合測試**：C7、C9 的前置條件修正見下方「測試結果」（commit `82dc1dde`）。
 
-## Round 1 修正（`bb9d59e6`）
+## Round 1 修正（`bb9d59e6`）（RESOLVED／歷史）
 
 - **Finding 1（Blocker）**：pending restore 可能在使用者已離開 Detail entry 後被延遲 callback 還原。
   - `_tryRestoreDetail()` 先清除 `_restoreCode`，且只在 `history.state` 仍是同代碼的 `etfDetail` entry 時還原。
@@ -106,7 +210,7 @@
 - **Finding 2（Risk）**：Back 關閉 Detail 時同步隱藏 `#gsearchList`（Rev.3 §6.6）。Phase 1 其他搜尋行為未改。
 - 瀏覽器回歸測試收入 `tests/browser/`，並補上上述兩項的測試。
 
-## 測試結果
+## 測試結果（RESOLVED／歷史）
 
 | 測試 | 結果 |
 |---|---|
@@ -134,7 +238,7 @@
 
 測試需要網路以讀取 `raw.githubusercontent.com` 的 market.json。
 
-## Codex Findings / Review Status
+## Codex Findings / Review Status（RESOLVED／歷史）
 
 | 編號 | 等級 | 狀態 |
 |---|---|---|
@@ -145,7 +249,7 @@
 
 **Ready for Codex re-review**（範圍 `369f3616..82dc1dde`）。
 
-## 真機環境更正（怡恩 2026-10-04）
+## 真機環境更正（怡恩 2026-10-04）（RESOLVED／歷史）
 
 - 今天實際真機測試的環境是 **iPhone + iOS + Google Chrome**，不是 Samsung／Android。
 - 文件中原本標為 Android、Samsung 的真機紀錄是誤歸類，已改寫為 iPhone + Chrome 的紀錄。若某一輪實際不是這台手機，請怡恩指出，再更正。
@@ -157,7 +261,7 @@
   3. **Samsung + Chrome**：相容性抽測，同樣只測關鍵流程。
 - QA 紀錄不得從截圖或上下文推測裝置、OS 或瀏覽器。只有怡恩明確確認的環境，才能標記為真機 PASS。
 
-## 真機驗收（第一輪，測試版本 bb9d59e6）
+## 真機驗收（第一輪，測試版本 bb9d59e6）（RESOLVED／歷史）
 
 | # | 項目 | 結果 | 說明 |
 |---|---|---|---|
@@ -175,7 +279,7 @@
 - Q1：詳細頁開著時，頂部區域怎麼處理？
 - Q2：↻ 按鈕要保留詳細頁，還是維持目前的關閉行為？
 
-## 真機驗收第二輪（修正 commit `0c679655`）
+## 真機驗收第二輪（修正 commit `0c679655`）（RESOLVED／歷史）
 
 | 項目 | 狀態 |
 |---|---|
@@ -191,7 +295,7 @@
 
 **Ready for Codex re-review**（範圍 `7a7831c8..0c679655`）。
 
-## Codex 複審結果（收合修正）與 Claude 修正（commit `9ece2c6d`）
+## Codex 複審結果（收合修正）與 Claude 修正（commit `9ece2c6d`）（RESOLVED／歷史）
 
 | 項目 | 狀態 |
 |---|---|
@@ -203,7 +307,7 @@
 
 **Ready for Codex re-review**（範圍 `6bf51c54..9ece2c6d`）。
 
-## iPhone + Google Chrome 真機回測（怡恩，測試版本 `b5af04c3`）
+## iPhone + Google Chrome 真機回測（怡恩，測試版本 `b5af04c3`）（RESOLVED／歷史）
 
 環境：怡恩確認為 **iPhone + iOS + Google Chrome**（iOS／Chrome 版本號未提供，未記錄）。測試網址為 `http://192.168.68.52:8080/index.html?r=b5af04c3`（HEAD `b5af04c3` 匯出，區網服務）。
 
@@ -219,7 +323,7 @@
 - 延遲取消（✕／返回／點外側）的 300ms 競態無法手動精準重現，由桌面自動測試 X5–X8 涵蓋；真機只確認主流程。
 - 本次回測屬於 iPhone + Chrome。**不代表** Samsung + Chrome 或 iPhone + Safari 的結果。
 
-## 最終相容性驗收（GPT Gate 彙整，2026-10-04）
+## 最終相容性驗收（GPT Gate 彙整，2026-10-04）（RESOLVED／歷史）
 
 | 環境 | 結果 | 說明 |
 |---|---|---|
@@ -229,35 +333,7 @@
 
 **Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
 
-## Phase 3 Coding（待 Codex Code Review）
-
-- 依據：`PHASE3_PLAN.md` Rev.3.3（Codex 最終 Review：PASS FOR CODING AFTER PRODUCT DECISIONS）。
-- PO 決策：D-ESG（00920、00923、009809 → 主題型）；D14（自選 = 空狀態頁「自選 ETF 功能即將開放」）；其他 D11–D13、D15–D17 依 Plan 預設。
-- Coding commit：見 `git log -1`（程式、測試、fixture、changelog、本檔同一個 commit）。**未 push。**
-- 變更與細節：`PHASE3_CHANGELOG.md`。
-
-**實作範圍**
-- 導覽：首頁／分類／自選／工具。配息、排行、頻道為工具子頁；持股異動為分類 → 主動式分段。
-- 分類：8 份文件夾（左右各 4）、展開清單（前 10、查看更多 +10、代碼／名稱排序）、次要標籤、低高度讓位、空與錯誤狀態。
-- Router：`js/router.js` 為唯一 history 管理者，依 Rev.3.3 狀態機（confirmed、inflight、orphan、parked、3 秒處理中）。Phase 2 Detail 語意保留。
-- 分類規則：`js/category-rules.js`（純函式），fixture 203 檔，分布 16／22／32／20／78／21／6／8。
-
-**測試（headless，CDP）**
-- 既有 Phase 1／2：detail_ui 42、detail_history_fix 14、regression 14、detail_collapse 25、search_compact 38，全部 PASS。
-- 新增：router 64／64 PASS；category 82 PASS、0 FAIL、2 DEFER。
-- 內部 state 斷言改寫為 v2 等價（列於 changelog）；行為斷言未放寬。
-
-**DEFER（不算 PASS，需決策或真機）**
-- LR-4：844×170 鍵盤開，清單無法達到 44px。全站免責（85px，Phase 1 既有）不在分類頁內。需決策是否在鍵盤模式隱藏全站免責（會改變 Phase 1 行為）。Fallback 提示已放在可視區內的標題列。
-- LR-8：headless 無法產生 offsetTop > 0；需 iPhone Chrome 真機補測（本次不要求）。
-
-**已知限制**：R-N3（traversal 永不抵達 → 處理中，靠重新整理復原，需真機確認）；base 切換 replace 造成舊 Detail 的 forward entry（與 Phase 2 相同）；↻ 仍為 `location.replace`；動畫為簡化版。
-
-**下一步**
-- Codex 做 Code Review（程式、測試、fixture、router 與 Plan Rev.3.3 的一致性）。
-- 目前不要求 Product Owner 真機測試。Codex 審查通過後，再由 Claude 整理真機操作步驟（含 LR-4、LR-8 的 DEFER 項目）。
-
-## Phase 2 封版狀態
+## Phase 2 封版狀態（RESOLVED／歷史）
 
 - **Phase 2：VERIFIED / CLOSED**（GPT Gate 通過）。Verified baseline（功能程式）：`1958cdc0`。
 - Codex 複審 `369f3616..b5af04c3`：PASS。
