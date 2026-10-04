@@ -39,6 +39,18 @@
 - Android 真機：手機鍵盤與 `visualViewport`、手勢返回、重整還原的實際畫面（G1–G3）。
 - iOS Safari：未實測，列為 Known Limitation。
 
+## Review 修正（Codex review of `6033ecb8`）
+
+- **Finding 1（Blocker）**：pending restore 可能在使用者已離開 Detail entry 後仍被延遲的 market／error callback 還原，造成 History 配對錯誤。
+  - `_tryRestoreDetail()` 先清除 `_restoreCode`，只有在 `history.state` 仍是同代碼的 `etfDetail` entry 時才還原。
+  - popstate 開頭一律取消 pending restore。
+  - 補測：pending restore 遇基底 entry 不開啟；popstate 取消 pending restore；真實 reload 後立即 Back 不留下 Detail。
+  - 註：Chrome 中 reload 後的 Back 會跨文件返回，舊文件的 pending 狀態隨之消失，本次未能以該路徑重現錯配。修正為 state 不變條件的防禦性守衛。
+- **Finding 2（Risk）**：Back 關閉 Detail 時搜尋下拉未收起。
+  - popstate 關閉 Detail 的分支同步隱藏 `#gsearchList`（Rev.3 §6.6）。
+  - 補測：Back 同時收起 Detail 與下拉，且只產生一次 popstate。
+- 瀏覽器測試腳本收入 `tests/browser/`，可由專案根目錄重跑（見 AI_HANDOFF.md）。
+
 ## 已知限制（依 Rev. 3）
 
 - `est` 與日期的同源判斷由 calendar 欄位推定，market.json 沒有 provenance 欄位。

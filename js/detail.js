@@ -345,10 +345,13 @@ function detailGoFlow(code) {
   openFlow(code);
 }
 
+// 只在「目前 entry 仍是那筆 etfDetail」時還原；已離開（例如先按了 Back）就直接取消。
 function _tryRestoreDetail() {
-  if (!_restoreCode) return;
   const code = _restoreCode;
   _restoreCode = null;
+  if (!code) return;
+  const st = history.state;
+  if (!(st && st.etfDetail && st.code === code)) return;
   openDetail(code, { fromHistory: true });
 }
 
@@ -363,6 +366,8 @@ function detailOnFlowUpdate() {
 }
 
 window.addEventListener('popstate', function (ev) {
+  // 任何 popstate 都代表使用者已離開重整前的那個 entry，尚未還原的 Detail 就此作廢
+  _restoreCode = null;
   if (_pendingPop > 0) {
     _pendingPop--;
     if (_pendingPop === 0 && _queuedOpen) {
@@ -374,7 +379,11 @@ window.addEventListener('popstate', function (ev) {
   }
   const st = ev.state;
   if (st && st.etfDetail) { openDetail(st.code, { fromHistory: true }); return; }
-  if (_detailOpen) { hideDetail(); _detailPushed = false; }
+  if (_detailOpen) {
+    hideDetail();
+    _detailPushed = false;
+    document.getElementById('gsearchList').hidden = true;
+  }
 });
 
 document.addEventListener('keydown', function (ev) {
