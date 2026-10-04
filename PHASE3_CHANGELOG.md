@@ -159,3 +159,21 @@
 ### 版本
 
 - `index.html` 資源版本號 `20261005g` → `20261005h`。
+
+## Codex 複審 Finding 1 修正（Detail scroll 被分類 snapshot 覆蓋）
+
+Codex 複審 `99ec4b14..8e3e59bb`：Finding 2（flow visualViewport）與 Finding 3（LR-8）RESOLVED；唯一待修為 Finding 1。
+
+- **路徑**：分類 → 市值型 → 0050 → 配息 → 捲動 120px → X 或 Esc 關閉 Detail → Forward，Detail 捲動變成資料夾的值（pre-fix 對照：40px，Codex 測得 0px）。
+- **原因**：`Category.snapshot()` 在導覽前呼叫 `Router.updateUi`，而 `updateUi` 一律寫入「目前頂層」。Detail 開著時頂層是 Detail 層，資料夾的捲動因此覆蓋 Detail 層的 ui 快取與 entry。
+- **修正**：
+  - `js/router.js`：`updateUi(patch, type)`、`setUi(patch, type)` 支援指定目標層型別；省略時仍為頂層（Detail 的寫入不變）。指定 `folder` 時寫入最上面那一個資料夾層。
+  - `js/category.js`：全部 5 處寫入（snapshot、清單捲動、代碼、排序、查看更多）改為 `Router.updateUi(..., 'folder')`，不再依賴「目前頂層是誰」。
+  - 前述 Browser Back → Forward 行為未改（DS-1～DS-8 全數通過）。
+- **測試**：`tests/browser/detail_state_test.py` 新增
+  - DS-9：X 關閉 → Forward → 原分頁（配息）與捲動（120px）還原；關閉時資料夾的排序、展開數、捲動保留。
+  - DS-10：Esc 關閉 → Forward → 原分頁（績效）與捲動（前置條件 > 0）還原。
+  - DS-11：分類 sort／expanded（shown）／scroll snapshot 在 Esc + Forward 之後仍正確；Detail 未開時的資料夾捲動仍寫入資料夾層。
+- **負向對照**：暫時還原 `8e3e59bb` 的 router 與 category，DS-9、DS-10 的 Forward 捲動都變成 40px（資料夾的捲動值，取代了 Detail 的 120px 與 52px），修正版 PASS。
+- **測試結果（修正版）**：Router 64/64、search_compact 38/38、detail_ui 42/42、detail_history_fix 14/14、regression 14/14、detail_collapse 25/25、category 91 PASS／0 FAIL／2 DEFER（LR-4、LR-8 真機，不變）、detail_state 42/42。
+- **未處理**：LR-4（PO 決策）。

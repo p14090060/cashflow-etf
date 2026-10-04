@@ -181,7 +181,7 @@ const Category = (function () {
     if (!open || open.view !== 'list' || !$('catList')) return;
     const v = $('catList').scrollTop;
     open.ui.scrollTop = v;
-    Router.updateUi({ scrollTop: v });
+    Router.updateUi({ scrollTop: v }, 'folder');
   }
 
   function refresh() {
@@ -201,7 +201,7 @@ const Category = (function () {
   function setFlowCode(code) {
     if (!open) return;
     open.ui = Object.assign({}, open.ui, { code: code });
-    Router.updateUi({ code: code });
+    Router.updateUi({ code: code }, 'folder');
   }
 
   function bind() {
@@ -223,7 +223,7 @@ const Category = (function () {
         if (!open) return;
         const next = open.ui.sort === 'name' ? 'code' : 'name';
         open.ui = Object.assign({}, open.ui, { sort: next, shown: 10 });
-        Router.updateUi({ sort: next, shown: 10 });
+        Router.updateUi({ sort: next, shown: 10 }, 'folder');
         refreshAll();
         return;
       }
@@ -232,7 +232,7 @@ const Category = (function () {
         const total = (groups && groups[open.key]) ? groups[open.key].length : 0;
         const shown = Math.min((open.ui.shown || 10) + 10, total);
         open.ui = Object.assign({}, open.ui, { shown: shown });
-        Router.updateUi({ shown: shown });
+        Router.updateUi({ shown: shown }, 'folder');
         renderList();
         fit();
         return;
@@ -245,7 +245,7 @@ const Category = (function () {
         if (!open || open.view !== 'list') return;
         const v = $('catList').scrollTop;
         open.ui.scrollTop = v;
-        Router.updateUi({ scrollTop: v });
+        Router.updateUi({ scrollTop: v }, 'folder');
       }, 150);
     }, { passive: true });
     window.addEventListener('resize', fit);

@@ -256,19 +256,28 @@ const Router = (function () {
     if (wasDetail && !_detailOpen) document.getElementById('gsearchList').hidden = true;
   });
 
+  // 寫入目標：type 省略時為頂層層（Detail 的 ui）；指定 type 時為最上面那一個同型別的層。
+  // 例：Detail 開著時分類仍要寫資料夾層的捲動／排序，不可寫進頂層的 Detail（Codex NEED FIX：snapshot 覆蓋 Detail scroll）。
+  function layerIndexOf(st, type) {
+    if (!type) return st.stack.length - 1;
+    for (let i = st.stack.length - 1; i >= 0; i--) if (st.stack[i].t === type) return i;
+    return -1;
+  }
   // 只更新記憶體與層快取，不寫 history（捲動等高頻事件用；由呼叫端決定何時 updateUi 寫入）
-  function setUi(patch) {
+  function setUi(patch, type) {
     if (!confirmed.stack.length) return null;
     const st = clone(confirmed);
-    const top = st.stack[st.stack.length - 1];
-    top.ui = Object.assign({}, top.ui || {}, patch);
-    uiCache[top.id] = clone(top.ui);
+    const idx = layerIndexOf(st, type);
+    if (idx < 0) return null;
+    const layer = st.stack[idx];
+    layer.ui = Object.assign({}, layer.ui || {}, patch);
+    uiCache[layer.id] = clone(layer.ui);
     confirmed = st;
     return st;
   }
-  // 更新並寫入當前 entry（R8：有 inflight 時只留在記憶體）
-  function updateUi(patch) {
-    const st = setUi(patch);
+  // 更新並寫入當前 entry（R8：有 inflight 時只留在記憶體）。整個 stack 都寫入，所以寫的是目標層，entry 結構不變。
+  function updateUi(patch, type) {
+    const st = setUi(patch, type);
     if (st && !inflight) writeCurrent(st);
   }
 

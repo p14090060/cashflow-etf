@@ -87,6 +87,56 @@ folder_ui = ev("JSON.stringify(Router.state().stack[0].ui)")
 check('DS-8 folder layer ui holds no Detail tab key', '"tab"' not in folder_ui, folder_ui)
 check('DS-8 folder layer ui not polluted by Detail scroll (folder list scroll unchanged)', ev("Router.state().stack[0].ui.scrollTop") in (0, None), folder_ui)
 
+# ── DS-9～DS-11（Codex NEED FIX）：分類 → 市值型 → 0050 → 配息 → 捲動 120 → X／Esc 關閉 → Forward ──
+# 關閉 Detail 前，分類的 snapshot 寫的是資料夾層，不可覆蓋 Detail 層的 tab／捲動。
+def close_x():
+    ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(320)
+def close_esc():
+    ev("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); true"); wait_ms(320)
+def folder_ui(): return ev("JSON.stringify(Router.state().stack[0].ui)")
+
+close_all()
+ev("document.getElementById('nav-cat').click(); true"); wait_ms(250)
+ev("document.querySelector('.cat-band[data-k=\"mcap\"]').click(); true"); wait_ms(400)
+check('DS-9 setup: 市值型 folder open', stack_types() == 'folder' and ev("Router.state().stack[0].key") == 'mcap', stack_types())
+ev("document.getElementById('catSortBtn').click(); true"); wait_ms(120)
+ev("document.getElementById('catMore').click(); true"); wait_ms(150)
+check('DS-9 setup: sort=name and all 16 rows shown', ev("Router.state().stack[0].ui.sort") == 'name' and ev("document.querySelectorAll('#catList .cat-row').length") == 16, folder_ui())
+ev("document.getElementById('catList').scrollTop = 40; true"); wait_ms(300)
+list_scroll = ev("document.getElementById('catList').scrollTop")
+check('DS-9 precondition: folder list scrolled (~40px)', list_scroll > 0, list_scroll)
+ev("document.querySelector('#catList .cat-row[data-code=\"0050\"]').click(); true"); wait_ms(280)
+check('DS-9 Detail 0050 opened from folder row', stack_types() == 'folder,detail' and top_code() == '0050', stack_types())
+ev("detailTab('dividend'); true"); wait_ms(120)
+set_scroll(120)
+p9 = panel_top()
+check('DS-9 precondition: Detail tab 配息, scroll ~120px', pane_tab() == 'dividend' and p9 > 0 and abs(p9 - 120) <= 6, (pane_tab(), p9))
+
+close_x()
+check('DS-9 X closes Detail only; folder keeps sort/shown/scroll', stack_types() == 'folder' and not detail_open()
+      and ev("Router.state().stack[0].ui.sort") == 'name' and ev("Router.state().stack[0].ui.shown") == 16
+      and abs(ev("Router.state().stack[0].ui.scrollTop") - list_scroll) <= 2, folder_ui())
+pop_fwd()
+check('DS-9 X → Forward: Detail 0050 restored', detail_open() and top_code() == '0050' and stack_types() == 'folder,detail', stack_types())
+check('DS-9 X → Forward: original tab 配息 restored', pane_tab() == 'dividend', pane_tab())
+check('DS-9 X → Forward: original Detail scroll restored (not 0)', abs(panel_top() - p9) <= 2, (panel_top(), p9))
+
+ev("detailTab('perf'); true"); wait_ms(120)
+set_scroll(90)
+p10 = panel_top()
+check('DS-10 precondition: Detail tab 績效 scrolled (> 0px)', pane_tab() == 'perf' and p10 > 0, (pane_tab(), p10))
+close_esc()
+check('DS-10 Esc closes Detail only; folder kept', stack_types() == 'folder' and not detail_open(), stack_types())
+pop_fwd()
+check('DS-10 Esc → Forward: Detail 0050 restored', detail_open() and top_code() == '0050', top_code())
+check('DS-10 Esc → Forward: original tab 績效 restored', pane_tab() == 'perf', pane_tab())
+check('DS-10 Esc → Forward: original Detail scroll restored (not 0)', abs(panel_top() - p10) <= 2, (panel_top(), p10))
+
+close_esc()
+check('DS-11 folder sort/expanded/scroll intact after Esc+Forward cycle', stack_types() == 'folder' and ev("Router.state().stack[0].ui.sort") == 'name' and ev("Router.state().stack[0].ui.shown") == 16 and abs(ev("Router.state().stack[0].ui.scrollTop") - list_scroll) <= 2 and ev("document.querySelectorAll('#catList .cat-row').length") == 16, folder_ui())
+ev("document.getElementById('catList').scrollTop = 70; true"); wait_ms(300)
+check('DS-11 folder scroll change (no Detail open) is stored in the folder layer', abs(ev("Router.state().stack[0].ui.scrollTop") - 70) <= 2 and 'tab' not in folder_ui(), folder_ui())
+
 check('no uncaught exceptions', len([e for e in events if e.get('method') == 'Runtime.exceptionThrown']) == 0)
 fails = [r for r in results if r[1] is False]
 print('\nTOTAL %d  PASS %d  FAIL %d' % (len(results), len(results) - len(fails), len(fails)))
