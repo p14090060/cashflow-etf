@@ -101,3 +101,61 @@
 - 不新增高股息標籤篩選器；不改全站搜尋比對規則；不改資料 pipeline；不做 Phase 4 的自選功能。
 - 不修改 1px 等外觀細節。
 - 不 push。
+
+## Codex 複審修正（針對 `99ec4b14`，NEED FIX）
+
+依 Codex 的三項必修，範圍不擴張；LR-4 未改；不隱藏免責聲明；Phase 1 行為未改。
+
+### 1. Detail 分頁與捲動在 Back → Forward 後還原（RT-2）
+
+- **問題**：分頁切換與捲動沒有記進 history，Forward 回到 Detail 時分頁變回總覽、捲動歸零（pre-fix 對照：Forward 後分頁為 overview）。
+- **修正**：
+  - `js/router.js`：每個層加上穩定 `id`；新增 `setUi`（只更新記憶體與層快取，不寫 history）；`updateUi` 改為 `setUi` + 寫入。popstate 時以層快取覆蓋 entry 內的舊 ui。捲動等高頻事件先進快取，因此「捲動後立刻 Back」也拿得到最新值。
+  - `js/detail.js`：`detailShow(code, ui)` 依層自己的 ui 還原分頁與捲動（先渲染內容，再設定捲動）。分頁切換立即寫入 history；捲動先寫快取，history 寫入合併為 150ms；`pagehide` 時 flush。只有頂層是同一檔 Detail 時才寫入。
+  - 切換另一檔（replace）沿用分頁、捲動歸零（Phase 2 語意不變）。
+- **測試**：新增 `tests/browser/detail_state_test.py`（DS-1～DS-8，26 項）。涵蓋 Codex 指定情境（0050／配息／捲動 120px → Back → Forward）、Back 後立刻 Forward（快取路徑）、重新整理後還原、切換另一檔、資料夾之上的 Detail、資料夾層 ui 不被污染。
+- **負向對照**：暫時還原 `99ec4b14` 的 router／detail，DS 共 8 項 FAIL（DS-1、DS-2、DS-4、DS-5、DS-6、DS-7 等），確認測試會抓到這個 bug。
+
+### 2. Flow 的 visualViewport 重繪（§9.2 F-d）
+
+- **問題**：`flow.js` 只聽 `window.resize`；鍵盤開合與可視區平移時，持股異動不會重繪。
+- **修正**：`js/flow.js` 新增 `flowRedrawIfVisible`，掛在 `resize`、`orientationchange`、`visualViewport` 的 `resize` 與 `scroll`。只有持股異動可見時才重繪（`Category.isFlowVisible()`）。
+- **測試**：`tests/browser/category_test.py` 新增 FD-1～FD-6：visualViewport resize／scroll、orientationchange、window resize 各重繪一次；清單可見時不重繪；390→360 真實縮放後 treemap 寬度跟隨容器、格子不溢出。
+- **負向對照**：pre-fix 的 flow.js 下 FD-1～FD-4 FAIL，修正後 PASS。
+
+### 3. LR-8 驗收測試（§11.6 B、C）
+
+- **問題**：舊測試只檢查 `offsetTop > 0`，偏移存在就算數，沒有驗證可視交集、遮擋與恢復。
+- **修正**：`tests/browser/category_test.py` 的 LR-8 區塊重寫。
+  - 先在鍵盤狀態（gs-ckm）下產生偏移。
+  - **若 `offsetTop > 0`**：檢查搜尋框在 `[offsetTop, offsetTop+height]` 內的可視高度 ≥ 12px；可視區中心點 `elementFromPoint` 命中搜尋框；可視的標題列與導覽列沒有被遮住；無水平捲動。恢復後檢查 `offsetTop` 回到 0、gs-ckm 解除、strip／清單／導覽恢復、清單捲動位置保留。
+  - **若 `offsetTop == 0`（目前 headless 的狀況）**：標示 DEFER，detail 寫明已嘗試的方法與結果。
+  - **SELF-TEST（stub）**：以 stub 覆寫 `window.visualViewport`，驗證檢查邏輯的正反兩面（區域涵蓋搜尋框 → 判定可見且命中；區域在搜尋框下方 → 判定不可見）。這只證明檢查程式正確，**不是 LR-8 結果**，DEFER 不因此撤銷。
+- **已嘗試、無法產生 `offsetTop > 0`**（headless）：`Emulation.setPageScaleFactor` 2 倍 + 捲動手勢、`Input.synthesizePinchGesture`（touch 模擬）、`Emulation.setDeviceMetricsOverride` 的 `positionY`、`viewport`。`visualViewport` 皆無變化。另外 `index.html` 的 `user-scalable=no` 本來就不允許縮放。因此 LR-8 真實項目仍需 iPhone Chrome 真機。
+
+### 測試基礎設施
+
+- `detail_state_test.py` 與 `category_test.py` 開頭停用快取並重新載入。原因：`?v=` 版本號相同時，瀏覽器會拿到舊的 JS，負向對照會得到錯誤結果（第一次對照即因此失真，已改正）。
+
+### 測試結果（headless Chrome，fix 版）
+
+| 測試 | 結果 |
+|---|---|
+| `router_test.py` | 64 / 64 PASS |
+| `search_compact_test.py`（Phase 1 搜尋） | 38 / 38 PASS |
+| `detail_ui_test.py`（Phase 2） | 42 / 42 PASS |
+| `detail_history_fix_test.py`（Phase 2） | 14 / 14 PASS |
+| `regression_test.py`（Phase 2） | 14 / 14 PASS |
+| `detail_collapse_test.py`（Phase 2） | 25 / 25 PASS |
+| `category_test.py`（Phase 3） | 91 PASS，0 FAIL，**2 DEFER**（LR-4、LR-8 真機） |
+| `detail_state_test.py`（新增，DS） | 26 / 26 PASS |
+
+### DEFER（更新）
+
+- **LR-4**：不變。844×170 鍵盤開時清單實測 2px，全站免責 85px 不在分類頁內，等 PO 決策。
+- **LR-8**：headless 無法產生 `offsetTop > 0`。B、C 完整檢查已寫好，等 iPhone Chrome 真機實際鍵盤開啟時執行。目前只有 stub 自我檢查，不計為 PASS。
+- **R-N3**、**真機 §11.4 九項**：不變，待 Codex 複審通過後再交 PO。
+
+### 版本
+
+- `index.html` 資源版本號 `20261005g` → `20261005h`。

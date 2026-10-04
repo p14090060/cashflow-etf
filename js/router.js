@@ -27,14 +27,29 @@ const Router = (function () {
   let lastPage = null;
   const deferred = [];         // 測試用：被延後的 traversal
   const stats = { traversals: 0, completions: 0, parkedRuns: 0 };
+  // 層的 ui 快取（層 id → 最新 ui）。捲動等高頻 ui 變化先寫在這裡，history 寫入可以延後；
+  // popstate 時以快取為準，所以 Back 後立刻 Forward 也拿得到最新的分頁與捲動位置。
+  const uiCache = {};
+  let idSeq = 0;
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
+  function layerId() { idSeq++; return Date.now().toString(36) + '_' + idSeq; }
+  function withId(layer) { if (!layer.id) layer.id = layerId(); return layer; }
 
   // Phase 2 格式（{etfDetail, code}）與 null 都 normalize 為 v2；只修正當前 entry，不新增
   function normalize(st) {
-    if (st && st.v === 2 && BASES.indexOf(st.base) >= 0 && Array.isArray(st.stack)) return clone(st);
-    if (st && st.etfDetail) return { v: 2, base: 'home', stack: [{ t: 'detail', code: st.code, ui: {} }] };
+    if (st && st.v === 2 && BASES.indexOf(st.base) >= 0 && Array.isArray(st.stack)) {
+      const c = clone(st);
+      c.stack.forEach(withId);
+      return c;
+    }
+    if (st && st.etfDetail) return { v: 2, base: 'home', stack: [withId({ t: 'detail', code: st.code, ui: {} })] };
     return { v: 2, base: 'home', stack: [] };
+  }
+  // popstate 時以快取覆蓋 entry 內的舊 ui（entry 可能是較早寫入的版本）
+  function restoreUi(st) {
+    st.stack.forEach(l => { if (uiCache[l.id]) l.ui = clone(uiCache[l.id]); });
+    return st;
   }
 
   function sameLayer(a, b) {
@@ -80,7 +95,7 @@ const Router = (function () {
     const folder = (!layersPending && st.base === 'cat') ? (st.stack.find(l => l.t === 'folder') || null) : null;
     if (typeof Category !== "undefined") Category.applyFolder(folder);
     const det = (!layersPending) ? (st.stack.filter(l => l.t === 'detail').pop() || null) : null;
-    if (det) detailShow(det.code);
+    if (det) detailShow(det.code, det.ui);
     else if (_detailOpen) hideDetail();
   }
 
@@ -90,10 +105,11 @@ const Router = (function () {
       const top = c.stack[c.stack.length - 1];
       if (top && top.t === 'detail') {
         if (top.code === code) return null;                       // 相同：不動
-        const rep = { t: 'detail', code: code, ui: {} };          // 切換另一檔：replace
+        // 切換另一檔：replace；分頁沿用（Phase 2 語意），捲動歸零
+        const rep = withId({ t: 'detail', code: code, ui: { tab: (top.ui && top.ui.tab) || 'overview', scrollTop: 0 } });
         return { base: c.base, stack: c.stack.slice(0, -1).concat([rep]), replaceTop: rep };
       }
-      return { base: c.base, stack: c.stack.concat([{ t: 'detail', code: code, ui: {} }]) };   // 未開啟：push
+      return { base: c.base, stack: c.stack.concat([withId({ t: 'detail', code: code, ui: {} })]) };   // 未開啟：push
     };
   }
   function intentClose(type) {
@@ -105,7 +121,7 @@ const Router = (function () {
   }
   function intentFolder(key) {
     return function (c) {
-      const f = { t: 'folder', key: key, view: 'list', ui: { sort: 'code', shown: 10, scrollTop: 0 } };
+      const f = withId({ t: 'folder', key: key, view: 'list', ui: { sort: 'code', shown: 10, scrollTop: 0 } });
       const top = c.stack[c.stack.length - 1];
       if (c.base === 'cat' && c.stack.length === 1 && top.t === 'folder') {
         if (top.key === key) return null;
@@ -118,14 +134,14 @@ const Router = (function () {
     return function (c) {
       const top = c.stack[c.stack.length - 1];
       if (!top || top.t !== 'folder' || top.view === view) return null;
-      const f = clone(top); f.view = view;
+      const f = clone(top); f.view = view; f.id = layerId();     // 被 replace 的層換新 id，避免共用舊快取
       return { base: c.base, stack: c.stack.slice(0, -1).concat([f]), replaceTop: f };
     };
   }
   function intentBase(spec) {
     return function (c) {
       if (spec.flow) {
-        const f = { t: 'folder', key: 'active', view: 'flow', ui: { sort: 'code', shown: 10, scrollTop: 0, code: spec.code || null } };
+        const f = withId({ t: 'folder', key: 'active', view: 'flow', ui: { sort: 'code', shown: 10, scrollTop: 0, code: spec.code || null } });
         const top = c.stack[c.stack.length - 1];
         if (c.base === 'cat' && c.stack.length === 1 && top.t === 'folder' && top.key === 'active') {
           if (sameLayer(top, f)) return null;
@@ -133,7 +149,7 @@ const Router = (function () {
         }
         return { base: 'cat', stack: [f] };
       }
-      if (spec.tool) return { base: 'tools', stack: [{ t: 'tool', id: spec.tool, ui: {} }] };
+      if (spec.tool) return { base: 'tools', stack: [withId({ t: 'tool', id: spec.tool, ui: {} })] };
       return { base: spec.base, stack: [] };
     };
   }
@@ -217,7 +233,7 @@ const Router = (function () {
   window.addEventListener('popstate', function (ev) {
     cancelPendingSearch();                        // Phase 2 Blocker：Back 後不得執行延遲中的搜尋送出
     const wasDetail = _detailOpen;
-    const c = normalize(ev.state);
+    const c = restoreUi(normalize(ev.state));
     if (!ev.state || ev.state.v !== 2) history.replaceState(clone(c), '');   // 修正當前 entry，不新增
     if (!inflight) {
       confirmed = c;
@@ -240,13 +256,20 @@ const Router = (function () {
     if (wasDetail && !_detailOpen) document.getElementById('gsearchList').hidden = true;
   });
 
-  function updateUi(patch) {
-    if (!confirmed.stack.length) return;
+  // 只更新記憶體與層快取，不寫 history（捲動等高頻事件用；由呼叫端決定何時 updateUi 寫入）
+  function setUi(patch) {
+    if (!confirmed.stack.length) return null;
     const st = clone(confirmed);
     const top = st.stack[st.stack.length - 1];
     top.ui = Object.assign({}, top.ui || {}, patch);
-    if (inflight) { confirmed = st; return; }     // R8：只留在記憶體
-    writeCurrent(st);
+    uiCache[top.id] = clone(top.ui);
+    confirmed = st;
+    return st;
+  }
+  // 更新並寫入當前 entry（R8：有 inflight 時只留在記憶體）
+  function updateUi(patch) {
+    const st = setUi(patch);
+    if (st && !inflight) writeCurrent(st);
   }
 
   function closeType(type) { navigate(intentClose(type)); }
@@ -301,6 +324,7 @@ const Router = (function () {
     toBase: function (spec) { navigate(intentBase(spec)); },
     openFlow: function (code) { navigate(intentBase({ flow: true, code: code })); },
     updateUi: updateUi,
+    setUi: setUi,
     onMarketUpdate: onMarketUpdate,
     onDataError: onDataError
   };

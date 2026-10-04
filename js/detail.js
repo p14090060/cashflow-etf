@@ -332,21 +332,54 @@ function closeDetail() {
   Router.closeDetail();
 }
 
-// 只由 router 的 apply() 呼叫：依已確認的 detail 層顯示
-function detailShow(code) {
+// 只由 router 的 apply() 呼叫：依已確認的 detail 層顯示。
+// ui 是該層自己記住的狀態（tab、scrollTop）；同一檔已開著時保留畫面上的即時狀態。
+function detailShow(code, ui) {
+  const u = ui || {};
+  if (_detailOpen && code === _curEtfCode) {
+    detailPatch();
+    _dtSyncCollapse();
+    return;
+  }
   if (!_detailOpen) {
-    _detailTab = 'overview';
     _curEtfCode = code;
+    _detailTab = u.tab || 'overview';
     _dtBuild();
-    _dtEl('gsPanel').scrollTop = 0;
     _dtEl('gsPanel').hidden = false;
     _detailOpen = true;
-  } else if (code !== _curEtfCode) {
+  } else {
     _curEtfCode = code;
-    _dtEl('gsPanel').scrollTop = 0;
+    _detailTab = u.tab || 'overview';
   }
-  detailPatch();
+  _dtEl('gsPanel').scrollTop = 0;
+  detailPatch();                                  // 內容要先長出來，捲動位置才夾得住
+  _dtEl('gsPanel').scrollTop = u.scrollTop || 0;
   _dtSyncCollapse();
+}
+
+// 目前頂層是不是這一檔的 Detail 層（只有這時才寫 ui，避免把捲動寫到別的層）
+function _dtIsMyLayer() {
+  if (!_detailOpen || typeof Router === 'undefined') return false;
+  const st = Router.state();
+  const top = st.stack[st.stack.length - 1];
+  return !!top && top.t === 'detail' && top.code === _curEtfCode;
+}
+
+// 把分頁與捲動記進目前 Detail 層，Back → Forward 時還原。
+// 捲動是高頻事件：先更新記憶體快取（Router.setUi），history 寫入合併成 150ms 一次；
+// flush=true 立即寫入（分頁切換、離開頁面前）。
+let _dtSaveTimer = null;
+function _dtSaveUi(flush) {
+  if (!_dtIsMyLayer()) return;
+  const patch = { tab: _detailTab, scrollTop: _dtEl('gsPanel').scrollTop };
+  if (flush) {
+    clearTimeout(_dtSaveTimer); _dtSaveTimer = null;
+    Router.updateUi(patch);
+    return;
+  }
+  Router.setUi(patch);
+  clearTimeout(_dtSaveTimer);
+  _dtSaveTimer = setTimeout(() => _dtSaveUi(true), 150);
 }
 
 function hideDetail() {
@@ -363,6 +396,7 @@ function detailTab(k) {
   _detailTab = k;
   _dtSyncTabs();
   _dtSyncCollapse();
+  _dtSaveUi(true);
 }
 
 function detailGoFlow(code) {
@@ -380,4 +414,9 @@ function detailOnFlowUpdate() {
   detailPatch();
 }
 
-document.getElementById('gsPanel').addEventListener('scroll', _dtSyncCollapse, { passive: true });
+document.getElementById('gsPanel').addEventListener('scroll', function () {
+  _dtSyncCollapse();
+  _dtSaveUi(false);
+}, { passive: true });
+// 離開頁面（重新整理、關閉分頁）前，把還在等待合併的捲動寫入 history
+window.addEventListener('pagehide', function () { if (_dtSaveTimer) _dtSaveUi(true); });

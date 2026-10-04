@@ -1,6 +1,9 @@
-import sys, json, collections
+import sys, json, collections, time
 src = open('tests/browser/detail_ui_test.py', encoding='utf-8').read()
 exec(src.split("# ── T2 開啟 0050")[0])   # 載入頁面、helper、T0
+# 停用快取後重新載入：避免瀏覽器拿到舊的 js/*.js（同一個 ?v= 版本號會命中快取）
+cdp('Network.setCacheDisabled', {'cacheDisabled': True})
+cdp('Page.reload'); time.sleep(2.2); wait_ms(600)
 
 FX = json.load(open('tests/fixtures/etf_203.json', encoding='utf-8'))
 def set_view(w, h, orient):
@@ -85,6 +88,32 @@ ev("flowSelect('%s'); true" % fl_code); wait_ms(120)
 check('FLOW select stored in folder ui', ev("Router.state().stack[0].ui.code") == fl_code, fl_code)
 ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click(); return true; })()"); wait_ms(120)
 check('FLOW back to list segment', ev("Category.isFlowVisible()") is False)
+
+# ── FD（PHASE3_PLAN §9.2 F-d）：持股異動可見時，視窗、方向、visualViewport 事件都重繪；清單可見時不重繪 ──
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"flow\"]').click(); return true; })()"); wait_ms(300)
+ev("window.__rf = 0; window.__rfOrig = window.renderFlow; window.renderFlow = function(){ window.__rf++; return window.__rfOrig.apply(this, arguments); }; true")
+ev("visualViewport.dispatchEvent(new Event('resize')); true")
+check('FD-1 visualViewport resize redraws flow when visible', ev("window.__rf") == 1, ev("window.__rf"))
+ev("visualViewport.dispatchEvent(new Event('scroll')); true")
+check('FD-2 visualViewport scroll redraws flow when visible', ev("window.__rf") == 2, ev("window.__rf"))
+ev("window.dispatchEvent(new Event('orientationchange')); true")
+check('FD-3 orientationchange redraws flow when visible', ev("window.__rf") == 3, ev("window.__rf"))
+ev("window.dispatchEvent(new Event('resize')); true")
+check('FD-4 window resize redraws flow when visible', ev("window.__rf") == 4, ev("window.__rf"))
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click(); return true; })()"); wait_ms(150)
+ev("window.__rf = 0; true")
+ev("visualViewport.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('orientationchange')); true")
+check('FD-5 list view visible: visualViewport/orientation do not redraw flow', ev("window.__rf") == 0, ev("window.__rf"))
+ev("window.renderFlow = window.__rfOrig; true")
+set_view(390, 844, 'portraitPrimary')
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"flow\"]').click(); return true; })()"); wait_ms(300)
+w0 = ev("document.getElementById('treemap').clientWidth")
+set_view(360, 780, 'portraitPrimary'); wait_ms(400)
+w1 = ev("document.getElementById('treemap').clientWidth")
+fit_ok = ev("(function(){ const b=document.getElementById('treemap'); const W=b.clientWidth; const cs=[...b.querySelectorAll('.tm-cell')]; return cs.length>0 && cs.every(c => parseFloat(c.style.left)+parseFloat(c.style.width) <= W+1); })()")
+check('FD-6 resize 390→360: treemap follows container width and cells stay inside', w1 < w0 and fit_ok is True, (w0, w1, fit_ok))
+set_view(390, 844, 'portraitPrimary')
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click(); return true; })()"); wait_ms(150)
 
 # ── 從資料夾進入 Detail，返回後排序／已展開數／捲動保留 ──
 click('#catSortBtn')
@@ -179,17 +208,82 @@ check('LR-9 restore: strip visible again', ev("getComputedStyle(document.getElem
 check('LR-9 restore: category list visible', ev("!document.getElementById('catList').hidden && document.getElementById('catList').getBoundingClientRect().height > 0") is True)
 check('LR-9 restore: bottom nav visible', ev("getComputedStyle(document.querySelector('.bottom-nav')).display") != 'none')
 
-# LR-8：offsetTop > 0（前置條件：必須真的產生 offsetTop）
-cdp('Emulation.setPageScaleFactor', {'pageScaleFactor': 2})
-wait_ms(300)
-cdp('Input.synthesizeScrollGesture', {'x': 200, 'y': 400, 'yDistance': -260, 'gestureSourceType': 'touch', 'speed': 800})
-wait_ms(400)
+# ── LR-8（PHASE3_PLAN §11.6 B、C）：鍵盤開、可視區下移（visualViewport.offsetTop > 0）──
+# headless 目前產生不了 offsetTop > 0。已試過：setPageScaleFactor + 捲動手勢、pinch（touch 模擬）、
+# Emulation.setDeviceMetricsOverride 的 positionY／viewport；visualViewport 都沒有改變，
+# 且 index.html 的 user-scalable=no 本來就不允許縮放。所以真實 LR-8 只能 DEFER，需 iPhone Chrome 真機
+# （iOS 鍵盤開啟時會實際平移可視區）。
+# 下方 LR8_CHECK 是檢查邏輯，只能在 offsetTop > 0 時當成真實結果；目前另以 stub 自我檢查（SELF-TEST），
+# 那只證明檢查邏輯的正反兩面正確，不是 LR-8 的結果。
+LR8_CHECK = """(function(){
+  const vv = window.visualViewport;
+  const top = vv ? vv.offsetTop : 0;
+  const bot = vv ? vv.offsetTop + vv.height : innerHeight;
+  function part(el) {
+    if (!el || el.hidden || getComputedStyle(el).display === 'none') return null;
+    const r = el.getBoundingClientRect();
+    const t = Math.max(r.top, top), b = Math.min(r.bottom, bot);
+    return { h: Math.max(0, b - t), cx: (Math.max(r.left, 0) + Math.min(r.right, innerWidth)) / 2, cy: (t + b) / 2 };
+  }
+  // true＝可視區內中心點命中該元素；false＝被別的元素蓋住；null＝不在可視區內
+  function hit(el, p) {
+    if (!p || p.h <= 0) return null;
+    const e = document.elementFromPoint(p.cx, p.cy);
+    return !!e && (el === e || el.contains(e));
+  }
+  const s = document.getElementById('gsearch');
+  const ps = part(s);
+  const occluded = [];
+  ['.app-hdr', '.bottom-nav'].forEach(sel => {
+    const el = document.querySelector(sel);
+    const p = part(el);
+    if (p && p.h >= 12 && hit(el, p) === false) occluded.push(sel);
+  });
+  return {
+    offsetTop: top, visBottom: bot,
+    searchVisible: ps ? ps.h : 0,
+    searchNeed: Math.min(s.getBoundingClientRect().height, 12),
+    searchHit: hit(s, ps) === true,
+    occluded: occluded,
+    hScroll: document.documentElement.scrollWidth > innerWidth
+  };
+})()"""
+set_view(844, 170, 'landscapePrimary'); wait_ms(200)
+ev("(function(){ const i=document.getElementById('gsearch'); i.focus(); i.dispatchEvent(new Event('focus')); return true; })()"); wait_ms(300)
+check('LR-8 setup: keyboard state (gs-ckm on) at 844x170', ev("document.body.classList.contains('gs-ckm')") is True)
+lr8_scroll_before = ev("document.getElementById('catList').scrollTop")
+cdp('Emulation.setPageScaleFactor', {'pageScaleFactor': 2}); wait_ms(250)
+cdp('Input.synthesizeScrollGesture', {'x': 200, 'y': 120, 'yDistance': -120, 'gestureSourceType': 'touch', 'speed': 800}); wait_ms(400)
 off = ev("visualViewport ? visualViewport.offsetTop : 0")
 if isinstance(off, (int, float)) and off > 0:
-    check('LR-8 visualViewport.offsetTop > 0 (precondition met)', True, 'offsetTop=%s' % off)
+    r = ev(LR8_CHECK)
+    check('LR-8 B: search has ≥12px inside visible region [offsetTop, offsetTop+height]', r['searchVisible'] >= r['searchNeed'], r)
+    check('LR-8 B: elementFromPoint at visible search center hits the search input', r['searchHit'] is True, r)
+    check('LR-8 B: visible header/nav are not occluded', r['occluded'] == [], r['occluded'])
+    check('LR-8 B: no horizontal scroll', r['hScroll'] is False)
+    cdp('Emulation.setPageScaleFactor', {'pageScaleFactor': 1}); wait_ms(300)
+    ev("window.scrollTo(0,0); true"); wait_ms(200)
+    check('LR-8 C: visible region returns to offsetTop 0 after recovery', ev("visualViewport.offsetTop") == 0)
+    ev("(function(){ const i=document.getElementById('gsearch'); i.blur(); i.dispatchEvent(new Event('blur')); return true; })()"); wait_ms(400)
+    check('LR-8 C: gs-ckm removed after keyboard closes', ev("document.body.classList.contains('gs-ckm')") is False)
+    check('LR-8 C: strip, list and bottom nav visible again', ev("getComputedStyle(document.getElementById('catStrip')).display") != 'none' and ev("!document.getElementById('catList').hidden && document.getElementById('catList').getBoundingClientRect().height > 0") is True and ev("getComputedStyle(document.querySelector('.bottom-nav')).display") != 'none')
+    check('LR-8 C: list scroll position kept across the keyboard cycle', abs((ev("document.getElementById('catList').scrollTop") or 0) - (lr8_scroll_before or 0)) <= 2, (lr8_scroll_before, ev("document.getElementById('catList').scrollTop")))
 else:
-    defer('LR-8 offsetTop > 0 keyboard case (headless cannot pan visual viewport; needs iPhone Chrome real device)', 'offsetTop=%s' % off)
-cdp('Emulation.setPageScaleFactor', {'pageScaleFactor': 1})
+    cdp('Emulation.setPageScaleFactor', {'pageScaleFactor': 1}); wait_ms(200)
+    defer('LR-8 B/C keyboard offsetTop > 0 (headless cannot produce visualViewport offset; needs iPhone Chrome real device)', 'offsetTop=%s after pageScale 2 + scroll gesture; visualViewport unchanged' % off)
+
+# LR-8 SELF-TEST（stub，不是 LR-8 結果）：用 stub 的 visualViewport 驗證檢查邏輯的正反兩面
+def lr8_stub(off, h):
+    ev("(function(){ window.__vvSaved = Object.getOwnPropertyDescriptor(window, 'visualViewport'); Object.defineProperty(window, 'visualViewport', {configurable: true, get: function(){ return {offsetTop: %d, height: %d, width: innerWidth, scale: 1, offsetLeft: 0, pageTop: 0, pageLeft: 0}; }}); return true; })()" % (off, h))
+    r = ev(LR8_CHECK)
+    ev("(function(){ if (window.__vvSaved) Object.defineProperty(window, 'visualViewport', window.__vvSaved); else delete window.visualViewport; return true; })()")
+    return r
+ss = ev("(function(){ const s=document.getElementById('gsearch').getBoundingClientRect(); return {top: s.top, bottom: s.bottom}; })()")
+pos = lr8_stub(max(0, int(ss['top'])), 20)
+check('LR-8 SELF-TEST (stub): region starting at the search top → checker reports search visible and hit', pos['offsetTop'] == max(0, int(ss['top'])) and pos['searchVisible'] >= pos['searchNeed'] and pos['searchHit'] is True, pos)
+neg = lr8_stub(int(ss['bottom']) + 60, 20)
+check('LR-8 SELF-TEST (stub): region below the search → checker reports search NOT visible', neg['offsetTop'] == int(ss['bottom']) + 60 and neg['searchVisible'] < neg['searchNeed'], neg)
+ev("(function(){ const i=document.getElementById('gsearch'); i.blur(); i.dispatchEvent(new Event('blur')); return true; })()"); wait_ms(300)
 
 set_view(390, 844, 'portraitPrimary')
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']

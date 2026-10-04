@@ -284,7 +284,15 @@ function flowTap(idx) {
     '　' + (s.delta_shares > 0 ? '+' : '') + (s.delta_shares || 0).toLocaleString() + ' 股';
 }
 
-window.addEventListener('resize', () => {
+// PHASE3_PLAN §9.2 F-d：視窗尺寸、方向、visualViewport（鍵盤開關、可視區平移）變動時，持股異動可見就重繪。
+// 低高度時 treemap 的高度也會跟著變，只聽 window.resize 不夠。
+function flowRedrawIfVisible() {
   if (typeof Category !== "undefined" && Category.isFlowVisible()) renderFlow();
-});
+}
+window.addEventListener('resize', flowRedrawIfVisible);
+window.addEventListener('orientationchange', flowRedrawIfVisible);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', flowRedrawIfVisible);
+  window.visualViewport.addEventListener('scroll', flowRedrawIfVisible);
+}
 
