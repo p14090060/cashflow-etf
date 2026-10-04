@@ -2,8 +2,8 @@
 
 **日期**：2026-10-04
 **Baseline**：`2ec0cb17`（pre-UI verified）
-**本階段 commit**：`e674f8e2`（功能）、`9c5622b6`（實測後修正）
-**最終 SHA**：`9c5622b6`
+**本階段 commit**：`e674f8e2`（功能）、`9c5622b6`（桌面實測後修正）、`89e6641a`（真機實測後修正）
+**最終 SHA**：`89e6641a`
 
 ---
 
@@ -61,6 +61,90 @@
    `.rank-sticky` 原為 `top:0`、`z-index:10`，低於表頭的 50。
    → `_syncHdrH()` 於 load 與 resize 時量出表頭實際高度寫入 `--hdr-h`，
      `.rank-sticky` 改用該值。高度會隨狀態列字數變動，故用量測而非寫死。
+
+---
+
+## 真機測試後的修正（`89e6641a`）
+
+Android 實機測試（直向／橫向）發現兩項 FAIL，皆由 Phase 1 引入，已於本階段內修正。
+
+### FAIL 1 — 虛擬鍵盤彈出後，下拉只看得到前 3 筆
+
+**原因**（兩個疊加）
+
+1. `.gsearch-list` 的 `max-height:46vh` —— `vh` 不會因虛擬鍵盤而縮減，
+   下拉以為自己有半個螢幕可用。
+2. 底部導覽列是 `position:fixed`、`z-index:100`，直接壓在下拉上面，再被切一刀。
+
+**修正**
+
+新增 `_gsSyncListMax()`，用 `window.visualViewport` 取得鍵盤彈出後的實際可視高度，
+再取「可視視窗底部」與「底部導覽列上緣」兩者較小值當地板：
+
+```js
+const viewH = (vv && vv.height) ? vv.height : window.innerHeight;   // fallback
+const floor = nav ? Math.min(viewH, nav.getBoundingClientRect().top) : viewH;
+```
+
+不去猜鍵盤會不會把導覽列推上來——Android 各家瀏覽器行為不一致
+（測試機會推上來，`resizes-visual` 模式的瀏覽器不會），取 `min()` 兩種情況都成立，
+**未寫死任何裝置數值**。
+
+- fallback：`visualViewport` 不支援時退回 `window.innerHeight`；
+  CSS 的 `max-height:46vh` 保留為最後防線（JS 未執行時仍有上限）
+- 下限 132px，確保至少露得出 3 筆；下拉本身 `overflow:auto`，可內部捲動
+- 重算時機：`resize`、`orientationchange`（各算兩遍——當下一遍、
+  下一個繪製影格再一遍，因旋轉時 `resize` 可能在版面定下來前就觸發）、
+  `visualViewport` 的 `resize` 與 `scroll`（鍵盤開合只會動它，
+  `window.resize` 不一定發）、以及每次顯示下拉之前
+
+### FAIL 2 — 橫向模式下排行頁一列清單都看不到
+
+**原因**
+
+橫向視窗高約 350px，固定元素合計約 300px
+（全站搜尋表頭 ~100 ＋ `.rank-sticky` ~140 ＋ 底部導覽 62），僅餘約 50px。
+
+此問題由 Phase 1 引入：`.rank-sticky` 原本被表頭遮住而不可見，
+`e674f8e2` 修正其 `top` 使其正常顯示後，矮螢幕上反而把內容擠光。
+
+**修正**
+
+```css
+@media (max-height: 520px) { .rank-sticky { position:static; } }
+```
+
+寧可讓它捲走，也要讓排行內容看得到——未壓縮內容來保 sticky。
+直向（高度 > 520px）行為完全不變。
+
+### 一併處理
+
+搜尋框 `font-size` 15px → **16px**。iOS Safari 對字級 < 16px 的輸入框，
+聚焦時會自動放大頁面且不會縮回（`user-scalable=no` 自 iOS 10 起無效）。
+站上其他輸入框本來就都是 16px，這裡對齊。
+測試機為 Android 未重現，屬預防性修正。
+修正後全站所有 `input` 字級皆為 16px。
+
+### 複測結果（全部 PASS）
+
+**Android 真機**
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 1 | 直向＋鍵盤開啟＋搜尋 `0050` | PASS — 下拉完整顯示，未被鍵盤或導覽列裁切 |
+| 2 | 搜尋結果超過 3 筆（`高股息`，76 筆） | PASS — 下拉內部可捲動，8 筆皆可見 |
+| 3 | Bottom Nav 不遮搜尋結果 | PASS |
+| 4 | 關閉鍵盤後版面恢復 | PASS — 下拉高度跟著還原 |
+| 5 | 橫向排行頁 | PASS — 清單可見且可捲動 |
+| 6 | 轉回直向，排行頁 sticky | PASS — 恢復黏在搜尋列下方，行為未被破壞 |
+
+**桌面（regression 檢查）**
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 7 | 搜尋、開面板、關面板、Esc | PASS |
+| 8 | 排行頁捲動與 sticky | PASS |
+| 9 | Console | PASS — 無新增 JavaScript error |
 
 ---
 
@@ -126,7 +210,13 @@
    ETF 詳細頁提供，面板上已標示。
 5. **只比對 `market.json` 收錄的 203 檔**。未收錄的代碼回報查無，不做估算。
 6. `--hdr-h` 由 JS 於 load／resize 計算；若該段未執行，CSS fallback 為 104px。
-7. **未在實機手機上測試**，僅以桌面瀏覽器調整視窗寬度驗證。
+7. **真機測試僅涵蓋 Android**（直向＋橫向，含虛擬鍵盤）。
+   iOS 未實測；搜尋框字級已提升至 16px 以預防 Safari 聚焦自動放大，
+   但 iOS 的 `position:fixed` 於網址列伸縮時的行為仍未驗證。
+8. **橫向模式下可視內容仍然有限**。`.rank-sticky` 取消固定後可捲動，
+   但全站搜尋表頭（~100px）與底部導覽列（62px）仍為固定元素，
+   約 350px 高的橫向視窗剩約 190px 放內容。
+   若後續要再改善，可考慮矮螢幕時一併收合搜尋列。
 
 ---
 
@@ -134,7 +224,8 @@
 
 ```
 e674f8e2  feat(phase1): 全站搜尋
-9c5622b6  fix(phase1): 結果面板蓋住下拉；搜尋改為同時比對分類   ← 最終
+9c5622b6  fix(phase1): 結果面板蓋住下拉；搜尋改為同時比對分類
+89e6641a  fix(phase1): 修 Mobile 真機測出的兩項 FAIL              ← 最終
 ```
 
-回滾：`git revert 9c5622b6 e674f8e2`（baseline `2ec0cb17`）
+回滾：`git revert 89e6641a 9c5622b6 e674f8e2`（回到 baseline `2ec0cb17`）
