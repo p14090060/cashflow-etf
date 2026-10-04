@@ -6,6 +6,7 @@
 // 2026-10-03：初始值從 STATIC_ETFS（10 檔寫死假價格）改成空陣列。
 // 抓不到資料時寧可畫面空著並明說，也不要拿假資料充數。
 let ETFS = [];
+let CALENDAR = [];
 let selETF = ETFS.find(e => e.curated !== false) || ETFS[0];
 
 // ── Chip & calculator（只顯示精選 ETF，有準確配息資料）──

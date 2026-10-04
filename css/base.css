@@ -98,8 +98,7 @@
   .gs-empty{ padding:16px 14px; font-size:14px; color:var(--dim); line-height:1.7; text-align:center; }
   .gs-empty span { font-size:13px; opacity:.8; }
 
-  /* 結果面板：蓋在內容上，不動原本五個分頁的結構。
-     Phase 2 這塊會長成 ETF 詳細頁 */
+  /* ETF 詳細頁容器：蓋在內容上，不動原本五個分頁的結構。內容由 js/detail.js 注入 */
   .gs-panel {
     position:fixed; left:50%; transform:translateX(-50%);
     top:var(--hdr-h, 104px); bottom:var(--nav-h);

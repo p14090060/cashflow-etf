@@ -4,8 +4,10 @@
 //   HTML 裡有 15 個行內 onclick 需要這些函式掛在 window 上。
 // ── Bootstrap & reload ──
 function reloadData() {
-  window.location.href = window.location.pathname + '?v=' + Date.now();
+  window.location.replace(window.location.pathname + '?v=' + Date.now());
 }
+// 重整前若 Detail 開著，history.state 會帶著標記；交給 detail.js 在資料到位後還原
+_restoreCode = (history.state && history.state.etfDetail) ? history.state.code : null;
 let _pollTimer = null;
 // 排行榜要知道哪幾檔有 PCF 持股資料才能決定可不可點，所以開場先抓一次，
 // 回來後補畫一次排行（之後 30 秒輪詢的 renderRank 就都帶得到了）。
@@ -36,6 +38,7 @@ function showDataError(err) {
     box.hidden = false;
   }
   console.warn('[ETF] market.json 載入失敗：', err);
+  _tryRestoreDetail();
 }
 
 function hideDataError() {

@@ -216,3 +216,26 @@
   .site-footer a { color:#58a6ff; text-decoration:none; }
   .site-footer a:hover { text-decoration:underline; }
 
+  /* ── ETF 詳細頁（js/detail.js）── */
+  .dt-headrow { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  .dt-px { font-family:var(--mono); font-size:26px; font-weight:700; color:var(--bright); }
+  .dt-tabs { display:flex; gap:4px; margin:8px 0 12px; border-bottom:1px solid var(--border); }
+  .dt-tab { flex:1 1 0; min-width:0; padding:10px 2px; background:none; border:none;
+            border-bottom:2px solid transparent; color:var(--dim); font-size:15px; cursor:pointer; }
+  .dt-tab.on { color:var(--bright); font-weight:700; border-bottom-color:var(--cheap); }
+  .dt-tab[hidden], .dt-pane[hidden] { display:none; }
+  .dt-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+            padding:9px 0; border-bottom:1px solid var(--border); font-size:15px; }
+  .dt-lbl { color:var(--dim); flex:0 0 auto; }
+  .dt-val { text-align:right; color:var(--bright); font-family:var(--mono); min-width:0; overflow-wrap:anywhere; }
+  .dt-sub { font-family:var(--sans); font-size:13px; color:var(--dim); margin-top:2px; }
+  .dt-tag { display:inline-block; font-family:var(--sans); font-size:12px; color:var(--dim);
+            border:1px solid var(--border); border-radius:6px; padding:1px 6px; margin-left:4px; }
+  .dt-note { font-size:13px; color:var(--dim); line-height:1.6; margin:10px 0; }
+  .dt-sec  { font-size:15px; color:var(--bright); font-weight:700; margin:16px 0 6px; }
+  .dt-up { color:var(--up); }
+  .dt-dn { color:var(--dn); }
+  .dt-calc { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+  .dt-bars { padding-left:0; }
+  .dt-foot { font-size:12px; color:var(--dim); line-height:1.6; margin-top:16px; }
+

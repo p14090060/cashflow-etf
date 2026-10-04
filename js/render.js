@@ -35,6 +35,7 @@ function renderMood(market) {
 // ── renderAll：用資料渲染整頁 ──
 function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   ETFS = etfs;
+  CALENDAR = cal;
   const badge = document.getElementById('statusBadge');
   if (isHoliday) {
     badge.className = 'status-badge status-holiday';
@@ -189,5 +190,6 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   }).join('');
 
   renderRank();
+  detailOnMarketUpdate();
 }
 

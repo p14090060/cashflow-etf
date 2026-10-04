@@ -13,13 +13,16 @@ function _changedWithin(dateStr, days) {
   return (Date.now() - d.getTime()) / 86400000 <= days;
 }
 
+// loading / ok / failed：成分 Tab 只在 ok 時出現，loading 與 failed 都不顯示
+let _flowStatus = 'loading';
+
 function fetchFlow() {
   // 先試同源相對路徑（GitHub Pages 上最新、本機開檔也能測），失敗再退 raw
   const ok = r => { if (!r.ok) throw 0; return r.json(); };
   return fetch('data/active_flow.json?t=' + Date.now()).then(ok)
     .catch(() => fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/active_flow.json?t=' + Date.now()).then(ok))
-    .then(d => { _flowData = d; return d; })
-    .catch(() => null);
+    .then(d => { _flowData = d; _flowStatus = 'ok'; detailOnFlowUpdate(); return d; })
+    .catch(() => { _flowStatus = 'failed'; detailOnFlowUpdate(); return null; });
 }
 
 // Squarified treemap：把 items 依 value 填滿 (x,y,w,h)，盡量接近正方形

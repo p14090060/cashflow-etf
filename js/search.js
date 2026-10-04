@@ -7,7 +7,7 @@
 //     不另外寫一套，避免同一件事有兩種結果。
 //   * 只比對 ETFS 裡實際存在的檔。查無就說查無——不沿用 lookupToday() 那套
 //     「用代碼數字推算價格」的估算，那跟剛移除的寫死備援是同一類問題。
-//   * 結果面板之後會長成 ETF 詳細頁（Phase 2），所以版位先留好。
+//   * 選取後交給 detail.js 的 openDetail()，詳細頁共用 #gsPanel 容器。
 
 let _gsSel = -1;      // 下拉選取中的列（鍵盤上下鍵用）
 let _gsRows = [];     // 目前下拉顯示的 ETF
@@ -78,8 +78,6 @@ function gsSearch() {
   const q = (input.value || '').trim().toUpperCase();
   document.getElementById('gsearchClear').hidden = !q;
   _gsSel = -1;
-  // 開始查別的就把舊結果收掉，不然面板會壓著下拉
-  gsClosePanel();
   if (!q) { list.hidden = true; list.innerHTML = ''; _gsRows = []; return; }
   _gsSyncListMax();   // 鍵盤可能已經開著，先量一次再顯示
 
@@ -112,7 +110,7 @@ function gsSearch() {
 function gsKey(ev) {
   const list = document.getElementById('gsearchList');
   // Esc 一次收乾淨：下拉、輸入、結果面板都關掉
-  if (ev.key === 'Escape') { gsClear(); gsClosePanel(); return; }
+  if (ev.key === 'Escape') { gsClear(); closeDetail(); return; }
   if (!_gsRows.length || list.hidden) {
     if (ev.key === 'Enter') gsSearch();
     return;
@@ -142,34 +140,9 @@ function gsClear() {
 }
 
 function gsPick(code) {
-  const etf = (ETFS || []).find(e => e.code === code);
-  if (!etf) return;
+  if (!(ETFS || []).some(e => e.code === code)) return;
   document.getElementById('gsearchList').hidden = true;
-  document.getElementById('gsPanelTitle').innerHTML =
-    '<b>' + etf.code + '</b>　' + (etf.name || '');
-
-  // 有 PCF 持股資料的才給「看持股異動」，沒有的不要給一個點了沒東西的按鈕
-  const hasFlow = !!(typeof _flowData !== 'undefined' && _flowData
-                     && _flowData.etfs && _flowData.etfs[etf.code]);
-  document.getElementById('gsPanelBody').innerHTML =
-    renderSignalCard(etf, false)
-    + (hasFlow
-        ? '<button class="gs-flow-btn" onclick="gsGoFlow(\'' + etf.code + '\')">'
-          + '看這檔的持股異動 ›</button>'
-        : '')
-    + '<div class="gs-note">Phase 1 先顯示價格訊號。完整的配息、績效、成分資料'
-    + '將在 ETF 詳細頁（下一階段）提供。</div>';
-  document.getElementById('gsPanel').hidden = false;
-}
-
-function gsClosePanel() {
-  document.getElementById('gsPanel').hidden = true;
-}
-
-function gsGoFlow(code) {
-  gsClosePanel();
-  gsClear();
-  openFlow(code);
+  openDetail(code);
 }
 
 // 點搜尋列以外的地方就收起下拉（面板不受影響，要按 ✕ 才關）

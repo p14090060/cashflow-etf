@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261004b">
-<link rel="stylesheet" href="css/components.css?v=20261004b">
-<link rel="stylesheet" href="css/pages.css?v=20261004b">
+<link rel="stylesheet" href="css/base.css?v=20261004c">
+<link rel="stylesheet" href="css/components.css?v=20261004c">
+<link rel="stylesheet" href="css/pages.css?v=20261004c">
 </head>
 <body>
 
@@ -37,11 +37,11 @@
   </div>
 </header>
 
-<!-- 搜尋結果面板。Phase 2 這塊會長成 ETF 詳細頁 -->
+<!-- ETF 詳細頁容器，內容由 js/detail.js 注入；關閉一律走 closeDetail() -->
 <div class="gs-panel" id="gsPanel" hidden>
   <div class="gs-panel-hd">
     <div class="t" id="gsPanelTitle"></div>
-    <button onclick="gsClosePanel()">✕ 關閉</button>
+    <button onclick="closeDetail()">✕ 關閉</button>
   </div>
   <div class="gs-panel-body" id="gsPanelBody"></div>
 </div>
@@ -322,17 +322,18 @@
 
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
-<script src="js/config.js?v=20261004b"></script>
-<script src="js/nav.js?v=20261004b"></script>
-<script src="js/flow.js?v=20261004b"></script>
-<script src="js/archived-check.js?v=20261004b"></script>
-<script src="js/format.js?v=20261004b"></script>
-<script src="js/calc.js?v=20261004b"></script>
-<script src="js/lookup.js?v=20261004b"></script>
-<script src="js/render.js?v=20261004b"></script>
-<script src="js/rank.js?v=20261004b"></script>
-<script src="js/search.js?v=20261004b"></script>
-<script src="js/boot.js?v=20261004b"></script>
+<script src="js/config.js?v=20261004c"></script>
+<script src="js/nav.js?v=20261004c"></script>
+<script src="js/flow.js?v=20261004c"></script>
+<script src="js/archived-check.js?v=20261004c"></script>
+<script src="js/format.js?v=20261004c"></script>
+<script src="js/calc.js?v=20261004c"></script>
+<script src="js/lookup.js?v=20261004c"></script>
+<script src="js/render.js?v=20261004c"></script>
+<script src="js/rank.js?v=20261004c"></script>
+<script src="js/search.js?v=20261004c"></script>
+<script src="js/detail.js?v=20261004c"></script>
+<script src="js/boot.js?v=20261004c"></script>
 
 </body>
 </html>
