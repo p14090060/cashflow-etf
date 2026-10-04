@@ -109,6 +109,31 @@ body.gs-ckm .cat-foot { display: none; }
 .cat-list.cat-off { max-height: 0 !important; border-width: 0 !important; visibility: hidden; }
 .cat-gone { display: none !important; }
 
+/* 非鍵盤低高度（PHASE3_PLAN §11.4，cat-tight3）：頁面頂端間距歸零；標題與分段併成同一列（grid，DOM 不搬動）；
+   次要標籤維持一列；「查看更多」改放清單底部。目標：清單實際可見 ≥ 44px，且在導覽列上方。 */
+#page-cat.cat-tight3 { padding-top: 0; }
+#page-cat .cat-main.cat-tight3 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "head seg" "strip strip" "body body";
+  column-gap: 6px;
+  row-gap: 0;
+}
+#page-cat .cat-tight3 > .cat-head { grid-area: head; padding: 0 2px; min-width: 0; }
+#page-cat .cat-tight3 > .cat-seg { grid-area: seg; margin: 0; }
+#page-cat .cat-tight3 > .cat-seg button { min-height: 28px; padding: 0 8px; font-size: 13px; flex: none; }
+#page-cat .cat-tight3 > .cat-strip { grid-area: strip; margin: 2px 0 0; }
+#page-cat .cat-tight3 > .cat-list,
+#page-cat .cat-tight3 > .cat-flow-host { grid-area: body; }
+#page-cat .cat-tight3 .cat-btn { min-height: 28px; padding: 2px 8px; font-size: 13px; }
+#page-cat .cat-tight3 .cat-title { font-size: 15px; }
+#page-cat .cat-tight3 > .cat-more { display: none; }
+.cat-more-in {
+  display: block; width: 100%; min-height: 44px;
+  background: var(--card2); color: var(--dim); border: none; border-top: 1px solid var(--border);
+  font: inherit; font-size: 14px; cursor: pointer;
+}
+
 /* ── 處理中指示（PHASE3_PLAN §7.8）：只顯示，不改狀態 ── */
 .router-proc {
   position: fixed; left: 50%; transform: translateX(-50%);

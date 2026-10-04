@@ -76,6 +76,7 @@ const Category = (function () {
     more.hidden = rest <= 0;
     more.textContent = '查看更多（還有 ' + rest + ' 檔）';
     list.scrollTop = open.ui.scrollTop || 0;
+    syncInnerMore();
   }
 
   function buildStrip() {
@@ -86,29 +87,54 @@ const Category = (function () {
   }
 
   // 低高度讓位（PHASE3_PLAN §11）：量測實際可用高度，依序收合次要說明、再把次要標籤壓成單列
+  // 「查看更多」在 cat-tight3 時移入清單底部（導覽列會蓋住清單外的按鈕）
+  function syncInnerMore() {
+    const list = $('catList'), more = $('catMore'), main = $('catMain');
+    if (!list || !more || !main) return;
+    let inner = list.querySelector('.cat-more-in');
+    const want = main.classList.contains('cat-tight3') && !more.hidden && !list.hidden;
+    if (!want) { if (inner) inner.remove(); return; }
+    if (!inner) {
+      inner = document.createElement('button');
+      inner.type = 'button';
+      inner.className = 'cat-more-in';
+      list.appendChild(inner);
+    }
+    inner.textContent = more.textContent;
+  }
+
   function fit() {
     const list = $('catList'), main = $('catMain'), hint = $('catHint'), more = $('catMore');
+    const pg = $(PAGE_ID);
     if (!list || !open || state === 'overview') return;
     const vv = window.visualViewport;
     const visTop = vv ? vv.offsetTop : 0;
     const visBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
     const nav = document.querySelector('.bottom-nav');
     const navOn = !!nav && getComputedStyle(nav).display !== 'none';
-    const avail = () => {
+    const avail = (pad) => {
       const bottom = Math.min(visBottom, navOn ? nav.getBoundingClientRect().top : visBottom);
-      return Math.max(0, bottom - list.getBoundingClientRect().top - 8);
+      return Math.max(0, bottom - list.getBoundingClientRect().top - pad);
     };
     // 注意：不可先清空 max-height 再量測——內容完整展開時沒有捲動範圍，瀏覽器會把 scrollTop 夾成 0。
     // 清單頂端位置不受 max-height 影響，直接量測即可。
-    main.classList.remove('cat-tight', 'cat-tight2');
-    let a = avail();
-    if (a < MIN_LIST_H) { main.classList.add('cat-tight'); a = avail(); }
-    if (a < MIN_LIST_H) { main.classList.add('cat-tight2'); a = avail(); }
+    main.classList.remove('cat-tight', 'cat-tight2', 'cat-tight3');
+    if (pg) pg.classList.remove('cat-tight3');
+    const kbd = document.body.classList.contains('gs-ckm');
+    let a = avail(8);
+    if (a < MIN_LIST_H) { main.classList.add('cat-tight'); a = avail(8); }
+    if (a < MIN_LIST_H) { main.classList.add('cat-tight2'); a = avail(8); }
+    // PHASE3_PLAN §11.4（PO／Codex blocker，844×390 無鍵盤）：仍不足一列時，標題與分段併成同一列、
+    // 「查看更多」移入清單底部，把空間讓給清單。實際可見高度由 avail 量測，不靠 CSS 高度。
+    if (!kbd && a < LINE_H) {
+      main.classList.add('cat-tight3');
+      if (pg) pg.classList.add('cat-tight3');
+      a = avail(4);
+    }
     // LR-4（PO 核准 responsive fallback，方案 B）：鍵盤開啟（gs-ckm）且可用高度不足一列（44px）時，
     // 不強制顯示清單，改顯示「收起鍵盤以查看 ETF 清單」。清單收合但仍留在版面中（不用 display:none），
     // scrollTop、排序、展開數都保留；鍵盤收起後自動展開。
     // 沒有鍵盤的低高度不走 fallback（提示文字是針對鍵盤）：清單至少 44px 並可捲動（PHASE3_PLAN §11.4）。
-    const kbd = document.body.classList.contains('gs-ckm');
     const short = kbd && a < LINE_H && !list.hidden;
     list.classList.toggle('cat-off', short);
     more.classList.toggle('cat-gone', short);
@@ -117,6 +143,7 @@ const Category = (function () {
       hint.textContent = '收起鍵盤以查看 ETF 清單';
       hint.hidden = !short;
     }
+    syncInnerMore();
   }
 
   function renderFlowFor() {
@@ -235,7 +262,7 @@ const Category = (function () {
         refreshAll();
         return;
       }
-      if (ev.target.closest('#catMore')) {
+      if (ev.target.closest('#catMore, .cat-more-in')) {
         if (!open) return;
         const total = (groups && groups[open.key]) ? groups[open.key].length : 0;
         const shown = Math.min((open.ui.shown || 10) + 10, total);

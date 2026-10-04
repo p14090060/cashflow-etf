@@ -237,3 +237,81 @@ PO 決定（2026-10-05）：LR-4 採方案 B。核准為 responsive fallback，�
 | `category_test.py`（Phase 3） | 102 PASS，0 FAIL，**1 DEFER**（LR-8 真機） |
 
 LR-4 不再是 DEFER。LR-8 的真機項目不變。
+
+## Blocker：844×390 無鍵盤時分類清單初始可見高度為 0（LR-3 / PHASE3_PLAN §11.4）
+
+Codex 實測：清單頂端約 363px、導覽列頂端約 328px，初始實際可見清單 0px。違反 §11.4「低高度依序讓位，保留至少 44px 實際可見且可捲動的清單」。LR-4 鍵盤 fallback 已 PASS，本次不修改。
+
+### 量測（修正前，844×390，無鍵盤，主動式資料夾）
+
+| 區塊 | 位置（頂端、高度） |
+|---|---|
+| 頂部 header（標題列＋搜尋） | 0 / 122 |
+| 全站免責 `.disclaimer`（Phase 1 法遵） | 122 / 85 |
+| 分類頁 `#page-cat`（含 `.page` 頂端間距 14px） | 207 |
+| 標題列 | 221 / 46 |
+| 持股異動分段 | 267 / 40 |
+| 次要標籤列 | 315 / 40 |
+| 清單 | 363 / 44（可見 0px） |
+| 導覽列 | 328 / 62 |
+
+清單要完整落在導覽列上方（清單底部 ≤ 328），頂端需 ≤ 284。原本需省下約 80px。
+
+### 做法（只在「無鍵盤」且仍不足一列時啟用，第三層讓位）
+
+- **不隱藏免責**：`.disclaimer` 是 Phase 1 法遵呈現，PO 已明確要求保留。
+- **頁面頂端間距歸零**（`#page-cat.cat-tight3 { padding-top: 0 }`），省 14px。
+- **標題列與持股異動分段併成同一列**（CSS grid：`"head seg" / "strip strip" / "body body"`，DOM 不搬動），分段按鈕 28px。
+- **次要標籤列保留一列、40px**（可橫向捲動，觸控高度 40px，與 Plan 的 P4 收合尺寸一致）。
+- **「查看更多」移入清單底部**（`.cat-more-in`）。清單外的按鈕會被導覽列蓋住，移入清單後，捲到底即可看到與點擊。`syncInnerMore()` 在 `renderList` 與 `fit` 後同步。外部 `#catMore` 在 `cat-tight3` 下隱藏。
+- **清單高度以實際 rect 量測**：`avail(pad)` 以導覽列頂端為下界，`cat-tight3` 時 pad = 4px（其他層仍為 8px）。
+
+結果：清單 277–324px（47px 高），導覽列 328px，不重疊，`elementFromPoint` 命中清單。
+
+### 與 Plan 的偏差（需知道）
+
+- Plan §11.4 建議把次要標籤收合成「其他分類 ▾」按鈕（40px）。本次改為保留 7 個短標籤、一列 40px、可橫向捲動。理由：收合為下拉需要新的互動流程，且在這個高度下收合不會省下高度（標籤列本來就只有一列）。若 PO／Codex 認為需要「其他分類 ▾」，再另行處理。
+- 不影響 LR-4 鍵盤 fallback（`kbd` 時不啟用 `cat-tight3`，程式路徑與 LR-4 完全相同）。
+
+### 自動驗收（`category_test.py` BL 區塊，844×390 無鍵盤，以實際 rect 判斷）
+
+| 編號 | 檢查 |
+|---|---|
+| BL precondition | 無鍵盤、資料夾開啟（主動式）、導覽列可見 |
+| BL-1 | 清單與可視區、導覽列以上的交集 ≥ 44px（實測 47px） |
+| BL-2 | 清單底部 ≤ 導覽列頂端（不重疊） |
+| BL-3 | 可視區中心點 `elementFromPoint` 命中清單、不命中導覽列 |
+| BL-4 | 無水平 overflow（document 與分類頁） |
+| BL-5 | 進入 `cat-tight3` 版面 |
+| BL-6 | 清單可捲動，scrollTop 可移到 ~60px |
+| BL-7 | 找到一列在清單可視範圍內 ≥ 22px 的列，`elementFromPoint` 命中該列；**真實滑鼠點擊**開啟對應 Detail；Esc 關閉後資料夾仍開啟，清單捲動保留 |
+| BL-8 | 「查看更多」在清單底部，可見、在導覽列上方；點擊後多列出 10 檔 |
+| BACK-TO-NORMAL | 直向 390×844 後：`cat-tight3` 移除；清單高度 ≥ 110px；清單內無「查看更多」，外部按鈕回來；sort、shown 保留；無水平 overflow |
+
+LR-4 恢復檢查中的「查看更多」改為同時接受清單內按鈕（`.cat-more-in` 或 `#catMore`）。
+
+### 負向對照
+
+還原 `7b750336` 的 `category.js` 與 `category.css`：BL-1、BL-2、BL-3、BL-5、BL-7、BL-8 FAIL，實測清單 `visH` 0、頂端 363、導覽列 328，與 Codex 的量測一致。修正版全部 PASS。
+
+### 測試結果（headless Chrome）
+
+| 測試 | 結果 |
+|---|---|
+| `router_test.py` | 64 / 64 PASS |
+| `search_compact_test.py`（Phase 1） | 38 / 38 PASS |
+| `detail_ui_test.py`（Phase 2） | 42 / 42 PASS |
+| `detail_history_fix_test.py`（Phase 2） | 14 / 14 PASS |
+| `regression_test.py`（Phase 2） | 14 / 14 PASS |
+| `detail_collapse_test.py`（Phase 2） | 25 / 25 PASS |
+| `detail_state_test.py` | 42 / 42 PASS |
+| `category_test.py` | 120 PASS，0 FAIL，**1 DEFER**（LR-8 真機） |
+
+### 未處理（記錄，非本 blocker）
+
+- **分類「持股異動」檢視在低高度時**：`cat-tight3` 只作用於清單檢視（清單隱藏時不啟用），所以持股異動 treemap 在 844×390 仍落在導覽列下方，需要頁面捲動。本 blocker 只針對清單。
+- LR-8：仍待 iPhone Chrome 真機（不變）。
+
+### 版本
+
+- `index.html` 資源版本號 `20261005k`。

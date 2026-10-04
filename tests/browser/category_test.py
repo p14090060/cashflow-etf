@@ -222,7 +222,74 @@ check('LR-4 restore: list expanded again (>= 44px, visible)', ev("(function(){ c
       ev("document.getElementById('catList').getBoundingClientRect().height"))
 check('LR-4 restore: list scroll position kept (~40px)', abs((ev("document.getElementById('catList').scrollTop") or 0) - (lr4_scroll or 0)) <= 2, (ev("document.getElementById('catList').scrollTop"), lr4_scroll))
 check('LR-4 restore: sort/shown/scroll kept in Router layer', ev("JSON.stringify(Router.state().stack[0].ui)") == lr4_ui, (ev("JSON.stringify(Router.state().stack[0].ui)"), lr4_ui))
-check('LR-4 restore: more button back (12 remaining)', ev("getComputedStyle(document.getElementById('catMore')).display") != 'none' and ev("document.getElementById('catMore').textContent") == '查看更多（還有 12 檔）')
+MORE_EL = "(document.querySelector('.cat-more-in') || document.getElementById('catMore'))"
+check('LR-4 restore: more button back (12 remaining; inside list when cat-tight3)', ev("getComputedStyle(%s).display" % MORE_EL) != 'none' and ev("%s.textContent" % MORE_EL) == '查看更多（還有 12 檔）', ev("%s.textContent" % MORE_EL))
+
+# ── BL（Codex blocker）：844×390、無鍵盤：清單實際可見 ≥ 44px、不被導覽列遮住、可捲動／操作、無水平 overflow；回到一般高度版面正常 ──
+BL_JS = """(function(){
+  const list = document.getElementById('catList'), nav = document.querySelector('.bottom-nav');
+  const r = list.getBoundingClientRect(), navR = nav.getBoundingClientRect();
+  const vv = window.visualViewport;
+  const visTop = vv ? vv.offsetTop : 0;
+  const visBottom = Math.min(vv ? vv.offsetTop + vv.height : innerHeight, navR.top);
+  const top = Math.max(r.top, visTop), bottom = Math.min(r.bottom, visBottom);
+  const visH = Math.max(0, bottom - top);
+  const cx = (Math.max(r.left, 0) + Math.min(r.right, innerWidth)) / 2;
+  const e = visH > 0 ? document.elementFromPoint(cx, top + visH / 2) : null;
+  return { visH: visH, listTop: r.top, listBottom: r.bottom, navTop: navR.top, navDisplay: getComputedStyle(nav).display,
+           hitInList: !!e && list.contains(e), hitNav: !!e && nav.contains(e),
+           scrollable: list.scrollHeight > list.clientHeight, hScroll: document.documentElement.scrollWidth > innerWidth,
+           pageHScroll: document.getElementById('page-cat').scrollWidth > document.getElementById('page-cat').clientWidth + 1,
+           tight3: document.getElementById('catMain').classList.contains('cat-tight3'),
+           innerMore: document.querySelectorAll('#catList .cat-more-in').length };
+})()"""
+ev("(function(){ if (document.getElementById('page-cat').dataset.state !== 'open') { switchPage('cat'); } return true; })()"); wait_ms(200)
+bl_state = ev("document.getElementById('page-cat').dataset.state")
+check('BL precondition: 844x390 keyboard off, folder open (active), nav visible', bl_state == 'open' and ev("document.body.classList.contains('gs-ckm')") is False and ev("Router.state().stack[0].key") == 'active' and ev("getComputedStyle(document.querySelector('.bottom-nav')).display") != 'none', (bl_state, ev("Router.state().stack.map(l=>l.key)")))
+bl = ev(BL_JS)
+check('BL-1 list actual visible intersection with viewport and above nav >= 44px', bl['visH'] >= 44, bl)
+check('BL-2 bottom nav does not overlap the list (list bottom <= nav top)', bl['listBottom'] <= bl['navTop'] + 0.5, bl)
+check('BL-3 elementFromPoint at visible list center hits the list, not the bottom nav', bl['hitInList'] is True and bl['hitNav'] is False, bl)
+check('BL-4 no horizontal overflow (document and category page)', bl['hScroll'] is False and bl['pageHScroll'] is False, bl)
+check('BL-5 layout is the no-keyboard low-height layer (cat-tight3)', bl['tight3'] is True, bl)
+bl_sort = ev("Router.state().stack[0].ui.sort")
+bl_shown_before = ev("Router.state().stack[0].ui.shown")
+check('BL-6 list is scrollable (folder has more rows than fit)', bl['scrollable'] is True, bl)
+ev("document.getElementById('catList').scrollTop = 60; true"); wait_ms(300)
+check('BL-6 list scrolls (scrollTop moves to ~60px)', abs((ev("document.getElementById('catList').scrollTop") or 0) - 60) <= 2, ev("document.getElementById('catList').scrollTop"))
+# 真實滑鼠點擊：點可視區內、完整落在清單裡的第一列，應開啟對應的 Detail
+row_pt = ev("""(function(){ const l=document.getElementById('catList'); const lr=l.getBoundingClientRect(); const vv=window.visualViewport; const vb=Math.min(vv?vv.offsetTop+vv.height:innerHeight, document.querySelector('.bottom-nav').getBoundingClientRect().top);
+  const top=Math.max(lr.top, 0), bot=Math.min(lr.bottom, vb);
+  let best=null;
+  for (const x of l.querySelectorAll('.cat-row')) { const r=x.getBoundingClientRect(); const vis=Math.min(r.bottom,bot)-Math.max(r.top,top); if (vis>=22 && (!best || vis>best.vis)) best={row:x, r:r, vis:vis}; }
+  if(!best) return null;
+  const y=(Math.max(best.r.top,top)+Math.min(best.r.bottom,bot))/2, x=(best.r.left+best.r.right)/2;
+  const hit=document.elementFromPoint(x,y);
+  return {x: Math.round(x), y: Math.round(y), code: best.row.dataset.code, vis: Math.round(best.vis), hitInList: !!hit && l.contains(hit), hitRow: !!hit && best.row.contains(hit)}; })()""")
+check('BL-7 a list row with >= 22px inside the visible list region exists, and elementFromPoint hits that row', isinstance(row_pt, dict) and row_pt['hitRow'] is True, row_pt)
+if isinstance(row_pt, dict):
+    cdp('Input.dispatchMouseEvent', {'type': 'mousePressed', 'x': row_pt['x'], 'y': row_pt['y'], 'button': 'left', 'clickCount': 1})
+    cdp('Input.dispatchMouseEvent', {'type': 'mouseReleased', 'x': row_pt['x'], 'y': row_pt['y'], 'button': 'left', 'clickCount': 1})
+    wait_ms(320)
+    top_code_now = ev("(function(){ const st=Router.state(); const t=st.stack[st.stack.length-1]; return t && t.t==='detail' ? t.code : null; })()")
+    check('BL-7 real tap on a visible row opens its Detail', ev("!document.getElementById('gsPanel').hidden") is True and top_code_now == row_pt['code'], (top_code_now, row_pt))
+    ev("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); true"); wait_ms(320)
+    types_now = ev("Router.state().stack.map(l=>l.t).join(',')")
+    check('BL-7 Esc closes that Detail; folder still open with its list scroll', types_now == 'folder' and abs((ev("document.getElementById('catList').scrollTop") or 0) - 60) <= 2, (types_now, ev("document.getElementById('catList').scrollTop")))
+# 查看更多在清單底部：捲到底後可見、可點，點了確實多列出 10 檔
+ev("(function(){ const l=document.getElementById('catList'); l.scrollTop = l.scrollHeight; return true; })()"); wait_ms(250)
+inner_ok = ev("""(function(){ const b=document.querySelector('#catList .cat-more-in'); if(!b) return 'none'; const l=document.getElementById('catList').getBoundingClientRect(); const r=b.getBoundingClientRect(); const vv=window.visualViewport; const vb=Math.min(vv?vv.offsetTop+vv.height:innerHeight, document.querySelector('.bottom-nav').getBoundingClientRect().top); return (r.top>=l.top-0.5 && r.bottom<=l.bottom+0.5 && r.bottom<=vb) ? 'visible' : 'hidden:'+JSON.stringify([r.top,r.bottom,l.top,l.bottom,vb]); })()""")
+check('BL-8 查看更多 is inside the list at its bottom, visible and above the nav', inner_ok == 'visible', inner_ok)
+ev("document.querySelector('#catList .cat-more-in').click(); true"); wait_ms(150)
+check('BL-8 查看更多 (inside list) lists 10 more rows', ev("Router.state().stack[0].ui.shown") == bl_shown_before + 10 and ev("document.querySelectorAll('#catList .cat-row').length") == bl_shown_before + 10, (ev("Router.state().stack[0].ui.shown"), bl_shown_before))
+bl_shown_after = ev("Router.state().stack[0].ui.shown")
+# 回到一般高度（直向 390×844）：版面恢復，清單不再是 cat-tight3，「查看更多」回到清單外、狀態保留
+set_view(390, 844, 'portraitPrimary'); wait_ms(400)
+check('BACK-TO-NORMAL layer removed (no cat-tight3 on page or main)', ev("document.getElementById('catMain').classList.contains('cat-tight3') || document.getElementById('page-cat').classList.contains('cat-tight3')") is False)
+check('BACK-TO-NORMAL list height >= 110px and visible', ev("(function(){ const l=document.getElementById('catList'); return !l.hidden && l.getBoundingClientRect().height >= 110; })()") is True, ev("document.getElementById('catList').getBoundingClientRect().height"))
+check('BACK-TO-NORMAL no inner more row, external more shown', ev("document.querySelectorAll('#catList .cat-more-in').length") == 0 and ev("getComputedStyle(document.getElementById('catMore')).display") != 'none')
+check('BACK-TO-NORMAL folder state kept (sort, shown)', ev("Router.state().stack[0].ui.sort") == bl_sort and ev("Router.state().stack[0].ui.shown") == bl_shown_after, (ev("Router.state().stack[0].ui.sort"), ev("Router.state().stack[0].ui.shown")))
+check('BACK-TO-NORMAL no horizontal overflow', ev("document.documentElement.scrollWidth <= innerWidth") is True)
 
 # ── LR-8（PHASE3_PLAN §11.6 B、C）：鍵盤開、可視區下移（visualViewport.offsetTop > 0）──
 # headless 目前產生不了 offsetTop > 0。已試過：setPageScaleFactor + 捲動手勢、pinch（touch 模擬）、
