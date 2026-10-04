@@ -50,42 +50,30 @@ function _gsSyncListMax() {
 
 function _gsSyncAll() { _gsSyncCkm(); _syncHdrH(); _gsSyncListMax(); }
 
-// ── 橫向＋鍵盤：精簡搜尋模式（compact keyboard mode）────────────────
-// 搜尋是主要任務：鍵盤開著時，標題與次要元件讓位，搜尋框留在最上方，下拉用剩下的可視高度。
-// 全部判斷來自 viewport 狀態，不寫死機型尺寸：
-//   1. 裝置處於橫向（screen.orientation，不受鍵盤影響）
-//   2. 搜尋框有焦點
-//   3. 可視高度明顯低於「搜尋框沒有焦點時」量到的高度（鍵盤佔掉了）
-// 基準只在搜尋框沒有焦點時更新：旋轉過渡期的舊高度會被之後穩定的高度覆蓋，
-// 不會因為偏高的值讓鍵盤收起後仍被判成鍵盤開著。
-const _gsBaseH = { landscape: 0, portrait: 0 };
+// ── 低高度搜尋模式 ─────────────────────────────────────────────
+// 進入條件：搜尋框有焦點，而且實際可用高度（visualViewport）已放不下「完整搜尋列＋兩列結果」。
+// 只看可用高度，不看機型、不看橫直向；直向螢幕夠高時不會進入。
+// 進入後：隱藏標題與次要元件，搜尋框留在最上方，下拉用剩下的高度；鍵盤收起即恢復。
+const _GS_MIN_LIST_H = 110;   // 兩列結果的高度，依列高估算
 let _gsCkmOn = false;
-
-function _gsIsLandscape() {
-  const o = screen.orientation;
-  return o ? o.type.indexOf('landscape') === 0
-           : window.matchMedia('(orientation: landscape)').matches;
-}
+let _gsNaturalHdrH = 0;       // 完整搜尋列（含標題）的高度，只在非低高度模式量測
 
 function _gsViewH() {
   const vv = window.visualViewport;
   return vv ? Math.min(vv.height, window.innerHeight) : window.innerHeight;
 }
 
-function _gsKbOpen() {
-  const key = _gsIsLandscape() ? 'landscape' : 'portrait';
-  const h = _gsViewH();
-  const focused = document.activeElement === document.getElementById('gsearch');
-  if (!focused) _gsBaseH[key] = h;
-  return focused && _gsBaseH[key] > 0 && h < _gsBaseH[key] * 0.75;
-}
-
 function _gsSyncCkm() {
-  const on = _gsIsLandscape() && _gsKbOpen();
+  const hdr = document.querySelector('.app-hdr');
+  const input = document.getElementById('gsearch');
+  if (!hdr || !input) return;
+  if (!_gsCkmOn && hdr.offsetHeight > 0) _gsNaturalHdrH = hdr.offsetHeight;
+  const focused = document.activeElement === input;
+  const on = focused && _gsViewH() < _gsNaturalHdrH + _GS_MIN_LIST_H;
   if (on === _gsCkmOn) return;
   _gsCkmOn = on;
   document.body.classList.toggle('gs-ckm', on);
-  if (on) document.getElementById('gsearch').scrollIntoView({ block: 'start' });
+  if (on) input.scrollIntoView({ block: 'start' });
 }
 
 function _gsFmtChg(e) {
@@ -155,6 +143,7 @@ function gsKey(ev) {
   const list = document.getElementById('gsearchList');
   // Esc 一次收乾淨：下拉、輸入、結果面板都關掉
   if (ev.key === 'Escape') { gsClear(); closeDetail(); return; }
+  if (ev.key === 'Enter' && _gsCkmOn) { ev.preventDefault(); gsSubmitKey(); return; }
   if (!_gsRows.length || list.hidden) {
     if (ev.key === 'Enter') gsSearch();
     return;
@@ -173,6 +162,26 @@ function gsKey(ev) {
     // 沒用方向鍵選過就取第一筆——打完代碼直接按 Enter 是最常見的用法
     gsPick(_gsRows[_gsSel < 0 ? 0 : _gsSel].code);
   }
+}
+
+// 鍵盤「搜尋」鍵（表單送出）。低高度模式才有作用；其餘情況維持 Phase 1 的 Enter 行為。
+function gsFormSubmit(ev) {
+  ev.preventDefault();
+  if (_gsCkmOn) gsSubmitKey();
+}
+
+// 低高度模式按搜尋：唯一精確代碼直接開啟詳細頁；其他情況先收起鍵盤，再顯示結果列表。
+function gsSubmitKey() {
+  const input = document.getElementById('gsearch');
+  const q = (input.value || '').trim().toUpperCase();
+  if (!q) return;
+  const exact = (ETFS || []).find(e => (e.code || '').toUpperCase() === q);
+  input.blur();
+  setTimeout(() => {
+    _gsSyncAll();
+    if (exact) gsPick(exact.code);
+    else gsSearch();
+  }, 300);
 }
 
 function gsClear() {

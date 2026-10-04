@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261004j">
-<link rel="stylesheet" href="css/components.css?v=20261004j">
-<link rel="stylesheet" href="css/pages.css?v=20261004j">
+<link rel="stylesheet" href="css/base.css?v=20261004k">
+<link rel="stylesheet" href="css/components.css?v=20261004k">
+<link rel="stylesheet" href="css/pages.css?v=20261004k">
 </head>
 <body>
 
@@ -26,13 +26,13 @@
   </div>
 
   <div class="gsearch-bar">
-    <div class="gsearch-wrap">
+    <form class="gsearch-wrap" onsubmit="gsFormSubmit(event)">
       <span class="gs-ico">🔍</span>
-      <input id="gsearch" type="search" autocomplete="off" maxlength="12"
+      <input id="gsearch" type="search" enterkeyhint="search" autocomplete="off" maxlength="12"
              placeholder="輸入 ETF 代碼或名稱，例：0050 / 高股息"
              oninput="gsSearch()" onkeydown="gsKey(event)">
-      <button class="gs-clear" id="gsearchClear" hidden onclick="gsClear()">✕</button>
-    </div>
+      <button class="gs-clear" id="gsearchClear" type="button" hidden onclick="gsClear()">✕</button>
+    </form>
     <div class="gsearch-list" id="gsearchList" hidden></div>
   </div>
 </header>
@@ -322,18 +322,18 @@
 
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
-<script src="js/config.js?v=20261004j"></script>
-<script src="js/nav.js?v=20261004j"></script>
-<script src="js/flow.js?v=20261004j"></script>
-<script src="js/archived-check.js?v=20261004j"></script>
-<script src="js/format.js?v=20261004j"></script>
-<script src="js/calc.js?v=20261004j"></script>
-<script src="js/lookup.js?v=20261004j"></script>
-<script src="js/render.js?v=20261004j"></script>
-<script src="js/rank.js?v=20261004j"></script>
-<script src="js/search.js?v=20261004j"></script>
-<script src="js/detail.js?v=20261004j"></script>
-<script src="js/boot.js?v=20261004j"></script>
+<script src="js/config.js?v=20261004k"></script>
+<script src="js/nav.js?v=20261004k"></script>
+<script src="js/flow.js?v=20261004k"></script>
+<script src="js/archived-check.js?v=20261004k"></script>
+<script src="js/format.js?v=20261004k"></script>
+<script src="js/calc.js?v=20261004k"></script>
+<script src="js/lookup.js?v=20261004k"></script>
+<script src="js/render.js?v=20261004k"></script>
+<script src="js/rank.js?v=20261004k"></script>
+<script src="js/search.js?v=20261004k"></script>
+<script src="js/detail.js?v=20261004k"></script>
+<script src="js/boot.js?v=20261004k"></script>
 
 </body>
 </html>
