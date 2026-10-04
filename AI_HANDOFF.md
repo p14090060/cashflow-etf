@@ -17,6 +17,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 Finding 1 fix commit：`c050c719`**（本機，未 push）。Detail scroll 被分類 snapshot 覆蓋；修正內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審 Finding 1 修正」一節。
 - **Phase 3 LR-4 responsive fallback commit：`7b750336`**（本機，未 push）。**Codex 唯讀確認：LR-4 PASS / CLOSED。不再修改。**
 - **Phase 3 844×390 無鍵盤 blocker fix commit：`1f636d86`**（本機，未 push）。LR-3／§11.4：清單初始實際可見 ≥ 44px、不被導覽列遮住。內容見 `PHASE3_CHANGELOG.md` 的「Blocker：844×390 無鍵盤時分類清單初始可見高度為 0」一節。
+- **Phase 3 直向 inside／doorway commit：`fdc1d139`**（本機，未 push）。PO 真機回饋後的 UX 調整（Gate 核准）：進入分類後其他分類立即收合，主 TAB 的 ▾／▴ 重新展開。內容見 `PHASE3_CHANGELOG.md` 的「直向 inside／doorway」一節。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -43,52 +44,61 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Product Owner（怡恩）= 產品決策與真機測試。**
 - **Coding 完成後先交 Codex**，不直接要求 Product Owner 測試。Codex 通過後，才由 Claude 提供 Product Owner 真機測試步驟（逐步操作，附 PASS／FAIL 判準）。
 - 不 push，除非 Product Owner 明確要求。
+- **PO／GPT Gate 已決定（不要重新詢問）**：
+  - inside／doorway 狀態模型：APPROVE。進入分類 → inside（其他分類立即收合）；主 TAB 的 ▾／▴ 或標題區 → doorway；doorway 選另一分類 → 新 inside。
+  - 不做「回頂自動展開」gesture。
+  - D2（說明行）：暫緩，本輪不隱藏。D3（持股異動分段）：維持原樣。D4（查看更多入清單底部）：APPROVE。D5（直向列表隱藏重複的 `#catFoot`）：APPROVE，`.site-footer` 不隱藏。
+  - D6（鎖定頁面）：**不採用**。不用 `body.cat-lock`，不做 scrollY 記錄與恢復，手機頁面維持正常捲動。
+  - 不採側邊 TAB A／B。
 - 不擴張 scope。不因測試方便而降低或刪除既有行為驗證。
 
 ### 0.5 Phase 3 Coding 狀態（目前）
 
-- **實作鏈**：`99ec4b14`（Coding）→ Codex NEED FIX → `8e3e59bb`（必修）→ `c050c719`（Finding 1）→ `7b750336`（LR-4 fallback，Codex PASS／CLOSED）→ `1f636d86`（844×390 無鍵盤 blocker）。**目前等待 Codex 只複審這個 blocker。**
-- **Blocker（`1f636d86`）**：844×390、無鍵盤時，分類清單初始實際可見高度為 0（清單頂端 363px、導覽列頂端 328px）。
-  - 修正：只在無鍵盤且仍不足一列時啟用 `cat-tight3`：分類頁頂端間距歸零；標題列與持股異動分段併成同一列（grid）；次要標籤一列 40px；「查看更多」移入清單底部（`.cat-more-in`）。免責聲明不隱藏。
-  - 驗收：`category_test.py` BL 區塊以實際 rect 判斷。實測清單 277–324px（47px），導覽列 328px，不重疊。`elementFromPoint` 命中清單。真實滑鼠點擊開啟 Detail。無水平 overflow。回到直向 390×844 後版面與狀態正常。
-  - 負向對照：`7b750336` 的 category.js／css 下 BL-1～BL-8 FAIL（visH 0）。
-  - **偏差**：Plan §11.4 建議把次要標籤收合為「其他分類 ▾」。本次保留 7 個短標籤一列（40px，可橫向捲動），理由見 `PHASE3_CHANGELOG.md`。若 PO／Codex 要求「其他分類 ▾」，另行處理。
-- **Finding 1（`c050c719`）**：Detail 分頁與捲動在 X、Esc 關閉後 Forward 還原。測試：`detail_state_test.py` DS-9～DS-11。已交 Codex 複審，結果為唯一待修項，已修正。
-- **自動測試（`1f636d86`）**：
-  - router_test 64/64；search_compact_test 38/38；detail_ui_test 42/42；detail_history_fix_test 14/14；regression_test 14/14；detail_collapse_test 25/25。
-  - detail_state_test 42/42。
-  - category_test 120 PASS、0 FAIL、**1 DEFER**（LR-8 真機）。
-- **靜態**：頂層名稱無重複；history API 只在 `js/router.js`；`index.html` 無 module script；資源版本號 `20261005k`。
+- **實作鏈**：`99ec4b14`（Coding）→ Codex NEED FIX → `8e3e59bb` → `c050c719`（Finding 1）→ `7b750336`（LR-4，Codex PASS／CLOSED）→ `1f636d86`（844×390 無鍵盤 blocker）→ **`fdc1d139`（直向 inside／doorway，PO 真機回饋）**。**目前等待 Codex 只複審 `fdc1d139`。**
+- **fdc1d139 內容**：
+  - 狀態：inside（進入分類，其他分類收合）與 doorway（▾／▴ 重新展開）。doorway 選另一分類 → 新 inside。模式只存在 Category，不寫入 Router。
+  - 主 TAB 的 `#catExpand`：44×44，▾／▴，`aria-expanded`、`aria-label`；標題區也可切換。只在直向、列表、非 gs-ckm。
+  - 清單底部：`fit()` 在直向時以頁面未捲動的清單頂端計算（`rect.top + scrollY`）；頁面捲動或 resize 不改變清單高度。
+  - 查看更多（D4）移入清單底部（直向）；`#catFoot` 在直向列表隱藏（D5）；`.site-footer` 與頁面捲動不變（D6 未採用）。
+  - 高度：inside 比 doorway 多 48px（390×844，主動式清單 422px ↔ 374px）。D2 說明列保留。
+- **Codex 本輪範圍（只看 `fdc1d139`）**：
+  - `js/category.js`：`syncMode`、`ctlActive`、`toggleStrip`、`applyFolder` 的 stripOpen 規則、`fit()` 的 `scrollY` 項、`syncInnerMore` 的 cat-ctl 條件、點擊處理。
+  - `css/category.css`：`#catMain.cat-ctl`、`cat-inside`、`.cat-expand`、外部 `.cat-more`／`.cat-foot` 隱藏。
+  - `tests/browser/category_test.py`：PT-1～PT-12，以及舊 BL／BACK-TO-NORMAL 期望的更新（D4 之後清單內有查看更多）。
+- **不要重審**：LR-4、Finding 1–3、844×390 blocker、Router、Detail、Flow。它們已通過或未修改。
+- **自動測試（`fdc1d139`）**：
+  - router_test 64/64；search_compact_test 38/38；detail_ui_test 42/42；detail_history_fix_test 14/14；regression_test 14/14；detail_collapse_test 25/25；detail_state_test 42/42。
+  - category_test 146 PASS、0 FAIL、**1 DEFER**（LR-8 真機）。
+  - 負向對照：還原 `29681bf2` 的 index／js／css 時 PT 區塊 16 項 FAIL；移除 `fit()` 的 `scrollY` 項時 PT-7 FAIL。
+- **靜態**：Router、Detail、Flow 未修改；無 `cat-lock`；資源版本號 `20261005l`。
 - **DEFER（不算 PASS）**：
-  - **LR-8 B／C**（offsetTop > 0 的真實鍵盤情境）：headless 已試 `setPageScaleFactor`＋捲動手勢、pinch、`positionY`、`viewport`，`visualViewport` 皆未改變；`user-scalable=no` 也不允許縮放。**依 PO 指示，留給之後 iPhone Chrome 真機驗收。** 檢查程式已寫好；另以 stub 做檢查邏輯的自我檢查（SELF-TEST，不計為 PASS）。
-- **尚未完成的 acceptance（Plan §11.4 真機項目）**，Codex 通過後才交 PO：
-  1. 分類頁 8 個 TAB 都能辨識名稱。
-  2. 點頁籤後抽出開啟。
-  3. 查看更多直到全部顯示。
-  4. 切換代碼／名稱排序。
-  5. 點 ETF → Detail → 返回 → 返回資料夾 → 返回總覽。
-  6. 主動式資料夾切到持股異動並選一檔。
-  7. 橫向看 8 個 TAB 與清單。
-  8. iOS「減少動態效果」開啟時，點頁籤無滑動過場。
-  9. 工具頁進入配息、排行、頻道並返回。
-- **另需真機確認**：LR-8；R-N3（traversal 永不抵達時停在「處理中」，是否真的會發生）。
+  - **LR-8 B／C**：headless 無法產生 `offsetTop > 0`。依 PO 指示，留給 iPhone Chrome 真機。
+- **真機驗收（尚未交 PO，等 Codex PASS 後）**：上次的 9 項（§11.4）以 `fdc1d139` 重新確認，另加 inside／doorway 操作：
+  1. 進入分類 → 其他分類立即收合，清單上移，不需捲動。
+  2. 點 ▾ → 其他分類重新顯示；點 ▴ 或主 TAB 標題區 → 回到 inside。
+  3. doorway 點另一分類 → 新分類立即 inside。
+  4. inside 中清單上下捲動；點列開 Detail，關閉後仍在同一模式；查看更多在清單底部，可點。
+  5. 直向捲動頁面，footer 可見（正常捲動）；清單底部不被導覽列遮住。
+  6. 排序、已展開數、捲動位置在切換模式後保留。
+  7. 橫向：次要標籤列與清單與之前一致。
 
 ### 0.6 Codex 下一步
 
-- **Codex 本輪：只複審 blocker（844×390 無鍵盤）**。範圍 `7b750336..1f636d86`。只看 `js/category.js` 的 `fit()`（`cat-tight3` 分支、`avail(pad)`）、`syncInnerMore()`、點擊處理的 `.cat-more-in`，以及 `css/category.css` 的 `cat-tight3` grid 規則、`.cat-more-in`，以及 `category_test.py` 的 BL 區塊與 BACK-TO-NORMAL。
-- **不要重審**：LR-4（已 PASS／CLOSED）、Finding 1–3、Router、Detail、Flow。
-- **blocker 驗收重點**：
-  - 量測是否用實際 rect 與 `elementFromPoint`，而非 CSS 高度。
-  - 清單是否在導覽列上方實際可見 ≥ 44px。
-  - 「查看更多」在清單內是否可見、可點。
-  - 回到一般高度後版面與 folder state 是否正常。
-  - 「其他分類 ▾」的偏差是否可接受（見變更紀錄）。
-- **完成後**：若 PASS，LR-8 留給 iPhone Chrome 真機。若 NEED FIX，依 finding 修正。
+- **Codex 本輪：只複審 `fdc1d139`（直向 inside／doorway）**，範圍 `29681bf2..fdc1d139`。
+- **重點**：
+  - 狀態模型：進入 inside、▾／▴ 切換、doorway 選分類後 inside、✕ 回總覽、Detail 開關不改模式。
+  - 清單底部不被導覽列遮擋（頁面未捲動時與捲動後皆然）；查看更多在清單內可見可點。
+  - footer 可透過正常捲動到達，未鎖定頁面。
+  - 橫向、LR-4、cat-tight3、844×390 blocker 未 regression。
+- **完成後**：若 PASS，才由 Claude 提供 PO 真機步驟（§0.5 的 7 項）。若 NEED FIX，依 finding 修正。
 
 ### 0.7 已知限制（記錄，不是待辦）
 
 - LR-4：已決定為 responsive fallback（見 0.2）。
-- 844×390 無鍵盤的清單可見性：已由 blocker `1f636d86` 修正（清單 277–324px，見 0.5）。
+- 844×390 無鍵盤的清單可見性：已由 blocker `1f636d86` 修正（清單 277–324px）。
+- 直向 doorway 模式不寫入 history：Back／Forward 回到同一分類時，模式依 Category 目前狀態。
+- 直向頁面向下捲動後，標題列與 ▾ 會捲出畫面，需向上捲回才能展開（依 Gate，不做回頂自動展開）。
+- 直向鍵盤開啟（gs-ckm）時，展開控制與次要標籤列隱藏，依既有 gs-ckm 路徑。
 - Plan §11.4 偏差：次要標籤保留一列 40px，未收合為「其他分類 ▾」（見變更紀錄）。
 - 低高度下的「持股異動」檢視：`cat-tight3` 只作用於清單檢視，treemap 在 844×390 仍落在導覽列下方，需要頁面捲動。未處理，待 PO 決定是否在 Phase 3 範圍內處理。
 - LR-8：需真機（見 0.5）。
