@@ -94,7 +94,11 @@ function gsSearch() {
     list.hidden = false;
     return;
   }
-  list.innerHTML = _gsRows.map((e, i) =>
+  // 矮螢幕鍵盤開著時看不到下拉，提示放在第一列，收起鍵盤後就看得到
+  const kbHint = document.body.classList.contains('gs-kb')
+    ? '<div class="gs-kb-hint">橫向時螢幕空間不足，收起鍵盤即可看到完整結果，或轉直向搜尋</div>'
+    : '';
+  list.innerHTML = kbHint + _gsRows.map((e, i) =>
     '<div class="gs-row" data-i="' + i + '" onclick="gsPick(\'' + e.code + '\')">'
     + '<div class="gs-code">' + e.code + '</div>'
     + '<div class="gs-name">' + (e.name || '') + '</div>'
