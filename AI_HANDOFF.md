@@ -64,7 +64,9 @@
 
 | 項目 | 內容 |
 |---|---|
-| Phase / Task | Phase 2 ETF 詳細頁／Codex Blocker 第二輪（延遲搜尋的取消範圍） |
+| Phase / Task | Phase 2 ETF 詳細頁：**VERIFIED / CLOSED**（2026-10-04，GPT Gate 通過） |
+| Verified baseline（功能程式） | `1958cdc0`。之後的提交只含測試與文件，`js/`、`css/`、`index.html` 無變動 |
+| 封版文件 commit | 見 `git log` 最新一筆 `docs(phase2): Phase 2 封版`（只含文件） |
 | 搜尋 Blocker 修正 commit | `1958cdc0`（程式與測試）— Codex 已確認解決 |
 | 收合測試條件修正 commit | `82dc1dde`（僅 `detail_collapse_test.py`，產品收合邏輯未改） |
 | 本輪 Review 範圍 | `369f3616..82dc1dde`（程式 `1958cdc0`、測試條件 `82dc1dde`；文件 `37ac3784` 僅更新文件）。Codex 上一輪 `d88da242..369f3616` 已完成，結果 NEED FIX |
@@ -217,12 +219,25 @@
 - 延遲取消（✕／返回／點外側）的 300ms 競態無法手動精準重現，由桌面自動測試 X5–X8 涵蓋；真機只確認主流程。
 - 本次回測屬於 iPhone + Chrome。**不代表** Samsung + Chrome 或 iPhone + Safari 的結果。
 
-## 尚待處理事項
+## 最終相容性驗收（GPT Gate 彙整，2026-10-04）
 
-- Codex 複審 `369f3616..b5af04c3`（搜尋 Blocker 修正、收合測試條件修正、交接本）：Codex 結論 PASS。
-- 相容性抽測尚未進行：iPhone + Safari、Samsung + Chrome，只測關鍵流程（首頁、搜尋與鍵盤、直橫向、Detail、返回）。
-- Phase 2 是否結案：待 GPT Gate 確認。
-- 文件中仍有 Android 字樣的位置（PHASE1_CHANGELOG.md、PHASE2_PLAN.md 的測試代號）尚未更正，待怡恩決定。
+| 環境 | 結果 | 說明 |
+|---|---|---|
+| iPhone + iOS + Google Chrome | **6/6 PASS** | 上表 1–6 項 |
+| iPhone + Safari | **3/3 PASS** | 相容性抽測，關鍵流程 |
+| Samsung + Google Chrome | **3/3 PASS** | 相容性抽測，關鍵流程；橫向＋鍵盤搜尋正常，0050 搜尋送出與 Detail 流程 PASS |
+
+**Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
+
+## Phase 2 封版狀態
+
+- **Phase 2：VERIFIED / CLOSED**（GPT Gate 通過）。Verified baseline（功能程式）：`1958cdc0`。
+- Codex 複審 `369f3616..b5af04c3`：PASS。
+- 真機驗收：iPhone + Chrome 6/6、iPhone + Safari 3/3、Samsung + Chrome 3/3，皆 PASS。
+- Observation（iPhone + Safari 首次捲動約 3 秒延遲，未重現）：不列 Blocker，不修改程式。
+- 本次封版不修改功能程式、不重構、不處理 1px 等外觀細節。
+- **Phase 3 尚未開始**，等待產品決策。
+- 文件中仍有 Android 字樣的位置（PHASE1_CHANGELOG.md、PHASE2_PLAN.md 的測試代號）尚未更正，是否更正由怡恩決定。
 - 尚未 push。push 後 GitHub Pages 會直接上線。
 - 已知限制（不在本 Phase 修正）：
   - `fetch_etf.py:882-884` 在歷史不足時寫入 `0.0`，前端無法與真實 0% 區分。

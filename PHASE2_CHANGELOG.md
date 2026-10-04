@@ -3,6 +3,30 @@
 依據：`PHASE2_PLAN.md` Rev. 3（GPT 最終 Gate：APPROVE FOR CODING）。
 基準：`89e6641a`（Phase 1 Verified baseline）。
 
+## 封版狀態：VERIFIED / CLOSED（2026-10-04）
+
+- **Phase 2 Verified baseline（功能程式）**：`1958cdc0`。之後的提交只含測試與文件，`js/`、`css/`、`index.html` 無變動。
+- 封版文件 commit：見 `git log` 最新一筆 `docs(phase2): Phase 2 封版`（只含文件）。
+- GPT Gate：APPROVED / PASS。
+- 桌面自動測試（最後一次修改測試條件時）：搜尋 38/38、詳細頁 42/42、history 14/14、迴歸 14/14、收合 25/25。
+
+**最終真機相容性驗收（怡恩）**
+
+| 環境 | 結果 |
+|---|---|
+| iPhone + iOS + Google Chrome | 6/6 PASS（直向搜尋開 Detail、返回關閉、橫向鍵盤代碼直開、橫向鍵盤名稱列表、配息計算機輸入框、橫向捲動） |
+| iPhone + Safari | 3/3 PASS（相容性抽測，關鍵流程） |
+| Samsung + Google Chrome | 3/3 PASS（相容性抽測，關鍵流程；橫向＋鍵盤搜尋正常，0050 搜尋送出與 Detail 流程 PASS） |
+
+**Observation（不列 Blocker，未修改程式）**：iPhone + Safari 首次開啟時曾觀察到約 3 秒捲動延遲。重新進入 Detail 後，「立即滑動」與「等待 5 秒後滑動」皆無法重現。
+
+**封版時的已知限制**
+- 鍵盤開著時，iPhone + Chrome 的可見高度約 20px，低高度模式的結果需收鍵盤後才完整顯示（已接受）。
+- 延遲取消（✕／返回／點外側）的 300ms 競態，手動無法精準重現，由桌面測試 X5–X8 涵蓋。
+- 收合測試依固定 390×844 視窗執行。
+- 1px 等外觀細節：本次封版不處理。
+- 文件中仍有 Android 字樣（PHASE1_CHANGELOG.md、PHASE2_PLAN.md 的測試代號）尚未更正。
+
 ## 新增
 
 - `js/detail.js`：ETF 詳細頁。總覽／配息／績效／成分四個 tab。
