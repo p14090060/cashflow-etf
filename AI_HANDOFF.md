@@ -234,7 +234,9 @@
 - **Phase 2：VERIFIED / CLOSED**（GPT Gate 通過）。Verified baseline（功能程式）：`1958cdc0`。
 - Codex 複審 `369f3616..b5af04c3`：PASS。
 - 真機驗收：iPhone + Chrome 6/6、iPhone + Safari 3/3、Samsung + Chrome 3/3，皆 PASS。
-- Observation（iPhone + Safari 首次捲動約 3 秒延遲，未重現）：不列 Blocker，不修改程式。
+- Observation（iPhone + Safari 首次捲動約 3 秒延遲，未重現）：不列 Bug，不修改程式。
+- **Known UX limitation**：iPhone + Chrome 橫向鍵盤開啟時，可用 viewport 可能極小（實測約 20px）。搜尋送出、收鍵盤、進 Detail 均正常。同一支 iPhone 橫向鍵盤環境下，Safari 可用畫面明顯比 Chrome 充裕。此項不 hardcode 20px，Phase 2 功能不再修改。
+- Samsung + Chrome 橫向鍵盤顯示正常，搜尋框與結果均可使用。
 - 本次封版不修改功能程式、不重構、不處理 1px 等外觀細節。
 - **Phase 3 尚未開始**，等待產品決策。
 - 文件中仍有 Android 字樣的位置（PHASE1_CHANGELOG.md、PHASE2_PLAN.md 的測試代號）尚未更正，是否更正由怡恩決定。
