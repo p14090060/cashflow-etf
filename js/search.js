@@ -170,14 +170,19 @@ if (window.visualViewport) {
 }
 _gsSyncAll();
 
-// 矮螢幕（橫向）鍵盤出現時，版面視窗只剩很小一塊；頂部是 sticky，會釘在視窗頂端，
-// 搜尋框露不出來。搜尋框取得焦點時，改讓頂部隨頁面捲動，並把搜尋框捲到最上方。
-// 直向螢幕夠高，不進入這個狀態。
+// 橫向時鍵盤出現，版面視窗只剩很小一塊；頂部是 sticky，會釘在視窗頂端，搜尋框露不出來。
+// 搜尋框取得焦點時，改讓頂部隨頁面捲動，並把搜尋框捲到最上方。
+// 用裝置方向判斷（不看視窗高度，因為鍵盤會讓視窗高度變小，直向也會誤判）。
+function _gsIsLandscape() {
+  const o = screen.orientation;
+  return o ? o.type.indexOf('landscape') === 0
+           : window.matchMedia('(orientation: landscape)').matches;
+}
 (function () {
   const input = document.getElementById('gsearch');
   if (!input) return;
   input.addEventListener('focus', function () {
-    if (window.innerHeight >= 600) return;
+    if (!_gsIsLandscape()) return;
     document.body.classList.add('gs-kb');
     setTimeout(() => input.scrollIntoView({ block: 'start' }), 350);
   });
