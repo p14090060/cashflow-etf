@@ -237,14 +237,24 @@ function _dtBuild() {
   _dtSkeleton = true;
 }
 
-// 往下捲超過一點就收起頂部區域；回到頂部才出現。滯後區間避免捲動邊界來回閃動。
+// 往下捲超過一點就收起頂部區域；回到頂部才出現。
+// 收合會讓捲動視窗變高（+頂部高度）、內容變短（−標題列）。若收合後的最大捲動量
+// 小於目前位置，瀏覽器會把 scrollTop 壓回 0，接著又展開，形成閃動。
+// 所以只有在收合後位置仍在範圍內時才收合；展開只看使用者真的回到頂部。
 function _dtSyncCollapse() {
   if (!_detailOpen) return;
   const body = document.body;
-  const st = _dtEl('gsPanel').scrollTop;
-  if (st > 4 && !body.classList.contains('dt-collapsed')) {
-    body.classList.add('dt-collapsed');
-  } else if (st <= 0 && body.classList.contains('dt-collapsed')) {
+  const panel = _dtEl('gsPanel');
+  const st = panel.scrollTop;
+  if (!body.classList.contains('dt-collapsed')) {
+    if (st <= 4) return;
+    const hdr = document.querySelector('.app-hdr');
+    const ttl = panel.querySelector('.gs-panel-hd');
+    const hdrH = hdr ? hdr.offsetHeight : 0;
+    const ttlH = ttl ? ttl.offsetHeight : 0;
+    const maxAfter = (panel.scrollHeight - ttlH) - (panel.clientHeight + hdrH);
+    if (st <= maxAfter) body.classList.add('dt-collapsed');
+  } else if (st <= 0) {
     body.classList.remove('dt-collapsed');
     _gsSyncAll();
   }
@@ -310,6 +320,7 @@ function detailPatch() {
   _dtSlot('holdings', fe ? _dtHoldingsHtml(fe) : '');
   _dtSyncTabs();
   _dtCalc();
+  _dtSyncCollapse();
 }
 
 // ── 開啟／關閉（history 規則見 PHASE2_PLAN.md 第 6 節）─────
@@ -358,6 +369,7 @@ function closeDetail() {
 function detailTab(k) {
   _detailTab = k;
   _dtSyncTabs();
+  _dtSyncCollapse();
 }
 
 function detailGoFlow(code) {

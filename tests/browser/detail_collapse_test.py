@@ -42,6 +42,48 @@ ev("gsPick('0050'); detailTab('dividend'); true"); wait_ms(300)
 ev("document.getElementById('dtSharesIn').focus(); true"); wait_ms(500)
 ev("closeDetail(); true"); wait_ms(300)
 
+
+# ── C7 略有溢出（約 100px）：不得收合，也不得閃動
+ev("gsPick('0050'); true"); wait_ms(300)
+ev("(()=>{ const sp=document.createElement('div'); sp.id='__spacer'; document.getElementById('gsPanelBody').appendChild(sp); const p=document.getElementById('gsPanel'); sp.style.height='0px'; const ov=p.scrollHeight-p.clientHeight; sp.style.height=Math.max(0,100-ov)+'px'; return true; })()")
+wait_ms(100)
+ov7 = ev("(()=>{ const p=document.getElementById('gsPanel'); return p.scrollHeight - p.clientHeight; })()")
+check('C7 precondition: overflow about 100px', isinstance(ov7, (int, float)) and 60 <= ov7 <= 160, ov7)
+ev("document.getElementById('gsPanel').scrollTop = 100; true"); wait_ms(600)
+check('C7 slight overflow does not collapse', ev("document.body.classList.contains('dt-collapsed')") is False)
+check('C7 scroll position not forced to 0', (ev("document.getElementById('gsPanel').scrollTop") or 0) > 50, ev("document.getElementById('gsPanel').scrollTop"))
+ev("closeDetail(); true"); wait_ms(300)
+
+# ── C8 明顯溢出：收合後位置仍保留，不會被壓回 0
+ev("gsPick('0050'); true"); wait_ms(300)
+add_spacer(); wait_ms(100)
+ev("document.getElementById('gsPanel').scrollTop = 300; true"); wait_ms(600)
+check('C8 collapsed after clear overflow', ev("document.body.classList.contains('dt-collapsed')") is True)
+check('C8 stays collapsed, no bounce to top', ev("document.body.classList.contains('dt-collapsed')") is True and (ev("document.getElementById('gsPanel').scrollTop") or 0) > 200, ev("document.getElementById('gsPanel').scrollTop"))
+ev("closeDetail(); true"); wait_ms(300)
+
+# ── C9 收合中切到短分頁：應自動展開一次並穩定，不來回閃動
+ev("gsPick('0050'); detailTab('perf'); true"); wait_ms(300)
+ev("(()=>{ const sp=document.createElement('div'); sp.id='__spacer'; sp.style.height='2000px'; document.querySelector('[data-pane=perf]').appendChild(sp); return true; })()")
+wait_ms(100)
+ev("document.getElementById('gsPanel').scrollTop = 300; true"); wait_ms(400)
+check('C9 precondition: collapsed on long tab', ev("document.body.classList.contains('dt-collapsed')") is True)
+ev("window.__cls = 0; window.__mo = new MutationObserver(() => { window.__cls++; }); window.__mo.observe(document.body, { attributes: true, attributeFilter: ['class'] }); true")
+ev("detailTab('overview'); true"); wait_ms(1000)
+toggles = ev("(()=>{ window.__mo.disconnect(); return window.__cls; })()")
+check('C9 short tab restores header once', ev("document.body.classList.contains('dt-collapsed')") is False)
+check('C9 no oscillation after tab switch', isinstance(toggles, int) and toggles <= 1, toggles)
+ev("closeDetail(); true"); wait_ms(300)
+
+# ── C10 長內容捲動中不閃動（收合後穩定）
+ev("gsPick('0050'); true"); wait_ms(300)
+add_spacer(); wait_ms(100)
+ev("window.__cls = 0; window.__mo = new MutationObserver(() => { window.__cls++; }); window.__mo.observe(document.body, { attributes: true, attributeFilter: ['class'] }); true")
+ev("document.getElementById('gsPanel').scrollTop = 300; true"); wait_ms(1000)
+toggles10 = ev("(()=>{ window.__mo.disconnect(); return window.__cls; })()")
+check('C10 collapse happens once, no flicker', isinstance(toggles10, int) and toggles10 <= 1, toggles10)
+ev("closeDetail(); true"); wait_ms(300)
+
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))
 fails = [r for r in results if not r[1]]
