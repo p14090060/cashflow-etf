@@ -2,7 +2,7 @@
 
 ## 0. 目前唯一有效狀態（Compact 後先讀這一節）
 
-Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 狀態」繼續。不要重新做產品規劃，不要重新開啟已標示 RESOLVED 的 blocker。
+**Phase 3 已 VERIFIED / CLOSED（2026-10-05，baseline `82ce3ee9`）。** Compact 後先讀本節；Phase 4 尚未開始，等待 PO 指示。§0.5 以下為 Phase 3 的過程紀錄。不要重新做產品規劃，不要重新開啟已標示 RESOLVED 的 blocker。
 
 ### 0.1 專案與階段
 
@@ -11,7 +11,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 2：VERIFIED / CLOSED。** Verified functional baseline：`1958cdc0`。封版文件：`74c61106`。已 push。
 - **Phase 3 Plan：Rev.3.3，commit `8326f465`。** Codex 最終結論：**PASS FOR CODING AFTER PRODUCT DECISIONS**。
 - **Phase 3 Resync blocker：RESOLVED**（Rev.3.3 已通過）。
-- **Phase 3：APPROVED FOR CODING。**
+- **Phase 3：VERIFIED / CLOSED（2026-10-05）**，見下方 `82ce3ee9` 一項。（歷史：Phase 3 曾為 APPROVED FOR CODING。）
 - **Phase 3 Coding commit：`99ec4b14`。** Codex 複審結果：**NEED FIX**（三項必修）。
 - **Phase 3 必修修正 commit：`8e3e59bb`。** 本機，尚未 push。Codex 複審 `99ec4b14..8e3e59bb`：Finding 2（flow visualViewport）與 Finding 3（LR-8）RESOLVED；唯一待修 Finding 1 已在後續 fix commit 修正（見下）。
 - **Phase 3 Finding 1 fix commit：`c050c719`**（本機，未 push）。Detail scroll 被分類 snapshot 覆蓋；修正內容見 `PHASE3_CHANGELOG.md` 的「Codex 複審 Finding 1 修正」一節。
@@ -22,11 +22,16 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 renderList 重建保留位置 fix commit：`1418695a`**（本機，未 push）。真機重測 PASS（Detail × 關閉、停留跨輪詢、中段位置、查看更多 +10）。**Codex PASS。**
 - **Phase 3 UX-1／UX-2 commit：`395c774e`**。UX-1：金色提醒與分類內容之間的空白（31px → 15px）。UX-2：「切換分類 ▼／▲」按鈕（說明列，99×44）。內容見 `PHASE3_CHANGELOG.md` 的「UX-1、UX-2 小修」一節。**Codex 複審 `1418695a..395c774e`：PASS**（UX-1、UX-2、長名稱／小螢幕、Accessibility、Regression 皆 PASS；category 186 PASS、0 FAIL、1 DEFER（LR-8））。
 - **Push 狀態（2026-10-05 確認）**：`395c774e`（程式）與 `ca262607`（handoff）已在 `origin/main`。研判是後續本機自動行情排程推送 main 時一併帶上去。**PO 已接受，不需 rollback**；GitHub Pages 已是 Phase 3 版本。
-- **Phase 3：尚未 Verified。** 等待 iPhone + Chrome 最終真機驗收（§0.5 清單）。
 - **Phase 3 B6 警示條輕量化 commit：`ec2eec09`**。**Codex 複審 `395c774e..ec2eec09`：PASS，checkpoint 關閉，不再修改或重審。**
 - **Phase 3 文件夾說明／藏字 commit：`3bde9239`**。**Codex 唯讀複審：PASS，checkpoint 關閉。**
 - **⚠ SHA 被自動排程改寫**：本機行情排程會先 `pull --rebase` 再推，所以尚未推上去的本機 commit 會換成新的 SHA（程式內容不變，只有 `data/` 不同）。已發生：`ec2eec09` → **`a9f99081`**（B6）、`3bde9239` → **`51677d06`**（文件夾）。之後請以 commit 訊息和 `git log` 為準，舊 SHA 雖然還查得到，但已不在 main 上。
-- **Phase 3 ESG 分類＋inside 標題列 commit：`88ad38cb`**（本機，未手動 push；推送後 SHA 可能被改寫，commit 訊息開頭為「feat(phase3): ESG／公司治理歸主題型；inside 標題列精簡」）。PO 真機步驟 1～7 PASS 後提出，PO／GPT Gate 核准。**等待 Codex 唯讀複審（範圍：文件夾 commit `51677d06` 之後到此 commit，不含資料 commit）。**
+- **Phase 3 ESG 分類＋inside 標題列 commit：`82ce3ee9`**（原 `88ad38cb`，被自動排程改寫；對應 handoff 原 `e66844a1` → `aeab5fa2`）。**Codex 唯讀複審：PASS。**
+- **Phase 3：VERIFIED / CLOSED（2026-10-05）。** Verified baseline（功能程式）：**`82ce3ee9`**。已在 `origin/main`，GitHub Pages 已上線。
+  - Codex：各 checkpoint 皆 PASS（UX-1／UX-2 `395c774e`、B6 `a9f99081`、文件夾 `51677d06`、ESG＋標題列 `82ce3ee9`）。
+  - 真機驗收（iPhone + Google Chrome，PO 執行）：步驟 1～5 PASS（警示條、8 份文件夾的名稱／檔數／說明、堆疊與無藏字、科技／半導體）；步驟 6～16 PASS（overview → inside → doorway → 切換分類、▼／▲、inside 不重複說明、← 返回、D4 查看更多 → Detail → × 返回、橫向準備）；**LR-8 真機補驗 PASS**（橫向鍵盤開啟時搜尋框可見、收起後恢復）。自動測試中的 LR-8 DEFER 由這次真機結果取代。
+  - **真機 Observation（不修正，屬瀏覽器環境差異）**：iPhone Chrome 橫向時，瀏覽器 UI 收合或展開會讓可用 viewport 高度明顯不同。UI 展開且鍵盤開啟時，可用高度會大幅縮小，此時 low-height fallback「收起鍵盤以查看 ETF 清單」運作正常；鍵盤收起後畫面正常恢復。PO 決定不再修改 CSS 或 Category 邏輯。
+  - 仍有效的 Observation（不阻擋封版）：§0.7 的 Known Observation（清單剛好放得下時縮短，「查看更多」被裁約 16px；真機未造成問題）、0057 富邦摩台、低高度橫向的持股異動 treemap。
+  - **Phase 4 尚未開始**，等待 PO 指示。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -119,12 +124,9 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.6 下一步
 
-- **Codex：唯讀複審 `88ad38cb`**（文件夾 commit `51677d06` 之後的程式／文件 commit）。重點：
-  - A：第 9 順位改動是否只影響「無更明確定位」的 ESG／公司治理；fixture 只改 4 筆；PLAN 是否和程式一致。
-  - B：`cat-ctl` 標題列的 wrap 與單列條件；`order: -1` 對橫向和 tight3 的影響；`catCount` 移除後沒有殘留引用；aria-label；UX-1 15px；AB／RL 視窗調整是否維持原本前提。
-  - B6、文件夾、更早的範圍不重審。
-- **Claude**：Codex PASS 後，提供 PO 真機步驟。**從第 6 步重新驗收**（第 1～5 步已 PASS，不重做）。第 6～12 步的文字要改成新的標題列：沒有檔數、← 返回分類、代碼 ⇅、切換分類在標題列，另外加上「主題型 25 檔／其他 4 檔、ESG 4 檔在主題型」的檢查。之後接第 13～19 步（D4、LR-8）。
-- **PO**：執行真機驗收；全數 PASS 後由 PO／Gate 宣告 Phase 3 Verified。若有 FAIL，Claude 依回饋修正並交 Codex。
+- **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
+- **Phase 4：尚未開始**，等待 PO 指示（例如自選完整功能）。在 PO／Gate 核准 Phase 4 Plan 之前，不寫程式。
+
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
 ### 0.7 已知限制（記錄，不是待辦）
