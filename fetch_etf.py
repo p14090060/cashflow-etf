@@ -437,14 +437,87 @@ def calc_heat_score(cur_vol, avg_vol, aum, today_chg, recent_vols, curated=False
 # ── 自動發現：排除非股票型 ETF 的關鍵字 ────────────────────────────
 EXCLUDE_KW = [
     '債', '期貨', '槓桿', '反向', '貨幣市場', '貨幣',
-    '正2', '反1', '公債', '公司債', '高收益', '不動產',
+    '正2', '反1', '正二', '反一', '公債', '公司債', '高收益', '不動產',
     'REITs', '基礎建設', '優先股', '可轉換', '黃金', '原油',
     '石油', '天然氣', '白銀', '農產',
     'R1', 'R2',   # 受益憑證（01xxxT），非 ETF
 ]
 
+# 代號字尾 L＝槓桿、R＝反向、U＝期貨／商品。2026-10-05 實測 ISIN ETF 區段 382 檔，
+# 字尾與名稱完全一致（0 例外）。名稱關鍵字擋不住簡稱（02001L 富邦蘋果正二N、
+# 00682U／00693U／00763U），所以用代號擋。A／B／D／K／C 等字尾不受影響。
+EXCLUDE_SUFFIX = ('L', 'R', 'U')
+
+# ISIN 頁的區段名 → 該區段 CFI 應有的前綴（健全性檢查）
+ISIN_SECTIONS = {'ETF': 'CE', 'ETN': 'CM'}
+_SECTION_RE = re.compile(r'<tr><td[^>]*colspan=7[^>]*>\s*<B>\s*(.*?)\s*<B>', re.I)
+_TD_RE = re.compile(r'<td[^>]*>(.*?)</td>', re.I | re.S)
+
+
+def pool_excluded(code, name):
+    """資料池篩選鏈②③④：回傳排除原因字串，通過則回傳 None。
+    ISIN 即時抓取、etf_pool_cache.json fallback、CURATED 都走這一支。"""
+    if not code or not name:
+        return 'empty'
+    if not code.startswith('0'):        # ② 排除 TDR（9xxx）等
+        return 'not-0'
+    if code.endswith('T'):              # ② 排除受益憑證（01004T 等）
+        return 'suffix-T'
+    if code.endswith(EXCLUDE_SUFFIX):   # ③ 槓桿／反向／期貨
+        return 'suffix-' + code[-1]
+    if any(kw in name for kw in EXCLUDE_KW):  # ④ 名稱關鍵字
+        return 'keyword'
+    return None
+
+
+def isin_sections(html):
+    """切出 ISIN 頁的區段 {區段名: 區段 HTML}，每段只到下一個區段標題列為止。"""
+    marks = [(m.group(1).strip(), m.start(), m.end()) for m in _SECTION_RE.finditer(html)]
+    out = {}
+    for k, (title, _, end) in enumerate(marks):
+        stop = marks[k + 1][1] if k + 1 < len(marks) else len(html)
+        out.setdefault(title, html[end:stop])
+    return out
+
+
+def parse_isin_rows(section, cfi_prefix, label=''):
+    """解析一個區段的資料列 → [(code, name)]；CFI 不符預期前綴的列印警告後略過。"""
+    out = []
+    for row in re.split(r'<tr>', section, flags=re.I):
+        tds = _TD_RE.findall(row)
+        if len(tds) < 6 or '　' not in tds[0]:
+            continue
+        code, name = (x.strip() for x in tds[0].split('　', 1))
+        cfi = tds[5].strip()
+        if not cfi.startswith(cfi_prefix):
+            print("[POOL] %s %s %s CFI=%s 不是 %s…，略過" % (label, code, name, cfi, cfi_prefix))
+            continue
+        out.append((code, name))
+    return out
+
+
+def parse_isin_pool(html, label=''):
+    """從一個市場別的 ISIN 頁取出資料池候選 [(code, name)]（篩選鏈①～④）。
+    找不到 ETF 區段 → 丟例外（視為該市場別抓取失敗，不退回整頁解析）；
+    找不到 ETN 區段 → 視為該市場別沒有 ETN，印警告，ETF 照收。"""
+    secs = isin_sections(html)
+    if 'ETF' not in secs:
+        raise ValueError("找不到 ETF 區段（%s）" % label)
+    out, seen = [], set()
+    for title, prefix in ISIN_SECTIONS.items():
+        if title not in secs:
+            print("[POOL] %s 找不到 %s 區段，視為沒有 %s" % (label, title, title))
+            continue
+        for code, name in parse_isin_rows(secs[title], prefix, label):
+            if code in seen or pool_excluded(code, name):
+                continue
+            seen.add(code)
+            out.append((code, name))
+    return out
+
+
 def _isin_etf_pool(str_mode):
-    """抓 ISIN 某一市場別的股票型 ETF，回傳 [(code, name)]。strMode=2 上市、4 上櫃。"""
+    """抓 ISIN 某一市場別的 ETF＋ETN 候選，回傳 [(code, name)]。strMode=2 上市、4 上櫃。"""
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -454,24 +527,7 @@ def _isin_etf_pool(str_mode):
     )
     with _ur.urlopen(req, timeout=20, context=ctx) as r:
         html = r.read().decode('ms950', errors='ignore')
-    # 只取 ETF 區段（從 "ETF <B>" 開始）
-    etf_start = html.find('ETF <B>')
-    section = html[etf_start:] if etf_start >= 0 else html
-    pairs = re.findall(r'([0-9]{4,6}[A-Z]?)　([^\t<\r\n]{2,30})', section)
-    out, seen = [], set()
-    for code, name in pairs:
-        code, name = code.strip(), name.strip()
-        if not code or not name or code in seen:
-            continue
-        if not code.startswith('0'):   # 排除台灣存託憑證（9xxx）
-            continue
-        if code.endswith('T'):         # 排除受益憑證（01004T, 01007T 等）
-            continue
-        if any(kw in name for kw in EXCLUDE_KW):
-            continue
-        seen.add(code)
-        out.append((code, name))
-    return out
+    return parse_isin_pool(html, 'strMode=%s' % str_mode)
 
 
 def fetch_twse_etf_pool():
@@ -523,13 +579,15 @@ def build_pool():
                 cached = json.load(open(POOL_CACHE, encoding="utf-8"))
                 # cache 可能是舊的兩元組 [(code, name)]（2026-09-27 之前只存上市），
                 # 補不出市場別時一律當上市，至少不會整批壞掉
+                # cache 是舊規則時代寫的也一樣要過篩選鏈（③槓反期貨可能還在裡面）
                 auto = [(r[0], r[1], bool(r[2]) if len(r) > 2 else False)
-                        for r in cached if len(r) >= 2 and r[0] and r[1]]
+                        for r in cached if len(r) >= 2 and r[0] and r[1]
+                        and not pool_excluded(r[0], r[1])]
                 print(f"[POOL] ISIN 失敗，從 etf_pool_cache.json fallback 取得 {len(auto)} 支")
             except Exception as fb_err:
                 print(f"[POOL] fallback 讀取 cache 失敗: {fb_err}")
 
-    pool = list(CURATED)
+    pool = [(c, n) for c, n in CURATED if not pool_excluded(c, n)]   # 防禦性：精選池目前無 L/R/U
     added = otc_added = 0
     for code, name, is_otc in auto:
         if is_otc:
