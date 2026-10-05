@@ -2,7 +2,7 @@
 
 ## 0. 目前唯一有效狀態（Compact 後先讀這一節）
 
-**Phase 3 已 VERIFIED / CLOSED（2026-10-05，baseline `82ce3ee9`）。** Compact 後先讀本節；Phase 4 尚未開始，等待 PO 指示。§0.5 以下為 Phase 3 的過程紀錄。不要重新做產品規劃，不要重新開啟已標示 RESOLVED 的 blocker。
+**Phase 3、Phase 4 已 VERIFIED / CLOSED（2026-10-05；baseline 分別為 `82ce3ee9`、`edb065d2`）。** Compact 後先讀本節；Phase 5 已完成 GPT Gate 決策（見「Phase 5 — GPT Gate 決策」），尚未寫 Plan、未 coding。§0.5 以下為 Phase 3 的過程紀錄。
 
 ### 0.1 專案與階段
 
@@ -40,7 +40,8 @@
 - **Phase 4 按住計時交界修正 commit：`ba3070f3`**。**Codex 複審 PASS。**
 - **PO iPhone Chrome 主驗收（2026-10-05）**：拖曳 UX 重測 R1～R11 全部 PASS；原 QA 1～24、26～33 PASS（28、29 Active Flow PASS）；25 N/A（績效內容高度不足，無法觸發標題列收合）；34 未測（選做 VoiceOver）。Samsung Chrome 抽測尚未執行。
 - **Phase 5 待辦（PO 決定，Phase 4 不改）**：直向「持股異動」檢視仍使用展開的分類標籤列，而非「切換分類 ▼／▲」。經查為 Phase 3 既有設計（`ctlActive()` 限 `view === 'list'`，baseline `82ce3ee9` 起即如此，category_test 明文驗證），屬兩套 UI 尚未統一，移至 Phase 5 UX 統一。
-- **Phase 4 收尾：拖曳底部邊界 commit：`edb065d2`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳卡片不越過清單上下邊界」）。**下一位：Codex｜Code Review**（見「Phase 4 edb065d2 — 拖曳邊界」）。Codex PASS 後 PO 只重測底部拖曳，不重跑完整 Phase 4 QA。
+- **Phase 4 收尾：拖曳底部邊界 commit：`edb065d2`**。Codex Code Review PASS；底部拖曳修正後真機重測 PASS。
+- **Phase 4：VERIFIED / CLOSED（2026-10-05）。** 功能 baseline：**`edb065d2`**（之後若只有文件 commit，不重開 Phase 4）。iPhone Chrome 主要 QA、拖曳 R1～R11、Active Flow 真機測試完成；**Samsung Chrome S1～S8 全部 PASS**；25 N/A（內容高度不足以觸發收合）、34 選做未測。不需補測、不豁免、不再審查。
   - 產品需求已由 PO／GPT Gate 確認（自選／我的 ETF：♡ 收藏、自選大卡、近半年走勢 6 柱、台股漲紅跌綠、⠿ 拖曳排序、取消後可復原、引導式空狀態、localStorage only）。Plan 不重議需求。
   - 已標示的架構衝突（Plan §1）：C1 分類列是 `<button>`，無法內嵌 ♡ 按鈕 → 改為容器＋兩個並列按鈕；C2 `miniBars` 會把 0 畫成紅色且顏色寫死 → 新增選項參數，只有自選卡生效；C3 站上沒有淺色主題；C5 Detail 標題列捲動時會收合。
   - 待 PO／Gate 確認的做法（Plan §11 D1～D6）：miniBars 的 0 是否全站改中性、淺色主題、Detail ♡ 位置、Toast 規則、替代排序、頁面標題。
@@ -246,6 +247,30 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 
 **Codex 複審範圍**：只看 FL-4（含 FL-2／FL-3 的 fixture 補充）與 UN-5a～c。已 RESOLVED 的 Finding 1～3 不重審。PASS 後交 PO／GPT Gate 決定 D1～D6，未授權 coding。
 
+### Phase 5 — GPT Gate 決策（PO 確認，2026-10-05）：尚未開始實作
+
+本節為 Phase 5 已確認的產品決策與 Git 考古結論。**只記錄，尚未 coding**；不新增範圍，不重開 Phase 2～4。
+
+1. **新手 ETF 展示原則（資料池層級產品規則）**：ETF 存股雷達主要面向 ETF 新手（PO 曾遇新手詢問「槓桿 ETF 能不能買」），刻意不主動提供需要額外理解產品機制的特殊 ETF。**槓桿：排除；反向：排除；商品期貨：排除（PO 本次決定）；一般債券：保留。** 規則放在資料池（`fetch_etf.py` 建池），前台不需額外大量說明。
+2. **修補特殊 ETF 排除漏洞（待實作）**：現行 `EXCLUDE_KW`（`e15e9af3` 起）有漏網——`02001L 富邦蘋果正二N`（「正二」非「正2」，已在 `etf_pool_cache.json`，目前因量低／抓不到才沒出現，非規則保證）；商品期貨 ETF 名稱以「期」開頭而非「期貨」（00682U 期元大美元指數、00693U 期街口S&P黃豆、00763U 期街口道瓊銅目前在資料池，歸「其他」）。**不可單純加入過寬的「期」字關鍵字**，正式實作前須提出較可靠的產品辨識方式（例：代號字尾／證交所商品類別等，需先查證再提案）。 **具體辨識方式由 Claude 在 Phase 5 Plan 提出，PO 不需選技術實作。**
+3. **「價格合理區」母體**：成交量前 100 檔（`cur_vol` 排序）→ 再判斷價格條件；不從全部 ETF 直接挑。
+4. **LAZY_WATCHLIST**：Git 考古確認**不是**槓桿／反向的新手安全機制。最初 `99c8b9b7`（2026-05-14）以 20 檔人工白名單限制舊首頁「合理價」只收熱門 ETF、避免冷門／極新 ETF；`8e8e1566`（2026-05-20）起 cheap 不再受限、同時加入 00403A（21 檔）；之後未再維護（3 檔債券 00679B／00687B／00772B 不在資料池、3 檔 00757／00646／00662 不配息；`intraday_notify.py`、`fetch_dividend_calendar.py` 的副本少 00403A）。**Phase 5 決定：新「價格合理區」不再用 LAZY_WATCHLIST 限制 fair**（成交量前 100 已取代其目的）。⚠ 名單仍被 `daily_check.py`（TG 通知）、`intraday_notify.py`（盤中推播）、`fetch_dividend_calendar.py`（配息行事曆）使用，**不可全域刪除**；其他用途需另行確認後才清理。 **TG／盤中推播／配息行事曆這三處本輪不修改、不刪除，列為既有技術／歷史項目，不是 Phase 5 的 PO blocker。**
+5. **不配息 ETF**：「價格合理區」繼續排除 `div_frequency === '不配息'`（舊首頁自 `99c8b9b7` 起即排除，`8e8e1566` 改用頻率判斷、`098b5fed` 連 fallback 也排除）。不配息 ETF 仍正常存在於分類、全站搜尋、ETF Detail、我的 ETF 等功能，只是不主動進入首頁價格合理區。
+6. **cheap 門檻正式確認：52 週位置 < 40%，且低於 60MA > 2%（`pos52 < 0.40 and maD60 < -2`），維持不變，不改回舊版 30%／3%。**
+   - **PO 歷史原因（請勿再依舊文件誤改）**：舊版 30%／3% 條件太嚴格，曾連續很多天幾乎沒有 ETF 符合，首頁「值得留意」長期沒有內容可呈現，因此刻意放寬為 40%／2%。
+   - **Git 證據**：初版 `9f6db875`（2026-05-11）與 `e55e77df`（2026-05-12，同時建立 CLAUDE.md）為 `pos52 < 0.30 and maD60 < -3`；`4ea6db41`（2026-05-19）commit 訊息明寫「cheap 條件放寬：pos52<0.40、maD60<-2」，`fetch_etf.py` 與 `mis_fetcher.py` 同步修改。CLAUDE.md 之後未更新，才出現文件與程式不一致。
+7. **更新過期文件（以程式為準）**：CLAUDE.md 訊號表格自 `4ea6db41` 後未更新，須依現行程式更正 **cheap、fair、hot 與債券相關說明**（現行：hot＝5 日漲幅 ≥ 5% 或 RSI ≥ 75；dear＝52 週位置 > 78% 或現價 > 60MA×1.06，及其餘預設；cheap 如上；fair＝現價 ≤ 60MA×1.03、5 日 < 5%、量比 ≤ 3.0（`4c00a1fe` 移除下限 0.5）、RSI < 75，高股息型另需殖利率 > 5%；bond＝代號 B／D 結尾短路）。**原則：文件配合程式，不因文件過期反改公式。**
+8. **價格合理區顯示方式**：符合 ≤ 10 檔全部顯示；超過 10 檔預設顯示前 10 檔＋「查看全部 X 檔」，展開後可「收起」；每列整列可點擊進 ETF Detail；精簡列表（例：`00998A　主動復華金融股息　[便宜]`），不做大型卡片，不壓過後面的熱門前 10。區塊名稱「價格合理區」、說明「目前共有 X 檔 ETF 符合價格條件」；納入狀態為便宜＋合理。
+9. **舊功能處理**：舊版獨立配息計算機已決定淘汰；`js/lookup.js` `lookupCustom()` 對不存在代碼產生估算價格／殖利率／配息天數的舊路徑，不為 Phase 5 修復或保留。ETF Detail 內正式的配息＋持有張數計算保留。
+10. **其他記錄**：直向「持股異動」仍用展開分類標籤（Phase 3 既有設計）→ 列入 Phase 5 UX 統一。
+11. **首頁成交量排行（PO 決策）**：演算法維持 `cur_vol` 成交量排序，**不改成 `heat`**（`heat` 只用於 `daily_check.py` 偵測新進前 100）；標題正式改為「**今日成交量 TOP 10**」；每列整列可點擊進入 ETF Detail。
+12. **價格合理區 0 檔（PO 決策：方案 A）**：只顯示「目前沒有 ETF 符合價格條件」。**不再提供**舊版「最接近門檻 3 檔」fallback，也不放入未真正符合 cheap／fair 的 ETF 填版面。
+13. **價格合理區排序（PO 決策）**：第一排序 cheap 在前、fair 在後；第二排序同一狀態內依 `cur_vol` 由高到低。超過 10 檔時預設前 10 也依此順序，其餘以「查看全部 X 檔」展開。
+
+**Phase 5 價格合理區的 PO Gate 已全部完成。**
+
+**下一步**：Phase 4 已封版。由 Claude 撰寫 Phase 5 Plan（範圍以本節 1～13 為限，含特殊 ETF 辨識方案），交 Codex Plan Review、GPT Gate，核准後才 coding。長期「決策＋原因」已同步到 `CLAUDE.md`「產品決策與原因（長期保存）」與「篩選邏輯」。
+
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
 - **00920 富邦ESG綠色電力、00923 群益台ESG低碳50、009809 富邦淨零ESG50 → 主題型。** 依一般使用者瀏覽時的直覺歸類。不建立僅為 00920 的名稱覆寫。
@@ -338,7 +363,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **Codex｜Code Review（下一位）**：審查 `edb065d2` 拖曳邊界修正與 BD-1～5（見「Phase 4 edb065d2 — 拖曳邊界」）。PASS 後 PO 只重測底部拖曳。
+- **下一位：Claude｜撰寫 Phase 5 Plan**（範圍見「Phase 5 — GPT Gate 決策」1～13）。Phase 4 已 VERIFIED / CLOSED，不再審查。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
