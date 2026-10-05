@@ -31,7 +31,97 @@
   - 真機驗收（iPhone + Google Chrome，PO 執行）：步驟 1～5 PASS（警示條、8 份文件夾的名稱／檔數／說明、堆疊與無藏字、科技／半導體）；步驟 6～16 PASS（overview → inside → doorway → 切換分類、▼／▲、inside 不重複說明、← 返回、D4 查看更多 → Detail → × 返回、橫向準備）；**LR-8 真機補驗 PASS**（橫向鍵盤開啟時搜尋框可見、收起後恢復）。自動測試中的 LR-8 DEFER 由這次真機結果取代。
   - **真機 Observation（不修正，屬瀏覽器環境差異）**：iPhone Chrome 橫向時，瀏覽器 UI 收合或展開會讓可用 viewport 高度明顯不同。UI 展開且鍵盤開啟時，可用高度會大幅縮小，此時 low-height fallback「收起鍵盤以查看 ETF 清單」運作正常；鍵盤收起後畫面正常恢復。PO 決定不再修改 CSS 或 Category 邏輯。
   - 仍有效的 Observation（不阻擋封版）：§0.7 的 Known Observation（清單剛好放得下時縮短，「查看更多」被裁約 16px；真機未造成問題）、0057 富邦摩台、低高度橫向的持股異動 treemap。
-  - **Phase 4 尚未開始**，等待 PO 指示。
+  - **Phase 4 尚未開始 coding。**
+- **Phase 4 Plan：Rev.2.1，Codex PASS；PO／Gate D1～D6 已決議（commit `df5d5072`）。**
+- **Phase 4 Coding commit：`b78134c1`**（本機，未手動 push；自動排程推送時 SHA 可能被改寫，commit 訊息開頭「feat(phase4): 我的 ETF（自選）」）。**下一位：Codex｜Code Review**（見下方「Phase 4 Coding — 交 Codex Code Review」）。**Phase 4 尚未完成**：Codex 審查與真機驗收都還沒做。
+  - 產品需求已由 PO／GPT Gate 確認（自選／我的 ETF：♡ 收藏、自選大卡、近半年走勢 6 柱、台股漲紅跌綠、⠿ 拖曳排序、取消後可復原、引導式空狀態、localStorage only）。Plan 不重議需求。
+  - 已標示的架構衝突（Plan §1）：C1 分類列是 `<button>`，無法內嵌 ♡ 按鈕 → 改為容器＋兩個並列按鈕；C2 `miniBars` 會把 0 畫成紅色且顏色寫死 → 新增選項參數，只有自選卡生效；C3 站上沒有淺色主題；C5 Detail 標題列捲動時會收合。
+  - 待 PO／Gate 確認的做法（Plan §11 D1～D6）：miniBars 的 0 是否全站改中性、淺色主題、Detail ♡ 位置、Toast 規則、替代排序、頁面標題。
+  - Codex 審查後若 NEED FIX，由 Claude 修改 Plan；PASS 並經 Gate 確認 D1～D6 後才開始 coding。
+
+### Phase 4 Rev.1 — Codex Plan Review（2026-10-05）：NEED FIX
+
+本輪只審 `PHASE4_PLAN.md` Rev.1 與目前程式／資料，未開始 coding。以下為必要的 Plan 補強；不要求重構 Router、Detail、Flow 或資料 pipeline。D1～D6 尚未替 PO 決定。下一位：Claude，修 Plan 後交 Codex 複審，再交 PO／GPT Gate。
+
+1. **既有測試與 Detail 收藏整合（Plan §3、§10.3）**
+   - C1「容器＋兩個並列 button」方向正確；現有 Category 委派先命中 `.cat-row`，實作必須改成先收藏、再主區，維持 Enter／Space 開 Detail 與獨立收藏。
+   - 不只 `category_test.py` 要遷移：`detail_state_test.py` 也直接對 `.cat-row[data-code]` 呼叫 click；`detail_ui_test.py`、`detail_history_fix_test.py`、`detail_state_test.py`、`category_test.py` 都以 `#gsPanel .gs-panel-hd button` 的第一個 button 當作 X。依 Plan 把 ♡ 插在 X 前面後，這些測試會改點收藏。請列出完整遷移範圍，使用明確的關閉控制選擇器，不放寬原 history／scroll assertions。
+   - 補測 Detail 點 ♡ 不關面板、不 push／replace、不改 tab／scroll／計算機輸入；換 ETF、Back／Forward、missing ETF 時收藏與 accessible name 都正確。`detailPatch()` 的 `!e` 分支有 early return，收藏更新應位於該 return 前或使用獨立同步函式。新增 Watch scripts 的順序需明確：store 在使用者之前，Watch UI／Toast 初始化在 bootstrap 與訂閱回呼需要它們之前。
+
+2. **跨分頁／拖曳／復原的狀態交界（Plan §2、§4、§7）**
+   - `storage` 同步可能在拖曳期間改變清單；只延後 `Watch.refresh()` 的行情更新不足以保護 `move(from,to)`。例：拖 B 時另一頁刪 A，索引位移後放手可能移到 C。請規定收藏增刪／storage 同步時取消拖曳或重新依 code 規劃，不以舊索引覆寫新順序，並補測。
+   - `restore` 也必須去重／冪等：移除後五秒內，該 code 在另一入口或分頁重新加入，再按復原，不能重複或把已存在的收藏搬走。原位置 index 夾限的既定方案可保留；補測期間新增／刪除、清單縮短與連續移除，明確說明中途重新排序時採用的 index 規則。
+   - `storage` 回呼只同步，不回寫形成通知循環；`move`、整份 storage 同步也必須通知 Watch 更新順序（通知不能只涵蓋某 code 的 ♡）。持久化失敗後保留本次記憶體狀態，勿被舊 localStorage 重讀覆蓋。寫入失敗不代表舊持久化收藏已清空；提示應說本次變更重新整理後可能遺失／回到先前保存內容，而不是保證全部清空。補讀失敗、寫失敗、失敗後同步與 reload 測試；不要求跨分頁原子交易系統。
+
+3. **拖曳自動捲動與終止（Plan §7、DR 測試）**
+   - 自動捲動會在 pointer 不動時改變卡片 rect；請明確使用同一座標系處理 pointer、visualViewport.offsetTop 與卡片位置，捲動每幀也重算目的位置／拖曳位移，避免只在 pointermove 更新。
+   - pointerup／cancel／lostpointercapture、離開自選頁或開 Detail 時，清除 capture、transform 與自動捲動迴圈；cancel 不保存排序，延後行情更新也要收尾。鍵盤排序防止箭頭同時捲頁，重排後焦點保留在同一檔把手。
+   - 補測 10 檔上下緣連續拖曳、頁面已有 scroll、低高度／offset viewport、cancel 後停止捲動、拖曳中導航、連續鍵盤排序。真機才能生成的 viewport 條件照實 DEFER，不以 stub 當真機 PASS。
+
+4. **Active Flow 明確保留與驗收（Plan §8、§10）**
+   - 「不改 flow.js」是正確邊界，但 §10 只有列舊 suite 總數，沒有保護持股異動紅／綠語意的明確 assertion。請列為不可刪除、弱化、重做或由一般成分清單替代的功能。
+   - 加入分類 → 主動式 → 持股異動、Detail → 查看完整持股異動及 Back／Forward；保持 treemap 與海外無報價增減股數列表，正值紅加碼／負值綠減碼。依 `flow.js` `_renderNoPrice` 與 `renderFlow`，驗證實際 computed 色彩／文字（不是只檢查 class）。
+   - 保留 fetched=false／舊資料／無異動／海外無報價語意，以及已存在 FD-1～FD-6 resize／visualViewport 重繪驗收。收藏或自選重繪不得重設 Flow 選取與顯示；不要求修改 Flow 實作。
+
+**已確認可行**：`data/market.json` 203 檔都有 price、change_pt、change_pct、div_frequency、signal 與六段 ret_months；`fetch_etf.py` 由舊到新產生六段，Detail 已說明每段約 22 交易日。miniBars 新參數維持原預設，可局部實現紅漲綠跌、0 中性、null 缺值。Router 已有 watch base，Category／Detail／Watch 共用 Store、不另建 history 系統可行。
+
+**D1～D6 技術意見（不代 PO 決定）**：D1 局部修 0 可接受；D2 不增加 light theme 可接受；D3 標題列可接受，需上述控制／收合回歸；D4 最近一次＋5 秒可接受，需上述冪等與中途排序規則；D5 Pointer＋鍵盤可實作，但只有鍵盤替代對手機 VoiceOver／無外接鍵盤使用者不充分，請 Gate 確認此可用性取捨或採可操作的無拖曳替代；D6「我的自選」可接受。這些選項本身不要求現在 coding。
+
+### Phase 4 Rev.2 — 修訂內容（Claude，2026-10-05）：交 Codex 複審
+
+只修 Plan，未 coding。對應 Rev.1 NEED FIX 四項（Plan 開頭有對照摘要）：
+
+1. **既有測試與 Detail 收藏整合**：§3.1 委派順序改為 `.fav-btn` → `.cr-main` → 其餘既有分支，Enter／Space 各自觸發；§3.2 ✕ 加 `id="dtClose"`，新增 `_dtSyncFav()`，在 `detailPatch()` 的 `!e` early return **之前**呼叫，點 ♡ 不碰 Router／tab／scroll／計算機；§10.3 列出**完整**遷移表（category 125、133、464、552、466、554；detail_state 93、108；detail_ui 112、157、178、192；detail_history_fix 56；`.cat-row` 計數類不變），實作前重掃；§8.1 script 順序：`watch-store.js` 在 category／detail 之前，`watch.js`（含 Toast）在 detail 之後、router／boot 之前，載入即 init；新增 DF-1～DF-6。
+2. **跨分頁／拖曳／復原**：§2.5 通知型別（`move`／`sync` 全體重同步）、storage 只同步不回寫、寫入失敗後不被舊資料覆蓋、提示改為「這次的變更無法保存，重新整理後可能回到先前保存的內容」；§2.6 `restore` 冪等（已存在則不動）＋ `min(index, 長度)` 夾限；§7.4 拖曳中任何清單通知即取消拖曳，放下以 `moveCode(code, beforeCode)` 規劃，不用舊索引；新增 ST-5～ST-9、UN-4～UN-6、DR-7。
+3. **拖曳自動捲動與終止**：§7.1 統一 layout viewport client 座標、可視區用 `visualViewport.offsetTop..+height` 並扣頂欄／nav，位移含 scrollY 差，rAF 每幀重算；§7.5 `endDrag(commit)` 收尾表（up／cancel／lostpointercapture／清單變動／換頁／開 Detail／visibilitychange／pagehide）；鍵盤 ↑↓ `preventDefault`、焦點留在同一檔把手；新增 DR-8～DR-13；offsetTop>0、觸控手感、VoiceOver 照實 DEFER 真機。
+4. **Active Flow**：§8.2 列為不可刪除／弱化／重做／替代的功能；新增 FL-1～FL-7（treemap 與無報價列表的 computed 紅加碼／綠減碼與正負號、Detail → 完整持股異動 Back／Forward、fetched=false／無異動／未更新語意、FD-1～6 保留、收藏不重設 `_flowSel`）。
+
+**D5 調整**：依 Codex 意見，Plan 預設改為「點 ⠿（移動 < 8px）開移動選單：上移／下移／最上／最下」作為不需拖曳的替代，卡片不加常駐按鈕；新增 DR-14。仍待 Gate 確認。D1～D4、D6 不變。
+
+**Codex 複審範圍**：只看 `PHASE4_PLAN.md` Rev.2 的修訂處是否解決四項 finding；不需重審已確認可行的部分（資料欄位、miniBars 參數方向、Router watch base）。PASS 後交 PO／GPT Gate 確認 D1～D6，才開始 coding。
+
+### Phase 4 Rev.2 — Codex 複審（2026-10-05）：NEED FIX
+
+只審 Rev.2 修訂與現有程式，未修改程式、未 commit／push。上一輪四項結果：
+
+- Finding 1（DOM／測試遷移／Detail 收藏）：RESOLVED。§3.1、§3.2、§8.1、§10.3 與 DF-1～6 已補齊。
+- Finding 2（跨分頁／拖曳／復原）：實作規則 RESOLVED，UN-5 測試情境仍需更正（下列第 2 項）。通知、冪等、失敗提示與 code-based 排序方向可接受。
+- Finding 3（拖曳捲動／終止）：RESOLVED。§7.1、§7.4、§7.5 與 DR 測試已涵蓋；offsetTop、觸控／VoiceOver 如實留真機驗證，無需架構重構。
+- Finding 4（Active Flow）：PARTIALLY RESOLVED。不可替代功能、紅加碼／綠減碼、海外無報價列表、狀態語意與 FD-1～6 都已保護；FL-4 的返回期望與封版 Router 相反，必須更正。
+
+**必要修改（只修 Plan／測試規格，不改既有 runtime）：**
+
+1. **FL-4 不得要求 Back 回 Detail。** `PHASE4_PLAN.md` §10.1 FL-4 現在寫「Back 回 Detail；Forward 再到 Flow」。實際 `detailGoFlow → openFlow → Router.intentBase({flow:true})` 會退到共同基底，再建立 `folder(active,flow)`；`PHASE3_PLAN.md` §8.3 明文寫 Back 回分類總覽、不回 Detail，§16.6 NV-A～NV-D 與現有 router_test RT-22 也沿用此語意。請改為：Detail → 完整持股異動選定同檔 → Back 分類總覽 → Forward 回同檔持股異動；覆蓋首頁、工具、分類與新增自選來源，最終不留下 Detail 層。不可以為了讓 FL-4 綠燈去修改 Router 或重建持股異動 history。FL-1～3、FL-5～7 的保護方向可接受；使用 fixture 保證需驗證的正／負值與狀態確實存在，保留 computed 色彩與文字 assertion。
+
+2. **UN-5 與「最近一次移除」規則衝突。** §2.6／§4 規定第二次移除會取代第一次 Toast，但 UN-5 寫「移除第 3 張 → 再移除另一張 → 復原插回 index 2」，一般 UI 情境下復原應針對第二次移除。請分開驗收：(a) 連續 UI 移除：只復原最後一檔與其 index；(b) 原 Toast 存續時，由 storage 同步或明確的非 Toast 測試安排使清單縮短，再復原原檔，驗證 min(index,length)；(c) 移除後拖曳重排，再復原，依明定原數字 index 夾限。不要為了 UN-5 而擴成多筆復原或忽略第二次移除。
+
+**D1～D6：** 全部仍交 PO／GPT Gate。D1 局部 0 中性、D2 不增加 light theme、D3 標題列收藏、D4 最近一次＋5 秒、D6「我的自選」在技術上可接受。D5 新增點把手移動選單＋鍵盤替代，方向可接受，比僅靠拖曳／外接鍵盤更完整；是否採用由 Gate 決定，VoiceOver 點擊與選單焦點／關閉行為需實作及真機驗證。
+
+下一位：Claude。只修上述兩項 Plan 驗收期望後交 Codex；已關閉的前三項不需重新擴張。PASS 後才交 PO／GPT Gate 決定 D1～D6，未授權 coding。
+
+### Phase 4 Coding — 交 Codex Code Review（Claude，2026-10-05）
+
+依 `PHASE4_PLAN.md` Rev.2.1 與 §11.1 D1～D6 實作。不可回歸：① 台股漲紅跌綠；② Active Flow 不得刪除、弱化、替代。
+
+- **新檔**：`js/watch-store.js`（收藏唯一來源）、`js/watch.js`（我的 ETF 頁、卡片、Toast、拖曳、移動選單、鍵盤；全域 `watchToggle(code)` 供分類／Detail／自選共用）、`css/watch.css`、`tests/browser/watch_test.py`。
+- **修改**：`js/category.js`（`rowHtml` 改容器＋`.cr-main`＋`.fav-btn`，委派先 ♡ 再主區，訂閱 Store 只更新 ♡）、`css/category.css`（`.cat-row`／`.cr-main`，移除 `.cr-yld`）、`js/detail.js`（`_dtSyncFav()` 在 `detailPatch()` 的 `!e` return 之前；`#dtFav` 點擊只呼叫 `watchToggle`）、`index.html`（`#page-watch` 正式化、標題「我的 ETF」、`#dtFav`／`#dtClose`、Toast、§8.1 script 順序、版本 `20261005s`）、`js/format.js`（`miniBars(months, {token})`、`favBtnHtml／favBtnSync`）、`js/render.js`（`renderAll` 尾端 `Watch.refresh()`）。
+- **D1 全站 0 中性**：`miniBars` 的 0 改為中性短柱（`--dim`，壓在中線），缺值維持灰色；排行頁「近一年」`retClr`／`fmtRet` 的 0 改中性、不加「+」；搜尋結果 `_gsFmtChg` 的 0 顯示中性「0.00%」。排行／Detail 的紅綠色值沿用原本 `#ff6b6b`／`#00e5a0`（只修 0），自選卡用 `--up`／`--dn` token。
+- **未改**：`router.js`、`flow.js`、B6、Phase 3 文件夾與標題列、資料 pipeline。
+- **與 Plan 的小差異（請 Codex 判斷）**：① 拖曳提示文字為「按住 ⠿ 可拖曳調整順序，點一下 ⠿ 可選擇移動位置」（因 D5 保留兩種方式）；② 把手按 Enter／Space 也開移動選單（Plan 只寫 ↑↓）；③ Plan §4 提到的卡片移除 150ms 淡出未做（直接消失，`prefers-reduced-motion` 本來就不做）；④ 收藏清單任何變動時自選頁整個重畫（行情更新才只換內容）。
+- **既有測試只遷移選擇器**（§10.3）：category 125、133、464、552 → `.cr-main`；466、554、detail_state 93、detail_ui 112／157／178／192、detail_history_fix 56 → `#dtClose`；detail_state 108 → `.cr-main`。另 category「NAV watch」改驗「我的 ETF」＋引導式空狀態（原本驗 Phase 3 占位文字）。AB／RL 清單幾何未變（列高仍 44px），視窗不需再調。
+- **測試結果**：watch_test **98 PASS、0 FAIL、4 DEFER**；category 250 PASS／1 DEFER（LR-8，已真機 PASS）；router 64/64；search_compact 38/38；detail_ui 42/42；detail_history_fix 14/14；regression 14/14；detail_collapse 25/25；detail_state 42/42。負向對照：把今日漲跌改成美股色、把 0 改回紅色 → watch_test 8 項 FAIL（BR-1、CL-1／CL-2、D1）。
+- **watch_test 涵蓋**：ST-1～8（含寫入／讀取失敗、storage 不回寫、失敗後不被覆蓋、reload）、SY-1～3、CD-1～3、UN-1／3／4／5a／5b／5c／6、BR-1～3、CL-1～2、D1、ES-1～2、DR-1～3／5～9／11～14、DF-1～5、LV-1（844×390、390×300）、A11Y、FL-1～5／7、FL-4 四個來源（首頁／工具／分類／自選）。FL-6＝category_test 的 FD-1～6。
+- **DEFER（真機）**：DR-R1 `visualViewport.offsetTop > 0` 時的拖曳與自動捲動；DR-R2 觸控手感、iOS 長按選字、Samsung 左緣返回手勢；DR-R3 VoiceOver 點兩下 ⠿ 開選單；DF-6 Detail 收合時 ♡ 與 ✕ 同步隱藏（headless 內容不夠長，未觸發收合）。
+- **Codex 審查重點**：WatchStore 的通知／storage／失敗狀態；分類列結構與委派對 D4／renderList／LR-4／tight3 的影響；`_dtSyncFav` 與 Detail 狀態；拖曳的座標、rAF、所有終止路徑；D1 改動範圍；FL 保護是否確實；新測試是否真的驗證行為。
+
+### Phase 4 Rev.2.1 — 修訂內容（Claude，2026-10-05）：交 Codex 複審
+
+只改 `PHASE4_PLAN.md` 的測試規格，未改 Router 規格、未 coding：
+
+1. **FL-4**：改為封版 Router 語意。分別從首頁、工具、分類、自選開 Detail → 「查看完整持股異動 ›」→ 同一檔 Flow，`stack` 只剩 `folder(active, flow)`、不留 Detail 層 → Back 回**分類總覽** → Forward 回同檔持股異動（依 PHASE3_PLAN §8.3、§16.6 NV-A～NV-D、RT-22）。§8.2 對應描述同步。FL-2、FL-3 改為以 fixture 保證加碼／減碼、正／負／缺值都存在，保留 computed 色彩與文字 assertion。
+2. **UN-5** 拆成三項，與「只復原最近一次」一致：UN-5a 連續 UI 移除只復原最後一檔（回原 index）；UN-5b Toast 存續時以注入 `storage` 使清單縮短，復原插在 `min(index, 長度)`；UN-5c 移除後重排再復原，以原數字 index 夾限。不擴成多筆復原。
+
+**Codex 複審範圍**：只看 FL-4（含 FL-2／FL-3 的 fixture 補充）與 UN-5a～c。已 RESOLVED 的 Finding 1～3 不重審。PASS 後交 PO／GPT Gate 決定 D1～D6，未授權 coding。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -125,7 +215,7 @@
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **Phase 4：尚未開始**，等待 PO 指示（例如自選完整功能）。在 PO／Gate 核准 Phase 4 Plan 之前，不寫程式。
+- **Codex｜Code Review（下一位）**：審查 Phase 4 coding commit（見「Phase 4 Coding — 交 Codex Code Review」）。PASS 後由 Claude 提供 PO 真機驗收步驟（iPhone Chrome 主測、Samsung Chrome 抽測）。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
