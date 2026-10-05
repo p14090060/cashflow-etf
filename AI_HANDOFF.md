@@ -23,7 +23,8 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 UX-1／UX-2 commit：`395c774e`**。UX-1：金色提醒與分類內容之間的空白（31px → 15px）。UX-2：「切換分類 ▼／▲」按鈕（說明列，99×44）。內容見 `PHASE3_CHANGELOG.md` 的「UX-1、UX-2 小修」一節。**Codex 複審 `1418695a..395c774e`：PASS**（UX-1、UX-2、長名稱／小螢幕、Accessibility、Regression 皆 PASS；category 186 PASS、0 FAIL、1 DEFER（LR-8））。
 - **Push 狀態（2026-10-05 確認）**：`395c774e`（程式）與 `ca262607`（handoff）已在 `origin/main`。研判是後續本機自動行情排程推送 main 時一併帶上去。**PO 已接受，不需 rollback**；GitHub Pages 已是 Phase 3 版本。
 - **Phase 3：尚未 Verified。** 等待 iPhone + Chrome 最終真機驗收（§0.5 清單）。
-- **Phase 3 B6 警示條輕量化 commit：`ec2eec09`**（本機，未手動 push）。PO 看過 UX-1 真機後提出，PO／GPT Gate 核准 B6。**等待 Codex 唯讀複審。**
+- **Phase 3 B6 警示條輕量化 commit：`ec2eec09`**。**Codex 複審 `395c774e..ec2eec09`：PASS，checkpoint 關閉，不再修改或重審。**
+- **Phase 3 文件夾說明／藏字 commit：`3bde9239`**（本機，未手動 push）。PO 真機後的 refinement，PO／GPT Gate 核准。**等待 Codex 唯讀複審（範圍 `ec2eec09..3bde9239`，不含資料 commit）。**
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -93,10 +94,20 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
   - 調整測試前，`category_test` 在 390×844 有 3 FAIL（AB-1 ×2、RL-1）。原因見 §0.7 Known Observation（既存行為，非 B6 regression）。
   - Codex 範圍：只看 `395c774e..ec2eec09`（不含資料 commit）。不修改 Category／Router／Detail／Flow。
 
+- **文件夾說明／藏字（`3bde9239`）**：
+  - PO 決策：分類說明從 inside 移到總覽 8 份文件夾的紙張上（頁籤＝名稱＋檔數）。目的是讓人在進入前就知道分類代表什麼，不是以省 inside 高度為 KPI。維持「桌上堆疊 8 份有 TAB 的資料夾」，不改成獨立卡片。UX-2 不動。
+  - **藏字根因**：`#catNote`（「分類是主要方向…」）是一般排版的 `<p>`，而 `.cat-stack` 與 `.cat-band` 是 absolute，提醒文字因此落在整疊文件夾底下，從 8px 縱向縫與 12px 欄縫露出半截字，而且從來沒有被完整看到過。修正：改為 grid 第 5 列，位於整疊下方。
+  - `css/category.css`：`.cat-stage` 改為 grid（2 欄，`repeat(4, 1fr) auto` 列）；`.cat-stack` 改 `display: contents`；文件夾 `position: relative`，`margin-bottom: -6px` 只疊前一份底部留白（padding-bottom 10px），保留 `--dx` 左右錯位、向上陰影與 z-index。1fr 讓 8 份同高（＝內容最高那份），不會只有單一份變高。`.cb-tab`（34px）＋`.cb-sub`（13px／1.45）。`.cb-name` 不再 nowrap／ellipsis（320px「科技／半導體」原本就被截成「科技／…」，現在改為自然換行）。`.cat-sub:empty` 零 padding。
+  - `js/category.js`：`build()` 輸出 `.cb-tab`＋`.cb-sub`，移除 inline `top`；`refreshAll()` 的 `catSub` 改為留空（inside 不重複）。Router／Detail／Flow／D4 未動。
+  - `js/category-rules.js` 文案（PO 核准）：市值型「追蹤大型、中型或特定市值指數的 ETF」、主題型「聚焦金融、工業、數位支付等特定主題的 ETF」、其他「ESG 篩選、期貨型等不屬前述分類的 ETF」。其餘 5 個不變。`PHASE3_PLAN.md` §分類表仍是舊文案（文件債，是否更正由 PO 決定）。
+  - `index.html`：版本 `20261005q`。
+  - 實測（headless）：320px 文件夾 102px（主題型、其他為 3 行，統一高度）；360／375／390／414／430px 文件夾 83px、步距約 77px、重疊 6px。390px 總覽 stage 220 → 371px（含提醒文字，現在可見）。各寬度無 overflow、無截斷、無遮蓋。
+  - 測試（`3bde9239`）：category 212 PASS、0 FAIL、1 DEFER（LR-8；新增 FO 區塊 26 項：6 種寬度 × 同高、重疊僅底部留白、名稱與說明完整未被遮、提醒在整疊下方且無水平溢出；inside 不重複說明且按鈕位置不變；橫向空說明列零高度）。負向對照：舊程式下 FO 20 FAIL。router 64/64、search_compact 38/38、detail_ui 42/42、detail_history_fix 14/14、regression 14/14、detail_collapse 25/25、detail_state 42/42。UX-1（15px）、UX-2、LR-4、844×390、橫向、D4／renderList 皆 PASS。
+
 ### 0.6 下一步
 
-- **Codex：唯讀複審 B6 `ec2eec09`**（`index.html` 的 `<br>` 與版本號、`css/base.css` 的 `.disclaimer`、`category_test.py` AB／RL 視窗調整是否維持原測試前提且未掩蓋問題）。`1418695a..395c774e` 已 PASS，不重複 review。
-- **Claude**：Codex PASS 後，提供 PO 真機步驟：§0.5 六項，加上 B6（390 直向警示 2 行、可讀、無裁切）。
+- **Codex：唯讀複審 `ec2eec09..3bde9239`**。重點：grid／`display: contents` 的堆疊與 z-index、`-6px` 疊層不遮文字、8 份同高、`#catNote` 位置、opening 動畫（`.is-pulled`）、`catSub` 留空對 inside／tight3／橫向的影響、FO 測試是否確實驗證。B6 與更早的範圍不重審。
+- **Claude**：Codex PASS 後，提供 PO 真機步驟：§0.5 六項，加上 B6（390 直向警示 2 行），以及文件夾（說明完整、無藏字、堆疊感、inside 不重複說明）。
 - **PO**：執行真機驗收；全數 PASS 後由 PO／Gate 宣告 Phase 3 Verified。若有 FAIL，Claude 依回饋修正並交 Codex。
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
