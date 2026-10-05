@@ -66,11 +66,9 @@ const Category = (function () {
     if (!allETFs().length) {
       list.innerHTML = '<div class="cat-empty">資料暫時無法取得，請稍後按右上角 ↻ 重新整理。</div>';
       more.hidden = true;
-      $('catCount').textContent = '';
       return;
     }
     const all = (groups && groups[open.key]) || [];
-    $('catCount').textContent = all.length + ' 檔';
     if (!all.length) {
       list.innerHTML = '<div class="cat-empty">目前沒有符合這個分類的 ETF。</div>';
       more.hidden = true;
@@ -217,7 +215,9 @@ const Category = (function () {
     const def = catDefOf(open.key);
     $('catName').textContent = def.label;
     $('catSub').textContent = '';   // 分類說明已在文件夾紙張上，進入後不重複
-    $('catSortBtn').textContent = '排序：' + (open.ui.sort === 'name' ? '名稱' : '代碼');
+    const byName = open.ui.sort === 'name';   // inside 不顯示檔數；排序按鈕縮短，完整語意放在 aria-label
+    $('catSortBtn').textContent = (byName ? '名稱' : '代碼') + ' ⇅';
+    $('catSortBtn').setAttribute('aria-label', '排序：' + (byName ? '名稱，點擊改為依代碼排序' : '代碼，點擊改為依名稱排序'));
     const isActive = open.key === 'active';
     $('catSeg').hidden = !isActive;
     $('catSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === open.view));
@@ -230,7 +230,6 @@ const Category = (function () {
     $('catFlowHost').hidden = !isFlow;
     if (isFlow) {
       $('catMore').hidden = true;
-      $('catCount').textContent = '';
       renderFlowFor();
     } else {
       renderList();

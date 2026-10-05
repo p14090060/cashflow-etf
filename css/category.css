@@ -38,7 +38,7 @@
 .cat-main { display: none; }
 .cat-head { display: flex; align-items: center; gap: 8px; padding: 6px 2px 4px; }
 .cat-title { flex: 1 1 auto; min-width: 0; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cat-title span { color: var(--dim); font-size: 14px; margin-left: 8px; }
+.cat-back { order: -1; font-size: 18px; line-height: 1; }   /* 返回分類（原 ✕）：固定在標題左側 */
 .cat-btn {
   background: none; border: 1px solid var(--border); border-radius: 8px;
   color: var(--dim); font: inherit; font-size: 14px; padding: 6px 10px; min-height: 36px;
@@ -149,14 +149,17 @@ body.gs-ckm .cat-foot { display: none; }
   background: var(--card2); color: var(--bright); border: 1px solid var(--border); border-radius: 8px;
   font: inherit; font-size: 14px; line-height: 1; white-space: nowrap; cursor: pointer;
 }
-/* 說明列與切換分類按鈕同列：說明文字在剩餘寬度內換行，標題列保留全寬給長分類名稱（例：科技／半導體） */
+/* 說明列（目前為空；保留 DOM 供 tight3 grid 的 sub 區域） */
 .cat-subrow { display: flex; align-items: center; gap: 8px; }
 .cat-subrow > .cat-sub { flex: 1 1 auto; min-width: 0; }
-.cat-sub:empty { padding: 0; }   /* 分類說明移到文件夾紙張後，說明列只剩切換分類按鈕（橫向無按鈕時零高度） */
+.cat-sub:empty { padding: 0; }   /* 分類說明在文件夾紙張上、切換分類已移到標題列：說明列為空，零高度 */
 /* 直向（cat-ctl）：頁面頂端間距與標題列高度縮小，讓金色提醒與分類內容之間保留正常間距 */
-#page-cat.cat-ctl { padding-top: 8px; }
-#page-cat.cat-ctl .cat-main > .cat-head { padding: 0 2px; }
-#catMain.cat-ctl .cat-title { cursor: pointer; }
+#page-cat.cat-ctl { padding-top: 4px; }
+/* 直向 inside 標題列：[←] 分類名稱 … [代碼 ⇅] [切換分類 ▼]，一列放完；寬度不足（320）時切換分類換到第二列靠右，名稱不截斷 */
+#page-cat.cat-ctl .cat-main > .cat-head { padding: 0 2px; flex-wrap: wrap; column-gap: 6px; row-gap: 6px; }
+#catMain.cat-ctl .cat-title { cursor: pointer; flex: 1 0 auto; overflow: visible; }
+#catMain.cat-ctl .cat-back { min-width: 44px; height: 44px; padding: 0; }
+#catMain.cat-ctl .cat-expand { margin-left: auto; }
 #catMain.cat-inside > #catStrip { display: none; }
 #catMain.cat-ctl > .cat-more { display: none; }
 #catMain.cat-ctl > .cat-foot { display: none; }

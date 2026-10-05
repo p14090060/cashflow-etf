@@ -9,10 +9,10 @@
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261005q">
-<link rel="stylesheet" href="css/components.css?v=20261005q">
-<link rel="stylesheet" href="css/pages.css?v=20261005q">
-<link rel="stylesheet" href="css/category.css?v=20261005q">
+<link rel="stylesheet" href="css/base.css?v=20261005r">
+<link rel="stylesheet" href="css/components.css?v=20261005r">
+<link rel="stylesheet" href="css/pages.css?v=20261005r">
+<link rel="stylesheet" href="css/category.css?v=20261005r">
 </head>
 <body>
 
@@ -104,14 +104,14 @@
     </div>
     <section class="cat-main" id="catMain">
       <div class="cat-head">
-        <div class="cat-title"><b id="catName"></b><span id="catCount"></span></div>
+        <div class="cat-title"><b id="catName"></b></div>
         <div class="cat-hint" id="catHint" hidden></div>
-        <button class="cat-btn" id="catSortBtn" type="button">排序：代碼</button>
-        <button class="cat-btn" id="catClose" type="button" aria-label="收合資料夾">✕</button>
+        <button class="cat-btn" id="catSortBtn" type="button" aria-label="排序：代碼，點擊改為依名稱排序">代碼 ⇅</button>
+        <button class="cat-btn cat-back" id="catClose" type="button" aria-label="返回分類">←</button>
+        <button class="cat-expand" id="catExpand" type="button" aria-expanded="false" aria-label="切換分類，展開其他分類">切換分類 ▼</button>
       </div>
       <div class="cat-subrow">
         <div class="cat-sub" id="catSub"></div>
-        <button class="cat-expand" id="catExpand" type="button" aria-expanded="false" aria-label="切換分類，展開其他分類">切換分類 ▼</button>
       </div>
       <div class="cat-seg" id="catSeg" hidden>
         <button type="button" data-v="list">ETF 清單</button>
@@ -367,21 +367,21 @@
 
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
-<script src="js/config.js?v=20261005q"></script>
-<script src="js/nav.js?v=20261005q"></script>
-<script src="js/flow.js?v=20261005q"></script>
-<script src="js/archived-check.js?v=20261005q"></script>
-<script src="js/format.js?v=20261005q"></script>
-<script src="js/calc.js?v=20261005q"></script>
-<script src="js/lookup.js?v=20261005q"></script>
-<script src="js/render.js?v=20261005q"></script>
-<script src="js/rank.js?v=20261005q"></script>
-<script src="js/search.js?v=20261005q"></script>
-<script src="js/category-rules.js?v=20261005q"></script>
-<script src="js/category.js?v=20261005q"></script>
-<script src="js/detail.js?v=20261005q"></script>
-<script src="js/router.js?v=20261005q"></script>
-<script src="js/boot.js?v=20261005q"></script>
+<script src="js/config.js?v=20261005r"></script>
+<script src="js/nav.js?v=20261005r"></script>
+<script src="js/flow.js?v=20261005r"></script>
+<script src="js/archived-check.js?v=20261005r"></script>
+<script src="js/format.js?v=20261005r"></script>
+<script src="js/calc.js?v=20261005r"></script>
+<script src="js/lookup.js?v=20261005r"></script>
+<script src="js/render.js?v=20261005r"></script>
+<script src="js/rank.js?v=20261005r"></script>
+<script src="js/search.js?v=20261005r"></script>
+<script src="js/category-rules.js?v=20261005r"></script>
+<script src="js/category.js?v=20261005r"></script>
+<script src="js/detail.js?v=20261005r"></script>
+<script src="js/router.js?v=20261005r"></script>
+<script src="js/boot.js?v=20261005r"></script>
 
 </body>
 </html>

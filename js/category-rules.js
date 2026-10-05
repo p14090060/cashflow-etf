@@ -10,9 +10,9 @@ const CAT_DEF = [
   { key: 'active',   label: '主動式',       short: '主動', sub: '由經理人主動操作持股的 ETF' },
   { key: 'tech',     label: '科技／半導體', short: '科技', sub: '主要投資科技與半導體產業的 ETF' },
   { key: 'overseas', label: '海外／區域',   short: '海外', sub: '主要投資海外市場或特定地區的 ETF' },
-  { key: 'theme',    label: '主題型',       short: '主題', sub: '聚焦金融、工業、數位支付等特定主題的 ETF' },
+  { key: 'theme',    label: '主題型',       short: '主題', sub: '聚焦 ESG、金融、數位支付等特定主題的 ETF' },
   { key: 'bond',     label: '債券',         short: '債券', sub: '主要投資債券的 ETF' },
-  { key: 'other',    label: '其他',         short: '其他', sub: 'ESG 篩選、期貨型等不屬前述分類的 ETF' }
+  { key: 'other',    label: '其他',         short: '其他', sub: '期貨型或未歸入前述分類的 ETF' }
 ];
 
 // 關鍵字（名稱包含即命中；英文不分大小寫）
@@ -22,12 +22,12 @@ const CAT_KW = {
              '深証', '深100', '中証500', 'MSCI A股', '全球', '亞太', '海外', '新興', '世界', 'FANG', 'MAG7', 'US'],
   tech:     ['科技', '半導體', '電子', '晶圓', 'IC設計', 'AI', 'PCB', '資安', '5G', '通訊'],
   div:      ['高股息', '高息', '股利', '優息', '高填息'],
-  // 主題：包含 ESG 以外的明確產品特色（低碳、淨零、綠能、綠色電力…）。ESG 本身不算主題。
+  // 主題：明確產品特色（低碳、淨零、綠能、綠色電力…）。ESG／公司治理見 strategy（第 9 順位）。
   theme:    ['低碳', '淨零', '綠能', '綠色', '太空', '稀土', '元宇宙', '機器人', '生技', '基因', '電動車',
              '智能車', '未來車', '車', '潔淨', '能源', '電池', '儲能', '電力', '數據', '算力', '航運', '航太',
              '防衛', '數位', '金融', '工業'],
   mcap:     ['0050', '50', '100', '中型', '中小', '加權', '藍籌', '領袖', '龍頭', 'MSCI台灣', '台灣50', '臺灣50'],
-  // 策略型（ESG、公司治理）：只有在沒有更明確定位時才歸其他
+  // 策略型（ESG、公司治理）：只有在沒有更明確定位時才歸主題型（PO 2026-10-05，原歸其他）
   strategy: ['ESG', '公司治理']
 };
 
@@ -48,7 +48,7 @@ function catClassify(e) {
   if (_catHas(name, CAT_KW.div)) return 'div';                            // 6 高股息
   if (_catHas(name, CAT_KW.theme)) return 'theme';                        // 7 主題型
   if (_catHas(name, CAT_KW.mcap)) return 'mcap';                          // 8 市值型
-  if (_catHas(name, CAT_KW.strategy)) return 'other';                     // 9 策略型 → 其他
+  if (_catHas(name, CAT_KW.strategy)) return 'theme';                     // 9 策略型（ESG、公司治理）→ 主題型
   if (e.div_category === '高股息') return 'div';                          // 10 人工標籤備援（只在前面都未命中時）
   return 'other';                                                         // 11 未命中
 }

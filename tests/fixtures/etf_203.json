@@ -1,14 +1,14 @@
 {
- "_note": "203 檔快照（code、name、div_category 來自 data/market.json，2026-10-04）。expected 為 Phase 3 核准規則（含 PO ESG 決策）的期望分類；由獨立的 Python 參照實作產生，供瀏覽器端 JS 比對。",
+ "_note": "203 檔快照（code、name、div_category 來自 data/market.json，2026-10-04）。expected 為 Phase 3 核准規則（含 PO ESG 決策）的期望分類；由獨立的 Python 參照實作產生，供瀏覽器端 JS 比對。2026-10-05 PO 決策：ESG／公司治理策略型（00850、00888、00928、00692）在無更明確定位時改歸主題型，這 4 筆期望值與分布人工更新。",
  "expected_distribution": {
   "mcap": 16,
   "div": 22,
   "active": 32,
   "tech": 20,
   "overseas": 78,
-  "theme": 21,
+  "theme": 25,
   "bond": 6,
-  "other": 8
+  "other": 4
  },
  "etfs": [
   {
@@ -75,13 +75,13 @@
    "code": "00850",
    "name": "元大ESG永續",
    "div_category": "ESG",
-   "category": "other"
+   "category": "theme"
   },
   {
    "code": "00928",
    "name": "中信上櫃ESG 30",
    "div_category": "ESG",
-   "category": "other"
+   "category": "theme"
   },
   {
    "code": "006201",
@@ -333,7 +333,7 @@
    "code": "00692",
    "name": "富邦公司治理",
    "div_category": "ESG",
-   "category": "other"
+   "category": "theme"
   },
   {
    "code": "00693U",
@@ -1161,7 +1161,7 @@
    "code": "00888",
    "name": "永豐台灣ESG",
    "div_category": "高股息",
-   "category": "other"
+   "category": "theme"
   },
   {
    "code": "00955",

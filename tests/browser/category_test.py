@@ -25,12 +25,13 @@ check('FX-1 fixture has 203 rows, unique codes', len(FX['etfs']) == 203 and len(
 check('FX-4/5 JS rules match fixture expected for all 203', not mism, mism[:5])
 dist = collections.Counter(exp)
 order = ['mcap', 'div', 'active', 'tech', 'overseas', 'theme', 'bond', 'other']
-check('FX-3 fixture distribution = approved (16/22/32/20/78/21/6/8)', [dist[k] for k in order] == [16, 22, 32, 20, 78, 21, 6, 8], [dist[k] for k in order])
+check('FX-3 fixture distribution = approved (16/22/32/20/78/25/6/4；ESG／公司治理 → 主題型)', [dist[k] for k in order] == [16, 22, 32, 20, 78, 25, 6, 4], [dist[k] for k in order])
 check('FX-2 single membership: 8 categories sum to 203', sum(dist.values()) == 203)
-for code, want in [('00920', 'theme'), ('00923', 'theme'), ('009809', 'theme'), ('00850', 'other'), ('00888', 'other'),
-                   ('00928', 'other'), ('00692', 'other'), ('0057', 'other'), ('00682U', 'other'), ('00840B', 'bond'),
+for code, want in [('00920', 'theme'), ('00923', 'theme'), ('009809', 'theme'), ('00850', 'theme'), ('00888', 'theme'),
+                   ('00928', 'theme'), ('00692', 'theme'), ('0057', 'other'), ('00682U', 'other'), ('00840B', 'bond'),
                    ('00402A', 'active'), ('00878', 'div'), ('00929', 'tech'), ('00702', 'overseas'), ('00771', 'overseas'),
-                   ('00894', 'div'), ('0050', 'mcap'), ('00737', 'tech'), ('00965', 'tech'), ('0055', 'theme')]:
+                   ('00894', 'div'), ('0050', 'mcap'), ('00737', 'tech'), ('00965', 'tech'), ('0055', 'theme'),
+                   ('00930', 'div'), ('00932', 'div'), ('00936', 'div'), ('00961', 'div'), ('00763U', 'other')]:   # ESG＋高息仍歸高股息（較明確定位優先）
     row = next(e for e in FX['etfs'] if e['code'] == code)
     check('FX-4 %s -> %s' % (code, want), row['category'] == want, row['category'])
 
@@ -64,7 +65,7 @@ check('MORE hidden when all shown', ev("document.getElementById('catMore').hidde
 first_code = ev("document.querySelector('#catList .cat-row').dataset.code")
 check('DEFAULT sort is numeric code (first 00400A)', first_code == '00400A', first_code)
 click('#catSortBtn')
-check('SORT name toggled (button shows 名稱)', ev("document.getElementById('catSortBtn').textContent") == '排序：名稱')
+check('SORT name toggled (button shows 名稱)', ev("document.getElementById('catSortBtn').textContent") == '名稱 ⇅')
 check('SORT by name: first 10 equal the first 10 of the full zh-Hant sort', ev("(function(){ const all=catGroup(ETFS).active.map(e=>e.name).sort(new Intl.Collator('zh-Hant',{numeric:true}).compare).slice(0,10); const shown=[...document.querySelectorAll('#catList .cat-row .cr-name')].map(x=>x.textContent); return JSON.stringify(all)===JSON.stringify(shown); })()") is True)
 check('SORT toggle resets shown to 10', ev("document.querySelectorAll('#catList .cat-row').length") == 10)
 click('#catSortBtn')
@@ -124,7 +125,7 @@ row_code = ev("document.querySelectorAll('#catList .cat-row')[3].dataset.code")
 ev("(function(){ document.querySelectorAll('#catList .cat-row')[3].click(); return true; })()"); wait_ms(250)
 check('DETAIL opened from folder row', ev("!document.getElementById('gsPanel').hidden") is True and ev("_curEtfCode") == row_code)
 ev("(function(){ closeDetail(); return true; })()"); wait_ms(250)
-check('AFTER DETAIL BACK sort kept (名稱)', ev("document.getElementById('catSortBtn').textContent") == '排序：名稱')
+check('AFTER DETAIL BACK sort kept (名稱)', ev("document.getElementById('catSortBtn').textContent") == '名稱 ⇅')
 check('AFTER DETAIL BACK shown kept (20)', ev("document.querySelectorAll('#catList .cat-row').length") == 20)
 check('AFTER DETAIL BACK folder still open', state_of_cat() == 'open')
 
@@ -490,9 +491,9 @@ AB_JS = """(function(){
            remainText: b ? b.textContent : null };
 })()"""
 def ab(): return ev(AB_JS)
-# B6（警示條 85 → 50px）後，390×844 下高股息 10 檔＋查看更多剛好完整放得下（max=0），不符本段「清單需要捲動」的前提；改用 809／765（＝B6 前 844／800 的同一清單幾何）。max=0 後再縮短時查看更多被裁約 16px 為既存邊界行為（B6 前 879→835 同樣重現），記於 AI_HANDOFF Known Observation，本輪不修 Category。
+# B6（警示條 85 → 50px）後，390×844 下高股息 10 檔＋查看更多剛好完整放得下（max=0），不符本段「清單需要捲動」的前提；改用 769／725（＝B6 前 844／800 的同一清單幾何；B6 讓清單多 35px、HD 標題列單列化再多約 40px）。max=0 後再縮短時查看更多被裁約 16px 為既存邊界行為（B6 前 879→835 同樣重現），記於 AI_HANDOFF Known Observation，本輪不修 Category。
 # ── A 段：PO 真機情境（高股息、10 檔、剩餘 12 檔、inside，直向 390×844）──
-set_view(390, 809, 'portraitPrimary'); wait_ms(300)
+set_view(390, 769, 'portraitPrimary'); wait_ms(300)
 ev("Router.toBase({base:'home'}); true"); wait_ms(200)
 ev("switchPage('cat'); true"); wait_ms(200)
 ev("document.querySelector('.cat-band[data-k=\"div\"]').click(); true"); wait_ms(450)
@@ -501,14 +502,14 @@ check('AB precondition A: 高股息 inside, 10 rows shown, 「查看更多（還
 ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
 bot = ab()
 check('AB-1a precondition: list scrolled to bottom, 查看更多 visible', bot['scrollTop'] == bot['max'] and bot['innerVisible'], bot)
-set_view(390, 765, 'portraitPrimary'); wait_ms(600)
+set_view(390, 725, 'portraitPrimary'); wait_ms(600)
 s1 = ab()
 check('AB-1 原本在底部 → viewport 縮短：清單高度確實改變（fit 生效）', s1['h'] < bot['h'], (s1['h'], bot['h']))
 check('AB-1 原本在底部 → viewport 縮短：仍保持在底部（scrollTop = 新的最大值）', s1['scrollTop'] == s1['max'], s1)
 check('AB-1 原本在底部 → viewport 縮短：「查看更多」完整在清單可視範圍內', s1['innerVisible'], s1)
 hit_s1 = ev("(function(){ const b=document.querySelector('#catList .cat-more-in'); const r=b.getBoundingClientRect(); const e=document.elementFromPoint(r.left+r.width/2,(r.top+r.bottom)/2); return !!e && (e===b || b.contains(e)); })()")
 check('AB-1 viewport 縮短：查看更多 elementFromPoint 命中（未被導覽列蓋住）', hit_s1 is True)
-set_view(390, 809, 'portraitPrimary'); wait_ms(600)
+set_view(390, 769, 'portraitPrimary'); wait_ms(600)
 s2 = ab()
 check('AB-2 viewport 恢復：清單高度回到原本', s2['h'] == bot['h'], (s2['h'], bot['h']))
 check('AB-2 viewport 恢復：仍保持在底部，查看更多可見', s2['scrollTop'] == s2['max'] and s2['innerVisible'], s2)
@@ -520,10 +521,10 @@ ev("(function(){ const m=document.querySelector('#catList .cat-more-in'); if(m) 
 ev("document.getElementById('catList').scrollTop = 120; true"); wait_ms(300)
 mid = ab()
 check('AB-3 precondition: 主動式 20 檔，清單在中段（≈120px，非底部）', mid['rows'] == 20 and abs(mid['scrollTop'] - 120) <= 2 and mid['max'] - mid['scrollTop'] > 40, mid)
-set_view(390, 765, 'portraitPrimary'); wait_ms(600)
+set_view(390, 725, 'portraitPrimary'); wait_ms(600)
 m1 = ab()
 check('AB-3 中段 → viewport 縮短：閱讀位置不變（未跳到底部）', abs(m1['scrollTop'] - 120) <= 2 and m1['scrollTop'] != m1['max'], m1)
-set_view(390, 809, 'portraitPrimary'); wait_ms(600)
+set_view(390, 769, 'portraitPrimary'); wait_ms(600)
 m2 = ab()
 check('AB-3 中段 → viewport 恢復：閱讀位置不變（未跳到底部）', abs(m2['scrollTop'] - 120) <= 2 and m2['scrollTop'] != m2['max'], m2)
 ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
@@ -551,7 +552,7 @@ def rl_open_detail(code):
     ev("(function(){ const r=document.querySelector('#catList .cat-row[data-code=\"%s\"]'); if(r) r.click(); return !!r; })()" % code); wait_ms(320)
 def rl_close_x():
     ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(350)
-set_view(390, 809, 'portraitPrimary'); wait_ms(300)
+set_view(390, 769, 'portraitPrimary'); wait_ms(300)
 ev("Router.toBase({base:'home'}); true"); wait_ms(200)
 ev("switchPage('cat'); true"); wait_ms(200)
 ev("document.querySelector('.cat-band[data-k=\"div\"]').click(); true"); wait_ms(450)
@@ -610,7 +611,7 @@ UX_JS = """(function(){
            btnText: btn.textContent, btnW: Math.round(br.width), btnH: Math.round(br.height), btnInSubrow: btn.parentElement.classList.contains('cat-subrow'),
            btnInHead: !!btn.closest('.cat-head'), ariaExpanded: btn.getAttribute('aria-expanded'), ariaLabel: btn.getAttribute('aria-label'),
            titleScroll: t.scrollWidth, titleClient: t.clientWidth, titleW: Math.round(t.getBoundingClientRect().width),
-           nameText: name.textContent, countText: document.getElementById('catCount').textContent,
+           nameText: name.textContent, countText: document.getElementById('catCount') ? document.getElementById('catCount').textContent : null,
            inside: document.getElementById('catMain').classList.contains('cat-inside'), btnDisp: getComputedStyle(btn).display };
 })()"""
 def ux(): return ev(UX_JS)
@@ -620,12 +621,12 @@ ev("switchPage('cat'); true"); wait_ms(200)
 ev("document.querySelector('.cat-band[data-k=\"tech\"]').click(); true"); wait_ms(450)
 u0 = ux()
 check('UX-1 金色提醒與分類內容之間保留正常間距（10–20px，不貼齊、不過大）', 10 <= u0['gap'] <= 20, u0)
-check('UX-1 標題列高度回到正常（≤ 40px，不再因 44px 按鈕撐高）', u0['headH'] <= 40, u0)
+check('UX-1／HD 標題列為單列（≤ 46px；取代原本 36＋44 的兩列）', u0['headH'] <= 46, u0)
 check('UX-2 按鈕文字：inside 為「切換分類 ▼」', u0['btnText'] == '切換分類 ▼' and u0['inside'], u0)
 check('UX-2 按鈕可點擊區 ≥ 44×44', u0['btnW'] >= 44 and u0['btnH'] >= 44, u0)
-check('UX-2 按鈕位於說明列（不在標題列）', u0['btnInSubrow'] and not u0['btnInHead'], u0)
+check('UX-2／HD 切換分類按鈕位於標題列（原本單獨的第二列已移除）', u0['btnInHead'] and not u0['btnInSubrow'], u0)
 check('UX-2 無障礙：aria-expanded=false、aria-label 含「切換分類」', u0['ariaExpanded'] == 'false' and '切換分類' in (u0['ariaLabel'] or ''), u0)
-check('長分類名稱保留完整空間：科技／半導體 不被截斷（標題無溢出）', u0['nameText'] == '科技／半導體' and u0['titleScroll'] <= u0['titleClient'] + 1 and u0['titleW'] >= 200, u0)
+check('長分類名稱：科技／半導體 不被截斷（標題無溢出）', u0['nameText'] == '科技／半導體' and u0['titleScroll'] <= u0['titleClient'] + 1, u0)
 # 點按鈕一次：只切換一次（inside → doorway），再點一次回到 inside
 ev("document.getElementById('catExpand').click(); true"); wait_ms(250)
 u1 = ux()
@@ -681,13 +682,51 @@ for fw in (320, 360, 375, 390, 414, 430):
 set_view(390, 844, 'portraitPrimary'); wait_ms(300)
 ev("document.querySelector('.cat-band[data-k=\"theme\"]').click(); true"); wait_ms(450)
 fi = ev("(function(){ const s=document.getElementById('catSub'), b=document.getElementById('catExpand'), r=document.querySelector('#catMain .cat-subrow').getBoundingClientRect(), br=b.getBoundingClientRect();"
-        " return { sub: s.textContent, inside: document.getElementById('catMain').classList.contains('cat-inside'), rowH: Math.round(r.height), btnRight: Math.round(r.right - br.right), btnH: Math.round(br.height) }; })()")
-check('FO inside：不重複顯示分類說明；切換分類按鈕仍在說明列右側、44px', fi['inside'] and fi['sub'] == '' and fi['btnH'] >= 44 and fi['btnRight'] <= 1, fi)
+        " return { sub: s.textContent, inside: document.getElementById('catMain').classList.contains('cat-inside'), rowH: Math.round(r.height), btnInHead: !!b.closest('.cat-head'), btnH: Math.round(br.height) }; })()")
+check('FO inside：不重複顯示分類說明（說明列空白、零高度）；切換分類按鈕 44px（HD 起位於標題列）', fi['inside'] and fi['sub'] == '' and fi['rowH'] == 0 and fi['btnH'] >= 44 and fi['btnInHead'], fi)
 set_view(844, 390, 'landscapePrimary'); wait_ms(300)
 fl = ev("(function(){ const s=document.getElementById('catSub'); return { sub: s.textContent, h: Math.round(s.getBoundingClientRect().height) }; })()")
 check('FO 橫向 open：說明列空白時零高度', fl['sub'] == '' and fl['h'] == 0, fl)
 set_view(390, 844, 'portraitPrimary'); wait_ms(300)
 ev("document.getElementById('catClose').click(); true"); wait_ms(320)
+
+# ── HD（inside 標題列精簡，方案 1）：[←] 分類名稱 … [代碼 ⇅] [切換分類 ▼]；不顯示檔數；第二列移除 ──
+HD_JS = """(function(){
+  const q = s => document.querySelector(s), R = e => e.getBoundingClientRect();
+  const head = q('#catMain .cat-head'), back = q('#catClose'), t = q('#catMain .cat-title'), sort = q('#catSortBtn'), exp = q('#catExpand');
+  const hr = R(head), br = R(back), tr = R(t), sr = R(sort), er = R(exp), sub = R(q('#catMain .cat-subrow')), lr = R(q('#catList'));
+  return { headH: Math.round(hr.height), backW: Math.round(br.width), backH: Math.round(br.height), backAria: back.getAttribute('aria-label'), backText: back.textContent,
+           backLeft: br.right <= tr.left + 0.5, inHead: head.contains(exp) && head.contains(sort) && head.contains(back),
+           titleText: t.textContent, trunc: t.scrollWidth > t.clientWidth + 1, hasCount: /檔/.test(head.textContent),
+           sortText: sort.textContent, sortAria: sort.getAttribute('aria-label'), expW: Math.round(er.width), expH: Math.round(er.height), expText: exp.textContent,
+           expRight: Math.round(hr.right - er.right), expRow2: er.top >= br.bottom - 0.5, subH: Math.round(sub.height), listGap: Math.round(lr.top - hr.bottom),
+           hScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth };
+})()"""
+for hw in (320, 360, 375, 390, 414, 430):
+    set_view(hw, 844, 'portraitPrimary'); wait_ms(300)
+    ev("Router.toBase({base:'home'}); true"); wait_ms(200)
+    ev("switchPage('cat'); true"); wait_ms(200)
+    ev("document.querySelector('.cat-band[data-k=\"tech\"]').click(); true"); wait_ms(450)
+    h = ev(HD_JS)
+    check('HD-%d ← 返回：44×44、在名稱左側、accessible name「返回分類」' % hw, h['backW'] >= 44 and h['backH'] >= 44 and h['backLeft'] and h['backAria'] == '返回分類' and h['backText'] == '←', h)
+    check('HD-%d 名稱「科技／半導體」完整不截斷；標題列不顯示檔數' % hw, h['titleText'] == '科技／半導體' and not h['trunc'] and not h['hasCount'], h)
+    check('HD-%d 排序「代碼 ⇅」，accessible name 保留完整排序語意' % hw, h['sortText'] == '代碼 ⇅' and (h['sortAria'] or '').startswith('排序：代碼'), h)
+    check('HD-%d 切換分類 ▼ 在標題列、≥ 44×44；說明列零高度、清單緊接標題列' % hw, h['inHead'] and h['expText'] == '切換分類 ▼' and h['expW'] >= 44 and h['expH'] >= 44 and h['subH'] == 0 and 0 <= h['listGap'] <= 2, h)
+    if hw >= 360:
+        check('HD-%d 單列（≤ 46px）' % hw, h['headH'] <= 46 and not h['expRow2'], h)
+    else:
+        check('HD-%d 空間不足自動兩列：切換分類在第二列靠右，無水平溢出' % hw, h['expRow2'] and h['expRight'] <= 3 and not h['hScroll'], h)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("document.getElementById('catSortBtn').click(); true"); wait_ms(250)
+hs = ev(HD_JS)
+check('HD 排序切換：「名稱 ⇅」，aria-label 為名稱排序', hs['sortText'] == '名稱 ⇅' and (hs['sortAria'] or '').startswith('排序：名稱'), hs)
+ev("document.getElementById('catSortBtn').click(); true"); wait_ms(250)
+ev("document.getElementById('catExpand').click(); true"); wait_ms(250)
+hd = ev("(function(){ const s=document.getElementById('catStrip'), h=document.querySelector('#catMain .cat-head'); return { strip: getComputedStyle(s).display, below: s.getBoundingClientRect().top >= h.getBoundingClientRect().bottom - 0.5, exp: document.getElementById('catExpand').textContent }; })()")
+check('HD doorway：其他分類列出現在標題列下方，按鈕為「切換分類 ▲」', hd['strip'] != 'none' and hd['below'] and hd['exp'] == '切換分類 ▲', hd)
+ev("document.getElementById('catExpand').click(); true"); wait_ms(250)
+ev("document.getElementById('catClose').click(); true"); wait_ms(320)
+check('HD ← 返回分類：回到分類總覽（沿用原本 ✕ 流程）', state_of_cat() == 'overview')
 
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))
