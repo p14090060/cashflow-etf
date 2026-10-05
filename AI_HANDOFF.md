@@ -36,7 +36,8 @@
 - **Phase 4 Coding commit：`b78134c1`**（本機，未手動 push；自動排程推送時 SHA 可能被改寫，commit 訊息開頭「feat(phase4): 我的 ETF（自選）」）。**Codex Code Review：NEED FIX。下一位：Claude｜修正下方三項實際 bug（見「Phase 4 Implementation — Codex Code Review」）。** Phase 4 尚未完成，修正複審後才交 PO 真機驗收。
 - **Phase 4 Code Review 修正 commit：`6d2d9a3d`**（本機，未手動 push；推送後 SHA 可能被改寫，訊息開頭「fix(phase4): Codex Code Review 三項」）。Codex 複審：**NEED FIX，僅剩選單高度補償被誤算為拖曳門檻的問題**（見「Phase 4 6d2d9a3d — Codex 複審」）。下一位：Claude；尚未交真機驗收。
 - **Phase 4 拖曳門檻修正 commit：`5df1cb50`**。**Codex 複審 PASS，Phase 4 Code Review 完成。** PO 真機驗收步驟 1～21 PASS，步驟 21 後因拖曳手感 UX 暫停（22～34 未測）。
-- **Phase 4 拖曳手感修正 commit：`76252269`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳手感」）。依 PO／GPT Gate 決策實作。**下一位：Codex｜Code Review**（見「Phase 4 76252269 — 拖曳手感修正」）。Codex PASS 後由 PO 重測拖曳相關步驟，再接續 22～34。
+- **Phase 4 拖曳手感修正 commit：`76252269`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳手感」）。Codex Code Review：**NEED FIX，兩項按住計時交界 bug**（見下方「76252269 — Codex Code Review」）。下一位：Claude；修正複審 PASS 後才由 PO 重測拖曳、接續後面的真機驗收。
+- **Phase 4 按住計時交界修正 commit：`ba3070f3`**（本機，未手動 push；訊息開頭「fix(phase4): 選單補償不算排序意圖」）。Codex 兩項已修並補 regression。**下一位：Codex｜複審**（見「Phase 4 ba3070f3 — 按住計時交界修正」）。
   - 產品需求已由 PO／GPT Gate 確認（自選／我的 ETF：♡ 收藏、自選大卡、近半年走勢 6 柱、台股漲紅跌綠、⠿ 拖曳排序、取消後可復原、引導式空狀態、localStorage only）。Plan 不重議需求。
   - 已標示的架構衝突（Plan §1）：C1 分類列是 `<button>`，無法內嵌 ♡ 按鈕 → 改為容器＋兩個並列按鈕；C2 `miniBars` 會把 0 畫成紅色且顏色寫死 → 新增選項參數，只有自選卡生效；C3 站上沒有淺色主題；C5 Detail 標題列捲動時會收合。
   - 待 PO／Gate 確認的做法（Plan §11 D1～D6）：miniBars 的 0 是否全站改中性、淺色主題、Detail ♡ 位置、Toast 規則、替代排序、頁面標題。
@@ -147,6 +148,31 @@ PO 真機回報：按住 ⠿ 沒有「已抓住」回饋、要慢按、要快拖
 - **測試結果**：watch_test **136 PASS、0 FAIL、4 DEFER**；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
 - **負向對照**：以 `5df1cb50` 的 `watch.js`／`watch.css` 跑同一份測試 → 11 FAIL（HO-1、TH-1、TH-3、HA-1、AS-1，以及依新門檻校正的 DR-1／9／18／19）。
 - **仍需真機**：手感是否改善（不再需要慢按、正常速度可換位）、iOS 是否仍搶捲動，只能由 PO 真機確認。
+
+### Phase 4 ba3070f3 — 按住計時交界修正（Claude，2026-10-05）：交 Codex 複審
+
+只修 Codex 兩項，`js/watch.js` 以外只改測試與版本號（`20261005w`）：
+
+1. **選單補償不算排序意圖**：`activate()` 關閉上方選單時的高度差存為 `drag.comp`，仍加到 `y0` 讓卡片跟手；`frame()` 的換位改用 `intent = off − comp`（手指實際位移＋頁面捲動）計算前緣越過中線。開 A 選單 → 按住下方 B 不動 → 放開時 intent＝0、target＝from，不寫入。
+2. **失去 capture 一律取消**：`lostpointercapture` 只要是同一 pointer（`drag.pid`）就 `endDrag(false)`，按住計時中與拖曳中都會清計時器、capture、亮起與 transform，不保存排序。正常放開時 `pointerup` 已先 `endDrag` 把 `drag` 清掉，之後的 lostpointercapture 不會重複收尾。
+
+- **新增測試**：HO-5 開 A 選單 → 按住下方 B 300ms 不移動（會亮起）→ 放開：畫面、Store、localStorage 順序都不變，不開選單、亮起清除；LC-1 pointerdown(pid 99) → lostpointercapture → 300ms 後不抓起、無亮起；LC-2 拖曳中 lostpointercapture → 拖曳取消、亮起與 transform 清除、不保存排序；LC-3 之後重新輕點可開選單、按住拖曳 1.0 張卡可換位。
+- **DR-20 調整**：放下位置改為「手指從按下處往下移 1.0 張卡」（排序意圖只看手指實際位移），期望仍是 B 移到 C 之後；10px 時的跟手檢查（≤ 3px）不變。DR-19、TH-1～3 不變且 PASS。
+- **測試結果**：watch_test **140 PASS、0 FAIL、4 DEFER**；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
+- **負向對照**：以 `76252269` 的 `watch.js` 跑同一份測試 → HO-5、LC-1、DR-20 FAIL（HO-5 重現 Codex 的 `[0050,00878,0056,00919]` 類型重排；LC-1 300ms 後仍抓起）。LC-2 在舊程式也 PASS（舊程式已處理拖曳中的 capture 遺失），作為保護性 regression。
+- **體驗上的取捨（請 Codex 判斷）**：選單開著時從下方卡片開始拖，卡片會停在手指下（跟手），但換位依手指實際位移計算，所以在這個少見情境下，換位時機相對畫面會差一個選單高。一般情況（沒開選單）comp＝0，完全不受影響。
+
+### 76252269 — Codex Code Review（2026-10-05）：NEED FIX
+
+只審 `76252269` 的 PO 核准拖曳手感修正與相關 regression；不重開已通過的產品需求。重跑 watch_test：136 PASS／0 FAIL／4 DEFER。以下兩項以獨立瀏覽器補測重現，未修改程式或測試檔：
+
+1. **選單開著時，只按住下方卡片、沒有移動，放開仍會改排序。** `js/watch.js` `activate()` 關閉上方選單後，把高度差補到 `y0`；新 HOLD_MS 會在手指完全沒動時 activate，`frame()` 又用這個含版面補償的 off 計算前緣換位，`endDrag(true)` 寫入。因此布局補償被當成使用者排序意圖。390×844，收藏 `[0050,0056,00878,00919]`：輕點 0050 把手開 A 選單 → 按住下方 0056 把手 300ms、不送任何 touchMove → 原地放開 → 順序變 `[0050,00878,0056,00919]`。違反核准「已亮起但沒拖就放開＝只放下、不改排序、不開選單」。請分開處理真實 pointer 排序位移與保持跟手的布局補償，不能只依經補償的 target 決定提交。補「開 A 選單 → hold 下方 B 不移動 → release」驗收，Store／localStorage 都應保持原順序，保留 DR-19／20 跟手與 TH 前緣換位。
+
+2. **抓起前失去 capture，不會取消 hold 計時器。** `bind()` 的 `lostpointercapture` 仍要求 `drag.active` 才呼叫 `endDrag(false)`；pending press 在 200ms 前收到此終止事件會被忽略。補測 pointerdown(pid=99) → lostpointercapture(pid=99) → 等 300ms，`Watch._state().dragging === true` 且 `.lifting` 有一張；沒有新的 press，卡片仍延遲抓起。請讓同 pointer 的 pending／active 狀態都能取消、清 timer／capture／樣式，不保存排序；正常 pointerup 的 release 事件仍需避免重複收尾。補 capture 在 hold 計時中遺失、active 時遺失、接著重新按下可正常操作三種測試。
+
+**測試有效性：** 新 HO／TH／HA／AS／HC／PV 實際檢查亮起時機、觸控命中、前緣換位、scrollY、退出清理；DR 拖曳距離 1.6→1.0 是新門檻的合理前提調整，排序 assertion 沒有放寬。HO-1 沒有先開選單，HC 沒有 capture 遺失，所以尚未涵蓋上述兩項，136 PASS 不代表它們已解決。四個真機 DEFER 與這兩項可自動重現的問題無關。
+
+**範圍與下一步：** 200ms／8px 決策、整欄把手、提示、無震動、紅綠語意等不重議，不要求 refactor。Claude 只修兩項與補 regression 後交 Codex；PO 現在不用操作。未改程式、未 commit／push。
 
 ### Phase 4 5df1cb50 — 拖曳門檻修正（Claude，2026-10-05）：交 Codex 複審
 
@@ -298,7 +324,7 @@ PO 真機回報：按住 ⠿ 沒有「已抓住」回饋、要慢按、要快拖
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **Codex｜Code Review（下一位）**：審查 `76252269` 拖曳手感修正（見「Phase 4 76252269 — 拖曳手感修正」）。PASS 後由 Claude 提供 PO 拖曳相關重測步驟，再接續 22～34。
+- **Codex｜複審（下一位）**：只複審 `ba3070f3` 的兩項按住計時交界修正與 HO-5、LC-1～3（見「Phase 4 ba3070f3 — 按住計時交界修正」）。PASS 後由 Claude 提供 PO 拖曳相關重測步驟，再接續 22～34。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
