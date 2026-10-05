@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-05 14:45",
+  "updated": "2026-10-05 15:23",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
     "00996A": {
@@ -90,7 +90,7 @@
       "name": "主動統一升級50",
       "issuer": "統一",
       "holdings": 50,
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-01",
       "advanced": true,
       "reason": "ok",
       "fetched": true,
@@ -219,8 +219,8 @@
       "issuer": "永豐",
       "holdings": 29,
       "data_date": "2026-10-02",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
@@ -575,8 +575,8 @@
       "issuer": "台新",
       "holdings": 32,
       "data_date": "2026-10-05",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
@@ -609,11 +609,12 @@
       "issuer": "台新",
       "holdings": 29,
       "data_date": "2026-10-05",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
+      "last_change_date": "2026-10-05",
       "flow_from": "2026-10-02",
       "flow_to": "2026-10-05",
       "price_date": "20261005",
@@ -641,19 +642,19 @@
           "delta_shares": 21000,
           "amount": 11004000.0
         }
-      ],
-      "last_change_date": "2026-10-05"
+      ]
     },
     "00406A": {
       "name": "主動中信台灣收益",
       "issuer": "中信",
       "holdings": 63,
       "data_date": "2026-10-02",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
+      "last_change_date": "2026-10-02",
       "flow_from": "2026-10-01",
       "flow_to": "2026-10-02",
       "price_date": "20261002",
@@ -729,16 +730,15 @@
           "delta_shares": 80000,
           "amount": 57040000.0
         }
-      ],
-      "last_change_date": "2026-10-02"
+      ]
     },
     "00983A": {
       "name": "主動中信ARK創新",
       "issuer": "中信",
       "holdings": 43,
       "data_date": "2026-10-01",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-23",
       "anomaly": null,
@@ -758,11 +758,12 @@
       "issuer": "中信",
       "holdings": 57,
       "data_date": "2026-10-02",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
+      "last_change_date": "2026-10-02",
       "flow_from": "2026-10-01",
       "flow_to": "2026-10-02",
       "price_date": "20261002",
@@ -802,8 +803,7 @@
           "delta_shares": 13000,
           "amount": 16965000.0
         }
-      ],
-      "last_change_date": "2026-10-02"
+      ]
     },
     "00982A": {
       "name": "主動群益台灣強棒",
@@ -889,60 +889,38 @@
       "name": "主動群益美國增長",
       "issuer": "群益",
       "holdings": 51,
-      "data_date": "2026-10-01",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-02",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
-      "last_change_date": "2026-09-29",
-      "flow_from": "2026-09-24",
-      "flow_to": "2026-09-29",
-      "price_date": "20260929",
+      "flow_from": "2026-10-01",
+      "flow_to": "2026-10-02",
+      "price_date": "20261002",
       "no_price": [
         {
-          "code": "SNOW US",
-          "name": "Snowflake公司",
-          "delta_shares": null
+          "code": "MRK US",
+          "name": "默克藥廠",
+          "delta_shares": -15474
         },
         {
           "code": "VICR US",
           "name": "懷克爾公司",
-          "delta_shares": null
+          "delta_shares": 5573
         },
         {
-          "code": "NOW US",
-          "name": "ServiceNow公司",
-          "delta_shares": null
-        },
-        {
-          "code": "COHR US",
-          "name": "（已不在持股清單中）",
-          "delta_shares": null
-        },
-        {
-          "code": "4062 JP",
-          "name": "揖斐電有限公司",
-          "delta_shares": null
-        },
-        {
-          "code": "285A JP",
-          "name": "鎧俠控股公司",
-          "delta_shares": null
+          "code": "DE US",
+          "name": "迪爾",
+          "delta_shares": -5253
         }
       ],
       "scale_pct": null,
       "buy": 0,
-      "sell": -109200000.0,
-      "changed": 1,
-      "flow": [
-        {
-          "code": "6640",
-          "name": "均華",
-          "delta_shares": -105000,
-          "amount": -109200000.0
-        }
-      ]
+      "sell": 0,
+      "changed": 0,
+      "flow": [],
+      "last_change_date": "2026-10-02"
     },
     "00405A": {
       "name": "主動富邦台灣龍耀",
@@ -1323,11 +1301,12 @@
       "issuer": "復華",
       "holdings": 53,
       "data_date": "2026-10-02",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-10-01",
       "anomaly": null,
+      "last_change_date": "2026-10-02",
       "flow_from": "2026-10-01",
       "flow_to": "2026-10-02",
       "price_date": "20261002",
@@ -1357,19 +1336,19 @@
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": [],
-      "last_change_date": "2026-10-02"
+      "flow": []
     },
     "00409A": {
       "name": "主動復華全球50",
       "issuer": "復華",
       "holdings": 50,
       "data_date": "2026-10-02",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-23",
       "anomaly": null,
+      "last_change_date": "2026-10-02",
       "flow_from": "2026-10-01",
       "flow_to": "2026-10-02",
       "price_date": "20261002",
@@ -1406,8 +1385,7 @@
           "delta_shares": -1000,
           "amount": -2190000.0
         }
-      ],
-      "last_change_date": "2026-10-02"
+      ]
     },
     "00984A": {
       "name": "主動安聯台灣高息",
@@ -1859,80 +1837,54 @@
       "name": "主動安聯美國科技",
       "issuer": "安聯",
       "holdings": 50,
-      "data_date": "2026-10-01",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-02",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
-      "last_change_date": "2026-10-01",
-      "flow_from": "2026-09-30",
-      "flow_to": "2026-10-01",
-      "price_date": "20261001",
+      "flow_from": "2026-10-01",
+      "flow_to": "2026-10-02",
+      "price_date": "20261002",
       "no_price": [
         {
-          "code": "IOT US",
-          "name": "Samsara Inc",
-          "delta_shares": -6000
+          "code": "AAPL US",
+          "name": "Apple Inc",
+          "delta_shares": -2300
         },
         {
-          "code": "KLAC US",
-          "name": "KLA Corp",
-          "delta_shares": -1000
+          "code": "PLTR US",
+          "name": "Palantir Technologies Inc",
+          "delta_shares": -2000
+        },
+        {
+          "code": "NVDA US",
+          "name": "NVIDIA Corp",
+          "delta_shares": -2000
+        },
+        {
+          "code": "AMD US",
+          "name": "Advanced Micro Devices Inc",
+          "delta_shares": -1300
         },
         {
           "code": "WDC US",
           "name": "Western Digital Corp",
-          "delta_shares": -1000
+          "delta_shares": -800
         },
         {
-          "code": "CRWD US",
-          "name": "Crowdstrike Holdings Inc",
-          "delta_shares": -900
+          "code": "MSFT US",
+          "name": "Microsoft Corp",
+          "delta_shares": -700
         },
         {
           "code": "META US",
           "name": "Meta Platforms Inc",
-          "delta_shares": -800
-        },
-        {
-          "code": "COHR US",
-          "name": "Coherent Corp",
-          "delta_shares": -700
-        },
-        {
-          "code": "CDNS US",
-          "name": "Cadence Design Systems Inc",
           "delta_shares": -600
         },
         {
           "code": "MU US",
           "name": "Micron Technology Inc",
-          "delta_shares": -600
-        },
-        {
-          "code": "PANW US",
-          "name": "Palo Alto Networks Inc",
-          "delta_shares": -600
-        },
-        {
-          "code": "LRCX US",
-          "name": "Lam Research Corp",
-          "delta_shares": -600
-        },
-        {
-          "code": "TSM US",
-          "name": "Taiwan Semiconductor Manufacturing Co Ltd",
-          "delta_shares": -500
-        },
-        {
-          "code": "TER US",
-          "name": "Teradyne Inc",
-          "delta_shares": -500
-        },
-        {
-          "code": "SPOT US",
-          "name": "Spotify Technology SA",
           "delta_shares": -400
         }
       ],
@@ -1940,7 +1892,8 @@
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": []
+      "flow": [],
+      "last_change_date": "2026-10-02"
     },
     "00994A": {
       "name": "主動第一金台股優",
@@ -2063,11 +2016,12 @@
       "issuer": "元大",
       "holdings": 47,
       "data_date": "2026-10-02",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
+      "last_change_date": "2026-10-02",
       "flow_from": "2026-10-01",
       "flow_to": "2026-10-02",
       "price_date": "20261002",
@@ -2121,8 +2075,7 @@
           "delta_shares": 170000,
           "amount": 95370000.0
         }
-      ],
-      "last_change_date": "2026-10-02"
+      ]
     },
     "00401A": {
       "name": "主動摩根台灣鑫收",
@@ -2175,8 +2128,8 @@
       "issuer": "摩根",
       "holdings": 68,
       "data_date": "2026-10-02",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
