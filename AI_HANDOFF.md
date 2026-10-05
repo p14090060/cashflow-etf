@@ -444,7 +444,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - `archived-check.js` 全檔為註解，無 `selETF`／`renderSignalCard` 實際引用，不動。
   - 測試遷移（§6.1，非刪除）：regression「R page-div chip calc uses 0056」→「配息頁只剩日曆」＋Detail 0056 配息分頁 1→7 張：單次可領＝amount×張×1000、N 張市值約＝price×張×1000、年化領回連動、配息資訊倒數（N 天後／今日）；detail_ui T7「selETF untouched」→「Router 狀態不變」（shares kept、7 張市值保留）；新增 MG-1（`ETFS`／`CALENDAR` 由 state.js 提供、無 calc／lookup script）、MG-3（7 個退役全域皆 undefined）、首頁 A-4 已移除。R switch page div／yt、rank find、T11、category TOOLS card、X2 期望不變。
   - 結果（headless 800×600，port 8766／9224）：router 64、search_compact 38、detail_ui 42、detail_history_fix 14、**regression 26**（原 14：-1 遷移、+13）、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。負向對照：試算改成不乘張數 → regression 2 FAIL。資料全擋（market／*.json blocked）＋切六頁＋`gs-ckm`：0 例外、`ETFS` 為空陣列。
-  - 環境備註：detail_state DS-10 前置條件（績效分頁可捲動）在 390×844 視窗下因內容不夠高而 FAIL，改改動前 baseline 亦同；以 800×600（過去跑法）全 PASS，非 regression。
+  - 環境備註：detail_state DS-10 前置條件（績效分頁可捲動）在 390×844 視窗下因內容不夠高而 FAIL，改動前 baseline 亦同；以 800×600（過去跑法）全 PASS，非 regression。
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
