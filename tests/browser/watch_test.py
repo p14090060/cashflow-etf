@@ -252,9 +252,9 @@ def drag_to(i, dy, steps=8, hold_ms=0, end='touchEnd'):
 
 store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
 c = cards()
-check('DR-3 把手 touch-action:none；卡片其他區域不是 none', ev("getComputedStyle(document.querySelector('.drag-handle')).touchAction") == 'none' and ev("getComputedStyle(document.querySelector('.wc-main')).touchAction") != 'none')
+check('DR-3 把手（整欄）touch-action:none；卡片主區不是 none', ev("getComputedStyle(document.querySelector('.drag-handle')).touchAction") == 'none' and ev("getComputedStyle(document.querySelector('.wc-main')).touchAction") != 'none')
 step = ev("(function(){ const a=document.querySelectorAll('#watchList .wc'); return a[1].getBoundingClientRect().top-a[0].getBoundingClientRect().top; })()")
-drag_to(0, step * 1.6)
+drag_to(0, step * 1.0)
 check('DR-1 把手拖曳：第 1 張拖到第 2 張之後 → 順序改變並寫入', cards() == [c[1], c[0], c[2], c[3]] and json.loads(ev("localStorage.getItem(%s)" % json.dumps(KEY)))['codes'] == [c[1], c[0], c[2], c[3]], cards())
 check('DR-1 結束後無殘留 transform／拖曳狀態', ev("[...document.querySelectorAll('#watchList .wc')].every(x=>!x.style.transform)") is True and ev("Watch._state().dragging") is False)
 store_set(CODES[:10]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
@@ -270,7 +270,7 @@ check('DR-2 卡片本體垂直滑動 → 頁面捲動、順序不變', ev("windo
 y_before = ev("window.scrollY")
 idx = ev("(function(){ const a=[...document.querySelectorAll('#watchList .wc')]; return a.findIndex(x=>{const r=x.getBoundingClientRect(); return r.top>120 && r.bottom<600;}); })()")
 c = cards()
-drag_to(idx, step * 1.6)
+drag_to(idx, step * 1.0)
 exp = c[:idx] + [c[idx + 1], c[idx]] + c[idx + 2:]
 check('DR-9 頁面已捲動時拖曳：位移與插入位置正確', cards() == exp, (idx, cards()))
 # DR-8：10 檔上下緣連續拖曳（自動捲動）
@@ -309,12 +309,12 @@ check('DR-11 cancel → 停止自動捲動、清除 transform、不寫入', s1 =
 store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
 c = cards()
 x, y = handle_xy(1)
-touch('touchStart', x, y); touch('touchMove', x, y + 30); wait_ms(30); touch('touchMove', x, y + step * 1.6); wait_ms(60)
+touch('touchStart', x, y); touch('touchMove', x, y + 30); wait_ms(30); touch('touchMove', x, y + step * 1.0); wait_ms(60)
 dragging = ev("Watch._state().dragging")
 newlist = [c[1], c[2], c[3]]
 ev("localStorage.setItem(%s, JSON.stringify({v:1,codes:%s})); window.dispatchEvent(new StorageEvent('storage',{key:%s})); true" % (json.dumps(KEY), json.dumps(newlist), json.dumps(KEY)))
 wait_ms(80)
-touch('touchEnd', x, y + step * 1.6); wait_ms(120)
+touch('touchEnd', x, y + step * 1.0); wait_ms(120)
 check('DR-7 拖曳中清單改變 → 取消拖曳、不寫入、畫面＝Store', dragging is True and cards() == newlist and store() == newlist and ev("Watch._state().dragging") is False, (dragging, cards()))
 # DR-6：拖曳中行情更新延後
 c = cards()
@@ -386,7 +386,7 @@ x, y = handle_xy(3)
 touch('touchStart', x, y); touch('touchEnd', x, y); wait_ms(300)
 check('DR-17 真實 tap → 選單開啟且只觸發一次（未立即關閉）', ev("Watch._state().menu") == c[3] and ev("document.querySelectorAll('.wc-menu').length") == 1)
 ev("document.querySelectorAll('#watchList .drag-handle')[3].click(); true"); wait_ms(80)
-drag_to(0, step * 1.6); wait_ms(300)
+drag_to(0, step * 1.0); wait_ms(300)
 check('DR-18 拖曳放開 → 不開選單、順序已改', ev("Watch._state().menu") is None and cards() == [c[1], c[0], c[2], c[3]], cards())
 
 # ── Code Review #2：已開選單時開始拖曳 → 先關選單再量測，卡片跟手 ──
@@ -404,8 +404,8 @@ tx, ty = handle_xy(0); touch('touchStart', tx, ty); touch('touchEnd', tx, ty); w
 menu_open = ev("Watch._state().menu") == c[0]
 x, fy, hy = follow(0, 10)
 check('DR-19 開 A 選單 → 拖 A：選單先關閉、卡片跟手（誤差 ≤ 3px）', menu_open and ev("Watch._state().menu") is None and hy is not None and abs(hy - fy) <= 3, (fy, hy))
-touch('touchMove', x, fy + step * 1.6 - 10); wait_ms(80)
-touch('touchEnd', x, fy + step * 1.6 - 10); wait_ms(150)
+touch('touchMove', x, fy + step * 1.0 - 10); wait_ms(80)
+touch('touchEnd', x, fy + step * 1.0 - 10); wait_ms(150)
 check('DR-19 放開 → A 移到 B 之後、不開選單', cards() == [c[1], c[0], c[2], c[3]] and ev("Watch._state().menu") is None, cards())
 store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
 c = cards()
@@ -439,6 +439,105 @@ for (label, dev, dy) in [('觸控 3px', 'touch', 3), ('觸控 7px', 'touch', 7),
     check('DR-21 開 A 選單 → 輕點下方 B（%s，< 8px）：不開始拖曳、只開 B 選單、不重排' % label,
           a_open and mid is False and ev("Watch._state().menu") == c[1] and ev("document.querySelectorAll('.wc-menu').length") == 1 and cards() == c and store() == c,
           (a_open, mid, ev("Watch._state().menu"), cards() == c))
+# ── 拖曳手感（PO／Gate：按住 200ms 抓起、前緣越過中線換位、把手整欄、iOS 捲動競爭與自動捲動緩衝）──
+def lifted(): return ev("document.querySelectorAll('#watchList .wc.lifting').length")
+store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+c = cards()
+check('HT-0 提示文字定案', ev("document.getElementById('watchHint').textContent") == '按住 ⠿ 卡片亮起後拖曳調整順序；點一下 ⠿ 可選擇移動位置', ev("document.getElementById('watchHint').textContent"))
+x, y = handle_xy(1)
+touch('touchStart', x, y)
+l0 = lifted(); d0 = ev("Watch._state().dragging")
+wait_ms(100); l1 = lifted(); d1 = ev("Watch._state().dragging")
+wait_ms(160); l2 = lifted(); d2 = ev("Watch._state().dragging")
+check('HO-1 pointerdown 當下與 100ms 時都未亮起、未進入拖曳', l0 == 0 and d0 is False and l1 == 0 and d1 is False, (l0, d0, l1, d1))
+check('HO-1 按住約 200ms（不移動）→ 卡片亮起、進入拖曳', l2 == 1 and d2 is True, (l2, d2))
+touch('touchEnd', x, y); wait_ms(250)
+check('HO-1 已亮起但沒拖就放開 → 只放下：不開選單、順序不變、亮起清除', ev("Watch._state().menu") is None and cards() == c and lifted() == 0 and ev("Watch._state().dragging") is False, (ev("Watch._state().menu"), cards() == c, lifted()))
+x, y = handle_xy(2)
+touch('touchStart', x, y); wait_ms(60); lm = lifted(); wait_ms(60)
+touch('touchEnd', x, y); wait_ms(250)
+check('HO-2 200ms 內放開（不移動）→ 點擊開選單，過程中從未亮起', lm == 0 and ev("Watch._state().menu") == c[2] and lifted() == 0, (lm, ev("Watch._state().menu")))
+ev("document.querySelectorAll('#watchList .drag-handle')[2].click(); true"); wait_ms(80)
+x, y = handle_xy(0)
+touch('touchStart', x, y); touch('touchMove', x, y + 12); wait_ms(50)
+d4 = ev("Watch._state().dragging"); l4 = lifted()
+touch('touchCancel', x, y + 12); wait_ms(100)
+check('HO-4 200ms 前已移動 ≥ 8px → 立即進入拖曳並亮起（不等計時）', d4 is True and l4 == 1, (d4, l4))
+check('HO-4 cancel → 亮起與拖曳狀態完全清除', lifted() == 0 and ev("Watch._state().dragging") is False and ev("[...document.querySelectorAll('#watchList .wc')].every(x=>!x.style.transform)") is True)
+# 換位門檻：前緣越過相鄰卡片中線（約半張卡）
+def hold_drag(i, dy):
+    x, y = handle_xy(i)
+    touch('touchStart', x, y); wait_ms(240)
+    for k in range(1, 7):
+        touch('touchMove', x, y + dy * k / 6); wait_ms(16)
+    wait_ms(60)
+    touch('touchEnd', x, y + dy); wait_ms(200)
+store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+c = cards()
+hold_drag(0, step * 0.6)
+check('TH-1 按住抓起後拖 0.6 張卡 → 換位（舊門檻需約 1 張）', cards() == [c[1], c[0], c[2], c[3]], cards())
+check('TH-1 換位放開後不開選單', ev("Watch._state().menu") is None)
+store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+c = cards()
+hold_drag(0, step * 0.3)
+check('TH-2 只拖 0.3 張卡 → 不換位、不開選單', cards() == c and ev("Watch._state().menu") is None, cards())
+hold_drag(2, -step * 0.6)
+check('TH-3 往上拖 0.6 張卡 → 與上一張換位', cards() == [c[0], c[2], c[1], c[3]], cards())
+# 把手欄：與卡片同高的獨立直欄，不侵入卡片主區
+store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+ha = ev("""(function(){ const card=document.querySelectorAll('#watchList .wc')[1], h=card.querySelector('.drag-handle'), m=card.querySelector('.wc-main');
+  const rc=card.getBoundingClientRect(), rh=h.getBoundingClientRect(), rm=m.getBoundingClientRect();
+  const px=rh.left+rh.width/2, py=rc.bottom-10; const e=document.elementFromPoint(px, py);
+  return {hh:Math.round(rh.height), ch:Math.round(rc.height), noOverlap: rh.right <= rm.left + 0.5, lowHit: !!e && (e===h || h.contains(e)), px:px, py:py}; })()""")
+check('HA-1 把手欄與卡片同高、不與卡片主區重疊', ha['hh'] >= ha['ch'] - 4 and ha['noOverlap'], ha)
+touch('touchStart', ha['px'], ha['py']); wait_ms(240)
+hl = lifted()
+touch('touchEnd', ha['px'], ha['py']); wait_ms(200)
+check('HA-1 按在把手欄下半部（原 44×44 之外）也能抓起', ha['lowHit'] and hl == 1, (ha['lowHit'], hl))
+x0 = ev("(function(){ const r=document.querySelectorAll('#watchList .wc-main')[1].getBoundingClientRect(); return [r.left+20, r.top+20]; })()")
+check('HA-2 代碼／名稱位置屬於卡片主區（開 Detail），不是把手', ev("(function(){ const e=document.elementFromPoint(%f,%f); return !!e && !!e.closest('.wc-main') && !e.closest('.drag-handle'); })()" % (x0[0], x0[1])) is True)
+# 自動捲動緩衝：抓起後小幅移動不捲動；朝邊緣移動 ≥ 24px 才捲
+store_set(CODES[:10]); go_watch(); ev("window.scrollTo(0, 300); true"); wait_ms(150)
+idx = 4   # 把第 5 張捲到頂欄正下方，手指按在它的 ⠿（距可視區上緣 < 36px）
+ev("(function(){ const top=document.querySelector('.app-hdr').getBoundingClientRect().bottom; const r=document.querySelectorAll('#watchList .wc')[4].getBoundingClientRect(); window.scrollBy(0, r.top-(top+4)); return true; })()"); wait_ms(150)
+if True:
+    x = handle_xy(idx)[0]
+    y = ev("document.querySelector('.app-hdr').getBoundingClientRect().bottom") + 20
+    s0 = ev("window.scrollY")
+    touch('touchStart', x, y); wait_ms(240)
+    touch('touchMove', x, y - 10); wait_ms(400)
+    s1 = ev("window.scrollY")
+    touch('touchMove', x, y - 40); wait_ms(400)
+    s2 = ev("window.scrollY")
+    touch('touchCancel', x, y - 40); wait_ms(100)
+    check('AS-1 抓起靠上緣的卡片後只移動 10px → 頁面不自動捲動', s1 == s0, (s0, s1))
+    check('AS-1 朝上緣移動 ≥ 24px → 才開始自動捲動', s2 < s1, (s1, s2))
+else:
+    check('AS-1 前置：找到靠近上緣的把手', False, idx)
+# 按住計時中離開／清單改變 → 不得延遲抓起
+store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+c = cards()
+x, y = handle_xy(1)
+touch('touchStart', x, y); wait_ms(80)
+ev("switchPage('cat'); true"); wait_ms(300)
+check('HC-1 按住計時中換頁 → 之後不會抓起、無殘留', ev("Watch._state().dragging") is False and lifted() == 0)
+touch('touchEnd', x, y); wait_ms(100)
+go_watch()
+x, y = handle_xy(1)
+touch('touchStart', x, y); wait_ms(80)
+ev("localStorage.setItem(%s, JSON.stringify({v:1,codes:%s})); window.dispatchEvent(new StorageEvent('storage',{key:%s})); true" % (json.dumps(KEY), json.dumps(c[:3]), json.dumps(KEY)))
+wait_ms(300)
+check('HC-2 按住計時中清單改變 → 不會抓起、畫面＝Store', ev("Watch._state().dragging") is False and lifted() == 0 and cards() == c[:3], cards())
+touch('touchEnd', x, y); wait_ms(250)
+ev("(function(){ if (Watch._state().menu) document.querySelector('#watchList .wc[data-code=\"'+Watch._state().menu+'\"] .drag-handle').click(); return true; })()"); wait_ms(80)
+# iOS 捲動競爭：從把手開始的小幅移動不捲頁，仍是點擊
+store_set(CODES[:10]); go_watch(); ev("window.scrollTo(0, 200); true"); wait_ms(150)
+x, y = handle_xy(3)
+sy0 = ev("window.scrollY")
+touch('touchStart', x, y); touch('touchMove', x, y - 5); wait_ms(50)
+sy1 = ev("window.scrollY")
+touch('touchEnd', x, y - 5); wait_ms(250)
+check('PV-1 從把手開始移動 5px：頁面不捲動、仍視為點擊（開選單）', sy1 == sy0 and ev("Watch._state().menu") == cards()[3], (sy0, sy1, ev("Watch._state().menu")))
 DEFER = []
 DEFER.append('DR-R1 visualViewport.offsetTop > 0（鍵盤／瀏覽器 UI 造成可視區位移）時的拖曳與自動捲動：headless 無法產生，需 iPhone Chrome 真機')
 DEFER.append('DR-R2 實際觸控拖曳手感、iOS 長按選字抑制、Samsung 左緣返回手勢：需真機')

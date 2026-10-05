@@ -35,11 +35,13 @@
   background: var(--card); border: 1px solid var(--border); border-radius: 12px;
   padding: 6px 0;
 }
-.wc.lifting { z-index: 5; box-shadow: 0 8px 22px rgba(0, 0, 0, .5); border-color: var(--dim); }
+.wc.lifting { z-index: 5; box-shadow: 0 10px 26px rgba(0, 0, 0, .6); border: 2px solid var(--fair); background: var(--card2); margin: -1px; }   /* 抓起＝明顯亮起（只在真正拖曳中；色彩美化留 Phase 5） */
 body.wt-dragging .wc:not(.lifting) { transition: transform 150ms ease; }
 @media (prefers-reduced-motion: reduce) { body.wt-dragging .wc:not(.lifting) { transition: none; } }
 .drag-handle {
-  flex: 0 0 auto; width: 44px; min-height: 44px; margin-left: 8px; padding: 0;   /* 把手距螢幕左緣 ≥ 16px（避開 Android 返回手勢） */
+  /* 把手欄：與卡片同高的獨立直欄（觸控範圍擴大到整欄，不侵入代碼／名稱／價格／♥／卡片主區）；⠿ 仍在上方 */
+  flex: 0 0 auto; align-self: stretch; display: flex; align-items: flex-start; justify-content: center; padding-top: 12px;
+  width: 44px; min-height: 44px; margin: -6px 0 -6px 8px;   /* 把手距螢幕左緣 ≥ 16px（避開 Android 返回手勢）；上下吃掉卡片 padding */
   background: none; border: none; color: var(--dim); font: inherit; font-size: 20px; line-height: 1; cursor: grab;
   touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }

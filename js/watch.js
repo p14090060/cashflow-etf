@@ -16,7 +16,9 @@ function watchToggle(code) {
 const Watch = (function () {
   const TOAST_MS = 5000;
   const DRAG_PX = 8;          // 移動超過才算拖曳；否則是「點一下」→ 移動選單
-  const EDGE = 48;            // 距可視區上下緣多少 px 內開始自動捲動
+  const HOLD_MS = 200;        // 按住多久就抓起（PO 決策）；200ms 內放開且移動 < 8px 仍是點擊
+  const EDGE = 36;            // 距可視區上下緣多少 px 內開始自動捲動
+  const AUTO_MIN = 24;        // 手指離起點至少移動這麼多、且朝該邊緣移動，才開始自動捲動（避免一抓就漂）
   const MAX_SPEED = 12;       // 自動捲動每幀上限
 
   let drag = null;            // 拖曳狀態（見 startPress）
@@ -206,10 +208,14 @@ const Watch = (function () {
     // 按下時不動版面（輕點時手指下的把手不能移走）；已開的選單要等確定是拖曳（activate）才關閉。
     // yRaw：使用者實際按下的位置，只用來判斷是否移動 ≥ DRAG_PX；y0：跟手錨點（activate 時再加上版面補償）
     drag = { code: card.dataset.code, handle: handle, card: card, pid: ev.pointerId, yRaw: ev.clientY, y0: ev.clientY, y: ev.clientY,
-             s0: window.scrollY, active: false, raf: 0, target: -1 };
+             s0: window.scrollY, active: false, raf: 0, target: -1, hold: 0 };
     try { handle.setPointerCapture(ev.pointerId); } catch (e) { /* 不支援時仍可用 move 事件 */ }
+    // 按住 HOLD_MS 仍未放開、也還沒移動到 8px → 正式抓起（卡片亮起）。之前已移動 ≥ 8px 則由 pointermove 直接抓起。
+    const d = drag;
+    d.hold = setTimeout(function () { if (drag === d && !d.active) activate(); }, HOLD_MS);
   }
   function activate() {
+    clearTimeout(drag.hold);
     // 已開的移動選單占版面高度：先關閉再量測。選單在這張卡上方時，關閉會讓卡片上移 shift px；
     // 把跟手錨點 y0 同步上移，拖曳位移 (y − y0) 便包含這段差，卡片維持在手指下（PHASE4 Code Review #2）。
     if (menu) {
@@ -232,18 +238,20 @@ const Watch = (function () {
     if (!drag || !drag.active) return;
     const band = visibleBand();
     let v = 0;
-    if (drag.y < band.top + EDGE) v = -Math.min(MAX_SPEED, Math.ceil((band.top + EDGE - drag.y) / 4));
-    else if (drag.y > band.bottom - EDGE) v = Math.min(MAX_SPEED, Math.ceil((drag.y - (band.bottom - EDGE)) / 4));
+    const moved = drag.y - drag.yRaw;   // 手指實際移動（不含版面補償）
+    if (moved <= -AUTO_MIN && drag.y < band.top + EDGE) v = -Math.min(MAX_SPEED, Math.ceil((band.top + EDGE - drag.y) / 4));
+    else if (moved >= AUTO_MIN && drag.y > band.bottom - EDGE) v = Math.min(MAX_SPEED, Math.ceil((drag.y - (band.bottom - EDGE)) / 4));
     if (v) window.scrollBy(0, v);
     const off = (drag.y - drag.y0) + (window.scrollY - drag.s0);
     const me = drag.cards[drag.from];
-    const center = me.top + me.h / 2 + off;
-    // 插入位置：排除自己之後，中心點在我上方的卡片數
-    let t = 0;
-    drag.cards.forEach((c, i) => { if (i !== drag.from && c.top + c.h / 2 < center) t++; });
+    const myTop = me.top + off, myBot = myTop + me.h;
+    // 換位：拖曳卡片的「前緣」越過相鄰卡片的中線就換（往下看底緣、往上看頂緣），約半張卡即可換位
+    let t = drag.from;
+    for (let i = drag.from + 1; i < drag.cards.length; i++) { const c = drag.cards[i]; if (c.top + c.h / 2 < myBot) t = i; }
+    if (t === drag.from) for (let i = drag.from - 1; i >= 0; i--) { const c = drag.cards[i]; if (c.top + c.h / 2 > myTop) t = i; }
     drag.target = t;
     drag.cards.forEach((c, i) => {
-      if (i === drag.from) { c.el.style.transform = 'translateY(' + off + 'px)'; return; }
+      if (i === drag.from) { c.el.style.transform = 'translateY(' + off + 'px)' + (reducedMotion() ? '' : ' scale(1.02)'); return; }
       let shift = 0;
       if (drag.from < t && i > drag.from && i <= t) shift = -drag.step;
       else if (drag.from > t && i < drag.from && i >= t) shift = drag.step;
@@ -257,6 +265,7 @@ const Watch = (function () {
     const d = drag;
     drag = null;
     cancelAnimationFrame(d.raf);
+    clearTimeout(d.hold);
     try { if (d.handle.hasPointerCapture && d.handle.hasPointerCapture(d.pid)) d.handle.releasePointerCapture(d.pid); } catch (e) { /* ignore */ }
     if (d.cards) d.cards.forEach(c => { c.el.style.transform = ''; });
     if (d.card) d.card.classList.remove('lifting');
@@ -295,6 +304,11 @@ const Watch = (function () {
       drag.y = ev.clientY;
       if (!drag.active && Math.abs(drag.y - drag.yRaw) >= DRAG_PX) activate();   // 門檻只看手指實際移動，不含選單關閉的版面補償
     });
+    // iOS：只有從把手欄開始的觸控才擋下頁面捲動（CSS touch-action:none 之外再保險）；卡片本體照常滑頁。
+    // 不擋 touchstart，否則輕點不會產生 click（點一下 ⠿ 開選單要維持）。
+    list.addEventListener('touchmove', function (ev) {
+      if (drag && ev.target.closest && ev.target.closest('.drag-handle')) ev.preventDefault();
+    }, { passive: false });
     // 放開：拖曳中 → 寫入順序，並吃掉接下來那個 click；沒拖動 → 交給標準 click（開／關選單）
     list.addEventListener('pointerup', function (ev) {
       if (!drag || ev.pointerId !== drag.pid) return;
