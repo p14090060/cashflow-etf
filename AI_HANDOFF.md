@@ -20,7 +20,9 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Phase 3 直向 inside／doorway commit：`fdc1d139`**（本機，未 push）。PO 真機回饋後的 UX 調整（Gate 核准）：進入分類後其他分類立即收合，主 TAB 的 ▾／▴ 重新展開。內容見 `PHASE3_CHANGELOG.md` 的「直向 inside／doorway」一節。**Codex PASS。**
 - **Phase 3 真機 Bug fix commit：`3be2d19c`**（本機，未 push）。visualViewport 縮短時的底部錨定。**Codex PASS。** 真機重測後，此修正保留，另有下一項（`1418695a`）。
 - **Phase 3 renderList 重建保留位置 fix commit：`1418695a`**（本機，未 push）。真機重測 PASS（Detail × 關閉、停留跨輪詢、中段位置、查看更多 +10）。**Codex PASS。**
-- **Phase 3 UX-1／UX-2 commit：`395c774e`**（本機，未 push）。UX-1：金色提醒與分類內容之間的空白（31px → 15px）。UX-2：「切換分類 ▼／▲」按鈕（說明列，99×44）。內容見 `PHASE3_CHANGELOG.md` 的「UX-1、UX-2 小修」一節。
+- **Phase 3 UX-1／UX-2 commit：`395c774e`**。UX-1：金色提醒與分類內容之間的空白（31px → 15px）。UX-2：「切換分類 ▼／▲」按鈕（說明列，99×44）。內容見 `PHASE3_CHANGELOG.md` 的「UX-1、UX-2 小修」一節。**Codex 複審 `1418695a..395c774e`：PASS**（UX-1、UX-2、長名稱／小螢幕、Accessibility、Regression 皆 PASS；category 186 PASS、0 FAIL、1 DEFER（LR-8））。
+- **Push 狀態（2026-10-05 確認）**：`395c774e`（程式）與 `ca262607`（handoff）已在 `origin/main`。研判是後續本機自動行情排程推送 main 時一併帶上去。**PO 已接受，不需 rollback**；GitHub Pages 已是 Phase 3 版本。
+- **Phase 3：尚未 Verified。** 等待 iPhone + Chrome 最終真機驗收（§0.5 清單）。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -57,7 +59,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.5 Phase 3 Coding 狀態（目前）
 
-- **實作鏈**：`99ec4b14` → Codex NEED FIX → `8e3e59bb` → `c050c719` → `7b750336`（LR-4，Codex PASS）→ `1f636d86`（844×390 blocker）→ `fdc1d139`（inside／doorway，Codex PASS）→ `3be2d19c`（visualViewport 底部錨定，Codex PASS）→ `1418695a`（renderList 重建保留位置，Codex PASS；真機重測 PASS）→ **`395c774e`（UX-1、UX-2）**。**目前等待 Codex 複審 `395c774e`。**
+- **實作鏈**：`99ec4b14` → Codex NEED FIX → `8e3e59bb` → `c050c719` → `7b750336`（LR-4，Codex PASS）→ `1f636d86`（844×390 blocker）→ `fdc1d139`（inside／doorway，Codex PASS）→ `3be2d19c`（visualViewport 底部錨定，Codex PASS）→ `1418695a`（renderList 重建保留位置，Codex PASS；真機重測 PASS）→ **`395c774e`（UX-1、UX-2，Codex PASS）**。**Codex 已全部 PASS，目前等待 PO iPhone + Chrome 最終真機驗收。不要重新 review `1418695a..395c774e`。**
 - **UX-1（空白）**：來源為 44px ▾ 按鈕撐高標題列（46 → 54px）＋頁面頂端 14px padding，文字距金色提醒 31px。調整（僅直向 `cat-ctl`）：頁面頂端 14 → 8px、標題列 padding 歸零、高度 36px。結果：間距 15px。
 - **UX-2（切換分類）**：按鈕移到分類說明列（`.cat-subrow`，與說明同列），文字「切換分類 ▼」（inside）／「切換分類 ▲」（doorway），99×44px 整個可點擊。標題列保留全寬（「科技／半導體」不截斷；標題放不下按鈕與長名稱，故改放說明列）。`aria-expanded` 保留，`aria-label` 含「切換分類」。主分類標題仍可切換（Gate 核准），按鈕與標題各只切換一次。
 - **自動測試（`395c774e`）**：
@@ -72,21 +74,20 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
   - 確認 renderList／D4、visualViewport 錨定、LR-4、cat-tight3、844×390、橫向未 regression。
 - **不要重審**：renderList（已真機 PASS）、visualViewport 錨定、LR-4、Finding 1–3、844×390 blocker、inside／doorway 既有結論、Router、Detail、Flow。
 - **DEFER（不算 PASS）**：LR-8 B／C（headless 無法產生 offsetTop > 0，留給 iPhone 真機）。
-- **真機驗收（尚未交 PO，等 Codex PASS 後）**：
+- **最終真機驗收（iPhone + Chrome，Codex 已 PASS，待 PO 執行）**：
   1. 直向 inside：金色提醒與分類標題之間間距正常（不貼齊、不過大）。
   2. 按「切換分類 ▼」：進入其他分類顯示，按鈕變「切換分類 ▲」；再按回到 inside。
   3. 點主分類標題：同樣切換一次。
   4. 「科技／半導體」完整顯示，不被截斷。
   5. 高股息滑到底、Detail 關閉：「查看更多」仍可見（回歸）。
+  6. LR-8 B／C（headless DEFER，僅能真機確認）。
 
-### 0.6 Codex 下一步
+### 0.6 下一步
 
-- **Codex 本輪：只複審 `395c774e`（UX-1、UX-2）**，範圍 `1418695a..395c774e`。
-- **重點**：
-  - UX-1：`#page-cat.cat-ctl` 頂端 padding、標題列 padding、間距是否合理，橫向與 LR-4 不受影響。
-  - UX-2：按鈕位於說明列、文字與 aria、可點擊區 ≥ 44×44、主分類標題與按鈕不衝突。
-  - 長分類名稱「科技／半導體」在標題列不被截斷。
-- **完成後**：若 PASS，才由 Claude 提供 PO 真機步驟（§0.5 的 5 項）。若 NEED FIX，依 finding 修正。
+- **Codex：本 checkpoint 無待審項目。** `1418695a..395c774e` 已 PASS，不重複 review。
+- **Claude**：提供 PO §0.5 六項的白話真機步驟（附 PASS／FAIL 判準）。
+- **PO**：執行真機驗收；全數 PASS 後由 PO／Gate 宣告 Phase 3 Verified。若有 FAIL，Claude 依回饋修正並交 Codex。
+- **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
 ### 0.7 已知限制（記錄，不是待辦）
 
@@ -97,7 +98,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - 直向鍵盤開啟（gs-ckm）時，展開控制與次要標籤列隱藏，依既有 gs-ckm 路徑。
 - 中段但距底部 ≤ 約 44px 時，工具列收合（視窗變大）會被瀏覽器夾到新底部（修正前亦然，未處理）。
 - Plan §11.4 偏差：次要標籤保留一列 40px，未收合為「其他分類 ▾」（見變更紀錄）。
-- 低高度下的「持股異動」檢視：`cat-tight3` 只作用於清單檢視，treemap 在 844×390 仍落在導覽列下方，需要頁面捲動。未處理，待 PO 決定是否在 Phase 3 範圍內處理。
+- 低高度下的「持股異動」檢視：`cat-tight3` 只作用於清單檢視，treemap 在 844×390 仍落在導覽列下方，需要頁面捲動。**標記為觀察項（PO 2026-10-05）**：現在不改程式，真機驗收後由 PO 決定是否處理。
 - LR-8：需真機（見 0.5）。
 - R-N3：traversal 永不抵達的復原方式為重新整理（從實際 `history.state` 還原）。
 - base 切換以 replaceState 進行，關閉 Detail 後留下的 forward entry 仍存在（與 Phase 2 相同）。
@@ -118,7 +119,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 
 ### 0.9 文件與 Git
 
-- 尚未 push：`origin/main` 之後的 Phase 3 相關 commit（以 `git rev-list --count origin/main..HEAD` 為準）。
+- Push：截至 `395c774e`／`ca262607` 的 Phase 3 commit 皆已在 `origin/main`（自動行情排程帶入，PO 接受）。注意：本機行情排程會推 main，之後的本機 commit 也可能被自動帶上去。
 - 文件債（需 PO 決定是否更正，不阻擋 Phase 3）：`PHASE1_CHANGELOG.md`、`PHASE2_PLAN.md` 仍有 Android 字樣（例如 PLAN 的 G1 測試代號）。
 - 第 2 節的歷史紀錄全部已 RESOLVED，包括 Phase 2 blockers、Plan Rev.1～Rev.3.3 blockers、resync blocker、visualViewport、3 秒處理中、QA C7／C9 等。不要把它們當成目前待辦。
 
