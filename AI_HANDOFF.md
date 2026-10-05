@@ -273,14 +273,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 
 **Phase 5 implementation 進度（每個 checkpoint：Claude 實作＋測試 → commit → handoff → Codex Review，PASS 才進下一個）**
 
-- **CP1｜P1 資料池（§5、§9 順序 1）— `be71744e`，待 Codex Review。**
+- **CP1｜P1 資料池（§5、§9 順序 1）— `be71744e`；Codex NEED FIX 1 項 → CP1 fix `c808dcdc`（見下），待 Codex CP1 Re-review。**
   - `fetch_etf.py`：篩選鏈②③④集中為 `pool_excluded(code, name)`；新增 `EXCLUDE_SUFFIX = L/R/U`；`EXCLUDE_KW` 補「正二」「反一」（其餘不動，債券池維持現況）。
   - ISIN 解析：`isin_sections()` 以 `colspan=7` 區段標題切段，只讀「ETF」「ETN」各到下一標題；`parse_isin_rows()` 檢查 CFI（ETF `CE…`、ETN `CM…`，不符印警告略過）；`parse_isin_pool()` 找不到 ETF 區段丟例外（該市場別失敗、不退回整頁），找不到 ETN 區段印警告、ETF 照收。
   - `etf_pool_cache.json` fallback 與 `CURATED` 也過 `pool_excluded`（防禦性）。
   - 測試：`tests/test_pool.py`（用 ast 只抽出篩選函式，不 import 整支腳本）EX-1～EX-11 共 47 項 PASS；fixture `tests/fixtures/isin_strmode{2,4}.html` 是 2026-10-05 ISIN 實頁節錄（ETF／ETN 全列、其他區段各 3 列）。負向對照：把 `EXCLUDE_SUFFIX` 改空 → 8 項 FAIL。
   - 實頁新舊比對（上市 199→195、上櫃 30→26）：移除 00682U、00693U、00763U、02001L（預期）；另移除上櫃「受益證券-資產基礎證券」區段的 01111S～01114S（中租賃，舊程式讀到頁尾才誤收；不在 market.json）。沒有新增任何代碼。
   - **未重跑 fetch／未改 market.json**：生效需跑 `fetch.yml` → `update-data.yml`，時機由 PO 決定（§5.3）；跑完後 00682U／00693U／00763U 會從「其他」消失、`daily_check` 可能觸發一次 TOP 100 通知（預期）。`category_test` band count 改比 live 計數的遷移放在 CP2 測試遷移一起做。
-  - 實作備註：§6.1 `category_test` 遷移列仍寫「stack＝`[tool div]`」是 Rev.3 殘字；實作一律依 Rev.4 §3.3（stack `[]`），不另開 Plan finding。
+  - ~~實作備註：§6.1 殘字~~ → CP1 fix 已把 §6.1 `category_test` 遷移列的「stack＝`[tool div]`」改為「stack 仍為 `[]`」（只改文字，Router finding 不重開）。
+  - **CP1 fix（Codex：ISIN 失敗走舊 `etf_pool_cache.json` fallback 時，01111S～01114S 資產基礎證券會回到候選池）**：cache 只有 `[code, name, is_otc]`、沒有 CFI，所以 fallback 加產品類型防線 `cache_product_ok(code)`＝代號須符合 `0[02]\d{2,4}[A-Z]?`。依據：2026-10-05 ISIN 實頁上市＋上櫃 ETF 區段 360 檔全為 00 開頭、ETN 21 檔全為 02 開頭，其他區段（股票、權證、特別股、TDR、受益證券）沒有任何 00／02 開頭代號。只套在 cache fallback（即時抓取已有區段＋CFI 防線）；`pool_excluded`、L/R/U、關鍵字、債券現況、020032 全部不變。
+    - 新增 EX-7b 7 項：模擬 ISIN 兩市場都失敗 → fallback 舊快取；01111S～01114S 不進池、不補進 TWO_CODES；0050／00981A／00980D／00625K／020032／006201 恢復；00687C、02001L 仍排除；fixture 全部 ETF／ETN 代號 0 誤殺；現行 cache 229 筆只擋掉那 4 檔。`tests/test_pool.py` **54/54 PASS**。負向對照：防線放寬成 `0\d…` → 01111S 相關 2 項 FAIL。資料檔無變更。
 - **Rev.4 修正（Router）**：撤回 Rev.3 的 `Router.setTool`。Tools「成交量排行｜配息日曆」改為 Tools 模組 UI state（`js/tools.js` 模組變數＋`sessionStorage` `etfRadar.toolsTab`），不寫 Router state、不新增 stack layer、不呼叫任何 history API；Tools 只有一個 base entry（base `tools`、stack `[]`，開 Detail 時 `[detail]`），所以 Router 的 `k = stack.length − p` 與 Phase 4 相同，切過分頁後離開 Tools 不多退、不離站。`page-rank` 改為 Tools 外殼（含兩個 pane），`page-div` 的 B-2 搬入後退役；`BASE_PAGE.tools → page-rank`、`TOOL_PAGE` 只留給既有帶 tool intent（RT-12）。新增 RT-T1～T5，TL-1～5、TL-7、G2 同步改寫。
 - **Rev.3 修正**：① history 依現行封版 Router：底部導覽／首頁入口切 base＝replace E0（不新增 entry，Back 不回首頁）；`Router.setTool` 只 replace Tools 目前 entry 的 stack，不 push／traverse；排行 → Detail＝push detail、Back 關閉回同分頁；新增 §3.6 對照表；RT-12 Router 行為不變、只把 Back 後頁面期望改為預設分頁 `page-rank`。② ETN：ISIN 頁 ETF 與 ETN 是不同區段（現行從 ETF 讀到頁尾才順帶收 ETN），Rev.3 明確解析兩區段、各到下一個標題；L／R／U 兩者都適用；EX-9～11（020032 positive、區段邊界、缺 ETN 區段）。③ Detail 試算遷移：`#dtCalcOut` 驗「單次可領」「N 張市值約」隨張數連動，不要求「天後」；倒數在配息資訊區驗；不改 Phase 2 文字。
 - **GPT Gate／PO 對 Rev.1 D1～D6 的決定（已寫入 Rev.2，不再詢問）**：債券資料池維持現況（不大量加回既有規則排除的債券）；首頁「查詢其他 ETF」`lookupToday()` 直接淘汰、假估算不修不留；前端 `LAZY_WATCHLIST` 實作後確認無 JS 引用即刪除，Python 三份不動；價格合理區標籤用「合理」（非「合理✓」）；Dark／Light 與全站色彩美化納入 Phase 5；B-1 計算機與 `lookupCustom()` 淘汰。
