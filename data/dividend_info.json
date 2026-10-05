@@ -1777,6 +1777,38 @@
       "avg_dividend_per_share": 0.114,
       "_todo": false,
       "_source": "2026-09-27 雙源：經濟日報「每月配息、每單位 0.114、年化 6.57%」＋ETF資訊網 近12月配息率 6.25%"
+    },
+    "00991B": {
+      "name": "貝萊德A級公司債",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00995A": {
+      "name": "主動中信台灣卓越",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00996A": {
+      "name": "主動兆豐台灣豐收",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00851": {
+      "name": "台新全球AI",
+      "frequency": "不明",
+      "months": [],
+      "category": "高股息",
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
