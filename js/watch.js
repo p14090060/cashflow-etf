@@ -242,12 +242,19 @@ const Watch = (function () {
     const band = visibleBand();
     let v = 0;
     const moved = drag.y - drag.yRaw;   // 手指實際移動（不含版面補償）
-    if (moved <= -AUTO_MIN && drag.y < band.top + EDGE) v = -Math.min(MAX_SPEED, Math.ceil((band.top + EDGE - drag.y) / 4));
-    else if (moved >= AUTO_MIN && drag.y > band.bottom - EDGE) v = Math.min(MAX_SPEED, Math.ceil((drag.y - (band.bottom - EDGE)) / 4));
+    // 清單邊界（文件座標）：第一張的頂到最後一張的底。拖曳卡片不得超出，自動捲動也只捲到清單邊緣看得到為止，
+    // 不會把卡片帶過「僅儲存在此裝置」提示區、拖進下方空白（Phase 4 收尾 Observation）。
+    const first = drag.cards[0], last = drag.cards[drag.cards.length - 1];
+    const listTop = first.top, listBot = last.top + last.h;
+    if (moved <= -AUTO_MIN && drag.y < band.top + EDGE && listTop - window.scrollY < band.top) v = -Math.min(MAX_SPEED, Math.ceil((band.top + EDGE - drag.y) / 4));
+    else if (moved >= AUTO_MIN && drag.y > band.bottom - EDGE && listBot - window.scrollY > band.bottom) v = Math.min(MAX_SPEED, Math.ceil((drag.y - (band.bottom - EDGE)) / 4));
     if (v) window.scrollBy(0, v);
-    const off = (drag.y - drag.y0) + (window.scrollY - drag.s0);
     const me = drag.cards[drag.from];
-    const intent = off - (drag.comp || 0);   // 使用者真正的排序位移：不含選單關閉造成的版面補償
+    const lo = listTop - me.top, hi = listBot - me.h - me.top;   // 位移上下限：頂端對齊第一張、底端對齊最後一張
+    const clamp = x => Math.max(lo, Math.min(hi, x));
+    const raw = (drag.y - drag.y0) + (window.scrollY - drag.s0);
+    const off = clamp(raw);
+    const intent = clamp(raw - (drag.comp || 0));   // 使用者真正的排序位移：不含選單關閉造成的版面補償
     const myTop = me.top + intent, myBot = myTop + me.h;
     // 換位：拖曳卡片的「前緣」越過相鄰卡片的中線就換（往下看底緣、往上看頂緣），約半張卡即可換位
     let t = drag.from;
