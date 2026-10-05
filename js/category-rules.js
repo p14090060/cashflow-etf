@@ -5,14 +5,14 @@
 
 // 資料夾顯示順序（PHASE3_PLAN §4.1）
 const CAT_DEF = [
-  { key: 'mcap',     label: '市值型',       short: '市值', sub: '主要追蹤大型、中型或特定市值範圍指數的 ETF' },
+  { key: 'mcap',     label: '市值型',       short: '市值', sub: '追蹤大型、中型或特定市值指數的 ETF' },
   { key: 'div',      label: '高股息',       short: '高股息', sub: '主要以高股息策略為特色的 ETF' },
   { key: 'active',   label: '主動式',       short: '主動', sub: '由經理人主動操作持股的 ETF' },
   { key: 'tech',     label: '科技／半導體', short: '科技', sub: '主要投資科技與半導體產業的 ETF' },
   { key: 'overseas', label: '海外／區域',   short: '海外', sub: '主要投資海外市場或特定地區的 ETF' },
-  { key: 'theme',    label: '主題型',       short: '主題', sub: '聚焦特定主題或產業（如金融、工業、數位支付）的 ETF' },
+  { key: 'theme',    label: '主題型',       short: '主題', sub: '聚焦金融、工業、數位支付等特定主題的 ETF' },
   { key: 'bond',     label: '債券',         short: '債券', sub: '主要投資債券的 ETF' },
-  { key: 'other',    label: '其他',         short: '其他', sub: '不屬於前述分類，或以 ESG 等篩選策略為主、期貨型等的 ETF' }
+  { key: 'other',    label: '其他',         short: '其他', sub: 'ESG 篩選、期貨型等不屬前述分類的 ETF' }
 ];
 
 // 關鍵字（名稱包含即命中；英文不分大小寫）

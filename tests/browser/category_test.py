@@ -646,6 +646,49 @@ set_view(390, 844, 'portraitPrimary'); wait_ms(300)
 check('UX 回到直向：按鈕重新顯示（inside）', ux()['btnDisp'] != 'none' and ux()['inside'] is True)
 ev("document.getElementById('catClose').click(); true"); wait_ms(320)
 
+# ── FO（分類說明移入文件夾、藏字修正）：總覽 8 份文件夾同高、說明完整不被遮、提醒在整疊下方；inside 不重複說明 ──
+FO_JS = """(function(){
+  const st = document.getElementById('catStage').getBoundingClientRect();
+  const bands = [...document.querySelectorAll('.cat-band')], issues = [];
+  bands.forEach(b => {
+    const s = b.querySelector('.cb-sub'), n = b.querySelector('.cb-name'), br = b.getBoundingClientRect();
+    if (!s || !s.textContent.trim()) { issues.push(b.dataset.k + ':noSub'); return; }
+    if (s.scrollHeight > s.clientHeight + 1 || s.scrollWidth > s.clientWidth + 1) issues.push(b.dataset.k + ':overflow');
+    if (s.getBoundingClientRect().bottom > br.bottom + 0.5) issues.push(b.dataset.k + ':subOutside');
+    if (n.scrollWidth > n.clientWidth + 1) issues.push(b.dataset.k + ':nameTrunc');
+    [s, n].forEach(el => { const rg = document.createRange(); rg.selectNodeContents(el);
+      [...rg.getClientRects()].forEach(r => [0.1, 0.5, 0.9].forEach(fx => {
+        const e = document.elementFromPoint(r.left + r.width * fx, r.top + r.height / 2);
+        if (!e || !b.contains(e)) issues.push(b.dataset.k + ':covered'); })); });
+  });
+  const note = document.getElementById('catNote'), nr = note.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(note);
+  [...rg.getClientRects()].forEach(r => { const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); if (e !== note) issues.push('noteCovered'); });
+  const L = [...document.querySelectorAll('#catStackL .cat-band')].map(b => b.getBoundingClientRect());
+  const overlap = L.slice(1).map((r, i) => Math.round(L[i].bottom - r.top));
+  return { heights: [...new Set(bands.map(b => Math.round(b.getBoundingClientRect().height)))], overlap: overlap,
+           noteBelow: nr.top >= Math.max(...bands.map(b => b.getBoundingClientRect().bottom)) - 0.5,
+           docOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth, issues: issues };
+})()"""
+ev("Router.toBase({base:'home'}); true"); wait_ms(200)
+ev("switchPage('cat'); true"); wait_ms(300)
+for fw in (320, 360, 375, 390, 414, 430):
+    set_view(fw, 844, 'portraitPrimary'); wait_ms(300)
+    fd = ev(FO_JS)
+    check('FO-%d 8 份文件夾同高' % fw, len(fd['heights']) == 1, fd)
+    check('FO-%d 疊層只壓底部留白（每份重疊 1–10px，仍有堆疊感）' % fw, all(1 <= o <= 10 for o in fd['overlap']), fd)
+    check('FO-%d 分類名稱與說明完整：無 overflow、無截斷、未被下一份遮住' % fw, not fd['issues'], fd)
+    check('FO-%d 提醒文字在整疊下方、未被文件夾遮住（無藏字）；無水平溢出' % fw, fd['noteBelow'] and not fd['docOverflow'], fd)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("document.querySelector('.cat-band[data-k=\"theme\"]').click(); true"); wait_ms(450)
+fi = ev("(function(){ const s=document.getElementById('catSub'), b=document.getElementById('catExpand'), r=document.querySelector('#catMain .cat-subrow').getBoundingClientRect(), br=b.getBoundingClientRect();"
+        " return { sub: s.textContent, inside: document.getElementById('catMain').classList.contains('cat-inside'), rowH: Math.round(r.height), btnRight: Math.round(r.right - br.right), btnH: Math.round(br.height) }; })()")
+check('FO inside：不重複顯示分類說明；切換分類按鈕仍在說明列右側、44px', fi['inside'] and fi['sub'] == '' and fi['btnH'] >= 44 and fi['btnRight'] <= 1, fi)
+set_view(844, 390, 'landscapePrimary'); wait_ms(300)
+fl = ev("(function(){ const s=document.getElementById('catSub'); return { sub: s.textContent, h: Math.round(s.getBoundingClientRect().height) }; })()")
+check('FO 橫向 open：說明列空白時零高度', fl['sub'] == '' and fl['h'] == 0, fl)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("document.getElementById('catClose').click(); true"); wait_ms(320)
+
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))
 fails = [r for r in results if r[1] is False]

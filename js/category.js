@@ -32,14 +32,15 @@ const Category = (function () {
   }
   function allETFs() { return (typeof ETFS !== 'undefined' && ETFS) ? ETFS : []; }
 
-  // ── 建立 8 份文件夾（左右各 4）──
+  // ── 建立 8 份文件夾（左右各 4）：頁籤＝分類名稱＋檔數，紙張＝分類說明 ──
   function build() {
     const left = ['mcap', 'div', 'active', 'tech'];
     const right = ['overseas', 'theme', 'bond', 'other'];
     const band = (k, i) => {
       const d = catDefOf(k);
-      return '<button class="cat-band" type="button" data-k="' + k + '" style="top:' + (i * 52) + 'px;--dx:' + (i % 2 ? 6 : 0) + 'px;z-index:' + (i + 1) + '">' +
-             '<span class="cb-name">' + d.label + '</span><span class="cb-n" id="cbN-' + k + '">—</span></button>';
+      return '<button class="cat-band" type="button" data-k="' + k + '" style="--dx:' + (i % 2 ? 6 : 0) + 'px;z-index:' + (i + 1) + '">' +
+             '<span class="cb-tab"><span class="cb-name">' + d.label + '</span><span class="cb-n" id="cbN-' + k + '">—</span></span>' +
+             '<span class="cb-sub">' + d.sub + '</span></button>';
     };
     $('catStackL').innerHTML = left.map((k, i) => band(k, i)).join('');
     $('catStackR').innerHTML = right.map((k, i) => band(k, i)).join('');
@@ -215,7 +216,7 @@ const Category = (function () {
     if (!open) return;
     const def = catDefOf(open.key);
     $('catName').textContent = def.label;
-    $('catSub').textContent = def.sub;
+    $('catSub').textContent = '';   // 分類說明已在文件夾紙張上，進入後不重複
     $('catSortBtn').textContent = '排序：' + (open.ui.sort === 'name' ? '名稱' : '代碼');
     const isActive = open.key === 'active';
     $('catSeg').hidden = !isActive;
