@@ -180,20 +180,19 @@ body.gs-ckm .cat-foot { display: none; }
   border-radius: 999px; padding: 6px 12px; font-size: 13px; z-index: 120;
 }
 
-/* ── 工具頁 ── */
-.tool-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+/* ── 工具頁：三張大型功能卡（PHASE5_PLAN §3.1，PO Change #1）。整張卡是 button ── */
+.tool-list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
 .tool-card {
-  display: flex; flex-direction: column; gap: 4px; width: 100%; min-height: 64px; padding: 12px 14px;
-  background: var(--card); color: var(--bright); border: 1px solid var(--border); border-radius: 12px;
+  display: flex; align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 14px 16px;
+  background: var(--card); color: var(--bright); border: 1px solid var(--border); border-radius: 14px;
   font: inherit; text-align: left; cursor: pointer;
 }
-.tool-card b { font-size: 16px; }
-.tool-card span { font-size: 13px; color: var(--dim); }
-.tool-link {
-  width: 100%; min-height: 44px; margin-top: 14px;
-  background: none; color: var(--dim); border: 1px dashed var(--border); border-radius: 10px;
-  font: inherit; font-size: 14px; cursor: pointer;
-}
+.tool-card:active { background: var(--card2); }
+.tool-card .tc-ic { font-size: 28px; line-height: 1; flex-shrink: 0; width: 34px; text-align: center; }
+.tool-card .tc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tool-card .tc-text b { font-size: 18px; }
+.tool-card .tc-text span { font-size: 15px; color: var(--dim); line-height: 1.4; }
+.tool-card .tc-arrow { font-size: 26px; color: var(--dim); line-height: 1; flex-shrink: 0; }
 
 /* ── 自選空狀態（Phase 3 只做占位；功能於 Phase 4） ── */
 .empty-state { text-align: center; padding: 48px 16px; }

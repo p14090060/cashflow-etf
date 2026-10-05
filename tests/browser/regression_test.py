@@ -4,8 +4,8 @@ exec(src.split("# ── T2 開啟 0050")[0])
 check('flow status ok', ev("_flowStatus") == 'ok', ev("_flowStatus"))
 for pg in ['today','div','yt','check','rank','today']:
     ev("switchPage('%s'); true" % pg); wait_ms(150)
-    if pg == 'check':   # Phase 3：持股異動移入 分類 → 主動式
-        check('R switch page check active (Phase 3: 分類 → 主動式 持股異動)', ev("document.getElementById('page-cat').classList.contains('active') && Category.isFlowVisible()") is True)
+    if pg == 'check':   # Phase 5 G3：在目前 entry（前一步的頻道子頁）上開 Flow 層，來源頁留在下面
+        check('R switch page check opens Flow layer over the source page (Phase 5 G3)', ev("flowLayerVisible() && Router.state().stack.map(l=>l.t).join() === 'tool,flow' && document.getElementById('page-yt').classList.contains('active')") is True, ev("JSON.stringify(Router.state())"))
     else:
         check('R switch page %s active' % pg, ev("document.getElementById('page-%s').classList.contains('active')" % pg) is True)
 # Phase 5 §6.1：舊配息頁 B-1 計算機退役 → 配息頁只剩日曆；張數試算改驗正式入口 Detail 配息分頁

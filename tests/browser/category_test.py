@@ -172,7 +172,7 @@ ev("switchPage('watch'); true"); wait_ms(120)
 check('NAV watch shows 我的 ETF（Phase 4：空自選為引導式空狀態）', ev("document.getElementById('page-watch').classList.contains('active')") is True and '我的 ETF' in ev("document.getElementById('page-watch').innerText") and (ev("WatchStore.list().length") > 0 or '還沒有收藏 ETF' in ev("document.getElementById('page-watch').innerText")))
 check('NAV has four bottom buttons', ev("document.querySelectorAll('.bottom-nav .nav-btn').length") == 4)
 ev("switchPage('tools'); true"); wait_ms(120)
-ev("(function(){ document.querySelector('#page-tools .tool-card').click(); return true; })()"); wait_ms(120)
+ev("(function(){ document.getElementById('toolDiv').click(); return true; })()"); wait_ms(120)   # Phase 5 PO Change #1：三張卡中的「配息日曆」卡
 check('TOOLS card opens 配息 subpage', ev("document.getElementById('page-div').classList.contains('active')") is True)
 ev("(function(){ history.back(); return true; })()"); wait_ms(250)
 check('TOOLS back returns to tools list', ev("document.getElementById('page-tools').classList.contains('active')") is True)

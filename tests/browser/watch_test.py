@@ -694,13 +694,15 @@ for base in ['home', 'tools', 'cat', 'watch']:
     ev("detailTab('holdings'); true"); wait_ms(150)
     ok_btn = ev("!!document.querySelector('.gs-flow-btn')")
     ev("(function(){ const b=document.querySelector('.gs-flow-btn'); if(b) b.click(); return true; })()"); wait_ms(450)
-    s1 = ev("({base:Router.state().base, t:Router.state().stack.map(l=>l.t+':'+(l.view||'')).join(), sel:_flowSel, vis:Category.isFlowVisible(), det:!document.getElementById('gsPanel').hidden})")
+    s1 = ev("({base:Router.state().base, t:Router.state().stack.map(l=>l.t).join(), sel:_flowSel, vis:flowLayerVisible(), det:!document.getElementById('gsPanel').hidden, top:(Router.state().stack.slice(-1)[0].ui||{}).code})")
     ev("history.back(); true"); wait_ms(450)
-    s2 = ev("({base:Router.state().base, n:Router.state().stack.length, st:document.getElementById('page-cat').dataset.state, det:!document.getElementById('gsPanel').hidden})")
+    s2 = ev("({base:Router.state().base, t:Router.state().stack.map(l=>l.t).join(), vis:flowLayerVisible(), det:!document.getElementById('gsPanel').hidden, code:_curEtfCode, tab:_detailTab})")
     ev("history.forward(); true"); wait_ms(450)
-    s3 = ev("({t:Router.state().stack.map(l=>l.t+':'+(l.view||'')).join(), sel:_flowSel, vis:Category.isFlowVisible()})")
-    check('FL-4 [%s] Detail → 完整持股異動：同檔、只剩 folder(flow)、不留 Detail' % base, ok_btn and s1['base'] == 'cat' and s1['t'] == 'folder:flow' and s1['sel'] == fcode and s1['vis'] and not s1['det'], s1)
-    check('FL-4 [%s] Back → 分類總覽（不回 Detail）；Forward → 同檔持股異動' % base, s2['base'] == 'cat' and s2['n'] == 0 and s2['st'] == 'overview' and not s2['det'] and s3['t'] == 'folder:flow' and s3['sel'] == fcode and s3['vis'], (s2, s3))
+    s3 = ev("({t:Router.state().stack.map(l=>l.t).join(), sel:_flowSel, vis:flowLayerVisible()})")
+    pre = 'tool,' if base == 'tools' else ''
+    # Phase 5 G3（行為改變，非放寬）：Detail 上 push Flow 層、Detail 留在下面；Back 回原 Detail；Forward 回同檔 Flow
+    check('FL-4 [%s] Detail → 完整持股異動：同檔、[…, detail, flow]、Detail 留在下面' % base, ok_btn and s1['base'] == base and s1['t'] == pre + 'detail,flow' and s1['sel'] == fcode and s1['top'] == fcode and s1['vis'] and s1['det'], s1)
+    check('FL-4 [%s] Back → 原 Detail（同檔、同分頁）；Forward → 同檔持股異動' % base, s2['base'] == base and s2['t'] == pre + 'detail' and not s2['vis'] and s2['det'] and s2['code'] == fcode and s2['tab'] == 'holdings' and s3['t'] == pre + 'detail,flow' and s3['sel'] == fcode and s3['vis'], (s2, s3))
     ev("Router.toBase({base:'home'}); true"); wait_ms(250)
 # FL-6（FD-1～FD-6）由 category_test.py 保留並執行
 

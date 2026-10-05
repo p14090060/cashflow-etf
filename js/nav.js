@@ -9,7 +9,7 @@ const _NAV_SPEC = {
   div:   { base: 'tools', tool: 'div' },
   rank:  { base: 'tools', tool: 'rank' },
   yt:    { base: 'tools', tool: 'yt' },
-  check: { base: 'cat', flow: true }
+  check: { flow: true }   // 主動式 ETF 持股異動：在目前 entry 上開 Flow 層（PHASE5_PLAN §3.4）
 };
 
 function switchPage(id) {

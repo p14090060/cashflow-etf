@@ -109,15 +109,16 @@ ev("Router.openDetail('0050'); true"); wait_ms(220)            # base home, stac
 L0 = hlen(); S0 = hstate()
 ev("window.__routerDeferTraversal = true; true")
 t_before = tcount()
-ev("Router.openFlow('0050'); true"); wait_ms(60)               # k=1：traversal(-1) 排入佇列，尚未執行
+ev("Router.openFolder('mcap'); true"); wait_ms(60)              # k=1：traversal(-1) 排入佇列，尚未執行
+# ⚠ Phase 5 G3 起 openFlow 改為同 base push（k=0），不再產生 traversal；R4～R8 的機制改用 openFolder（換 base＋k=1）驅動，規則與斷言不變
 check('RT-18 deferred: traversal queued, not executed', ev("__routerDeferredCount()") == 1 and ev("__routerInflightState()") == 'active', ev("__routerDeferredCount()"))
 check('RT-18 deferred: history.state and length unchanged', hstate() == S0 and hlen() == L0)
 check('RT-18 deferred: location still on the page (no navigation happened)', ev("location.href.indexOf('index.html') >= 0") is True)
-check('RT-21 openFlow issued exactly one traversal', tcount() - t_before == 1, tcount() - t_before)
+check('RT-21 base-changing intent issued exactly one traversal', tcount() - t_before == 1, tcount() - t_before)
 
 ev("__routerForceTimeout(); true"); wait_ms(60)               # 500ms：只取消 continuation，槽位仍佔用
 check('RT-14 timeout marks inflight orphan (slot still occupied)', ev("__routerInflightState()") == 'orphan')
-check('RT-14 timeout keeps screen unchanged (Detail still open, no flow)', ev("!document.getElementById('gsPanel').hidden") is True and ev("Category.isFlowVisible()") is False)
+check('RT-14 timeout keeps screen unchanged (Detail still open, no folder)', ev("!document.getElementById('gsPanel').hidden") is True and ev("Category.isFlowVisible()") is False and ev("document.getElementById('page-today').classList.contains('active')") is True)
 check('RT-14 timeout does not write history', hstate() == S0 and hlen() == L0)
 
 ev("switchPage('tools'); true"); wait_ms(60)                  # 使用者立即導航：orphan 階段 → parked
@@ -137,7 +138,7 @@ check('RT-19 3s: parked not executed by timer (parked runs == 0)', pruns() == 0,
 c0 = comp()
 ev("__routerReleaseTraversal(); true"); wait_ms(320)          # 舊 traversal 真正完成（真實 popstate）
 check('RT-15 old traversal completes exactly once', comp() - c0 == 1, comp() - c0)
-check('RT-15 old continuation never executed (no flow entry, no Category flow)', ev("Category.isFlowVisible()") is False and stack_types() == '')
+check('RT-15 old continuation never executed (no folder entry pushed)', ev("Category.isFlowVisible()") is False and stack_types() == '')
 check('RT-15/17 parked executed exactly once after confirmation', pruns() == 1, pruns())
 check('RT-17 final: parked (watch) applied on confirmed state', ev("Router.state().base") == 'watch' and ev("document.getElementById('page-watch').classList.contains('active')") is True)
 check('RT-21 release adds no traversal', tcount() - t_before == 1, tcount() - t_before)
@@ -162,13 +163,15 @@ ev("(function(){ document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape
 check('RT-10 double Esc in one tick closes only one layer', stack_types() == 'folder', stack_types())
 ev("switchPage('today'); true"); wait_ms(250)
 
-# ── RT-22：排行頁的列進入持股異動（工具子頁 → openFlow）→ Back 回工具子頁 ──
+# ── RT-22（Phase 5 G3 改期望）：排行頁的列進入持股異動 → push Flow 層 → Back 回原排行 ──
 ev("switchPage('rank'); true"); wait_ms(200)
 check('RT-22 setup: rank tool page is active', ev("document.getElementById('page-rank').classList.contains('active')") is True)
-ev("Router.openFlow('0050'); true"); wait_ms(320)
-check('RT-22 openFlow from tool goes to 分類 → 主動式 持股異動 (single layer, no tool layer left)', ev("Router.state().base") == 'cat' and stack_types() == 'folder' and ev("Router.state().stack[0].view") == 'flow' and ev("Category.isFlowVisible()") is True, st())
+fcode = ev("Object.keys(_flowData.etfs)[0]")
+t_before = tcount(); L22 = hlen()
+ev("openFlow(%s); true" % json.dumps(fcode)); wait_ms(320)
+check('RT-22 openFlow from rank pushes a flow layer on the rank entry (base tools, no traversal)', ev("Router.state().base") == 'tools' and stack_types() == 'tool,flow' and ev("flowLayerVisible()") is True and tcount() == t_before and hlen() == L22 + 1, st())
 pop_back()
-check('RT-22 Back from flow returns to 分類總覽 (same as §8 sources; base E0 replaced to cat)', ev("Router.state().base") == 'cat' and ev("Router.state().stack.length") == 0 and ev("document.getElementById('page-cat').dataset.state") == 'overview', st())
+check('RT-22 Back from flow returns to the original rank page', ev("Router.state().base") == 'tools' and stack_types() == 'tool' and ev("document.getElementById('page-rank').classList.contains('active')") is True and ev("flowLayerVisible()") is False, st())
 ev("switchPage('today'); true"); wait_ms(200)
 
 # ── SR-1：分類頁開著時，全域搜尋仍可開 Detail；關閉後資料夾保留 ──

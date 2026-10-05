@@ -157,15 +157,18 @@ check('T12 title 0056', ev("document.getElementById('gsPanelTitle').textContent.
 ev("document.querySelector('#dtClose').click(); true")
 wait_ms(400)
 
-# ── T13 成分按鈕：關閉 Detail、跳主動頁，只一次 back
+# ── T13 成分按鈕：Phase 5 G3——在 Detail 上 push Flow 層（不 traverse、不關 Detail）；Back 回原 Detail
 ev("gsPick('00981A'); true")
 wait_ms(200)
 ev("window.__pop=0; true")
 ev("detailGoFlow('00981A'); true")
 wait_ms(400)
-check('T13 flow page active (Phase 3: 分類 → 主動式 持股異動)', ev("document.getElementById('page-cat').classList.contains('active') && Category.isFlowVisible()") is True)   # Phase 3：舊 page-check.active → 分類頁 + 持股異動檢視
-check('T13 detail closed', ev("document.getElementById('gsPanel').hidden") is True)
-check('T13 single popstate', ev("window.__pop") == 1, ev("window.__pop"))
+check('T13 Flow layer shown over Detail (Phase 5 G3: source-aware)', ev("flowLayerVisible() && !document.getElementById('flowLayer').hidden && Router.state().stack.map(l=>l.t).join() === 'detail,flow' && _flowSel === '00981A'") is True, ev("JSON.stringify(Router.state())"))
+check('T13 detail kept underneath (not closed)', ev("document.getElementById('gsPanel').hidden") is False)
+check('T13 no popstate (push only, no traversal)', ev("window.__pop") == 0, ev("window.__pop"))
+ev("history.back(); true"); wait_ms(400)
+check('T13 Back returns to the same Detail', ev("!flowLayerVisible() && !document.getElementById('gsPanel').hidden && _curEtfCode === '00981A'") is True)
+ev("closeDetail(); true"); wait_ms(300)
 ev("switchPage('today'); true")
 
 # ── T14 0% 不當缺資料

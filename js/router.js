@@ -10,6 +10,9 @@
 //   R8 有 inflight 時不寫 history
 // Phase 2 語意（PHASE3_PLAN §6.1）：未開啟 Detail → push；已開啟切換另一檔 → replace；
 // 相同代碼 → 不動；一次 Back 直接離開 Detail。
+// Phase 5 G3（PHASE5_PLAN §3.4）：Active Flow 是 source-aware 的 flow 層 {t:'flow', ui:{code}}，
+// 在來源 entry 上 push 一層（Tools／排行／Detail 進入，Back 回來源）；Flow 中換 ETF 只更新該層。
+// 分類 → 主動式 →「持股異動」分段（folder view 'flow'）是原生路徑，不經 openFlow，行為不變。
 // ⚠ 傳統 <script>，不要 type="module"。
 
 const Router = (function () {
@@ -57,6 +60,7 @@ const Router = (function () {
     if (a.t === 'folder') return a.key === b.key && a.view === b.view && ((a.ui && a.ui.code) || null) === ((b.ui && b.ui.code) || null);
     if (a.t === 'tool') return a.id === b.id;
     if (a.t === 'detail') return a.code === b.code;
+    if (a.t === 'flow') return true;          // 目前 ETF 在 ui，不是層身分（換 ETF 不影響 commonPrefix）
     return false;
   }
   function sameStack(a, b) { return a.length === b.length && a.every((l, i) => sameLayer(l, b[i])); }
@@ -92,6 +96,14 @@ const Router = (function () {
   function apply() {
     const st = confirmed;
     applyBasePage(st.base, st.stack);
+    // Flow 層先處理：顯示時 flow 內容節點移到 #flowLayer（分類原生 flow 這時不重繪）；
+    // 關閉時移回 #catFlowHost，接著 applyFolder 依 folder.ui.code 重繪原生 flow。
+    let fi = -1, di = -1;
+    if (!layersPending) st.stack.forEach((l, i) => { if (l.t === 'flow') fi = i; if (l.t === 'detail') di = i; });
+    if (typeof flowLayerShow === 'function') {
+      if (fi >= 0) flowLayerShow(st.stack[fi].ui || {}, fi > di);
+      else flowLayerHide();
+    }
     const folder = (!layersPending && st.base === 'cat') ? (st.stack.find(l => l.t === 'folder') || null) : null;
     if (typeof Category !== "undefined") Category.applyFolder(folder);
     const det = (!layersPending) ? (st.stack.filter(l => l.t === 'detail').pop() || null) : null;
@@ -138,17 +150,21 @@ const Router = (function () {
       return { base: c.base, stack: c.stack.slice(0, -1).concat([f]), replaceTop: f };
     };
   }
+  // Phase 5 G3：在目前 entry 上 push flow 層（同 base、k=0，不 traverse、不換 base）。
+  // 頂層已是 flow：同檔不動；換檔 replace 該層（新 id，避免 uiCache 以舊 code 覆蓋），不新增 history。
+  function intentFlow(code) {
+    return function (c) {
+      const top = c.stack[c.stack.length - 1];
+      if (top && top.t === 'flow') {
+        if (!code || ((top.ui && top.ui.code) || null) === code) return null;
+        const rep = clone(top); rep.ui = Object.assign({}, top.ui, { code: code }); rep.id = layerId();
+        return { base: c.base, stack: c.stack.slice(0, -1).concat([rep]), replaceTop: rep };
+      }
+      return { base: c.base, stack: c.stack.concat([withId({ t: 'flow', ui: { code: code || null } })]) };
+    };
+  }
   function intentBase(spec) {
     return function (c) {
-      if (spec.flow) {
-        const f = withId({ t: 'folder', key: 'active', view: 'flow', ui: { sort: 'code', shown: 10, scrollTop: 0, code: spec.code || null } });
-        const top = c.stack[c.stack.length - 1];
-        if (c.base === 'cat' && c.stack.length === 1 && top.t === 'folder' && top.key === 'active') {
-          if (sameLayer(top, f)) return null;
-          return { base: 'cat', stack: [f], replaceTop: f };
-        }
-        return { base: 'cat', stack: [f] };
-      }
       if (spec.tool) return { base: 'tools', stack: [withId({ t: 'tool', id: spec.tool, ui: {} })] };
       return { base: spec.base, stack: [] };
     };
@@ -331,7 +347,7 @@ const Router = (function () {
     openFolder: function (key) { navigate(intentFolder(key)); },
     setFolderView: function (view) { navigate(intentView(view)); },
     toBase: function (spec) { navigate(intentBase(spec)); },
-    openFlow: function (code) { navigate(intentBase({ flow: true, code: code })); },
+    openFlow: function (code) { navigate(intentFlow(code)); },
     updateUi: updateUi,
     setUi: setUi,
     onMarketUpdate: onMarketUpdate,

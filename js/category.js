@@ -209,6 +209,7 @@ const Category = (function () {
 
   function renderFlowFor() {
     if (!open || open.view !== 'flow' || typeof renderFlow !== 'function') return;
+    if (typeof flowLayerVisible === 'function' && flowLayerVisible()) return;   // Flow 層持有內容節點時不重繪（§3.4.2）
     renderFlow(open.ui.code || undefined);
   }
 

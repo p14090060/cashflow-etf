@@ -11,8 +11,8 @@
 <title>ETF 存股雷達 v2</title>
 <link rel="stylesheet" href="css/base.css?v=20261005x">
 <link rel="stylesheet" href="css/components.css?v=20261006b">
-<link rel="stylesheet" href="css/pages.css?v=20261005x">
-<link rel="stylesheet" href="css/category.css?v=20261006b">
+<link rel="stylesheet" href="css/pages.css?v=20261006c">
+<link rel="stylesheet" href="css/category.css?v=20261006c">
 <link rel="stylesheet" href="css/watch.css?v=20261005x">
 </head>
 <body>
@@ -47,6 +47,11 @@
     <button id="dtClose" onclick="closeDetail()">✕ 關閉</button>
   </div>
   <div class="gs-panel-body" id="gsPanelBody"></div>
+</div>
+<!-- Active Flow 覆蓋層（PHASE5_PLAN §3.4）：從 Tools／排行／Detail 進入時顯示，來源畫面在下面原封不動 -->
+<div class="flow-layer" id="flowLayer" hidden>
+  <div class="flow-layer-hd"><button type="button" id="flowLayerBack" onclick="history.back()">‹ 返回</button></div>
+  <div class="flow-layer-body" id="flowLayerBody"></div>
 </div>
 <div class="disclaimer">
   ⚠️ 投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書。
@@ -126,10 +131,14 @@
   
       <div class="flow-head">
         <div class="flow-title">主動式 ETF 持股異動</div>
+      </div>
+
+      <!-- F2：單列橫向 ETF 選擇器＋目前 ETF 完整名稱（PHASE5_PLAN §8.3） -->
+      <div class="flow-chips" id="flowChips" role="group" aria-label="選擇主動式 ETF"></div>
+      <div class="flow-sel">
+        <div class="flow-sel-name" id="flowSelName"></div>
         <div class="flow-meta" id="flowMeta">載入中…</div>
       </div>
-  
-      <div class="flow-chips" id="flowChips"></div>
   
       <div class="flow-totals">
         <div class="flow-tot"><span>加碼</span><b class="buy"  id="flowBuy">–</b></div>
@@ -250,10 +259,17 @@
   <!-- ══ PAGE 工具（Phase 3）：子頁為 配息／排行／頻道 ══ -->
   <div class="page" id="page-tools">
     <div class="tool-list">
-      <button class="tool-card" type="button" onclick="switchPage('div')"><b>配息工具</b><span>近期配息日曆</span></button>
-      <button class="tool-card" type="button" onclick="switchPage('rank')"><b>排行</b><span>依成交量排行</span></button>
+      <!-- PO Change #1：三張大型功能卡（PHASE5_PLAN §3）。整張卡是一個 button -->
+      <button class="tool-card" type="button" id="toolRank" onclick="switchPage('rank')">
+        <span class="tc-ic" aria-hidden="true">📊</span><span class="tc-text"><b>成交量排行</b><span>看今天哪些 ETF 成交最活躍</span></span><span class="tc-arrow" aria-hidden="true">›</span>
+      </button>
+      <button class="tool-card" type="button" id="toolDiv" onclick="switchPage('div')">
+        <span class="tc-ic" aria-hidden="true">📅</span><span class="tc-text"><b>配息日曆</b><span>查看近期 ETF 除息與配息日期</span></span><span class="tc-arrow" aria-hidden="true">›</span>
+      </button>
+      <button class="tool-card" type="button" id="toolFlow" onclick="switchPage('check')">
+        <span class="tc-ic" aria-hidden="true">🔄</span><span class="tc-text"><b>主動式 ETF 持股異動</b><span>看基金最近加碼、減碼哪些持股</span></span><span class="tc-arrow" aria-hidden="true">›</span>
+      </button>
     </div>
-    <button class="tool-link" type="button" onclick="switchPage('yt')">YouTube 頻道：金流黑盒子 ›</button>
   </div>
 
   <!-- ══ PAGE 2: 配息 ══ -->
@@ -364,8 +380,8 @@
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
-<script src="js/nav.js?v=20261005x"></script>
-<script src="js/flow.js?v=20261005x"></script>
+<script src="js/nav.js?v=20261006c"></script>
+<script src="js/flow.js?v=20261006c"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261005x"></script>
 <script src="js/render.js?v=20261006b"></script>
@@ -373,10 +389,10 @@
 <script src="js/search.js?v=20261006a"></script>
 <script src="js/watch-store.js?v=20261005x"></script>
 <script src="js/category-rules.js?v=20261005x"></script>
-<script src="js/category.js?v=20261005x"></script>
+<script src="js/category.js?v=20261006c"></script>
 <script src="js/detail.js?v=20261006a"></script>
 <script src="js/watch.js?v=20261005x"></script>
-<script src="js/router.js?v=20261005x"></script>
+<script src="js/router.js?v=20261006c"></script>
 <script src="js/boot.js?v=20261005x"></script>
 
 </body>

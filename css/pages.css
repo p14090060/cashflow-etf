@@ -153,14 +153,35 @@
   .flow-tot b    { font-size:20px; font-family:var(--mono); font-weight:700; }
   .flow-tot b.buy  { color:#ff3f5e; }   /* 加碼＝紅（台股慣例，同 --up） */
   .flow-tot b.sell { color:#00c87a; }   /* 減碼＝綠（同 --dn） */
-  /* 一行 4 顆、滿了自動換到下一行；不用橫向捲動，避免超出手機畫面 */
-  .flow-chips  { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;
-                 padding:0 14px 8px; }
-  .flow-chip   { background:var(--card); border:1px solid var(--border);
-                 border-radius:18px; padding:9px 3px; font-size:16px; color:var(--dim);
+  /* F2（PHASE5_PLAN §8.3）：單列橫向捲動選擇器，取代 4 欄多列換行，讓紅綠方塊早點進第一屏。
+     選取色刻意用中性藍：本頁紅＝加碼、綠＝減碼，選取狀態不能借用這兩色。 */
+  .flow-chips  { position:relative; display:flex; flex-wrap:nowrap; gap:8px; overflow-x:auto; overflow-y:hidden;
+                 padding:2px 14px 8px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch;
+                 scrollbar-width:none; overscroll-behavior-x:contain;
+                 -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+                         mask-image:linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%); }
+  .flow-chips::-webkit-scrollbar { display:none; }
+  .flow-chip   { flex:0 0 auto; min-height:44px; background:var(--card); border:1px solid var(--border);
+                 border-radius:22px; padding:0 16px; font:inherit; font-size:16px; color:var(--dim);
                  font-family:var(--mono); font-weight:700; cursor:pointer; white-space:nowrap;
-                 text-align:center; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.02em; }
-  .flow-chip.active { background:rgba(0,200,122,.14); border-color:#00c87a; color:#00c87a; }
+                 scroll-snap-align:center; }
+  .flow-chip.active { background:rgba(88,166,255,.18); border:2px solid #58a6ff; color:var(--bright); }
+  .flow-sel      { padding:0 14px 6px; }
+  .flow-sel-name { font-size:17px; font-weight:700; color:var(--bright); line-height:1.4; }
+  .flow-sel .flow-meta { margin-top:2px; }
+
+  /* Source-aware Flow 層（§3.4.2）：與 Detail 面板同位置的覆蓋層；疊放順序依 stack（.over-detail） */
+  .flow-layer { position:fixed; left:50%; transform:translateX(-50%);
+                top:var(--hdr-h, 104px); bottom:var(--nav-h); width:100%; max-width:430px;
+                z-index:39; background:var(--bg); overflow-y:auto; border-top:1px solid var(--border); }
+  .flow-layer.over-detail { z-index:41; }
+  .flow-layer[hidden] { display:none; }
+  body.dt-collapsed .flow-layer.over-detail { top:0; }
+  body.gs-ckm .flow-layer { display:none; }
+  .flow-layer-hd { position:sticky; top:0; z-index:2; background:var(--bg); padding:8px 10px;
+                   border-bottom:1px solid var(--border); }
+  .flow-layer-hd button { min-height:44px; padding:0 14px; background:none; color:var(--bright);
+                          border:1px solid var(--border); border-radius:10px; font:inherit; font-size:16px; cursor:pointer; }
 
   .treemap     { position:relative; width:100%; height:520px; margin:0 auto;
                  background:var(--card); border-top:1px solid var(--border);

@@ -21,7 +21,7 @@ function fetchFlow() {
   const ok = r => { if (!r.ok) throw 0; return r.json(); };
   return fetch('data/active_flow.json?t=' + Date.now()).then(ok)
     .catch(() => fetch('https://raw.githubusercontent.com/p14090060/cashflow-etf/main/data/active_flow.json?t=' + Date.now()).then(ok))
-    .then(d => { _flowData = d; _flowStatus = 'ok'; detailOnFlowUpdate(); if (typeof Category !== "undefined") Category.onFlowData(); return d; })
+    .then(d => { _flowData = d; _flowStatus = 'ok'; detailOnFlowUpdate(); if (_flowLayerOn) _flowLayerRender(); else if (typeof Category !== "undefined") Category.onFlowData(); return d; })
     .catch(() => { _flowStatus = 'failed'; detailOnFlowUpdate(); return null; });
 }
 
@@ -75,7 +75,61 @@ function _trim(list, keep) {
   return head;
 }
 
-function flowSelect(code) { _flowSel = code; if (typeof Category !== "undefined") Category.setFlowCode(code); renderFlow(); }
+// 目前 ETF 的寫入目標（PHASE5_PLAN §3.4.3）：Flow 層開著 → 該層 ui.code（replace，不新增 history、不碰 folder.ui）；
+// 分類原生 flow → 既有 folder.ui.code。
+function flowSelect(code) {
+  _flowSel = code;
+  if (_flowLayerOn) Router.updateUi({ code: code }, 'flow');
+  else if (typeof Category !== "undefined") Category.setFlowCode(code);
+  renderFlow();
+}
+
+// ── Source-aware Flow 層（PHASE5_PLAN §3.4.2）──
+// 持股異動內容節點（#page-check）只有一份：Flow 層顯示時移進 #flowLayer，關閉時移回 #catFlowHost。
+// 來源畫面（Tools／排行／Detail）不卸載、不重繪，只被覆蓋，所以分頁、捲動、輸入自然保留；這裡不碰 window 捲動。
+let _flowLayerOn = false;
+function flowLayerVisible() { return _flowLayerOn; }
+function _flowLayerRender() {
+  renderFlow(_flowSel || undefined);
+  // 從 Tools 卡進入且尚未選過時沿用 renderFlow 的預設選取，記到該層（setUi 只寫記憶體，不寫 history）
+  if (_flowData && _flowSel) Router.setUi({ code: _flowSel }, 'flow');
+}
+function flowLayerShow(ui, overDetail) {
+  const layer = document.getElementById('flowLayer');
+  const node = document.getElementById('page-check');
+  if (!layer || !node) return;
+  layer.classList.toggle('over-detail', !!overDetail);
+  const code = (ui && ui.code) || null;
+  const wasOn = _flowLayerOn;
+  if (!wasOn) {
+    document.getElementById('flowLayerBody').appendChild(node);
+    layer.hidden = false;
+    layer.scrollTop = 0;
+    _flowLayerOn = true;
+  }
+  if (!wasOn || (code && code !== _flowSel)) {
+    if (code) _flowSel = code;
+    _flowLayerRender();
+  }
+}
+function flowLayerHide() {
+  if (!_flowLayerOn) return;
+  _flowLayerOn = false;
+  const layer = document.getElementById('flowLayer');
+  const host = document.getElementById('catFlowHost');
+  const node = document.getElementById('page-check');
+  if (host && node) host.appendChild(node);
+  if (layer) { layer.hidden = true; layer.classList.remove('over-detail'); }
+}
+
+// 選取的代碼捲到選擇列中間附近：只調整 #flowChips 的 scrollLeft，不捲 window
+function _flowChipIntoView() {
+  const box = document.getElementById('flowChips');
+  const a = box && box.querySelector('.flow-chip.active');
+  if (!a || box.scrollWidth <= box.clientWidth) return;
+  const want = a.offsetLeft - (box.clientWidth - a.offsetWidth) / 2;
+  box.scrollLeft = Math.max(0, Math.min(box.scrollWidth - box.clientWidth, want));
+}
 
 // 海外持股（美股、日股…）查不到台股收盤價，算不出金額也畫不進 treemap。
 // 但 PCF 本來就寫了增減股數，條列出來至少看得到「買賣了什麼、幾股」。
@@ -152,13 +206,16 @@ function renderFlow(code) {
     }
     const e = all[_flowSel];
 
+    // F2：單列橫向選擇器（PHASE5_PLAN §8.3）。button 才能用鍵盤／讀屏操作；選取項標 aria-pressed
     document.getElementById('flowChips').innerHTML = codes.map(c =>
-      '<div class="flow-chip' + (c === _flowSel ? ' active' : '') + '" onclick="flowSelect(\'' + c + '\')">' +
-      c + '</div>').join('');
+      '<button type="button" class="flow-chip' + (c === _flowSel ? ' active' : '') + '" data-code="' + c + '"'
+      + ' aria-pressed="' + (c === _flowSel) + '" onclick="flowSelect(\'' + c + '\')">' + c + '</button>').join('');
+    _flowChipIntoView();
+    document.getElementById('flowSelName').textContent = e.name || _flowSel;
 
     const span = (e.flow_from && e.flow_to) ? e.flow_from + ' → ' + e.flow_to : '';
     document.getElementById('flowMeta').textContent =
-      e.name + '　持股 ' + e.holdings + ' 檔' + (span ? '　' + span + ' 調整' : '');
+      '持股 ' + e.holdings + ' 檔' + (span ? '　' + span + ' 調整' : '');
     // 全海外持股的 ETF 換再多也算不出金額，顯示「+0.0億」會被讀成「沒動作」
     const hasAmt = !!(e.buy || e.sell);
     document.getElementById('flowBuy').textContent  = hasAmt ? '+' + _oku(e.buy || 0)  : '—';
@@ -287,7 +344,7 @@ function flowTap(idx) {
 // PHASE3_PLAN §9.2 F-d：視窗尺寸、方向、visualViewport（鍵盤開關、可視區平移）變動時，持股異動可見就重繪。
 // 低高度時 treemap 的高度也會跟著變，只聽 window.resize 不夠。
 function flowRedrawIfVisible() {
-  if (typeof Category !== "undefined" && Category.isFlowVisible()) renderFlow();
+  if (_flowLayerOn || (typeof Category !== "undefined" && Category.isFlowVisible())) renderFlow();
 }
 window.addEventListener('resize', flowRedrawIfVisible);
 window.addEventListener('orientationchange', flowRedrawIfVisible);
