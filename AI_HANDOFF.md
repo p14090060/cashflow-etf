@@ -436,7 +436,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 
 
 - **G3／PO Change #1：Codex Plan Delta Re-review PASS、G3 CLOSED、PO Change #1 正式核准**（Plan `e0f6aaaa`）。Codex 補充兩個測試前提，留到對應 checkpoint：RF-2 用真正有 Flow 資料且入口實際可見的 ETF／fixture；RF-8 Router 模擬用合法 ETF，且不得為測導航破壞紅綠方塊資訊顯示。
-- **CP2｜§6 舊功能退役與 dependency migration（§9 順序 2）— `2ee3f64f`，待 Codex CP2 Code Review。**
+- **CP2｜§6 舊功能退役與 dependency migration（§9 順序 2）— `2ee3f64f`：Codex Code Review PASS／CLOSED（DS-10 確認為既有測試前置條件）。**
   - `js/state.js`（新，最先載入）承接 `ETFS`／`CALENDAR`；`calc.js`、`lookup.js` 整檔刪除，`index.html` 移除兩支 script。
   - 首頁 A-4 單檔查詢（`#todayCode`／`lookupToday`／`renderSignalCard`）移除；配息頁 B-1 計算機（`#chips`／`#customCode`／`#sharesIn`／`#calcOut`、`selChip`／`lookupCustom`）移除，`page-div` 只剩 B-2 日曆（保留為配息日曆子頁，§6 表）；`render.js` 刪 `selETF`／`renderChips()`／`calcUpdate()` 初始化。工具卡說明「配息計算機、近期配息日曆」→「近期配息日曆」（只改文字以免寫著不存在的功能；三張卡改版仍在 CP4）。
   - Detail 配息分頁試算（`#dtSharesIn`／`#dtCalcOut`、`.calc-*`／`.input-*`／`.num-input` CSS）不動。CSS 只刪 `.etf-chip(s)`、`.custom-*`、`.big-num`。`.buy-card`／`.range-*`／`.div-pill` 仍被首頁 A-2（render.js）使用，留待首頁 checkpoint。
@@ -445,6 +445,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試遷移（§6.1，非刪除）：regression「R page-div chip calc uses 0056」→「配息頁只剩日曆」＋Detail 0056 配息分頁 1→7 張：單次可領＝amount×張×1000、N 張市值約＝price×張×1000、年化領回連動、配息資訊倒數（N 天後／今日）；detail_ui T7「selETF untouched」→「Router 狀態不變」（shares kept、7 張市值保留）；新增 MG-1（`ETFS`／`CALENDAR` 由 state.js 提供、無 calc／lookup script）、MG-3（7 個退役全域皆 undefined）、首頁 A-4 已移除。R switch page div／yt、rank find、T11、category TOOLS card、X2 期望不變。
   - 結果（headless 800×600，port 8766／9224）：router 64、search_compact 38、detail_ui 42、detail_history_fix 14、**regression 26**（原 14：-1 遷移、+13）、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。負向對照：試算改成不乘張數 → regression 2 FAIL。資料全擋（market／*.json blocked）＋切六頁＋`gs-ckm`：0 例外、`ETFS` 為空陣列。
   - 環境備註：detail_state DS-10 前置條件（績效分頁可捲動）在 390×844 視窗下因內容不夠高而 FAIL，改動前 baseline 亦同；以 800×600（過去跑法）全 PASS，非 regression。
+- **CP3｜§2 首頁入口大廳（§9 順序 3）— `7a58425d`，待 Codex CP3 Code Review。**
+  - 版面（390px 直向由上而下）：A-1 大盤（不改）→ 兩大入口（整塊 button，72px）→ 價格合理區 → 今日成交量 TOP 10。移除首頁 YouTube 入口卡、大型 buy-card／range／配息 pill、「為什麼今天沒有」說明；首頁無任何輸入框，查詢一律走 Header 全站搜尋（H2）。Header YouTube／主題鈕仍屬 CP5／CP7，未做。
+  - 兩大入口：`switchPage('cat')`／`switchPage('watch')`，與底部導覽同一路徑（replace E0，`history.length` 不變，不期望 Back 回首頁）。
+  - 價格合理區（render.js `_pzList`／`renderPriceZone()`／`homeTogglePz()`）：TOP100（`cur_vol`）中 cheap／fair 且 `div_frequency !== '不配息'`；cheap 先、同狀態 `cur_vol` 高到低；計數「目前共有 X 檔 ETF 符合價格條件」；>10 預設 10＋「查看全部 X 檔」／「收起」（`_pzExpanded` 只在記憶體，`renderAll` 輪詢重繪保留）；0 檔只顯示「目前沒有 ETF 符合價格條件」（無計數、無按鈕、無 fallback）；整列 button → `openDetail(code)`；標籤「便宜」`sig-cheap`／「合理」`sig-fair`。
+  - 今日成交量 TOP 10：`cur_vol` 前 10（不用 heat），列改 button → `openDetail`，狀態文字「合理」（無 ✓）。排行頁等其他頁的「合理✓」屬 V3（CP8），本 checkpoint 不動。
+  - `LAZY_WATCHLIST`：前端已無任何引用 → `js/config.js` 刪除、script 移除（§6）。Python 三份不動。
+  - CSS：新增 `.home-entries／.home-entry／.home-row／.home-more／.home-empty／.home-sub／.home-note`（字級 ≥ 14px，入口副標 15px、說明 14px；整列 ≥ 48px）；刪 `.buy-*`、`.div-pill／.div-num`、`.empty-why`、`.entry-card`。`.range-*`（Detail 用）、`.empty-state`（共用）保留。
+  - CLAUDE.md「頁面區塊代號」A-2／A-3／A-4／B-1 改為現況（全面文件更新仍在 CP8）。
+  - 測試：新增 `tests/browser/home_test.py` 37 項（HM-1～3、PZ-1～13、TV-1～3、MG-3 `LAZY_WATCHLIST` undefined、390×844 下可見文字 ≥14px／按鈕 ≥44px／入口 ≥64px／無水平捲動／兩大入口在第一屏）。fixture＝實際 ETFS 深拷貝改寫 signal／cur_vol／div_frequency 後呼叫 `renderAll`（停掉 `_pollTimer`）。負向對照：排序改成 fair 先＋說明字改 12px → 6 FAIL（PZ-5／7／8／11、可讀性）。
+  - 結果（800×600）：home 37、router 64、search_compact 38、detail_ui 42、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。390px 截圖目視：入口、列表、標籤無截斷或溢出。
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
