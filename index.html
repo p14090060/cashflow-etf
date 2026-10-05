@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
 <link rel="stylesheet" href="css/base.css?v=20261005x">
-<link rel="stylesheet" href="css/components.css?v=20261005x">
+<link rel="stylesheet" href="css/components.css?v=20261006a">
 <link rel="stylesheet" href="css/pages.css?v=20261005x">
 <link rel="stylesheet" href="css/category.css?v=20261005x">
 <link rel="stylesheet" href="css/watch.css?v=20261005x">
@@ -84,15 +84,6 @@
     </div>
     <div id="waitItems"></div>
 
-    <div class="section-hdr" style="margin-top:22px; color:#ff9500; border-color:rgba(255,149,0,.2)">
-      🔍 查詢其他 ETF
-    </div>
-    <div class="custom-row">
-      <input class="custom-input" id="todayCode" type="text" placeholder="輸入 ETF 代碼，如 00692" maxlength="7">
-      <button class="custom-btn" onclick="lookupToday()">查詢</button>
-    </div>
-    <div class="custom-msg" id="todayMsg" style="display:none"></div>
-    <div id="todayResult"></div>
     <button class="entry-card" type="button" onclick="switchPage('yt')">YouTube 頻道：金流黑盒子 ›</button>
 
   </div>
@@ -252,7 +243,7 @@
   <!-- ══ PAGE 工具（Phase 3）：子頁為 配息／排行／頻道 ══ -->
   <div class="page" id="page-tools">
     <div class="tool-list">
-      <button class="tool-card" type="button" onclick="switchPage('div')"><b>配息工具</b><span>配息計算機、近期配息日曆</span></button>
+      <button class="tool-card" type="button" onclick="switchPage('div')"><b>配息工具</b><span>近期配息日曆</span></button>
       <button class="tool-card" type="button" onclick="switchPage('rank')"><b>排行</b><span>依成交量排行</span></button>
     </div>
     <button class="tool-link" type="button" onclick="switchPage('yt')">YouTube 頻道：金流黑盒子 ›</button>
@@ -260,22 +251,6 @@
 
   <!-- ══ PAGE 2: 配息 ══ -->
   <div class="page" id="page-div">
-
-    <div class="panel">
-      <div class="panel-title">配息計算機</div>
-      <div class="etf-chips" id="chips"></div>
-      <div class="custom-row">
-        <input class="custom-input" id="customCode" type="text" placeholder="輸入其他 ETF 代碼，如 00692" maxlength="7">
-        <button class="custom-btn" onclick="lookupCustom()">查詢</button>
-      </div>
-      <div class="custom-msg" id="customMsg" style="display:none"></div>
-      <div class="input-row">
-        <span class="input-lbl">我有</span>
-        <input class="num-input" id="sharesIn" type="number" min="1" value="10">
-        <span class="input-lbl">張</span>
-      </div>
-      <div class="calc-out" id="calcOut"></div>
-    </div>
 
     <div class="panel">
       <div class="panel-title">近期配息日曆</div>
@@ -381,20 +356,19 @@
 
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
+<script src="js/state.js?v=20261006a"></script>
 <script src="js/config.js?v=20261005x"></script>
 <script src="js/nav.js?v=20261005x"></script>
 <script src="js/flow.js?v=20261005x"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261005x"></script>
-<script src="js/calc.js?v=20261005x"></script>
-<script src="js/lookup.js?v=20261005x"></script>
-<script src="js/render.js?v=20261005x"></script>
+<script src="js/render.js?v=20261006a"></script>
 <script src="js/rank.js?v=20261005x"></script>
-<script src="js/search.js?v=20261005x"></script>
+<script src="js/search.js?v=20261006a"></script>
 <script src="js/watch-store.js?v=20261005x"></script>
 <script src="js/category-rules.js?v=20261005x"></script>
 <script src="js/category.js?v=20261005x"></script>
-<script src="js/detail.js?v=20261005x"></script>
+<script src="js/detail.js?v=20261006a"></script>
 <script src="js/watch.js?v=20261005x"></script>
 <script src="js/router.js?v=20261005x"></script>
 <script src="js/boot.js?v=20261005x"></script>

@@ -3,10 +3,9 @@
 //   HTML 與動態產生的字串裡有行內 onclick 需要這些函式掛在 window 上。
 //
 // 設計重點：
-//   * 比對沿用 rank.js 的 _matchEtf()，卡片沿用 calc.js 的 renderSignalCard()，
-//     不另外寫一套，避免同一件事有兩種結果。
-//   * 只比對 ETFS 裡實際存在的檔。查無就說查無——不沿用 lookupToday() 那套
-//     「用代碼數字推算價格」的估算，那跟剛移除的寫死備援是同一類問題。
+//   * 比對沿用 rank.js 的 _matchEtf()，不另外寫一套，避免同一件事有兩種結果。
+//   * 只比對 ETFS 裡實際存在的檔。查無就說查無——不用「代碼數字推算價格」的估算
+//     （舊首頁 lookupToday() 那套，Phase 5 已隨 lookup.js 退役）。
 //   * 選取後交給 detail.js 的 openDetail()，詳細頁共用 #gsPanel 容器。
 
 let _gsSel = -1;      // 下拉選取中的列（鍵盤上下鍵用）

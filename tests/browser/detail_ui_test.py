@@ -94,10 +94,10 @@ wait_ms(150)
 hp = ev("document.querySelector('[data-pane=holdings]').innerText") or ''
 check('T6 holdings pane has summary', ('持股' in hp or '投信' in hp), hp[:80].replace('\n', ' | '))
 
-# ── T7 計算機股數保留 + 不污染 selETF
+# ── T7 計算機股數保留 + 不影響其他狀態（Phase 5：selETF 已隨 B-1 計算機退役，改驗 Router 狀態不變）
 ev("gsPick('0050'); detailTab('dividend'); true")
 wait_ms(200)
-sel_before = ev("selETF && selETF.code")
+router_before = ev("JSON.stringify(Router.state())")
 ev("const i=document.getElementById('dtSharesIn'); i.value='7'; i.dispatchEvent(new Event('input')); true")
 ev("detailOnMarketUpdate(); true")
 wait_ms(150)
@@ -105,7 +105,7 @@ val = ev("document.getElementById('dtSharesIn').value")
 out = ev("document.getElementById('dtCalcOut').innerText") or ''
 check('T7 shares kept after refresh', val == '7', val)
 check('T7 calc output updated to 7 張', '7 張市值' in out, out[:80].replace('\n', ' | '))
-check('T7 selETF untouched', ev("selETF && selETF.code") == sel_before, sel_before)
+check('T7 Router state untouched by calc/refresh', ev("JSON.stringify(Router.state())") == router_before, router_before)
 
 # ── T8 ✕ 只產生一次 back；popstate 不再 back
 ev("window.__pop=0; true")

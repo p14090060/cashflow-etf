@@ -1,4 +1,4 @@
-/* components.css — 卡片、市場情緒、便宜訊號、等待清單、配息頁、計算機、行事曆、頁尾
+/* components.css — 卡片、市場情緒、便宜訊號、等待清單、配息頁、張數試算、行事曆、頁尾
    從 index.html 行 102–317 原樣搬出（2026-10-03 拆檔，未改內容）*/
   /* ── Cards / layout helpers ── */
   .section-hdr {
@@ -117,18 +117,7 @@
   .panel-title { font-size:16px; font-weight:700; margin-bottom:12px; color:#ff9500; }
   .panel-title .ic { margin-right:6px; }
 
-  /* Calculator */
-  .etf-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-  .etf-chip  {
-    background:rgba(255,255,255,.05); border:1px solid var(--border);
-    border-radius:20px; padding:6px 13px;
-    font-family:var(--sans); font-size:16px; font-weight:700; color:#4a7099; cursor:pointer;
-    transition:all .15s;
-  }
-  .etf-chip:active, .etf-chip.on {
-    background:rgba(88,166,255,.15); border-color:#58a6ff; color:#a8ccff;
-    font-size:19px; padding:8px 16px;
-  }
+  /* 張數試算（Detail 配息分頁 #dtCalcOut 使用；舊配息頁 B-1 計算機已於 Phase 5 退役） */
   .input-row {
     display:flex; align-items:center; gap:10px; margin-bottom:12px;
   }
@@ -140,27 +129,6 @@
     transition:border-color .15s;
   }
   .num-input:focus { border-color:var(--cheap); }
-  .custom-row {
-    display:flex; gap:8px; margin-bottom:12px; align-items:center;
-  }
-  .custom-input {
-    background:var(--card2); border:1px solid var(--border); border-radius:8px;
-    padding:7px 12px; font-family:var(--sans); font-size:16px; font-weight:700;
-    color:var(--bright); flex:1; outline:none; transition:border-color .15s;
-    letter-spacing:.04em;
-  }
-  .custom-input::placeholder { color:var(--dim); font-weight:400; font-size:16px; }
-  .custom-input:focus { border-color:#ff9500; }
-  .custom-btn {
-    background:#ff9500; border:none; border-radius:8px;
-    padding:7px 16px; font-size:16px; font-weight:700; color:#000;
-    cursor:pointer; white-space:nowrap; transition:opacity .15s;
-  }
-  .custom-btn:active { opacity:.8; }
-  .custom-msg { font-size:14px; margin-bottom:10px; padding:6px 10px; border-radius:6px; }
-  .custom-msg.ok   { background:rgba(0,229,160,.08); color:var(--cheap); border:1px solid rgba(0,229,160,.2); }
-  .custom-msg.warn { background:rgba(240,184,64,.08); color:var(--fair);  border:1px solid rgba(240,184,64,.2); }
-  .custom-msg.err  { background:rgba(255,63,94,.08);  color:var(--dear);  border:1px solid rgba(255,63,94,.2); }
   .calc-out {
     background:rgba(0,229,160,.06); border:1px solid rgba(0,229,160,.18);
     border-radius:9px; padding:13px 14px;
@@ -168,7 +136,6 @@
   .calc-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
   .calc-row:last-child { margin:0; padding-top:9px; border-top:1px solid rgba(255,63,94,.15); }
   .calc-lbl  { font-size:16px; color:var(--bright); }
-  .calc-lbl .big-num { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); }
   .calc-val  { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--dear); }
   .calc-val.sm { font-size:16px; color:var(--dear); }
 

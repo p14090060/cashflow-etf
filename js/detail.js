@@ -2,7 +2,7 @@
 // ⚠ 傳統 <script>，不加 type="module"：行內 onclick 需要這些函式掛在 window 上。
 // 頂層名稱一律 _dt / dt 開頭，避免和其他傳統 script 的全域 let/const 撞名。
 
-let _curEtfCode = null;      // 目前 Detail 的代碼，獨立於 selETF
+let _curEtfCode = null;      // 目前 Detail 的代碼
 let _detailOpen = false;     // 等同 #gsPanel 可見
 let _detailTab = 'overview';
 let _dtSkeleton = false;     // 骨架只在一次開啟中建一次，股數輸入框因此保留

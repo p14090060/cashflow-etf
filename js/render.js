@@ -148,10 +148,6 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
       <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
     </div>`).join('');
 
-  selETF = ETFS.find(e => e.code==='0056') || ETFS[0];
-  renderChips();
-  calcUpdate();
-
   const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD（本地時間）
   const futureCal = cal.filter(c => !c.iso_date || c.iso_date >= todayStr);
   document.getElementById('calList').innerHTML = futureCal.map(c => {
