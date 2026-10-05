@@ -1,6 +1,6 @@
-# PHASE 5 PLAN — 首頁入口大廳、Tools 三張功能卡、特殊 ETF 排除修補、Dark／Light 與全站收尾（Rev.4 APPROVED＋PO Change #1，待 GPT Gate／Codex Plan delta review）
+# PHASE 5 PLAN — 首頁入口大廳、Tools 三張功能卡、特殊 ETF 排除修補、Dark／Light 與全站收尾（Rev.4 APPROVED＋PO Change #1＋G3 source-aware Flow，待 Codex Plan Delta Re-review）
 
-> 狀態：Rev.4 APPROVED（`d348cdf6`）；CP1（P1）PASS／CLOSED。**PO Change #1（Tools 三張功能卡＋Active Flow 橫向 ETF 選擇器）待 Plan delta review，CP2 尚未開始。**
+> 狀態：Rev.4 APPROVED（`d348cdf6`）；CP1（P1）PASS／CLOSED。**PO Change #1 UI 方向已通過；G3 依 Gate 決定改為 source-aware Flow layer（§3.4），待 Codex Plan Delta Re-review，CP2 尚未開始。**
 > 依據：`AI_HANDOFF.md`「Phase 5 — GPT Gate 決策」1～13、GPT Gate／PO 對 Rev.1 D1～D6 的決定、Codex Rev.1 Plan Review（NEED FIX）、`CLAUDE.md`「產品決策與原因（長期保存）」、`IA_PROPOSAL.md`／`IA_PHASE1B.md` 的入口大廳與 Header 構想。
 > 前置：Phase 2～4 VERIFIED / CLOSED（Phase 4 baseline `edb065d2`）。Phase 5 的回歸測試是**保護**，不重開舊 Phase。
 > 原則：靜態 PWA、傳統 `<script>`、無 build、無框架；不新增第三方套件、不新增資料來源；文件配合程式，**不改 `calc_signal` 公式**。
@@ -9,9 +9,10 @@
 
 - **Tools 改為三張大型功能卡**：成交量排行／配息日曆／主動式 ETF 持股異動（§3 全部改寫）。
 - **被 PO Change #1 取代（不再適用）**：Rev.4 的「成交量排行｜配息日曆」同頁分段切換、`page-rank` 當 Tools 外殼、`page-div` 退役、`js/tools.js` 模組變數 `tab`、`sessionStorage` `etfRadar.toolsTab`、`Tools.setTab`、`switchPage('div'/'rank')` 改寫、測試 TL-1～5、TL-7、RT-T1～T5（舊版）、G2。上述內容已從本文移除或改寫，不與新規格並存（下方 Rev.4 修訂摘要僅為歷史紀錄）。
-- **Router finding 不重開**：仍不新增任何 Router API、不把畫面內 UI 狀態寫進 stack。新規格改回**既有、已驗證**的 Router 行為：功能卡用既有 `tool` 層（RT-12、Phase 3 已上線），持股異動卡用既有 `openFlow`（RT-22）。Router 程式只改 `TOOL_PAGE` 刪 `yt`（G1，Rev.4 已有）。
+- **Router finding 不重開**：仍不新增任何公開 Router API、不把畫面內 UI 狀態（分頁、搜尋、捲動）寫成 stack 層。排行／配息日曆卡用既有 `tool` 層（RT-12、Phase 3 已上線）。
 - **Active Flow 橫向 ETF 選擇器**（新 F2，§8.3）：代碼列由多列換行改為單列橫向捲動、選取項高亮並捲入可見區、下一行顯示完整名稱；紅綠方塊／treemap／加碼減碼／海外清單與資料、計算邏輯全部不變。
-- 新增 G3（持股異動卡的 Back 去向，§3.4），請 GPT Gate 確認。
+- **G3（Gate 決定，否決方案 A）**：Active Flow「從哪裡進入，就回哪裡」。`Router.openFlow()` 改為在來源 entry 上 push 一個真正的 `flow` 層（不再退層、不再切到分類 base）；Flow 中換 ETF 只更新該層。**Router 需要修改**（`openFlow` intent、`sameLayer`、`apply()` 協調；§3.4），不新增公開 API。RT-22、FL-4 的期望因此改變（§10）。
+- 已清除的舊文字：「Tools Flow／排行 Flow／Detail Flow → Back 回分類總覽」、「Router 只改 `TOOL_PAGE`」、方案 A／B 比較。
 
 ## Rev.3 → Rev.4 修訂摘要（Codex Rev.3：只剩 Router finding）
 
@@ -169,31 +170,72 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 |---|---|---|---|
 | 成交量排行 | `switchPage('rank')`（既有） | `toBase({ base:'tools', tool:'rank' })`：push `tool rank` 層，stack `[tool rank]` | 既有 `page-rank` 全部內容（`rankFind` 找 ETF／排名定位、只定位不過濾、柱狀圖、特殊標籤、「持股異動 ›」） |
 | 配息日曆 | `switchPage('div')`（既有） | 同上，stack `[tool div]` | `page-div`：只留 B-2 近期配息日曆 `#calList`（B-1 計算機移除，§3.6）；頁標題改「配息日曆」 |
-| 主動式 ETF 持股異動 | `switchPage('check')`（既有，`Router.openFlow(_flowSel)`） | 既有 `intentBase(flow)`：stack `[]` 時 replace E0 為 `cat`，push `folder(active, flow)` | 既有 Active Flow 畫面（分類 → 主動式 → 持股異動分段，§8），**同一份 host／`renderFlow`**，不另建 |
+| 主動式 ETF 持股異動 | `switchPage('check')`（既有，`Router.openFlow(_flowSel)`） | **修改後的** `openFlow`：在 Tools entry 上 push `flow` 層，stack `[]` → `[flow]`（§3.4） | Active Flow 覆蓋面板（同一份 flow DOM／`renderFlow`，§3.4），Back 回三張卡 |
 
-- `BASE_PAGE.tools` 維持 `page-tools`（**撤回** Rev.4 的 `page-rank` 外殼映射）；`TOOL_PAGE` 維持 `div → page-div`、`rank → page-rank`，只刪 `yt`（G1）。
+- `BASE_PAGE.tools` 維持 `page-tools`（**撤回** Rev.4 的 `page-rank` 外殼映射）；`TOOL_PAGE` 維持 `div → page-div`、`rank → page-rank`，刪 `yt`（G1）。Router 其他修改只有 §3.4 的 Flow layer。
 - 底部導覽「工具」：既有 `toBase({ base:'tools' })` → replace E0、stack `[]`，**一律顯示三張卡**（不記憶上次進的功能，不需 `sessionStorage`）。
 - 子頁頂部保留既有返回方式（Back／既有返回鍵，等同 `history.back()`）。
 
 ### 3.3 為何不產生多餘 history layer、與 Router finding 的關係
 
-- Rev.3 的問題是「同一畫面內的分頁狀態被寫進 stack」→ 換分頁就多一層。PO Change #1 之後，卡片 → 子頁是**真的換頁**，Back 應回到卡片列表，所以由既有 `tool` 層承擔是正確語意；它是 Phase 3 以來上線、有 RT-12 與 category「TOOLS card opens 配息 subpage／back returns to tools list」保護的行為。
+- Rev.3 的問題是「同一畫面內的分頁狀態被寫進 stack」→ 換分頁就多一層。PO Change #1 之後，卡片 → 子頁（以及任何來源 → Flow）是**真的換頁**，Back 應回到卡片列表，所以由既有 `tool` 層承擔是正確語意；它是 Phase 3 以來上線、有 RT-12 與 category「TOOLS card opens 配息 subpage／back returns to tools list」保護的行為。
 - 每次點卡只會 push **一層**；子頁內沒有任何會寫 history 的 UI 狀態（`rankFind`、捲動都不進 Router）。
 - 底部導覽離開：在卡片列表（stack `[]`）時 `k = 0`，只 replace E0；在子頁（stack `[tool]`）時 `k = 1`，traverse 一次回 E0 再 replace——與 Phase 3／4 現行完全相同、與「開著 Detail 時按底部導覽」一致，不離站。
 - 重新整理：Router 依 `history.state` 還原 `tool` 層（既有）。
 
-### 3.4 持股異動卡的 Back 去向（G3，請 GPT Gate 確認）
+### 3.4 Active Flow：source-aware Flow layer（G3，Gate 決定）
 
-- **建議（方案 A，零 Router 改動）**：沿用 `openFlow`。Back 回**分類總覽**，底部導覽高亮「分類」——與 Rev.4 已確認的「排行『持股異動 ›』→ Back 回分類總覽（RT-22）」、「Detail →查看完整持股異動 → Back 回分類總覽（FL-4）」一致；Active Flow 只有一份畫面。
-- 方案 B（Back 回工具卡片）：Active Flow 目前是 `cat` base 的 `folder(active, flow)` 層，E0 必須是 `cat`。要讓 Back 回 Tools，就得讓 E0 保持 `tools` 卻顯示 `cat` 的 folder，或把 flow 搬成 `tool` 層並共用 host——都要改封版 Router 模型與 Category，超出「最小修改」。**不建議**。
-- 取捨：方案 A 下三張卡的 Back 去向不完全相同（前兩張回工具卡片、第三張回分類總覽）。理由是 Active Flow 本來就住在「分類 → 主動式」，且與既有兩個 Flow 入口一致。
+**產品行為：從哪裡進入，就回哪裡。**
+
+| 來源 | 進入前 stack | 進入後 | Back |
+|---|---|---|---|
+| Tools 三張卡 | `[]`（base `tools`） | `[flow]` | 三張卡 |
+| ETF Detail「查看完整持股異動」（任一 base） | `[…, detail]` | `[…, detail, flow]` | 原 ETF Detail（同檔、同分頁、同捲動、同輸入） |
+| 排行「持股異動 ›」 | `[tool rank]` | `[tool rank, flow]` | 原排行（搜尋、定位、捲動保留） |
+| 分類 → 主動式 → 「持股異動」分段（原生） | `[folder(active, list)]` | `[folder(active, flow)]`（既有 `setFolderView`，replace） | **不變**：維持既有分類返回流程 |
+
+`openFlow` 的呼叫端不變：Tools 卡（`switchPage('check')`）、`rank.js` 列、`detailGoFlow(code)` 都經 `boot.js` `openFlow(code)` → `Router.openFlow(code)`。分類原生分段不經 `openFlow`。
+
+#### 3.4.1 Router 最小修改（`js/router.js`，不新增公開 API）
+
+1. **新層型別** `{ t: 'flow', id, ui: { code } }`。目前 ETF 存在 Flow 層自己的 `ui.code`。
+2. **`openFlow` intent**（取代 `intentBase` 的 `spec.flow` 分支，`Router.openFlow` 改呼叫新 intent）：
+   - 頂層已是 `flow`：`code` 相同 → `null`（不動）；不同 → `replaceTop`（同一層換 `ui.code`，`writeCurrent`，**不 push**）。
+   - 其他情況：`{ base: c.base, stack: c.stack.concat([flowLayer]) }` → `execute` 中 `sameBase`、`k = 0` → 只 push 一層，**不 traverse、不換 base**。
+   - `_NAV_SPEC.check` 的 `base: 'cat'` 不再用來切 base（`switchPage('check')` 只呼叫 `Router.openFlow`，既有）。`toBase({ flow:true })` 分支一併移除（無其他呼叫端）。
+3. **`sameLayer`**：`flow` 與 `flow` 視為同一層（`a.t === b.t` 即可；ETF 是 `ui`，不是層身分）。因此 Flow 中換 ETF 不影響 `commonPrefix`／traversal 計算；不同 entry 的 ETF 由各 entry 的 `ui.code`＋既有 `uiCache`／`restoreUi` 還原。
+4. **`apply()` 協調**：取 `stack` 中最上面的 `flow` 層 `fl` 與最上面的 `detail` 層 `det`：
+   - `fl` 存在且 `!layersPending` → `flowLayerShow(fl.ui)`（`flow.js` 新的全域函式，同 `detailShow` 模式）；否則 `flowLayerHide()`。
+   - `det` 照舊 `detailShow(det.code, det.ui)`（`detailShow` 對「已開啟同一檔」本來就只 patch、不重設分頁與捲動，`detail.js:345`）。
+   - 疊放順序：`fl` 在 `det` 之上（index 較大）→ Flow 面板 z-index 高於 Detail 面板；反之 Detail 在上。以 `#flowLayer` 的 class（例如 `.over-detail`）切換，不改 Detail 自己的 CSS。
+   - 分類原生 flow（`folder.view === 'flow'`）照舊交給 `Category.applyFolder`。
+5. 不改：R1～R8、`execute`／`navigate`／popstate 流程、`intentDetail`、`intentClose`（Esc／✕ 關閉頂層 `flow` 即 `closeType('flow')` 的既有泛用行為）、`updateUi`／`setUi`（已支援 `type` 參數）、RT-12。
+
+#### 3.4.2 來源畫面暫藏與恢復
+
+- 新增覆蓋容器 `#flowLayer`（`index.html`，與 Detail 面板 `gsPanel` 同層級的 fixed 全螢幕面板、不透明底、自己的捲動容器、頂部「‹ 返回」＝`history.back()`）。
+- **來源畫面完全不卸載、不重繪**：底下的 page（Tools 卡片、`page-rank`、任一 base）與 Detail 面板 DOM 原封不動，只是被覆蓋。因此 window 捲動、`rankFind` 輸入與定位結果、Detail 的 ETF／分頁／面板 `scrollTop`／`#dtSharesIn` 輸入都保留。Flow 開關時**不得呼叫 `window.scrollTo`**（`applyBasePage` 只在 pageId 改變時捲頂，Flow 不改 pageId）。
+- 底部導覽高亮維持來源 base（Tools 進入時仍亮「工具」）。
+- **同一份 Active Flow DOM**：現在位於 `#catFlowHost` 內的 flow 內容節點（代碼列、名稱、加碼／減碼、treemap、海外清單、註記）只有一份。`flowLayerShow` 把該節點移入 `#flowLayer`；`flowLayerHide` 移回 `#catFlowHost`。兩處共用同一 `renderFlow`。若分類原生 flow 與 Flow 層同時存在（例如原生 flow → 方塊開 Detail → 查看完整持股異動），Flow 層優先持有節點，關閉後移回並以 `folder.ui.code` 重繪。
+- 返回：Back／✕／Esc → 既有 `intentClose`／popstate → `apply()` 中 `fl` 不存在 → `flowLayerHide()`，露出原封不動的來源畫面。
+
+#### 3.4.3 目前 ETF 的保存（不再污染 `folder.ui`）
+
+- `flowSelect(code)`（chip 點擊）：若 Flow 層開著 → `Router.updateUi({ code }, 'flow')`（replace 目前 entry，**不新增 history**）；只有分類原生 flow 才走既有 `Category.setFlowCode` → `updateUi(..., 'folder')`。Flow 層路徑**絕不寫 `folder.ui`**。
+- `flowLayerShow(ui)` 以 `ui.code` 呼叫 `renderFlow(code)`；`ui.code` 為 `null`（Tools 卡進入且尚未選過）時沿用 `renderFlow` 既有預設選取，並以 `setUi` 記下實際選取（不寫 history）。
+- Back／Forward：每個 entry 的 Flow 層帶自己的 `ui.code`，`restoreUi` 以層 id 快取覆蓋 → 回到 Flow entry 時顯示最後選取的 ETF。
+- Refresh：`init()` 依 `history.state` 還原 `[…, flow]`；`layersPending` 期間不顯示，資料到達後 `apply()` 顯示；flow 資料（`fetchFlow`）晚到時由既有 `onFlowData` 路徑擴充為「Flow 層可見時也重繪」。
+
+#### 3.4.4 底部導覽與 transient layer
+
+- 底部導覽是既有 `toBase`：以真正的 `stack.length` 計算 `k`（`[flow]` → 1、`[tool rank, flow]` → 2、`[detail, flow]` → 2），一次 traverse 回 E0 再 replace——與 Detail／tool 層同一套規則，**不產生虛擬返回層**、不離站。
 
 ### 3.5 從子頁開 ETF Detail 後返回
 
 - 排行列／日曆列 → `openDetail(code)`：既有 `intentDetail`，在目前 entry 上 push detail（stack `[tool rank, detail]`）。
 - ✕／Back／Esc → 關閉 Detail，回到原子頁；Detail 是覆蓋面板，window 捲動自然保留；`rankFind` 值與定位結果保留；30 秒輪詢的 `renderRank` 仍套用定位。Forward → 再開同一檔。
 - 子頁再 Back → 工具卡片列表（stack `[]`）。
-- 排行「持股異動 ›」→ Flow：封版語意不變（RT-22）。
+- 排行「持股異動 ›」→ Flow → Back：回原排行（§3.4）。
 
 ### 3.6 舊獨立配息計算機（T2）
 
@@ -208,9 +250,14 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | 工具卡片 → 成交量排行／配息日曆 | push 一層 | `[tool rank]`／`[tool div]` | 回工具卡片（stack `[]`） | 再進同一子頁 |
 | 子頁中底部導覽離開 | traverse 1 次回 E0 後 replace（既有） | `[]` | 離開到進站前的 entry | 不適用 |
 | 子頁 → Detail → 返回 | push detail；關閉時 back 一層 | `[tool x, detail]` → `[tool x]` | 關閉 Detail，回原子頁；捲動、`rankFind` 保留 | 再開同一檔 Detail |
-| 工具卡片 → 主動式 ETF 持股異動（G3 方案 A） | 既有 `intentBase(flow)`：replace E0 為 `cat` 再 push folder（traversal 0 次） | `[folder(active, flow)]` | 回分類總覽 | 依既有規則 |
-| 排行「持股異動 ›」→ Flow | 既有：traverse 1 次回 E0 → replace `cat` → push folder | `[folder(active, flow)]` | 回分類總覽（RT-22） | 依既有規則 |
-| Detail →「查看完整持股異動」→ Flow | 既有規則（FL-4） | `[folder(active, flow)]` | 回分類總覽（FL-4） | 依既有規則 |
+| 工具卡片 → 主動式 ETF 持股異動 | push `flow` 一層（traversal 0） | `[flow]` | 回工具卡片（stack `[]`） | 再開 Flow，ETF＝該 entry 最後選取 |
+| 排行「持股異動 ›」→ Flow | push `flow` 一層（traversal 0） | `[tool rank, flow]` | 回原排行；捲動、`rankFind` 保留 | 同上 |
+| Detail →「查看完整持股異動」→ Flow | push `flow` 一層（traversal 0） | `[…, detail, flow]` | 回原 Detail；ETF、分頁、捲動、輸入保留 | 同上 |
+| Flow 中切換 ETF | replace 目前 entry（`updateUi(…,'flow')`），`history.length` 不變 | 不變 | 與切換前相同的上一層 | 不適用 |
+| Flow 中底部導覽離開 | traverse `stack.length` 次回 E0 後 replace（既有） | `[]` | 離開到進站前的 entry | 不適用 |
+| 分類 → 主動式 → 持股異動分段（原生） | 既有 `setFolderView('flow')`（replace） | `[folder(active, flow)]` | 既有分類返回流程 | 既有 |
+
+---
 
 ## 4. Header YouTube 與舊入口移除（Y1）
 
@@ -334,7 +381,7 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 
 ### 8.1 保護範圍（不可弱化、刪除或替代）
 
-持股異動本身、紅＝加碼／綠＝減碼視覺、treemap、海外無報價增減股數清單、ETF 選擇（F2 只改排列與呈現，選擇行為不變）、`fetched=false`／無異動／未更新等狀態語意、Detail →「查看完整持股異動」→ Back 回分類總覽（RT-22）、FD-1～6 重繪、FL-1～7。**`flow.js` 不改資料與計算邏輯**（只做 §7.2 的色值 token 化，以及 F2 的代碼列 markup／捲入可見區，語意不變）。
+持股異動本身、紅＝加碼／綠＝減碼視覺、treemap、海外無報價增減股數清單、ETF 選擇（F2 只改排列與呈現，選擇行為不變）、`fetched=false`／無異動／未更新等狀態語意、FD-1～6 重繪、FL-1～7（FL-4 期望依 G3 更新：Back 回原 Detail）。**`flow.js` 不改資料與計算邏輯**（只做 §7.2 的色值 token 化、F2 的代碼列 markup／捲入可見區，以及 §3.4 的 `flowLayerShow／Hide`、`flowSelect` 寫入目標，語意不變）。
 
 ### 8.2 只改直向分類導航
 
@@ -363,8 +410,8 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 - 每次 `renderFlow` 後把選取項捲入可見區（只調整 `#flowChips` 的 `scrollLeft`，**不得捲動 window**）。
 - 代碼列下方新增一行完整名稱（`#flowSelName`），取自既有 flow 資料／`ETFS` 名稱；無名稱時顯示代碼。
 - 不做轉盤／3D 效果；左右邊緣可用淡出漸層提示可捲動（純 CSS）。
-- 不改：選取預設規則（`renderFlow` 既有排序）、`Category.setFlowCode`／Router `folder.ui.code` 寫入方式（既有，不新增 history）、treemap 演算法、資料。
-- 兩個入口（工具卡片 → 持股異動、Detail →「查看完整持股異動」帶入目前 ETF）都進同一畫面；Detail 入口沿用 `detailGoFlow(code)` → `openFlow(code)`，選取項為該 ETF 並捲入可見區。
+- 不改：選取預設規則（`renderFlow` 既有排序）、treemap 演算法、資料。目前 ETF 的寫入目標見 §3.4.3（Flow 層 → `flow.ui.code`；分類原生 → 既有 `folder.ui.code`），都不新增 history。
+- 兩個入口（工具卡片 → 持股異動、Detail →「查看完整持股異動」帶入目前 ETF）都進同一畫面；Detail 入口沿用 `detailGoFlow(code)` → `openFlow(code)`，選取項為該 ETF 並捲入可見區；Back 回原 Detail（§3.4）。
 - 直向手機第一屏：代碼列一列＋名稱一行取代原本多列 chips，紅綠方塊上移。橫向與鍵盤路徑同樣套用單列。
 
 ---
@@ -376,7 +423,7 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | 1 | P1 資料池排除與區段解析＋Python 測試 | `fetch_etf.py`、`tests/test_pool.py`（新） |
 | 2 | §6 dependency migration（`state.js`、退役 `calc.js`／`lookup.js`、測試遷移） | `index.html`、`js/state.js`（新）、`js/render.js`、tests |
 | 3 | H1～H6 首頁入口大廳、價格合理區、成交量 TOP 10 | `index.html`、`js/render.js`、`css/pages.css` |
-| 4 | T1 Tools 三張功能卡（沿用既有 `tool` 層與 `openFlow`，不新增 Router API） | `index.html`（`page-tools` 卡片、`page-div` 標題）、`css/pages.css`、`js/router.js`（僅 `TOOL_PAGE` 刪 `yt`，可與順序 5 合併） |
+| 4 | T1 Tools 三張功能卡＋G3 source-aware Flow layer | `index.html`（`page-tools` 卡片、`page-div` 標題、`#flowLayer`）、`css/pages.css`、`js/router.js`（`openFlow` intent、`sameLayer`、`apply()` 協調；`TOOL_PAGE` 刪 `yt` 可與順序 5 合併）、`js/flow.js`（`flowLayerShow／Hide`、`flowSelect` 寫入目標）、`js/category.js`（`onFlowData`／`isFlowVisible` 涵蓋 Flow 層）；`js/detail.js` 不改（`detailGoFlow` 本來就不關 Detail，只 `gsClear()` 後 `openFlow`） |
 | 5 | Y1 Header YouTube、舊入口與 `page-yt` 退役 | `index.html`、`css/base.css`、`js/router.js`（`TOOL_PAGE`） |
 | 6 | F1 持股異動直向切換分類＋F2 橫向 ETF 選擇器 | `js/category.js`、`css/category.css`、`js/flow.js`（僅代碼列 markup／捲入可見區）、`css/pages.css`、`index.html`（`#flowSelName`） |
 | 7 | V1～V2 主題切換與 token 化（含 Active Flow 色值） | `index.html`、`css/*.css`、`js/format.js`、`js/rank.js`、`js/flow.js`（僅色值） |
@@ -417,19 +464,28 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | TC-1 | 三張卡結構 | 底部導覽「工具」→ `page-tools` 恰好 3 張卡，依序「成交量排行／配息日曆／主動式 ETF 持股異動」，各含 icon、標題、PO 用途文案、`›`；整張卡為 button、高度 ≥ 72px；無 YouTube、無計算機、無「更多」；`history.length` 不變、stack `[]` |
 | TC-2 | 排行卡 | 點卡（含點卡片說明文字處）→ `page-rank`、stack `[tool rank]`、`history.length` +1；Back → `page-tools`、stack `[]`；Forward → 再進排行 |
 | TC-3 | 配息日曆卡 | 同 TC-2，`page-div`、`#calList` 有內容、無 B-1 元素 |
-| TC-4 | 持股異動卡 | 點卡 → 分類 base、`folder(active, flow)`、Active Flow 顯示（紅綠方塊／treemap 有內容）、traversal 0 次；Back → 分類總覽（G3 方案 A） |
+| TC-4 | 持股異動卡 | 點卡 → base 仍為 `tools`、stack `[flow]`、traversal 0、`history.length` +1、`#flowLayer` 可見且紅綠方塊／treemap 有內容、底部導覽亮「工具」；Back → 三張卡、stack `[]`、`#flowLayer` 隱藏 |
 | TC-5 | 底部導覽不累積 | 卡片列表與子頁各自用底部導覽離開：列表 traversal 0、子頁 traversal 1；兩者 `history.length` 不變、`location.href` 不變（未離站）；反覆「卡片 → 子頁 → Back」3 次後 Back 深度不增加（stack `[]`、再 Back 即離開到進站前 entry） |
 | TC-7 | 子頁 → Detail → 返回 | 排行定位 0050 並捲到中段 → 開 Detail（stack `[tool rank, detail]`）→ ✕／Back（stack `[tool rank]`）→ 仍在排行、捲動不變、`rankFind` 值與定位保留；再 Back → 卡片列表；配息日曆同樣測試 |
 | TC-6 | 排行定位功能 | `rankFind` 只定位不過濾（100 列都在）、訊息正確 |
 | TC-8 | 相容入口 | `switchPage('div')`／`('rank')`／`('check')` 與對應卡片行為相同；`switchPage('yt')` 開外部連結、不寫 history |
 | RT-T1 | Router 不新增 API／狀態 | `Object.keys(Router)` 與 Phase 4 相同；Tools 卡片頁為 `page-tools`；`switchPage('yt')` 不再 push tool 層 |
-| RT-T2 | Flow 路徑 traversal 不變 | (a) 卡片 → 持股異動：traversal 0；(b) 排行「持股異動 ›」（stack `[tool rank]`）：traversal 1；(c) 排行 → Detail →「查看完整持股異動」：與 FL-4 同規則；三者 Back 都回分類總覽、stack `[]` |
+| RT-T2 | Flow 入口一律 push 一層 | (a) Tools `[]`→`[flow]`；(b) 排行 `[tool rank]`→`[tool rank, flow]`；(c) Detail `[tool rank, detail]`→`[tool rank, detail, flow]`（另測 base `home`／`watch`／`cat` 的 Detail）；三者 traversal 0、base 不變；Back 各回來源 stack；頂層已是 flow 時 `openFlow(同檔)` 不動、`openFlow(他檔)` replace（`history.length` 不變） |
+| RF-1 | Tools 往返不累積 | Tools → Flow → Back 重複 3 次：每次 Back 後 stack `[]`、三張卡顯示；最後再 Back 即離開到進站前 entry（Back 深度未增加） |
+| RF-2 | Detail → Flow → Back 保留 | 開 0056 Detail，切「配息」分頁、面板捲到中段、`#dtSharesIn`＝7 → 查看完整持股異動 → Back：同檔 0056、分頁＝配息、`gsPanel.scrollTop` 不變、`#dtSharesIn`＝7、`#dtCalcOut` 對應 7 張 |
+| RF-3 | 排行 → Flow → Back 保留 | 排行 `rankFind` 定位 0050 並捲到中段 → 某列「持股異動 ›」→ Back：仍在 `page-rank`、`window.scrollY` 不變、`rankFind` 值與定位標示保留 |
+| RF-4 | 換 ETF 不寫 history、不污染 folder | Flow 層中點另一 chip：`history.length`、`stack.length` 不變，頂層 `flow.ui.code` 更新；stack 中若有 `folder` 層（分類 base 下的 Detail 來源），其 `ui` 完全不變 |
+| RF-5 | Back／Forward／refresh | Flow 換到 X → Back（回來源）→ Forward：Flow 顯示 X；在 Flow（X）重新整理：資料到達後 `#flowLayer` 可見、選取＝X、來源層（如 Detail）也還原 |
+| RF-6 | 底部導覽清理 Flow 層 | 分別從 `[flow]`、`[tool rank, flow]`、`[detail, flow]` 按底部導覽「首頁」：traversal 1 次（`history.go(-1／-2)`）、`history.length` 不變、`location.href` 不變、`#flowLayer` 隱藏、Detail 關閉、stack `[]` |
+| RF-7 | 分類原生 flow 不變 | 分類 → 主動式 → 持股異動分段：仍為 `[folder(active, flow)]`、在 `#catFlowHost` 顯示、換 ETF 寫 `folder.ui.code`、返回流程同 Phase 3／4；FD-1～6 PASS |
+| RF-8 | 疊放與 Esc | Flow 中點方塊開 Detail → Detail 在 Flow 之上；Esc 只關 Detail（回 Flow），再 Esc 關 Flow（回來源） |
+| RF-9 | 不捲動來源頁 | 任何 Flow 開／關／換 ETF，`window.scrollY` 不變（`window.scrollTo` spy 呼叫 0 次） |
 | RT-T3 | R1～R8 | 卡片點擊與子頁 Back 期間 popstate 不呼叫 back／go（R1）；inflight 中再點卡片依 R5／R8 處理；既有 router_test 64 項全數 PASS |
 | FS-1 | 單列橫向 | 直向 390×844：`#flowChips` 只有一列（所有 chip 的 `offsetTop` 相同）、`scrollWidth > clientWidth`、`overflow-x` 為 auto；全部主動式 ETF 都在 DOM（未刪減） |
 | FS-2 | 點選切換 | 點非選取 chip → 只有它有 `.active`、`#flowSelName` 為該 ETF 完整名稱、加碼／減碼與 treemap 重畫為該 ETF；`history.length` 不變 |
 | FS-3 | 捲入可見區 | `openFlow(清單最後一檔)`（Detail 入口）→ 選取 chip 完整落在 `#flowChips` 可見範圍；`window.scrollY` 未被改變 |
 | FS-4 | 第一屏 | 直向 390×844：treemap 容器頂端比改版前（同 fixture 量測基準）更高，且在第一屏內 |
-| FS-5 | 雙入口同一畫面 | 卡片入口與 Detail 入口顯示同一個 `#catFlowHost` 節點、同一 `renderFlow`；Detail 入口選取項＝該 ETF |
+| FS-5 | 同一份 Flow DOM | Tools 卡、排行、Detail 入口與分類原生分段顯示的是同一個 flow 內容節點（Flow 層時位於 `#flowLayer`，關閉後回到 `#catFlowHost`）、同一 `renderFlow`；Detail 入口選取項＝該 ETF |
 | FS-6 | 保護功能 | 紅＝加碼、綠＝減碼 computed color（Dark／Light）；有海外資料的 ETF 海外清單仍顯示；FD-1～6、FL-1～7 全 PASS |
 | TL-8 | 無 YouTube、無計算機 | 工具頁無 YouTube 連結、無 B-1 元素 |
 | YT-1 | Header YouTube | 圖示存在、≥ 44×44、`href`＝頻道、`target="_blank"`、`rel` 含 `noopener`；不改變 `#statusBadge`／↻ 行為 |
@@ -450,6 +506,10 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 
 - 全部回歸：router 64、search_compact 38、detail_ui 42、detail_history_fix 14、regression 14、detail_collapse 25、detail_state 42、category 250（＋1 DEFER）、watch 149（＋4 DEFER）。
 - **Active Flow 保護不可刪除／弱化**：category FD-1～6、watch FL-1～7（兩主題下的色值斷言改為「紅系／綠系」判斷，仍以 computed color 驗證）。
+- **因 G3 產品決策改變期望的既有測試**（行為改變，不是放寬）：
+  - `router_test.py` **RT-22**：排行 → `openFlow` → 原期望「base 變 `cat`、stack 只剩 `folder(flow)`、Back 回分類總覽」→ 改為「base 仍 `tools`、stack `[tool rank, flow]`、Flow 可見；Back → stack `[tool rank]`、`page-rank` 顯示」。
+  - `watch_test.py` **FL-4**（各 base）：Detail → 完整持股異動 → 原期望「只剩 folder(flow)、不留 Detail；Back 回分類總覽；Forward 同檔持股異動」→ 改為「stack `[…, detail, flow]`、Flow 選取＝同檔、Detail 仍開在下面；Back → 原 Detail（同檔、同分頁）；Forward → 同檔 Flow」。
+  - 其他以 `folder(active, flow)` 驗 `openFlow` 結果的斷言同步改為 `flow` 層；以 `setFolderView('flow')` 驗分類原生 flow 的斷言不變。
 - **RT-12**（`Router.toBase({ base: 'tools', tool: 'rank' })` push、Back 後 stack 長度 0、顯示 `page-tools`）：**完全不變**（PO Change #1 後 `page-tools` 為三張卡頁）。
 - **因規格變更而更新的斷言**（不放寬，各附理由）：§6.1 七項遷移；category「UI band counts」改比 live（§5.3）；category「flow 時次要標籤列顯示」改為直向收起／橫向顯示（§8.2）；價格狀態文字「合理✓」→「合理」的相關斷言；watch BR／CL 色值在 Light 下的期望值。
 - Phase 2～4 的行為只做回歸，不重新驗收。
@@ -465,8 +525,8 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | 分類 | 文件夾、inside／doorway、切換分類、♡、D4 查看更多 |
 | Detail | 開關、分頁、捲動、配息張數試算、♡ |
 | 我的 ETF | 收藏同步、卡片、漲紅跌綠、拖曳與移動選單、取消／復原 |
-| Tools | 三張卡外觀與點擊、各子頁 Back 回卡片、排行 → Detail → 返回位置、排名定位、持股異動卡 → Back |
-| Active Flow | 橫向滑動選 ETF、選取高亮與名稱、紅綠方塊與 treemap、從 Detail 帶入 ETF |
+| Tools | 三張卡外觀與點擊、各子頁 Back 回卡片、排行 → Detail → 返回位置、排名定位、持股異動卡 → Back 回三張卡 |
+| Active Flow | 橫向滑動選 ETF、選取高亮與名稱、紅綠方塊與 treemap；從 Tools／排行／Detail 進入後 Back 各回來源（Detail 分頁與輸入、排行位置保留）；分類原生分段照舊 |
 | Active Flow | 直向切換分類 ▼／▲、橫向直接標籤、treemap 紅加碼綠減碼、海外清單、Detail → 完整持股異動 → Back |
 | Dark／Light | 切換、重新整理保留、跟隨系統、兩主題可讀性與漲紅跌綠、Active Flow 顏色 |
 | history | 各頁 Back／Forward、重新整理還原 |
@@ -481,4 +541,4 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 |---|---|---|
 | G1 | `page-yt` 頻道介紹頁在首頁與 Tools 入口移除後已無入口：退役，Header 圖示直接開外部頻道 | 退役；`switchPage('yt')` 相容入口改開外部連結 |
 | G2 | ~~Tools 分頁狀態放在 Tools 模組~~ **被 PO Change #1 取代**：Tools 無同頁分頁狀態；功能卡用既有 `tool` 層 | 取代 |
-| G3 | 工具卡片「主動式 ETF 持股異動」Back 去向（§3.4） | 建議方案 A：沿用 `openFlow`，Back 回分類總覽（零 Router 改動） |
+| G3 | Active Flow 返回去向 | **Gate 決定**：source-aware Flow layer（§3.4）——Tools → 三張卡、Detail → 原 Detail、排行 → 原排行、分類原生不變；否決方案 A |

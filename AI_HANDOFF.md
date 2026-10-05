@@ -276,7 +276,11 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 - **Router 最小修改＝零新 API**：排行／配息日曆卡用既有 `tool` 層（push 一層，Back 回卡片；RT-12 與 Phase 3 已上線行為），持股異動卡用既有 `openFlow`（`switchPage('check')`）。`BASE_PAGE.tools` 維持 `page-tools`、`page-div` 保留為配息日曆子頁（只移除 B-1）。Router 程式仍只刪 `TOOL_PAGE.yt`（G1）。
 - **被 PO Change #1 取代**：Rev.4 的同頁分段切換、`page-rank` 外殼、`page-div` 退役、`js/tools.js`／`sessionStorage etfRadar.toolsTab`／`Tools.setTab`、TL-1～5、TL-7、舊 RT-T1～T5、G2（已在 Plan 標記並移除，不並存）。
 - 測試異動：新增 TC-1～8（TL-6 改名 TC-6）、RT-T1～T3（新內容）、FS-1～6（橫向選擇器）；§6.1 的 R switch page div、R rank find、T11、category TOOLS card、X2 改回「行為不變」（只改選擇器）；RT-12 完全不變。
-- **待 Gate：G3** 持股異動卡 Back 去向。建議方案 A（沿用 `openFlow`，Back 回分類總覽，與 RT-22／FL-4 一致、零 Router 改動）；方案 B（Back 回工具卡片）需改封版 Router 模型，不建議。
+- **G3 Codex Plan Delta Review NEED FIX → Gate 否決方案 A，改 source-aware Flow layer（Plan §3.4 已改寫，待 Codex Plan Delta Re-review）**：從哪裡進入就回哪裡——Tools `[]`→`[flow]` Back 回三張卡；Detail `[…,detail]`→`[…,detail,flow]` Back 回原 Detail（ETF／分頁／捲動／輸入）；排行 `[tool rank]`→`[tool rank,flow]` Back 回原排行（搜尋／定位／捲動）；分類原生分段（`setFolderView('flow')`）不變。
+  - Router 最小修改（不新增公開 API）：新層 `{t:'flow', ui:{code}}`；`openFlow` intent 改為同 base push 一層（頂層已是 flow：同檔 null、他檔 replace），移除 `intentBase` 的 flow 分支；`sameLayer` 把 flow 視為同層（ETF 在 ui）；`apply()` 依最上層 flow／detail 的順序呼叫 `flowLayerShow／Hide` 並決定疊放。R1～R8、execute／popstate、RT-12 不動。
+  - 畫面：新 `#flowLayer` 覆蓋面板，來源 page 與 Detail 不卸載只被覆蓋（狀態自然保留、不 `scrollTo`）；flow 內容節點只有一份，在 `#flowLayer` 與 `#catFlowHost` 間移動，共用 `renderFlow`。
+  - 目前 ETF：Flow 層寫 `updateUi({code},'flow')`（replace，不新增 history、不碰 folder.ui）；分類原生仍寫 folder.ui.code。Back／Forward 靠 entry 的 ui＋uiCache，refresh 靠 init 還原＋資料到達後 apply。底部導覽用真正 stack 深度 traverse，無虛擬層。
+  - 測試：改寫 TC-4、RT-T2、FS-5；RT-22、FL-4 期望改為回來源（行為改變，非放寬）；新增 RF-1～9（Tools 往返不累積、Detail 保留、排行保留、換 ETF 不寫 history／不污染 folder、Back／Forward／refresh、底部導覽清理、分類原生不變、疊放與 Esc、不捲來源頁）；FS-1～4、6 保留。
 
 **Phase 5 implementation 進度（每個 checkpoint：Claude 實作＋測試 → commit → handoff → Codex Review，PASS 才進下一個）**
 
