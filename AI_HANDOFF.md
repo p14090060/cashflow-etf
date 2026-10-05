@@ -24,7 +24,9 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - **Push 狀態（2026-10-05 確認）**：`395c774e`（程式）與 `ca262607`（handoff）已在 `origin/main`。研判是後續本機自動行情排程推送 main 時一併帶上去。**PO 已接受，不需 rollback**；GitHub Pages 已是 Phase 3 版本。
 - **Phase 3：尚未 Verified。** 等待 iPhone + Chrome 最終真機驗收（§0.5 清單）。
 - **Phase 3 B6 警示條輕量化 commit：`ec2eec09`**。**Codex 複審 `395c774e..ec2eec09`：PASS，checkpoint 關閉，不再修改或重審。**
-- **Phase 3 文件夾說明／藏字 commit：`3bde9239`**（本機，未手動 push）。PO 真機後的 refinement，PO／GPT Gate 核准。**等待 Codex 唯讀複審（範圍 `ec2eec09..3bde9239`，不含資料 commit）。**
+- **Phase 3 文件夾說明／藏字 commit：`3bde9239`**。**Codex 唯讀複審：PASS，checkpoint 關閉。**
+- **⚠ SHA 被自動排程改寫**：本機行情排程會先 `pull --rebase` 再推，所以尚未推上去的本機 commit 會換成新的 SHA（程式內容不變，只有 `data/` 不同）。已發生：`ec2eec09` → **`a9f99081`**（B6）、`3bde9239` → **`51677d06`**（文件夾）。之後請以 commit 訊息和 `git log` 為準，舊 SHA 雖然還查得到，但已不在 main 上。
+- **Phase 3 ESG 分類＋inside 標題列 commit：`88ad38cb`**（本機，未手動 push；推送後 SHA 可能被改寫，commit 訊息開頭為「feat(phase3): ESG／公司治理歸主題型；inside 標題列精簡」）。PO 真機步驟 1～7 PASS 後提出，PO／GPT Gate 核准。**等待 Codex 唯讀複審（範圍：文件夾 commit `51677d06` 之後到此 commit，不含資料 commit）。**
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -104,10 +106,24 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
   - 實測（headless）：320px 文件夾 102px（主題型、其他為 3 行，統一高度）；360／375／390／414／430px 文件夾 83px、步距約 77px、重疊 6px。390px 總覽 stage 220 → 371px（含提醒文字，現在可見）。各寬度無 overflow、無截斷、無遮蓋。
   - 測試（`3bde9239`）：category 212 PASS、0 FAIL、1 DEFER（LR-8；新增 FO 區塊 26 項：6 種寬度 × 同高、重疊僅底部留白、名稱與說明完整未被遮、提醒在整疊下方且無水平溢出；inside 不重複說明且按鈕位置不變；橫向空說明列零高度）。負向對照：舊程式下 FO 20 FAIL。router 64/64、search_compact 38/38、detail_ui 42/42、detail_history_fix 14/14、regression 14/14、detail_collapse 25/25、detail_state 42/42。UX-1（15px）、UX-2、LR-4、844×390、橫向、D4／renderList 皆 PASS。
 
+- **ESG 分類＋inside 標題列（`88ad38cb`）**：
+  - **A｜ESG → 主題型（做法乙）**：`js/category-rules.js` 第 9 順位策略型（ESG、公司治理）由 `'other'` 改為 `'theme'`。其他順位與關鍵字不變，因此較明確的定位仍然優先（00878、00930、00932、00936、00961 這類 ESG／永續＋高息仍歸高股息）。實際移動 00850、00888、00928、00692（含公司治理，PO 核准）。分布 16／22／32／20／78／**25**／6／**4**。0057 富邦摩台不處理，維持 Observation。
+  - 文案：主題型「聚焦 ESG、金融、數位支付等特定主題的 ETF」（原有「工業」，為了 360px 維持 2 行而省略；另一候選「聚焦 ESG、金融、工業等特定主題的 ETF」也是 2 行）；其他「期貨型或未歸入前述分類的 ETF」。兩段在 320px 為 3 行，其餘寬度 ≤ 2 行，文件夾仍同高（FO 測試）。
+  - `tests/fixtures/etf_203.json`：只人工改 4 筆期望值、分布與 `_note`（fixture 原本由 repo 外的 Python 參照實作產生，這次沒有重跑，而是依 PO 決策逐筆更新）。
+  - `PHASE3_PLAN.md`：新增 §3.0「現行正式決策」，並同步 §2.2、§2.3、§3.1 順序表（程式實際是主題型第 7、市值型第 8，舊表寫反）、§3.3、§3.4 標題、§4.1 文案、FX-4／FX-6、D-ESG-1、關鍵字表、附錄 D。
+  - **B｜inside 標題列（方案 1）**：`index.html` 標題列為 `[catClose ←] [名稱] [catSortBtn 代碼 ⇅] [catExpand 切換分類 ▼]`，`catExpand` 從說明列移入標題列；`#catCount` 移除。`catClose` 的 aria-label 改為「返回分類」，用 CSS `order: -1` 排在最左；點擊仍呼叫 `Router.closeFolder()`（Router 未動）。排序按鈕文字改為「代碼 ⇅／名稱 ⇅」，aria-label 為「排序：代碼，點擊改為依名稱排序」等完整語意。
+  - `css/category.css`（只作用於 `cat-ctl`，也就是直向、列表、非鍵盤）：標題列 `flex-wrap: wrap`、`column-gap` 與 `row-gap` 6px；標題 `flex: 1 0 auto`（不縮、不截斷）；← 為 44×44；切換分類 `margin-left: auto`（換行時靠右）；頁面頂端 padding 8 → 4px，讓 UX-1 間距維持 15px。全域只改了 `.cat-back { order: -1 }`：橫向和 tight3 的返回鍵同樣在左側，文字由 ✕ 改為 ←，尺寸仍沿用 `.cat-btn`／tight3 的既有規則。說明列為空時零高度。
+  - 實測（headless）：360／375／390／414／430px 標題列單列 44px；320px 為兩列（第二列是切換分類，靠右）。「科技／半導體」各寬度都不截斷，UX-1 間距各寬度都是 15px。390px 清單頂端 260 → **220px**（−40px）。360px 單列只剩約 5px 餘裕；iPhone 蘋方字寬如果稍寬，會自動變成兩列（不會截斷）。
+  - 測試：category **250 PASS、0 FAIL、1 DEFER（LR-8）**。新增 HD 區塊：6 種寬度 × 返回鍵、名稱、排序、切換分類與單列／兩列，加上排序切換、doorway、← 回到總覽；另新增 FX ESG 抽樣（ESG＋高息 4 檔仍歸高股息、00763U 仍歸其他）。UX-1／UX-2 與 FO 的期望值改成新結構（按鈕在標題列）。router 64/64、search_compact 38/38、detail_ui 42/42、detail_history_fix 14/14、regression 14/14、detail_collapse 25/25、detail_state 42/42。負向對照：舊程式下 36 FAIL。
+  - **AB／RL 視窗 809／765 → 769／725**：標題列少一列後，清單多出約 40px，在 809 又碰到 §0.7 的 Known Observation（清單剛好全部放得下）。改用 769／725 後，清單幾何與原本 844／800 完全相同（h 479、max 7），沒有放寬任何檢查。
+
 ### 0.6 下一步
 
-- **Codex：唯讀複審 `ec2eec09..3bde9239`**。重點：grid／`display: contents` 的堆疊與 z-index、`-6px` 疊層不遮文字、8 份同高、`#catNote` 位置、opening 動畫（`.is-pulled`）、`catSub` 留空對 inside／tight3／橫向的影響、FO 測試是否確實驗證。B6 與更早的範圍不重審。
-- **Claude**：Codex PASS 後，提供 PO 真機步驟：§0.5 六項，加上 B6（390 直向警示 2 行），以及文件夾（說明完整、無藏字、堆疊感、inside 不重複說明）。
+- **Codex：唯讀複審 `88ad38cb`**（文件夾 commit `51677d06` 之後的程式／文件 commit）。重點：
+  - A：第 9 順位改動是否只影響「無更明確定位」的 ESG／公司治理；fixture 只改 4 筆；PLAN 是否和程式一致。
+  - B：`cat-ctl` 標題列的 wrap 與單列條件；`order: -1` 對橫向和 tight3 的影響；`catCount` 移除後沒有殘留引用；aria-label；UX-1 15px；AB／RL 視窗調整是否維持原本前提。
+  - B6、文件夾、更早的範圍不重審。
+- **Claude**：Codex PASS 後，提供 PO 真機步驟。**從第 6 步重新驗收**（第 1～5 步已 PASS，不重做）。第 6～12 步的文字要改成新的標題列：沒有檔數、← 返回分類、代碼 ⇅、切換分類在標題列，另外加上「主題型 25 檔／其他 4 檔、ESG 4 檔在主題型」的檢查。之後接第 13～19 步（D4、LR-8）。
 - **PO**：執行真機驗收；全數 PASS 後由 PO／Gate 宣告 Phase 3 Verified。若有 FAIL，Claude 依回饋修正並交 Codex。
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
@@ -122,6 +138,7 @@ Compact 後請先讀本檔與 `PHASE3_PLAN.md`，然後從「0.5 Phase 3 Coding 
 - Plan §11.4 偏差：次要標籤保留一列 40px，未收合為「其他分類 ▾」（見變更紀錄）。
 - 低高度下的「持股異動」檢視：`cat-tight3` 只作用於清單檢視，treemap 在 844×390 仍落在導覽列下方，需要頁面捲動。**標記為觀察項（PO 2026-10-05）**：現在不改程式，真機驗收後由 PO 決定是否處理。
 - LR-8：需真機（見 0.5）。
+- **Observation：0057 富邦摩台**追蹤 MSCI 台灣指數，性質接近市值型，但名稱「摩台」沒有命中任何關鍵字，所以歸其他。PO／Gate 2026-10-05：本輪不處理，不擴大分類規則。
 - **Known Observation（PO／Gate 2026-10-05，B6 期間發現）**：當清單原本剛好完整放得下，而 viewport 隨後略微縮短時，查看更多可能被底部裁切約 16px；目前可透過輕微捲動看到。此為既存邊界行為，B6 只是讓原測試尺寸碰到此條件。本輪不修改 Category。
   - 佐證：B6 前在 390×879 → 835 同樣重現（max 0 → 16、scrollTop 0、查看更多不完整可見）；B6 後 390×844 → 800 結果相同。
   - 處置：Phase 3 最終 iPhone 真機驗收時再觀察；只有真機實際造成明顯 UX 問題才另開修正。
