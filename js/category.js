@@ -53,11 +53,13 @@ const Category = (function () {
     });
   }
 
+  // 列＝容器＋兩個並列按鈕（主區開 Detail、♡ 切換自選）；<button> 不能內嵌 <button>（PHASE4_PLAN §3.1）
   function rowHtml(e) {
-    return '<button class="cat-row" type="button" data-code="' + _dtEsc(e.code) + '">' +
-           '<span class="cr-code">' + _dtEsc(e.code) + '</span>' +
-           '<span class="cr-name">' + _dtEsc(e.name || '') + '</span>' +
-           '<span class="cr-yld">' + fmtYld(e) + '</span></button>';
+    const code = _dtEsc(e.code), name = _dtEsc(e.name || '');
+    return '<div class="cat-row" data-code="' + code + '">' +
+           '<button class="cr-main" type="button"><span class="cr-code">' + code + '</span>' +
+           '<span class="cr-name">' + name + '</span></button>' +
+           favBtnHtml(e.code, e.name) + '</div>';
   }
 
   function renderList() {
@@ -316,8 +318,10 @@ const Category = (function () {
       Router.openFolder(b.dataset.k);
     }
     $('catMain').addEventListener('click', function (ev) {
-      const row = ev.target.closest('.cat-row');
-      if (row) { openDetail(row.dataset.code); return; }
+      const fav = ev.target.closest('.cat-row .fav-btn');
+      if (fav) { watchToggle(fav.closest('.cat-row').dataset.code); return; }
+      const main = ev.target.closest('.cat-row .cr-main');
+      if (main) { openDetail(main.closest('.cat-row').dataset.code); return; }
       if (ev.target.closest('#catExpand, .cat-title')) { toggleStrip(); return; }
       const st = ev.target.closest('#catStrip button');
       if (st) { Router.openFolder(st.dataset.k); return; }
@@ -360,9 +364,18 @@ const Category = (function () {
     }
   }
 
+  // 自選狀態改變：只更新 ♡ 節點，不重建清單（捲動與已展開數不受影響）
+  function syncFavs(ev) {
+    document.querySelectorAll('#catList .cat-row').forEach(row => {
+      if (ev && ev.code && row.dataset.code !== ev.code) return;
+      favBtnSync(row.querySelector('.fav-btn'), row.dataset.code);
+    });
+  }
+
   build();
   bind();
   updateCounts();
+  WatchStore.subscribe(syncFavs);
   // 鍵盤開合（gs-ckm 切換）時重算，不依賴 visualViewport 事件的先後順序
   if (typeof MutationObserver !== 'undefined') {
     new MutationObserver(fit).observe(document.body, { attributes: true, attributeFilter: ['class'] });

@@ -19,8 +19,8 @@ function getEtfTag(code, name) {
 function renderRank() {
   const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
   const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c', bond:'var(--bond)' };
-  const fmtRet = v => (v == null) ? '--' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-  const retClr = v => (v == null) ? 'var(--dim)' : v >= 0 ? '#ff6b6b' : '#00e5a0';
+  const fmtRet = v => (v == null) ? '--' : (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+  const retClr = v => (v == null || v === 0) ? 'var(--dim)' : v > 0 ? '#ff6b6b' : '#00e5a0';   // 台股：漲紅跌綠、0 中性（D1）
 
   // 開盤初期多數 ETF 當日成交量還是 0，只靠 cur_vol 過濾會只剩 20 幾支。
   // 有量的不足 100 支時放寬條件補滿，並以 avg_vol 當次要排序（未成交者依平時量排）。

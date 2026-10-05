@@ -9,10 +9,11 @@
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261005r">
-<link rel="stylesheet" href="css/components.css?v=20261005r">
-<link rel="stylesheet" href="css/pages.css?v=20261005r">
-<link rel="stylesheet" href="css/category.css?v=20261005r">
+<link rel="stylesheet" href="css/base.css?v=20261005s">
+<link rel="stylesheet" href="css/components.css?v=20261005s">
+<link rel="stylesheet" href="css/pages.css?v=20261005s">
+<link rel="stylesheet" href="css/category.css?v=20261005s">
+<link rel="stylesheet" href="css/watch.css?v=20261005s">
 </head>
 <body>
 
@@ -42,7 +43,8 @@
 <div class="gs-panel" id="gsPanel" hidden>
   <div class="gs-panel-hd">
     <div class="t" id="gsPanelTitle"></div>
-    <button onclick="closeDetail()">✕ 關閉</button>
+    <button class="fav-btn" id="dtFav" type="button" aria-pressed="false" aria-label="加入自選">♡</button>
+    <button id="dtClose" onclick="closeDetail()">✕ 關閉</button>
   </div>
   <div class="gs-panel-body" id="gsPanelBody"></div>
 </div>
@@ -233,12 +235,18 @@
     </section>
   </div>
 
-  <!-- ══ PAGE 自選（Phase 3 空狀態；功能於 Phase 4） ══ -->
+  <!-- ══ PAGE 我的 ETF（Phase 4 自選）：內容由 js/watch.js 產生，收藏狀態只來自 WatchStore ══ -->
   <div class="page" id="page-watch">
-    <div class="empty-state">
-      <div class="es-title">我的自選</div>
-      <div class="es-sub">自選 ETF 功能即將開放</div>
+    <h2 class="wt-title">我的 ETF</h2>
+    <p class="wt-hint" id="watchHint" hidden>按住 ⠿ 可拖曳調整順序，點一下 ⠿ 可選擇移動位置</p>
+    <div class="wt-list" id="watchList"></div>
+    <div class="wt-empty" id="watchEmpty" hidden>
+      <div class="es-title">還沒有收藏 ETF</div>
+      <div class="es-sub">到「分類」逛逛，看到有興趣的 ETF，按下 ♡ 就能加入這裡。</div>
+      <button class="wt-go" id="watchGoCat" type="button">前往分類</button>
     </div>
+    <p class="wt-note" id="watchNote">自選 ETF 僅儲存在此裝置與瀏覽器中。</p>
+    <div class="sr-only" id="watchLive" aria-live="polite"></div>
   </div>
 
   <!-- ══ PAGE 工具（Phase 3）：子頁為 配息／排行／頻道 ══ -->
@@ -336,6 +344,12 @@
 
 </div><!-- /pages -->
 
+<!-- 自選移除提示（全站共用；js/watch.js）：只對「移除」顯示，約 5 秒，可復原最近一次 -->
+<div class="wt-toast" id="watchToast" role="status" aria-live="polite" hidden>
+  <span id="watchToastMsg">已從自選移除</span>
+  <button type="button" id="watchUndo">復原</button>
+</div>
+
 <!-- Bottom nav（Phase 3：首頁／分類／自選／工具） -->
 <nav class="bottom-nav">
   <button class="nav-btn active" id="nav-today" onclick="switchPage('today')">
@@ -367,21 +381,23 @@
 
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
-<script src="js/config.js?v=20261005r"></script>
-<script src="js/nav.js?v=20261005r"></script>
-<script src="js/flow.js?v=20261005r"></script>
-<script src="js/archived-check.js?v=20261005r"></script>
-<script src="js/format.js?v=20261005r"></script>
-<script src="js/calc.js?v=20261005r"></script>
-<script src="js/lookup.js?v=20261005r"></script>
-<script src="js/render.js?v=20261005r"></script>
-<script src="js/rank.js?v=20261005r"></script>
-<script src="js/search.js?v=20261005r"></script>
-<script src="js/category-rules.js?v=20261005r"></script>
-<script src="js/category.js?v=20261005r"></script>
-<script src="js/detail.js?v=20261005r"></script>
-<script src="js/router.js?v=20261005r"></script>
-<script src="js/boot.js?v=20261005r"></script>
+<script src="js/config.js?v=20261005s"></script>
+<script src="js/nav.js?v=20261005s"></script>
+<script src="js/flow.js?v=20261005s"></script>
+<script src="js/archived-check.js?v=20261005s"></script>
+<script src="js/format.js?v=20261005s"></script>
+<script src="js/calc.js?v=20261005s"></script>
+<script src="js/lookup.js?v=20261005s"></script>
+<script src="js/render.js?v=20261005s"></script>
+<script src="js/rank.js?v=20261005s"></script>
+<script src="js/search.js?v=20261005s"></script>
+<script src="js/watch-store.js?v=20261005s"></script>
+<script src="js/category-rules.js?v=20261005s"></script>
+<script src="js/category.js?v=20261005s"></script>
+<script src="js/detail.js?v=20261005s"></script>
+<script src="js/watch.js?v=20261005s"></script>
+<script src="js/router.js?v=20261005s"></script>
+<script src="js/boot.js?v=20261005s"></script>
 
 </body>
 </html>

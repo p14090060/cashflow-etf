@@ -122,7 +122,7 @@ ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click
 click('#catSortBtn')
 click('#catMore')
 row_code = ev("document.querySelectorAll('#catList .cat-row')[3].dataset.code")
-ev("(function(){ document.querySelectorAll('#catList .cat-row')[3].click(); return true; })()"); wait_ms(250)
+ev("(function(){ document.querySelectorAll('#catList .cat-row')[3].querySelector('.cr-main').click(); return true; })()"); wait_ms(250)
 check('DETAIL opened from folder row', ev("!document.getElementById('gsPanel').hidden") is True and ev("_curEtfCode") == row_code)
 ev("(function(){ closeDetail(); return true; })()"); wait_ms(250)
 check('AFTER DETAIL BACK sort kept (名稱)', ev("document.getElementById('catSortBtn').textContent") == '名稱 ⇅')
@@ -130,7 +130,7 @@ check('AFTER DETAIL BACK shown kept (20)', ev("document.querySelectorAll('#catLi
 check('AFTER DETAIL BACK folder still open', state_of_cat() == 'open')
 
 # ── Esc 只退一層：Detail → 資料夾 ──
-ev("(function(){ document.querySelectorAll('#catList .cat-row')[0].click(); return true; })()"); wait_ms(200)
+ev("(function(){ document.querySelectorAll('#catList .cat-row')[0].querySelector('.cr-main').click(); return true; })()"); wait_ms(200)
 ev("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); true"); wait_ms(250)
 check('ESC 1: closes Detail only', ev("!document.getElementById('gsPanel').hidden") is False and state_of_cat() == 'open')
 ev("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); true"); wait_ms(350)
@@ -169,7 +169,7 @@ ev("ETFS = window.__origETFS2; Category.refresh(); true")
 
 # ── 導覽與工具頁、自選空狀態 ──
 ev("switchPage('watch'); true"); wait_ms(120)
-check('NAV watch shows 自選 empty state', ev("document.getElementById('page-watch').classList.contains('active')") is True and '自選 ETF 功能即將開放' in ev("document.getElementById('page-watch').innerText"))
+check('NAV watch shows 我的 ETF（Phase 4：空自選為引導式空狀態）', ev("document.getElementById('page-watch').classList.contains('active')") is True and '我的 ETF' in ev("document.getElementById('page-watch').innerText") and (ev("WatchStore.list().length") > 0 or '還沒有收藏 ETF' in ev("document.getElementById('page-watch').innerText")))
 check('NAV has four bottom buttons', ev("document.querySelectorAll('.bottom-nav .nav-btn').length") == 4)
 ev("switchPage('tools'); true"); wait_ms(120)
 ev("(function(){ document.querySelector('#page-tools .tool-card').click(); return true; })()"); wait_ms(120)
@@ -461,9 +461,9 @@ ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click
 check('PT-9 回到清單：重新進入 inside（其他分類收合）', pt()['inside'] is True)
 # Detail 開關不改變模式（doorway 保留）
 PT_CLICK('#catExpand'); wait_ms(250)
-ev("(function(){ document.querySelector('#catList .cat-row').click(); return true; })()"); wait_ms(300)
+ev("(function(){ document.querySelector('#catList .cat-row .cr-main').click(); return true; })()"); wait_ms(300)
 check('PT-10 doorway 中開 Detail', ev("!document.getElementById('gsPanel').hidden") is True)
-ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(320)
+ev("document.querySelector('#dtClose').click(); true"); wait_ms(320)
 check('PT-10 關閉 Detail 後仍為 doorway（模式不變）', pt()['inside'] is False and pt()['expText'] == '切換分類 ▲')
 # 收合回到總覽：✕ → overview，展開控制與清單模式移除
 ev("document.getElementById('catClose').click(); true"); wait_ms(320)
@@ -549,9 +549,9 @@ RL_JS = """(function(){
 })()"""
 def rl(): return ev(RL_JS)
 def rl_open_detail(code):
-    ev("(function(){ const r=document.querySelector('#catList .cat-row[data-code=\"%s\"]'); if(r) r.click(); return !!r; })()" % code); wait_ms(320)
+    ev("(function(){ const r=document.querySelector('#catList .cat-row[data-code=\"%s\"] .cr-main'); if(r) r.click(); return !!r; })()" % code); wait_ms(320)
 def rl_close_x():
-    ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(350)
+    ev("document.querySelector('#dtClose').click(); true"); wait_ms(350)
 set_view(390, 769, 'portraitPrimary'); wait_ms(300)
 ev("Router.toBase({base:'home'}); true"); wait_ms(200)
 ev("switchPage('cat'); true"); wait_ms(200)

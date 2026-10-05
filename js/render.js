@@ -191,5 +191,6 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
 
   renderRank();
   Router.onMarketUpdate();
+  if (typeof Watch !== 'undefined') Watch.refresh();   // 自選卡：只換內容，不重排
 }
 

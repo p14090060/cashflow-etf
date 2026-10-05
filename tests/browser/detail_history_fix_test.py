@@ -53,7 +53,7 @@ wait_event('Page.domContentEventFired')
 time.sleep(2.5)
 ev("window.__pop=0; true")
 check('R reload restores detail (normal path)', ev("!document.getElementById('gsPanel').hidden && document.getElementById('gsPanelTitle').textContent.includes('0050')") is True)
-ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(400)
+ev("document.querySelector('#dtClose').click(); true"); wait_ms(400)
 check('R close after restore leaves no detail', ev("document.getElementById('gsPanel').hidden") is True)
 
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']

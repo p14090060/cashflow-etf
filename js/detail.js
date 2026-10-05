@@ -293,8 +293,14 @@ function _dtCalc() {
   out.innerHTML = h;
 }
 
+// Detail 標題列 ♡（PHASE4_PLAN §3.2）：獨立同步，不經 Router、不重建內容；missing ETF 也要更新
+function _dtSyncFav() {
+  favBtnSync(_dtEl('dtFav'), _detailOpen ? _curEtfCode : null);
+}
+
 function detailPatch() {
   if (!_detailOpen || !_dtSkeleton) return;
+  _dtSyncFav();                                   // 在 !e 的 early return 之前
   const e = _dtEtf();
   _dtEl('gsPanelTitle').innerHTML = '<b>' + _dtEsc(_curEtfCode) + '</b>' + (e ? '　' + _dtEsc(e.name) : '');
   if (!e) {
@@ -413,6 +419,11 @@ function detailOnFlowUpdate() {
   if (!_detailOpen) return;
   detailPatch();
 }
+
+document.getElementById('dtFav').addEventListener('click', function () {
+  if (_detailOpen && _curEtfCode) watchToggle(_curEtfCode);
+});
+WatchStore.subscribe(function () { if (_detailOpen) _dtSyncFav(); });
 
 document.getElementById('gsPanel').addEventListener('scroll', function () {
   _dtSyncCollapse();

@@ -90,7 +90,7 @@ check('DS-8 folder layer ui not polluted by Detail scroll (folder list scroll un
 # ── DS-9～DS-11（Codex NEED FIX）：分類 → 市值型 → 0050 → 配息 → 捲動 120 → X／Esc 關閉 → Forward ──
 # 關閉 Detail 前，分類的 snapshot 寫的是資料夾層，不可覆蓋 Detail 層的 tab／捲動。
 def close_x():
-    ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(320)
+    ev("document.querySelector('#dtClose').click(); true"); wait_ms(320)
 def close_esc():
     ev("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); true"); wait_ms(320)
 def folder_ui(): return ev("JSON.stringify(Router.state().stack[0].ui)")
@@ -105,7 +105,7 @@ check('DS-9 setup: sort=name and all 16 rows shown', ev("Router.state().stack[0]
 ev("document.getElementById('catList').scrollTop = 40; true"); wait_ms(300)
 list_scroll = ev("document.getElementById('catList').scrollTop")
 check('DS-9 precondition: folder list scrolled (~40px)', list_scroll > 0, list_scroll)
-ev("document.querySelector('#catList .cat-row[data-code=\"0050\"]').click(); true"); wait_ms(280)
+ev("document.querySelector('#catList .cat-row[data-code=\"0050\"] .cr-main').click(); true"); wait_ms(280)
 check('DS-9 Detail 0050 opened from folder row', stack_types() == 'folder,detail' and top_code() == '0050', stack_types())
 ev("detailTab('dividend'); true"); wait_ms(120)
 set_scroll(120)

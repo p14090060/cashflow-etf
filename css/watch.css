@@ -1,0 +1,94 @@
+/* watch.css — Phase 4「我的 ETF」：自選卡、收藏 ♡、拖曳把手、移動選單、移除提示（PHASE4_PLAN Rev.2.1）
+   色彩一律走 token：漲 --up（紅）、跌 --dn（綠）、0 --dim（中性）、缺值灰。台股語意，不得改成美股漲綠跌紅。 */
+
+/* ── 收藏按鈕（分類列、Detail、自選卡共用）── */
+.fav-btn {
+  flex: 0 0 auto; width: 44px; min-height: 44px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; color: var(--dim); font: inherit; font-size: 20px; line-height: 1; cursor: pointer;
+}
+.fav-btn.on { color: var(--up); }
+/* Detail 標題列：[標題][♡][✕]；覆蓋 .gs-panel-hd button 的框線樣式 */
+.gs-panel-hd .t { flex: 1 1 auto; }
+.gs-panel-hd .fav-btn { border: none; padding: 0; width: 44px; height: 44px; margin: -8px 0; font-size: 20px; color: var(--dim); }
+.gs-panel-hd .fav-btn.on { color: var(--up); }
+
+/* ── 頁面 ── */
+.wt-title { font-size: 18px; font-weight: 700; margin: 2px 2px 6px; }
+.wt-hint { font-size: 13px; color: var(--dim); margin: 0 2px 8px; }
+.wt-list { display: flex; flex-direction: column; gap: 10px; }
+.wt-note { font-size: 12px; color: var(--dim); line-height: 1.6; margin: 14px 2px 8px; }
+.wt-note.warn { color: var(--fair); }
+.wt-empty { text-align: center; padding: 40px 16px 24px; }
+.wt-empty .es-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.wt-empty .es-sub { font-size: 14px; color: var(--dim); line-height: 1.7; }
+.wt-go {
+  margin-top: 16px; min-height: 44px; padding: 0 22px;
+  background: var(--card2); color: var(--bright); border: 1px solid var(--border); border-radius: 10px;
+  font: inherit; font-size: 15px; cursor: pointer;
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── 卡片：[⠿][內容（整塊可點，開 Detail）][♥] ── */
+.wc {
+  position: relative; display: flex; align-items: flex-start;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 6px 0;
+}
+.wc.lifting { z-index: 5; box-shadow: 0 8px 22px rgba(0, 0, 0, .5); border-color: var(--dim); }
+body.wt-dragging .wc:not(.lifting) { transition: transform 150ms ease; }
+@media (prefers-reduced-motion: reduce) { body.wt-dragging .wc:not(.lifting) { transition: none; } }
+.drag-handle {
+  flex: 0 0 auto; width: 44px; min-height: 44px; margin-left: 8px; padding: 0;   /* 把手距螢幕左緣 ≥ 16px（避開 Android 返回手勢） */
+  background: none; border: none; color: var(--dim); font: inherit; font-size: 20px; line-height: 1; cursor: grab;
+  touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+body.wt-dragging .drag-handle { cursor: grabbing; }
+.wc-main {
+  flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 6px 0;
+  background: none; border: none; color: var(--bright); font: inherit; text-align: left; cursor: pointer;
+}
+.wc .fav-btn { margin-right: 4px; }
+.wc-row1 { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.wc-code { font-family: var(--mono); font-size: 15px; font-weight: 700; flex: 0 0 auto; }
+.wc-name { font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wc-row2 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.wc-px { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.wc-chg { font-family: var(--mono); font-size: 14px; }
+.wc-chg.up { color: var(--up); }
+.wc-chg.dn { color: var(--dn); }
+.wc-chg.flat, .wc-chg.na { color: var(--dim); }
+.wc-row3 { display: flex; align-items: center; gap: 10px; }
+.wc-bl { font-size: 12px; color: var(--dim); flex: 0 0 auto; }
+.wc-bars { display: inline-flex; gap: 4px; align-items: center; }
+.wc-na { font-size: 13px; color: var(--dim); }
+.wc-row4 { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 13px; }
+.wc-tag { color: var(--dim); }
+.wc-dot { color: var(--border); }
+
+/* ── 點一下 ⠿：移動選單 ── */
+.wc-menu {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: -4px;
+  background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 8px;
+}
+.wc-menu button {
+  min-height: 44px; background: var(--card); color: var(--bright); border: 1px solid var(--border); border-radius: 8px;
+  font: inherit; font-size: 14px; cursor: pointer;
+}
+.wc-menu button:disabled { color: var(--border); cursor: default; }
+
+/* ── 移除提示（固定在 bottom nav 上方，不遮導覽列；「復原」永遠完整可見）── */
+.wt-toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 10px);
+  width: calc(100% - 28px); max-width: 402px; z-index: 130;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card2); color: var(--bright); border: 1px solid var(--border); border-radius: 10px;
+  padding: 4px 6px 4px 14px; font-size: 14px; box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+}
+.wt-toast span { min-width: 0; }
+.wt-toast button {
+  flex: 0 0 auto; min-height: 44px; padding: 0 14px;
+  background: none; color: var(--fair); border: none; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+body.gs-ckm .wt-toast { bottom: 10px; }

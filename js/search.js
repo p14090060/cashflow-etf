@@ -79,7 +79,8 @@ function _gsSyncCkm() {
 function _gsFmtChg(e) {
   const p = e.change_pct;
   if (p == null) return '';
-  const up = p >= 0;
+  if (p === 0) return '<span class="gs-chg" style="color:var(--dim)">0.00%</span>';   // 0 中性（D1）
+  const up = p > 0;
   return '<span class="gs-chg" style="color:' + (up ? 'var(--up)' : 'var(--dn)') + '">'
        + (up ? '▲' : '▼') + Math.abs(p).toFixed(2) + '%</span>';
 }

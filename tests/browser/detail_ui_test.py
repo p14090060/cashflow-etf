@@ -109,7 +109,7 @@ check('T7 selETF untouched', ev("selETF && selETF.code") == sel_before, sel_befo
 
 # ── T8 ✕ 只產生一次 back；popstate 不再 back
 ev("window.__pop=0; true")
-ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true")
+ev("document.querySelector('#dtClose').click(); true")
 wait_ms(400)
 check('T8 X button hides detail', ev("document.getElementById('gsPanel').hidden") is True)
 check('T8 exactly one popstate', ev("window.__pop") == 1, ev("window.__pop"))
@@ -154,7 +154,7 @@ wait_ms(200)
 check('T12 switch ETF no new entry', ev("history.length") == L, '%s vs %s' % (ev("history.length"), L))
 check('T12 state code updated (v2 stack)', ev("Router.state().stack.slice(-1)[0].code") == '0056', ev("Router.state().stack.slice(-1)[0].code"))   # Phase 3：舊 history.state.code → v2 stack
 check('T12 title 0056', ev("document.getElementById('gsPanelTitle').textContent.includes('0056')") is True)
-ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true")
+ev("document.querySelector('#dtClose').click(); true")
 wait_ms(400)
 
 # ── T13 成分按鈕：關閉 Detail、跳主動頁，只一次 back
@@ -175,7 +175,7 @@ if z:
     wait_ms(200)
     pf = ev("document.querySelector('[data-pane=perf]').innerText") or ''
     check('T14 0%% shown as 0.0%% (%s)' % z, '0.0%' in pf, pf[:80].replace('\n', ' | '))
-    ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true")
+    ev("document.querySelector('#dtClose').click(); true")
     wait_ms(300)
 else:
     check('T14 no ret1y==0 ETF in current data (skipped)', True, 'n/a')
@@ -189,7 +189,7 @@ n2 = ev("new Promise(r=>{const t=Date.now();const i=setInterval(()=>{if((typeof 
 wait_ms(400)
 ev("window.__pop=0; window.addEventListener('popstate',()=>{window.__pop++}); true")
 check('T15 reload restores detail', ev("!document.getElementById('gsPanel').hidden") is True and ev("document.getElementById('gsPanelTitle').textContent.includes('0050')") is True)
-ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true")
+ev("document.querySelector('#dtClose').click(); true")
 wait_ms(400)
 check('T15 close after restore', ev("document.getElementById('gsPanel').hidden") is True)
 
