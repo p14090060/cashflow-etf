@@ -54,6 +54,7 @@ body.wt-dragging .drag-handle { cursor: grabbing; }
 .wc-name { font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wc-row2 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .wc-px { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.wc-chgs { display: inline-flex; gap: 10px; }
 .wc-chg { font-family: var(--mono); font-size: 14px; }
 .wc-chg.up { color: var(--up); }
 .wc-chg.dn { color: var(--dn); }

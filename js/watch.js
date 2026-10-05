@@ -24,6 +24,8 @@ const Watch = (function () {
   let toast = null;           // { code, index, timer }
   let menu = null;            // { code, el }
   let focusCode = null;       // 重繪後要把焦點還給哪一檔的把手
+  let suppressClick = false;  // 拖曳放開後瀏覽器補發的 click 不得開選單
+  let pressClosedMenu = null; // 這次按下把手時順手關掉的選單屬於哪一檔（點同一檔＝關閉，不再重開）
 
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -33,16 +35,17 @@ const Watch = (function () {
 
   // ── 卡片內容 ──
   function num(v, d) { return (v == null || isNaN(v)) ? null : Number(v).toFixed(d); }
+  // 漲跌額、漲跌幅各自依「自己顯示的值」判色與正負：四捨五入後為 0 → 中性，缺值 → 灰「--」，
+  // 不拿另一欄的狀態來染色（例：額 −0.01、幅 0.00% 時，額是綠 ▼0.01、幅是中性 0.00%）。
+  function chgPart(v, d, isPct) {
+    if (v == null || isNaN(v)) return '<span class="wc-chg na" data-k="na">--</span>';
+    const r = Number(Number(v).toFixed(d));
+    const k = r > 0 ? 'up' : r < 0 ? 'dn' : 'flat';
+    const mark = isPct ? (k === 'up' ? '+' : k === 'dn' ? '−' : '') : (k === 'up' ? '▲' : k === 'dn' ? '▼' : '');
+    return '<span class="wc-chg ' + k + '" data-k="' + k + '">' + mark + Math.abs(r).toFixed(d) + (isPct ? '%' : '') + '</span>';
+  }
   function chgHtml(e) {
-    const pt = e.change_pt, pct = e.change_pct;
-    if (pt == null && pct == null) return '<span class="wc-chg na">--</span>';
-    const ref = pct != null ? pct : pt;
-    const k = ref > 0 ? 'up' : ref < 0 ? 'dn' : 'flat';
-    const arrow = k === 'up' ? '▲' : k === 'dn' ? '▼' : '';
-    const sign = k === 'up' ? '+' : k === 'dn' ? '−' : '';
-    const a = pt == null ? '--' : arrow + Math.abs(pt).toFixed(2);
-    const b = pct == null ? '--' : sign + Math.abs(pct).toFixed(2) + '%';
-    return '<span class="wc-chg ' + k + '" data-k="' + k + '">' + a + '　' + b + '</span>';
+    return '<span class="wc-chgs">' + chgPart(e.change_pt, 2, false) + chgPart(e.change_pct, 2, true) + '</span>';
   }
   function barsHtml(e) {
     const m = e.ret_months || [];
@@ -201,7 +204,17 @@ const Watch = (function () {
   function startPress(ev, handle) {
     if (ev.button > 0 || drag) return;
     const card = handle.closest('.wc');
-    drag = { code: card.dataset.code, handle: handle, card: card, pid: ev.pointerId, y0: ev.clientY, y: ev.clientY,
+    // 已開的移動選單占版面高度：先關閉再開始任何量測。選單在這張卡上方時，關閉會讓卡片上移 shift px；
+    // 把起點 y0 同步往上移，拖曳位移 (y − y0) 便包含這段差，卡片維持在手指下（PHASE4 Code Review #2）。
+    let shift = 0;
+    pressClosedMenu = null;
+    if (menu) {
+      pressClosedMenu = menu.code;
+      const before = card.getBoundingClientRect().top;
+      closeMenu(false);
+      shift = before - card.getBoundingClientRect().top;
+    }
+    drag = { code: card.dataset.code, handle: handle, card: card, pid: ev.pointerId, y0: ev.clientY - shift, y: ev.clientY,
              s0: window.scrollY, active: false, raf: 0, target: -1 };
     try { handle.setPointerCapture(ev.pointerId); } catch (e) { /* 不支援時仍可用 move 事件 */ }
   }
@@ -213,7 +226,6 @@ const Watch = (function () {
     const gap = cards.length > 1 ? drag.cards[1].top - drag.cards[0].top - drag.cards[0].h : 10;
     drag.step = drag.cards[drag.from].h + Math.max(0, gap);
     drag.active = true;
-    closeMenu(false);
     document.body.classList.add('wt-dragging');
     drag.card.classList.add('lifting');
     drag.raf = requestAnimationFrame(frame);
@@ -265,6 +277,16 @@ const Watch = (function () {
       if (fav) { watchToggle(fav.closest('.wc').dataset.code); return; }
       const main = ev.target.closest('.wc .wc-main');
       if (main) { openDetail(main.closest('.wc').dataset.code); return; }
+      // 把手的標準 activation（滑鼠、觸控 tap、Enter／Space、VoiceOver／TalkBack 合成 click）→ 開／關移動選單
+      const h = ev.target.closest('.wc .drag-handle');
+      if (h) {
+        const code = h.closest('.wc').dataset.code;
+        if (suppressClick) { suppressClick = false; pressClosedMenu = null; return; }
+        if (pressClosedMenu === code) { pressClosedMenu = null; h.focus({ preventScroll: true }); return; }
+        pressClosedMenu = null;
+        if (menu && menu.code === code) closeMenu(true); else openMenu(code);
+        return;
+      }
       const mi = ev.target.closest('.wc-menu button[data-m]');
       if (mi && menu) { const code = menu.code; closeMenu(false); moveBy(code, mi.dataset.m); return; }
     });
@@ -277,12 +299,16 @@ const Watch = (function () {
       drag.y = ev.clientY;
       if (!drag.active && Math.abs(drag.y - drag.y0) >= DRAG_PX) activate();
     });
+    // 放開：拖曳中 → 寫入順序，並吃掉接下來那個 click；沒拖動 → 交給標準 click（開／關選單）
     list.addEventListener('pointerup', function (ev) {
       if (!drag || ev.pointerId !== drag.pid) return;
-      if (drag.active) { endDrag(true); return; }
-      const code = drag.code;
+      if (drag.active) {
+        endDrag(true);
+        suppressClick = true;
+        setTimeout(function () { suppressClick = false; }, 400);
+        return;
+      }
       endDrag(false);
-      if (menu && menu.code === code) closeMenu(true); else openMenu(code);
     });
     list.addEventListener('pointercancel', function (ev) { if (drag && ev.pointerId === drag.pid) endDrag(false); });
     list.addEventListener('lostpointercapture', function (ev) { if (drag && drag.active && ev.pointerId === drag.pid) endDrag(false); });
@@ -292,11 +318,6 @@ const Watch = (function () {
       if (h && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) {
         ev.preventDefault();
         moveBy(h.closest('.wc').dataset.code, ev.key === 'ArrowUp' ? 'up' : 'down');
-        return;
-      }
-      if (h && (ev.key === 'Enter' || ev.key === ' ')) {
-        ev.preventDefault();
-        openMenu(h.closest('.wc').dataset.code);
         return;
       }
       if (menu && ev.key === 'Escape') { ev.preventDefault(); closeMenu(true); }
