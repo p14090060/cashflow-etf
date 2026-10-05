@@ -37,7 +37,10 @@
 - **Phase 4 Code Review 修正 commit：`6d2d9a3d`**（本機，未手動 push；推送後 SHA 可能被改寫，訊息開頭「fix(phase4): Codex Code Review 三項」）。Codex 複審：**NEED FIX，僅剩選單高度補償被誤算為拖曳門檻的問題**（見「Phase 4 6d2d9a3d — Codex 複審」）。下一位：Claude；尚未交真機驗收。
 - **Phase 4 拖曳門檻修正 commit：`5df1cb50`**。**Codex 複審 PASS，Phase 4 Code Review 完成。** PO 真機驗收步驟 1～21 PASS，步驟 21 後因拖曳手感 UX 暫停（22～34 未測）。
 - **Phase 4 拖曳手感修正 commit：`76252269`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳手感」）。Codex Code Review：**NEED FIX，兩項按住計時交界 bug**（見下方「76252269 — Codex Code Review」）。下一位：Claude；修正複審 PASS 後才由 PO 重測拖曳、接續後面的真機驗收。
-- **Phase 4 按住計時交界修正 commit：`ba3070f3`**（本機，未手動 push；訊息開頭「fix(phase4): 選單補償不算排序意圖」）。Codex 兩項已修並補 regression。**下一位：Codex｜複審**（見「Phase 4 ba3070f3 — 按住計時交界修正」）。
+- **Phase 4 按住計時交界修正 commit：`ba3070f3`**。**Codex 複審 PASS。**
+- **PO iPhone Chrome 主驗收（2026-10-05）**：拖曳 UX 重測 R1～R11 全部 PASS；原 QA 1～24、26～33 PASS（28、29 Active Flow PASS）；25 N/A（績效內容高度不足，無法觸發標題列收合）；34 未測（選做 VoiceOver）。Samsung Chrome 抽測尚未執行。
+- **Phase 5 待辦（PO 決定，Phase 4 不改）**：直向「持股異動」檢視仍使用展開的分類標籤列，而非「切換分類 ▼／▲」。經查為 Phase 3 既有設計（`ctlActive()` 限 `view === 'list'`，baseline `82ce3ee9` 起即如此，category_test 明文驗證），屬兩套 UI 尚未統一，移至 Phase 5 UX 統一。
+- **Phase 4 收尾：拖曳底部邊界 commit：`edb065d2`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳卡片不越過清單上下邊界」）。**下一位：Codex｜Code Review**（見「Phase 4 edb065d2 — 拖曳邊界」）。Codex PASS 後 PO 只重測底部拖曳，不重跑完整 Phase 4 QA。
   - 產品需求已由 PO／GPT Gate 確認（自選／我的 ETF：♡ 收藏、自選大卡、近半年走勢 6 柱、台股漲紅跌綠、⠿ 拖曳排序、取消後可復原、引導式空狀態、localStorage only）。Plan 不重議需求。
   - 已標示的架構衝突（Plan §1）：C1 分類列是 `<button>`，無法內嵌 ♡ 按鈕 → 改為容器＋兩個並列按鈕；C2 `miniBars` 會把 0 畫成紅色且顏色寫死 → 新增選項參數，只有自選卡生效；C3 站上沒有淺色主題；C5 Detail 標題列捲動時會收合。
   - 待 PO／Gate 確認的做法（Plan §11 D1～D6）：miniBars 的 0 是否全站改中性、淺色主題、Detail ♡ 位置、Toast 規則、替代排序、頁面標題。
@@ -148,6 +151,17 @@ PO 真機回報：按住 ⠿ 沒有「已抓住」回饋、要慢按、要快拖
 - **測試結果**：watch_test **136 PASS、0 FAIL、4 DEFER**；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
 - **負向對照**：以 `5df1cb50` 的 `watch.js`／`watch.css` 跑同一份測試 → 11 FAIL（HO-1、TH-1、TH-3、HA-1、AS-1，以及依新門檻校正的 DR-1／9／18／19）。
 - **仍需真機**：手感是否改善（不再需要慢按、正常速度可換位）、iOS 是否仍搶捲動，只能由 PO 真機確認。
+
+### Phase 4 edb065d2 — 拖曳邊界（Claude，2026-10-05）：交 Codex Code Review
+
+PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過「自選 ETF 僅儲存在此裝置與瀏覽器中」提示區，拖進下方空白（放手後排序仍正確）。
+
+- **原因**：`frame()` 的卡片位移（`translateY(off)`）沒有上下限；自動捲動只看手指是否靠近可視區邊緣，清單底已經完整可見仍會繼續捲，而被拖曳卡片的 transform 又讓文件可捲高度持續變大（舊程式實測 scrollY 被帶到 3216）。
+- **修正（只改 `js/watch.js` `frame()`）**：以 activate 時的卡片快照取清單邊界（第一張頂～最後一張底，文件座標）；跟手位移 `off` 與排序位移 `intent`（`raw − comp`）都夾在「頂端對齊第一張、底端對齊最後一張」之間；自動捲動往下只在清單底尚未進入可視區（`listBot − scrollY > band.bottom`）時繼續，往上同理。拖到最後一列、底部自動捲動、跟手、前緣換位、`comp` 分離、排序寫入與持久化都不變。未改其他 UI；版本 `20261005x`。
+- **新增測試**：BD-1 拖到底時卡片底緣不超過清單底、不進提示區（4 檔、10 檔）；BD-2 清單底可見後自動捲動停止；BD-3 放開成為最後一張並寫入；BD-4 拖曳卡片在底部導覽列上方；BD-5 往上拖超過清單頂時卡片頂緣不超出第一張、放開成為第一張。
+- **既有測試調整**：DR-8 反向原本驗 `scrollY < 50`；新邊界下自動捲動在清單頂可見時就停（清單上方還有標題與提示），改驗「放下成為第 1，且第一張卡頂端在頂欄下方可見」。其餘不變。
+- **測試結果**：watch_test **149 PASS、0 FAIL、4 DEFER**；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
+- **負向對照**：以 `ba3070f3` 的 `watch.js` 跑同一份測試 → BD 7 項 FAIL（卡片底緣進入提示區與導覽列、scrollY 持續增加到 3216、往上拖卡片頂緣到 −68）。
 
 ### Phase 4 ba3070f3 — 按住計時交界修正（Claude，2026-10-05）：交 Codex 複審
 
@@ -324,7 +338,7 @@ PO 真機回報：按住 ⠿ 沒有「已抓住」回饋、要慢按、要快拖
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **Codex｜複審（下一位）**：只複審 `ba3070f3` 的兩項按住計時交界修正與 HO-5、LC-1～3（見「Phase 4 ba3070f3 — 按住計時交界修正」）。PASS 後由 Claude 提供 PO 拖曳相關重測步驟，再接續 22～34。
+- **Codex｜Code Review（下一位）**：審查 `edb065d2` 拖曳邊界修正與 BD-1～5（見「Phase 4 edb065d2 — 拖曳邊界」）。PASS 後 PO 只重測底部拖曳。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
