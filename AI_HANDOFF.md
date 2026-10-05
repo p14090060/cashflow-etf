@@ -271,9 +271,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 
 **Phase 5 Plan：Rev.4 APPROVED（`PHASE5_PLAN.md`，docs commit `d348cdf6`＝implementation 起點）。Codex：Router finding CLOSED、Plan PASS；GPT Gate 核准。不再出 Rev.5。**
 
+**PO Change #1（2026-10-05，Plan 已更新，待 GPT Gate／Codex Plan delta review；CP2 尚未開始、未改前端與資料 pipeline）**
+- Tools 改為三張大型功能卡：成交量排行／配息日曆／主動式 ETF 持股異動（PHASE5_PLAN §3 全改）。Active Flow 代碼列改單列橫向捲動選擇器＋完整名稱一行（新 F2，§8.3），紅綠方塊／treemap／加碼減碼／海外清單／資料與計算邏輯全保留。
+- **Router 最小修改＝零新 API**：排行／配息日曆卡用既有 `tool` 層（push 一層，Back 回卡片；RT-12 與 Phase 3 已上線行為），持股異動卡用既有 `openFlow`（`switchPage('check')`）。`BASE_PAGE.tools` 維持 `page-tools`、`page-div` 保留為配息日曆子頁（只移除 B-1）。Router 程式仍只刪 `TOOL_PAGE.yt`（G1）。
+- **被 PO Change #1 取代**：Rev.4 的同頁分段切換、`page-rank` 外殼、`page-div` 退役、`js/tools.js`／`sessionStorage etfRadar.toolsTab`／`Tools.setTab`、TL-1～5、TL-7、舊 RT-T1～T5、G2（已在 Plan 標記並移除，不並存）。
+- 測試異動：新增 TC-1～8（TL-6 改名 TC-6）、RT-T1～T3（新內容）、FS-1～6（橫向選擇器）；§6.1 的 R switch page div、R rank find、T11、category TOOLS card、X2 改回「行為不變」（只改選擇器）；RT-12 完全不變。
+- **待 Gate：G3** 持股異動卡 Back 去向。建議方案 A（沿用 `openFlow`，Back 回分類總覽，與 RT-22／FL-4 一致、零 Router 改動）；方案 B（Back 回工具卡片）需改封版 Router 模型，不建議。
+
 **Phase 5 implementation 進度（每個 checkpoint：Claude 實作＋測試 → commit → handoff → Codex Review，PASS 才進下一個）**
 
-- **CP1｜P1 資料池（§5、§9 順序 1）— `be71744e`；Codex NEED FIX 1 項 → CP1 fix `c808dcdc`（見下），待 Codex CP1 Re-review。**
+- **CP1｜P1 資料池（§5、§9 順序 1）— `be71744e`＋fix `c808dcdc`：Codex Re-review PASS／CLOSED（test_pool 54/54）。**
   - `fetch_etf.py`：篩選鏈②③④集中為 `pool_excluded(code, name)`；新增 `EXCLUDE_SUFFIX = L/R/U`；`EXCLUDE_KW` 補「正二」「反一」（其餘不動，債券池維持現況）。
   - ISIN 解析：`isin_sections()` 以 `colspan=7` 區段標題切段，只讀「ETF」「ETN」各到下一標題；`parse_isin_rows()` 檢查 CFI（ETF `CE…`、ETN `CM…`，不符印警告略過）；`parse_isin_pool()` 找不到 ETF 區段丟例外（該市場別失敗、不退回整頁），找不到 ETN 區段印警告、ETF 照收。
   - `etf_pool_cache.json` fallback 與 `CURATED` 也過 `pool_excluded`（防禦性）。
