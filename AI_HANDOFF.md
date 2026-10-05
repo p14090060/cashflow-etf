@@ -269,7 +269,12 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 
 **Phase 5 價格合理區的 PO Gate 已全部完成。**
 
-**下一步**：Phase 4 已封版。由 Claude 撰寫 Phase 5 Plan（範圍以本節 1～13 為限，含特殊 ETF 辨識方案），交 Codex Plan Review、GPT Gate，核准後才 coding。長期「決策＋原因」已同步到 `CLAUDE.md`「產品決策與原因（長期保存）」與「篩選邏輯」。
+**Phase 5 Plan：Rev.4（`PHASE5_PLAN.md`，2026-10-05，尚未 commit）。Rev.3 Codex：ETF／ETN 與 Detail 試算 CLOSED，只剩 Router finding → Claude 已修訂。下一位：Codex｜只驗 Router finding 是否 CLOSED。** 未 coding、不要求 PO 真機。
+- **Rev.4 修正（Router）**：撤回 Rev.3 的 `Router.setTool`。Tools「成交量排行｜配息日曆」改為 Tools 模組 UI state（`js/tools.js` 模組變數＋`sessionStorage` `etfRadar.toolsTab`），不寫 Router state、不新增 stack layer、不呼叫任何 history API；Tools 只有一個 base entry（base `tools`、stack `[]`，開 Detail 時 `[detail]`），所以 Router 的 `k = stack.length − p` 與 Phase 4 相同，切過分頁後離開 Tools 不多退、不離站。`page-rank` 改為 Tools 外殼（含兩個 pane），`page-div` 的 B-2 搬入後退役；`BASE_PAGE.tools → page-rank`、`TOOL_PAGE` 只留給既有帶 tool intent（RT-12）。新增 RT-T1～T5，TL-1～5、TL-7、G2 同步改寫。
+- **Rev.3 修正**：① history 依現行封版 Router：底部導覽／首頁入口切 base＝replace E0（不新增 entry，Back 不回首頁）；`Router.setTool` 只 replace Tools 目前 entry 的 stack，不 push／traverse；排行 → Detail＝push detail、Back 關閉回同分頁；新增 §3.6 對照表；RT-12 Router 行為不變、只把 Back 後頁面期望改為預設分頁 `page-rank`。② ETN：ISIN 頁 ETF 與 ETN 是不同區段（現行從 ETF 讀到頁尾才順帶收 ETN），Rev.3 明確解析兩區段、各到下一個標題；L／R／U 兩者都適用；EX-9～11（020032 positive、區段邊界、缺 ETN 區段）。③ Detail 試算遷移：`#dtCalcOut` 驗「單次可領」「N 張市值約」隨張數連動，不要求「天後」；倒數在配息資訊區驗；不改 Phase 2 文字。
+- **GPT Gate／PO 對 Rev.1 D1～D6 的決定（已寫入 Rev.2，不再詢問）**：債券資料池維持現況（不大量加回既有規則排除的債券）；首頁「查詢其他 ETF」`lookupToday()` 直接淘汰、假估算不修不留；前端 `LAZY_WATCHLIST` 實作後確認無 JS 引用即刪除，Python 三份不動；價格合理區標籤用「合理」（非「合理✓」）；Dark／Light 與全站色彩美化納入 Phase 5；B-1 計算機與 `lookupCustom()` 淘汰。
+- **Rev.2 範圍**：首頁入口大廳（A-1 → 我想看看 ETF／我已經有 ETF → 價格合理區 → 今日成交量 TOP 10）、首頁沿用 Header 全站搜尋、Tools 同層切換（成交量排行｜配息日曆；預設排行；切換以附加 `Router.setTool` replace 不新增 entry；排行 → Detail → 返回保留捲動與 `rankFind`）、Header 低調 YouTube（外部連結）並移除首頁底部／Tools 舊入口、`page-yt` 退役（待 Gate G1）、資料池篩選鏈 ①～⑦（新增字尾 L／R／U、區段解析不再退回整頁、00687C 由「債」關鍵字排除＝維持現況）、舊功能 dependency migration（`ETFS`／`CALENDAR` 移到新 `js/state.js`、`calc.js`／`lookup.js` 退役、七項既有測試遷移到正式入口）、Dark／Light（Header 切換、localStorage `etfRadar.theme`、跟隨系統）、全站 token 化（含 Active Flow treemap 色值，紅＝加碼綠＝減碼不變）、UX closeout（「合理✓」全站改「合理」等）、直向持股異動 `cat-sw` 切換分類（橫向維持直接標籤）、最終 iPhone／Samsung Dark＋Light QA。
+- **待 GPT Gate 確認（非 PO 產品決策）**：G1 `page-yt` 退役、Header 圖示直接開外部頻道；G2 Tools 分頁以附加 `Router.setTool`（replaceTop）實作。
 
 ### 0.2 Product Owner 最終決策（不要重新詢問）
 
@@ -363,7 +368,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **下一位：Claude｜撰寫 Phase 5 Plan**（範圍見「Phase 5 — GPT Gate 決策」1～13）。Phase 4 已 VERIFIED / CLOSED，不再審查。
+- **下一位：Codex｜Plan Re-review（Phase 5 Rev.3）→ GPT Gate**：審查 `PHASE5_PLAN.md` Rev.3。核准前不 coding、不要求 PO 真機。Phase 4 已 VERIFIED / CLOSED，不再審查。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
