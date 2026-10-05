@@ -445,7 +445,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試遷移（§6.1，非刪除）：regression「R page-div chip calc uses 0056」→「配息頁只剩日曆」＋Detail 0056 配息分頁 1→7 張：單次可領＝amount×張×1000、N 張市值約＝price×張×1000、年化領回連動、配息資訊倒數（N 天後／今日）；detail_ui T7「selETF untouched」→「Router 狀態不變」（shares kept、7 張市值保留）；新增 MG-1（`ETFS`／`CALENDAR` 由 state.js 提供、無 calc／lookup script）、MG-3（7 個退役全域皆 undefined）、首頁 A-4 已移除。R switch page div／yt、rank find、T11、category TOOLS card、X2 期望不變。
   - 結果（headless 800×600，port 8766／9224）：router 64、search_compact 38、detail_ui 42、detail_history_fix 14、**regression 26**（原 14：-1 遷移、+13）、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。負向對照：試算改成不乘張數 → regression 2 FAIL。資料全擋（market／*.json blocked）＋切六頁＋`gs-ckm`：0 例外、`ETFS` 為空陣列。
   - 環境備註：detail_state DS-10 前置條件（績效分頁可捲動）在 390×844 視窗下因內容不夠高而 FAIL，改動前 baseline 亦同；以 800×600（過去跑法）全 PASS，非 regression。
-- **CP3｜§2 首頁入口大廳（§9 順序 3）— `7a58425d`，待 Codex CP3 Code Review。**
+- **CP3｜§2 首頁入口大廳（§9 順序 3）— `7a58425d`：Codex Code Review PASS／CLOSED（687 PASS／0 FAIL／5 DEFER）。**
   - 版面（390px 直向由上而下）：A-1 大盤（不改）→ 兩大入口（整塊 button，72px）→ 價格合理區 → 今日成交量 TOP 10。移除首頁 YouTube 入口卡、大型 buy-card／range／配息 pill、「為什麼今天沒有」說明；首頁無任何輸入框，查詢一律走 Header 全站搜尋（H2）。Header YouTube／主題鈕仍屬 CP5／CP7，未做。
   - 兩大入口：`switchPage('cat')`／`switchPage('watch')`，與底部導覽同一路徑（replace E0，`history.length` 不變，不期望 Back 回首頁）。
   - 價格合理區（render.js `_pzList`／`renderPriceZone()`／`homeTogglePz()`）：TOP100（`cur_vol`）中 cheap／fair 且 `div_frequency !== '不配息'`；cheap 先、同狀態 `cur_vol` 高到低；計數「目前共有 X 檔 ETF 符合價格條件」；>10 預設 10＋「查看全部 X 檔」／「收起」（`_pzExpanded` 只在記憶體，`renderAll` 輪詢重繪保留）；0 檔只顯示「目前沒有 ETF 符合價格條件」（無計數、無按鈕、無 fallback）；整列 button → `openDetail(code)`；標籤「便宜」`sig-cheap`／「合理」`sig-fair`。
@@ -455,6 +455,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - CLAUDE.md「頁面區塊代號」A-2／A-3／A-4／B-1 改為現況（全面文件更新仍在 CP8）。
   - 測試：新增 `tests/browser/home_test.py` 37 項（HM-1～3、PZ-1～13、TV-1～3、MG-3 `LAZY_WATCHLIST` undefined、390×844 下可見文字 ≥14px／按鈕 ≥44px／入口 ≥64px／無水平捲動／兩大入口在第一屏）。fixture＝實際 ETFS 深拷貝改寫 signal／cur_vol／div_frequency 後呼叫 `renderAll`（停掉 `_pollTimer`）。負向對照：排序改成 fair 先＋說明字改 12px → 6 FAIL（PZ-5／7／8／11、可讀性）。
   - 結果（800×600）：home 37、router 64、search_compact 38、detail_ui 42、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。390px 截圖目視：入口、列表、標籤無截斷或溢出。
+- **CP4｜T1 三張功能卡＋G3 source-aware Flow layer＋F2 橫向 ETF 選擇器（§3、§3.4、§8.3）— `937abe70`，待 Codex CP4 Code Review。**
+  - Tools：`page-tools` 三張整卡 button（`#toolRank`／`#toolDiv`／`#toolFlow`，icon＋標題＋PO 文案＋›，84px）。排行／配息日曆沿用既有 `tool` 層（Back 回卡片）；持股異動卡＝`switchPage('check')`。YouTube 連結移除（Header 入口在 CP5）；`TOOL_PAGE.yt`／`page-yt` 仍在，CP5 退役。
+  - Router（不新增公開 API，`Object.keys(Router)` 不變）：`intentFlow(code)`——頂層非 flow → 同 base push `{t:'flow', ui:{code}}`（k=0）；頂層是 flow → 同檔 null、他檔 replaceTop（新 id，避免 uiCache 用舊 code 覆蓋）。`sameLayer`：flow 對 flow 為同層。`apply()` 先算最上層 flow／detail 的 index → `flowLayerShow(ui, fi>di)`／`flowLayerHide()`，再 `applyFolder`。`intentBase` 的 flow 分支移除；`_NAV_SPEC.check` 改 `{flow:true}`。
+  - 畫面：`#flowLayer`（與 `gsPanel` 同位置的 fixed 覆蓋層，‹ 返回＝`history.back()`；z 39，`.over-detail` 時 41；`dt-collapsed` 時 top:0；`gs-ckm` 時隱藏）。`#page-check` 節點只有一份，Flow 層開時移入 `#flowLayerBody`、關時移回 `#catFlowHost`；`Category.renderFlowFor` 在 Flow 層持有節點時不重繪。來源頁與 Detail 不卸載、不呼叫 `scrollTo`。
+  - 目前 ETF：`flowSelect` 在 Flow 層 → `Router.updateUi({code},'flow')`；原生 → `Category.setFlowCode`（folder.ui.code，既有）。Flow 層以 null code 進入時沿用 `renderFlow` 預設，`setUi` 記到該層（不寫 history）。fetchFlow 完成時 Flow 層可見則重繪。
+  - F2：`#flowChips` 單列 flex 橫向捲動（chip 改 button、≥44px、16px、選取＝中性藍 2px 框＋`aria-pressed`；刻意不用紅綠），`_flowChipIntoView()` 只調 `scrollLeft`；新增 `#flowSelName` 完整名稱，`flowMeta` 改為「持股 N 檔　期間」（名稱移到上一行）。紅綠方塊、treemap、海外清單、資料與計算不變。
+  - 測試：新增 `tests/browser/tools_test.py` 70 項——TC-1～8、RT-T1～2（RT-T3＝router_test 64）、RF-1～9、FS-1～6。RF-2 用有 flow 資料且 Detail「查看完整持股異動」入口實際可見的 ETF（並先驗入口可見）；RF-8 以 `gsPick('0050')` 在 Flow 上開合法 ETF 的 Detail，驗疊放、Esc 逐層、紅綠方塊數量不變（未竄改 flow 資料）。FS-4 以同頁注入舊 4 欄 grid 樣式量測基準。
+  - 既有測試期望更新（G3 行為改變，非放寬）：router RT-22（排行 → Flow → Back 回排行）、watch FL-4 ×4 base（Detail → Flow → Back 回原 Detail、同分頁；Forward 回同檔 Flow）、detail_ui T13（Detail 上開 Flow、無 popstate、Back 回 Detail；42→43）、regression「switch page check」（Flow 層蓋在來源頁上）、category「TOOLS card」改點 `#toolDiv`。router RT-14～21 的 traversal 驅動改用 `openFolder('mcap')`（openFlow 已不 traverse），R4～R8 斷言不變。
+  - 負向對照：flowSelect 改寫 folder＋選擇器改 wrap → tools_test 7 FAIL（RF-4、RF-5、FS-1、FS-3、FS-4）。
+  - 結果（800×600）：tools 70、home 37、router 64、search_compact 38、detail_ui 43、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS（761 PASS／0 FAIL／5 DEFER）。390px 截圖目視：三張卡、Flow 層、選擇列與名稱、紅綠方塊正常。
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
