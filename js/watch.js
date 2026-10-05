@@ -218,10 +218,13 @@ const Watch = (function () {
     clearTimeout(drag.hold);
     // 已開的移動選單占版面高度：先關閉再量測。選單在這張卡上方時，關閉會讓卡片上移 shift px；
     // 把跟手錨點 y0 同步上移，拖曳位移 (y − y0) 便包含這段差，卡片維持在手指下（PHASE4 Code Review #2）。
+    // comp 只用於「跟手」顯示，不算排序意圖：換位一律以手指實際位移（＋頁面捲動）判斷（76252269 Code Review #1）。
+    drag.comp = 0;
     if (menu) {
       const before = drag.card.getBoundingClientRect().top;
       closeMenu(false);
-      drag.y0 -= before - drag.card.getBoundingClientRect().top;
+      drag.comp = before - drag.card.getBoundingClientRect().top;
+      drag.y0 -= drag.comp;
     }
     const cards = Array.prototype.slice.call(document.querySelectorAll('#watchList .wc'));
     drag.cards = cards.map(c => { const r = c.getBoundingClientRect(); return { el: c, code: c.dataset.code, top: r.top + window.scrollY, h: r.height }; });
@@ -244,7 +247,8 @@ const Watch = (function () {
     if (v) window.scrollBy(0, v);
     const off = (drag.y - drag.y0) + (window.scrollY - drag.s0);
     const me = drag.cards[drag.from];
-    const myTop = me.top + off, myBot = myTop + me.h;
+    const intent = off - (drag.comp || 0);   // 使用者真正的排序位移：不含選單關閉造成的版面補償
+    const myTop = me.top + intent, myBot = myTop + me.h;
     // 換位：拖曳卡片的「前緣」越過相鄰卡片的中線就換（往下看底緣、往上看頂緣），約半張卡即可換位
     let t = drag.from;
     for (let i = drag.from + 1; i < drag.cards.length; i++) { const c = drag.cards[i]; if (c.top + c.h / 2 < myBot) t = i; }
@@ -321,7 +325,8 @@ const Watch = (function () {
       endDrag(false);
     });
     list.addEventListener('pointercancel', function (ev) { if (drag && ev.pointerId === drag.pid) endDrag(false); });
-    list.addEventListener('lostpointercapture', function (ev) { if (drag && drag.active && ev.pointerId === drag.pid) endDrag(false); });
+    // 同一 pointer 失去 capture：抓起前（按住計時中）或拖曳中都取消，不保存排序。正常放開時 endDrag 已先清掉 drag，不會重複收尾。
+    list.addEventListener('lostpointercapture', function (ev) { if (drag && ev.pointerId === drag.pid) endDrag(false); });
     // 把手：鍵盤 ↑／↓ 直接移動（不捲頁），Enter／Space 開選單
     list.addEventListener('keydown', function (ev) {
       const h = ev.target.closest('.drag-handle');

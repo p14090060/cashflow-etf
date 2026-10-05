@@ -413,10 +413,9 @@ tx, ty = handle_xy(0); touch('touchStart', tx, ty); touch('touchEnd', tx, ty); w
 menu_open = ev("Watch._state().menu") == c[0]
 x, fy, hy = follow(1, 10)        # B 在 A 的選單下方：關閉選單會讓 B 上移，卡片仍須在手指下
 check('DR-20 開 A 選單 → 拖下方 B 10px：卡片跟手（誤差 ≤ 3px，不偏離選單高度）', menu_open and hy is not None and abs(hy - fy) <= 3, (fy, hy))
-# 依「關閉選單後的新版面」計算：讓拖曳中的卡片中心落在 C 的中心再往下 10px（C 之後、D 之前）
-d = ev(r"(function(){ const a=[...document.querySelectorAll('#watchList .wc')]; const me=a.find(x=>x.classList.contains('lifting')); const C=a[2]; const ty=v=>{const m=/translateY\((-?[\d.]+)px\)/.exec(v.style.transform||''); return m?parseFloat(m[1]):0;}; const rc=C.getBoundingClientRect(), rm=me.getBoundingClientRect(); return (rc.top+rc.height/2-ty(C)+10)-(rm.top+rm.height/2); })()")
-touch('touchMove', x, fy + d); wait_ms(80)
-touch('touchEnd', x, fy + d); wait_ms(150)
+# 排序意圖只看手指實際位移（選單關閉的版面補償只用於跟手）：手指從按下處往下移 1.0 張卡 → B 越過 C
+touch('touchMove', x, fy - 10 + step * 1.0); wait_ms(80)
+touch('touchEnd', x, fy - 10 + step * 1.0); wait_ms(150)
 check('DR-20 放開 → B 移到 C 之後（最終順序正確）', cards() == [c[0], c[2], c[1], c[3]], cards())
 # ── 6d2d9a3d 複審：選單在上方時，輕點下方把手（移動 < 8px）仍是 click，門檻只看手指實際移動 ──
 def mouse(t, x, y):
@@ -538,6 +537,37 @@ touch('touchStart', x, y); touch('touchMove', x, y - 5); wait_ms(50)
 sy1 = ev("window.scrollY")
 touch('touchEnd', x, y - 5); wait_ms(250)
 check('PV-1 從把手開始移動 5px：頁面不捲動、仍視為點擊（開選單）', sy1 == sy0 and ev("Watch._state().menu") == cards()[3], (sy0, sy1, ev("Watch._state().menu")))
+# ── 76252269 Code Review：選單補償不算排序意圖；同 pointer 失去 capture 一律取消 ──
+store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+c = cards()
+tx, ty = handle_xy(0); touch('touchStart', tx, ty); touch('touchEnd', tx, ty); wait_ms(250)
+mo = ev("Watch._state().menu") == c[0]
+x, y = handle_xy(1)
+touch('touchStart', x, y); wait_ms(300)
+hl = lifted()
+touch('touchEnd', x, y); wait_ms(250)
+check('HO-5 開 A 選單 → 按住下方 B 300ms 不移動 → 亮起；放開 → 順序（畫面／Store／localStorage）不變、不開選單',
+      mo and hl == 1 and cards() == c and store() == c and json.loads(ev("localStorage.getItem(%s)" % json.dumps(KEY)))['codes'] == c and ev("Watch._state().menu") is None and lifted() == 0,
+      (mo, hl, cards(), ev("Watch._state().menu")))
+def pev(t, i, dy=0, pid=99):
+    return ev("""(function(){ const h=document.querySelectorAll('#watchList .drag-handle')[%d]; const r=h.getBoundingClientRect();
+      h.dispatchEvent(new PointerEvent(%s, {pointerId:%d, bubbles:true, cancelable:true, button:0, pointerType:'touch', isPrimary:true, clientX:r.left+r.width/2, clientY:r.top+20+%f})); return true; })()""" % (i, json.dumps(t), pid, dy))
+store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+c = cards()
+pev('pointerdown', 1); wait_ms(50)
+pev('lostpointercapture', 1); wait_ms(300)
+check('LC-1 按住計時中失去 capture → 取消計時，300ms 後不會抓起、無亮起', ev("Watch._state().dragging") is False and lifted() == 0, (ev("Watch._state().dragging"), lifted()))
+pev('pointerdown', 1); pev('pointermove', 1, 20); wait_ms(60)
+act = ev("Watch._state().dragging")
+pev('pointermove', 1, step * 1.0); wait_ms(60)
+pev('lostpointercapture', 1); wait_ms(150)
+check('LC-2 拖曳中失去 capture → 拖曳取消、清除亮起與 transform、不保存排序', act is True and ev("Watch._state().dragging") is False and lifted() == 0 and ev("[...document.querySelectorAll('#watchList .wc')].every(x=>!x.style.transform)") is True and cards() == c and store() == c, (act, cards()))
+x, y = handle_xy(2)
+touch('touchStart', x, y); touch('touchEnd', x, y); wait_ms(250)
+m3 = ev("Watch._state().menu") == c[2]
+ev("document.querySelectorAll('#watchList .drag-handle')[2].click(); true"); wait_ms(80)
+hold_drag(0, step * 1.0)
+check('LC-3 失去 capture 後重新操作：輕點開選單、按住拖曳換位都正常', m3 and cards() == [c[1], c[0], c[2], c[3]], (m3, cards()))
 DEFER = []
 DEFER.append('DR-R1 visualViewport.offsetTop > 0（鍵盤／瀏覽器 UI 造成可視區位移）時的拖曳與自動捲動：headless 無法產生，需 iPhone Chrome 真機')
 DEFER.append('DR-R2 實際觸控拖曳手感、iOS 長按選字抑制、Samsung 左緣返回手勢：需真機')
