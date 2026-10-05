@@ -35,7 +35,8 @@
 - **Phase 4 Plan：Rev.2.1，Codex PASS；PO／Gate D1～D6 已決議（commit `df5d5072`）。**
 - **Phase 4 Coding commit：`b78134c1`**（本機，未手動 push；自動排程推送時 SHA 可能被改寫，commit 訊息開頭「feat(phase4): 我的 ETF（自選）」）。**Codex Code Review：NEED FIX。下一位：Claude｜修正下方三項實際 bug（見「Phase 4 Implementation — Codex Code Review」）。** Phase 4 尚未完成，修正複審後才交 PO 真機驗收。
 - **Phase 4 Code Review 修正 commit：`6d2d9a3d`**（本機，未手動 push；推送後 SHA 可能被改寫，訊息開頭「fix(phase4): Codex Code Review 三項」）。Codex 複審：**NEED FIX，僅剩選單高度補償被誤算為拖曳門檻的問題**（見「Phase 4 6d2d9a3d — Codex 複審」）。下一位：Claude；尚未交真機驗收。
-- **Phase 4 拖曳門檻修正 commit：`5df1cb50`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳門檻只看手指實際移動」）。**下一位：Codex｜複審**（見「Phase 4 5df1cb50 — 拖曳門檻修正」）。尚未進真機驗收。
+- **Phase 4 拖曳門檻修正 commit：`5df1cb50`**。**Codex 複審 PASS，Phase 4 Code Review 完成。** PO 真機驗收步驟 1～21 PASS，步驟 21 後因拖曳手感 UX 暫停（22～34 未測）。
+- **Phase 4 拖曳手感修正 commit：`76252269`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳手感」）。依 PO／GPT Gate 決策實作。**下一位：Codex｜Code Review**（見「Phase 4 76252269 — 拖曳手感修正」）。Codex PASS 後由 PO 重測拖曳相關步驟，再接續 22～34。
   - 產品需求已由 PO／GPT Gate 確認（自選／我的 ETF：♡ 收藏、自選大卡、近半年走勢 6 柱、台股漲紅跌綠、⠿ 拖曳排序、取消後可復原、引導式空狀態、localStorage only）。Plan 不重議需求。
   - 已標示的架構衝突（Plan §1）：C1 分類列是 `<button>`，無法內嵌 ♡ 按鈕 → 改為容器＋兩個並列按鈕；C2 `miniBars` 會把 0 畫成紅色且顏色寫死 → 新增選項參數，只有自選卡生效；C3 站上沒有淺色主題；C5 Detail 標題列捲動時會收合。
   - 待 PO／Gate 確認的做法（Plan §11 D1～D6）：miniBars 的 0 是否全站改中性、淺色主題、Detail ♡ 位置、Toast 規則、替代排序、頁面標題。
@@ -128,6 +129,24 @@
 - **測試結果**：watch_test **114 PASS、0 FAIL、4 DEFER**（真機項目不變）；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
 - **負向對照**：以 `b78134c1` 的舊 `watch.js` 跑同一份測試 → 15 FAIL（CL-1／CL-3、DR-15、DR-19、DR-20；DR-20 實測手指 551.59 vs 把手 433.59，與 Codex 重現一致）。
 - 資源版本 `20261005t`。DF-6 收合驗收依 Codex 意見非 blocker，未新增。
+
+### Phase 4 76252269 — 拖曳手感修正（Claude，2026-10-05）：交 Codex Code Review
+
+PO 真機回報：按住 ⠿ 沒有「已抓住」回饋、要慢按、要快拖才換位、節奏不對就整頁捲動。Claude 分析後 PO／GPT Gate 決策：按住 200ms 抓起；已亮起但沒拖就放開＝只放下、不開選單；不加震動；換位改「前緣越過中線」；把手觸控範圍只擴大到 ⠿ 那一欄；處理 iOS 捲動競爭與自動捲動緩衝；亮起只綁 drag active；提示文字定案。只改 `js/watch.js`、`css/watch.css`、`index.html`（提示文字、版本 `20261005v`）、`tests/browser/watch_test.py`。
+
+- **抓起條件**（`startPress`／`activate`）：pointerdown 後啟動 200ms 計時（`HOLD_MS`）；計時到仍未移動 8px → `activate()`。200ms 前已移動 ≥ 8px（仍以 `yRaw` 判斷）→ 立即 `activate()` 並清計時。200ms 內放開且 < 8px → 不 activate，標準 click 開選單（Codex 已驗規則不變）。已 activate 但沒換位就放開 → `endDrag(true)`（target＝from 不寫入）＋ `suppressClick` → 不開選單。計時器在 `activate` 與 `endDrag` 都清除，所有終止路徑（換頁、開 Detail、清單改變、visibilitychange、pagehide、cancel）都不會延遲抓起。
+- **亮起**：只在 `activate()` 加 `.lifting`（金色 2px 框、底色變亮、陰影加深、`scale(1.02)`；reduced-motion 不放大）；pointerdown 不亮。色彩美化留 Phase 5。
+- **換位門檻**（`frame()`）：往下拖時，拖曳卡片底緣越過下方卡片中線即換位；往上拖時，頂緣越過上方卡片中線即換位（約半張卡，原本中心對中心約一張卡）。讓位動畫與以 code 寫入不變。
+- **把手欄**（CSS）：`.drag-handle` `align-self: stretch`，上下吃掉卡片 padding，與卡片同高；⠿ 仍在上方；寬 44px，不與 `.wc-main`（代碼、名稱、價格、標籤）重疊，♥ 在另一側。
+- **iOS 捲動競爭**：`#watchList` 加 `touchmove`（`passive: false`）監聽，只有在拖曳狀態存在且觸控從 `.drag-handle` 開始時才 `preventDefault`；**不擋 touchstart**（保留輕點 click）。卡片主區的 touchmove 不處理，照常滑頁。
+- **自動捲動緩衝**：`EDGE` 48 → 36px；手指相對起點朝該邊緣移動 ≥ 24px（`AUTO_MIN`）才開始捲動。
+- **提示文字**：「按住 ⠿ 卡片亮起後拖曳調整順序；點一下 ⠿ 可選擇移動位置」。
+
+- **既有測試調整**：DR-1、DR-9、DR-18、DR-19 的拖曳距離依新門檻由 1.6 張卡改為 1.0 張卡（1.6 張在新門檻下會越過兩張，期望順序仍是「越過一張」，未放寬檢查）；DR-7 同步改為 1.0。DR-20 依新版面計算（C 中線再下 10px），新門檻下仍只越過 C，未改。DR-21（3px／7px 觸控、1px 滑鼠，皆在 200ms 內放開）不變且 PASS。
+- **新增測試**：HT-0 提示文字；HO-1 pointerdown 與 100ms 時未亮、約 200ms 後亮起進入拖曳、沒拖就放開不開選單且狀態清除；HO-2 200ms 內放開開選單且從未亮起；HO-4 200ms 前移動 12px 立即抓起、cancel 完整清除；TH-1 拖 0.6 張卡即換位且不開選單；TH-2 0.3 張不換位；TH-3 往上 0.6 張換位；HA-1 把手欄與卡片同高、不與主區重疊、按在下半部也能抓起；HA-2 代碼／名稱位置屬卡片主區；AS-1 抓起靠上緣的卡片後移動 10px 不捲動、移動 ≥ 24px 才捲動；HC-1／HC-2 計時中換頁或清單改變不會延遲抓起；PV-1 從把手移動 5px 不捲頁且仍是點擊。
+- **測試結果**：watch_test **136 PASS、0 FAIL、4 DEFER**；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
+- **負向對照**：以 `5df1cb50` 的 `watch.js`／`watch.css` 跑同一份測試 → 11 FAIL（HO-1、TH-1、TH-3、HA-1、AS-1，以及依新門檻校正的 DR-1／9／18／19）。
+- **仍需真機**：手感是否改善（不再需要慢按、正常速度可換位）、iOS 是否仍搶捲動，只能由 PO 真機確認。
 
 ### Phase 4 5df1cb50 — 拖曳門檻修正（Claude，2026-10-05）：交 Codex 複審
 
@@ -279,7 +298,7 @@
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **Codex｜複審（下一位）**：只複審 `5df1cb50` 的拖曳門檻修正與 DR-21（見「Phase 4 5df1cb50 — 拖曳門檻修正」）。PASS 後由 Claude 提供 PO 真機驗收步驟。
+- **Codex｜Code Review（下一位）**：審查 `76252269` 拖曳手感修正（見「Phase 4 76252269 — 拖曳手感修正」）。PASS 後由 Claude 提供 PO 拖曳相關重測步驟，再接續 22～34。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
