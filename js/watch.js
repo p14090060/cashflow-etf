@@ -25,7 +25,6 @@ const Watch = (function () {
   let menu = null;            // { code, el }
   let focusCode = null;       // 重繪後要把焦點還給哪一檔的把手
   let suppressClick = false;  // 拖曳放開後瀏覽器補發的 click 不得開選單
-  let pressClosedMenu = null; // 這次按下把手時順手關掉的選單屬於哪一檔（點同一檔＝關閉，不再重開）
 
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -204,21 +203,20 @@ const Watch = (function () {
   function startPress(ev, handle) {
     if (ev.button > 0 || drag) return;
     const card = handle.closest('.wc');
-    // 已開的移動選單占版面高度：先關閉再開始任何量測。選單在這張卡上方時，關閉會讓卡片上移 shift px；
-    // 把起點 y0 同步往上移，拖曳位移 (y − y0) 便包含這段差，卡片維持在手指下（PHASE4 Code Review #2）。
-    let shift = 0;
-    pressClosedMenu = null;
-    if (menu) {
-      pressClosedMenu = menu.code;
-      const before = card.getBoundingClientRect().top;
-      closeMenu(false);
-      shift = before - card.getBoundingClientRect().top;
-    }
-    drag = { code: card.dataset.code, handle: handle, card: card, pid: ev.pointerId, y0: ev.clientY - shift, y: ev.clientY,
+    // 按下時不動版面（輕點時手指下的把手不能移走）；已開的選單要等確定是拖曳（activate）才關閉。
+    // yRaw：使用者實際按下的位置，只用來判斷是否移動 ≥ DRAG_PX；y0：跟手錨點（activate 時再加上版面補償）
+    drag = { code: card.dataset.code, handle: handle, card: card, pid: ev.pointerId, yRaw: ev.clientY, y0: ev.clientY, y: ev.clientY,
              s0: window.scrollY, active: false, raf: 0, target: -1 };
     try { handle.setPointerCapture(ev.pointerId); } catch (e) { /* 不支援時仍可用 move 事件 */ }
   }
   function activate() {
+    // 已開的移動選單占版面高度：先關閉再量測。選單在這張卡上方時，關閉會讓卡片上移 shift px；
+    // 把跟手錨點 y0 同步上移，拖曳位移 (y − y0) 便包含這段差，卡片維持在手指下（PHASE4 Code Review #2）。
+    if (menu) {
+      const before = drag.card.getBoundingClientRect().top;
+      closeMenu(false);
+      drag.y0 -= before - drag.card.getBoundingClientRect().top;
+    }
     const cards = Array.prototype.slice.call(document.querySelectorAll('#watchList .wc'));
     drag.cards = cards.map(c => { const r = c.getBoundingClientRect(); return { el: c, code: c.dataset.code, top: r.top + window.scrollY, h: r.height }; });
     drag.from = cards.indexOf(drag.card);
@@ -281,9 +279,7 @@ const Watch = (function () {
       const h = ev.target.closest('.wc .drag-handle');
       if (h) {
         const code = h.closest('.wc').dataset.code;
-        if (suppressClick) { suppressClick = false; pressClosedMenu = null; return; }
-        if (pressClosedMenu === code) { pressClosedMenu = null; h.focus({ preventScroll: true }); return; }
-        pressClosedMenu = null;
+        if (suppressClick) { suppressClick = false; return; }
         if (menu && menu.code === code) closeMenu(true); else openMenu(code);
         return;
       }
@@ -297,7 +293,7 @@ const Watch = (function () {
     list.addEventListener('pointermove', function (ev) {
       if (!drag || ev.pointerId !== drag.pid) return;
       drag.y = ev.clientY;
-      if (!drag.active && Math.abs(drag.y - drag.y0) >= DRAG_PX) activate();
+      if (!drag.active && Math.abs(drag.y - drag.yRaw) >= DRAG_PX) activate();   // 門檻只看手指實際移動，不含選單關閉的版面補償
     });
     // 放開：拖曳中 → 寫入順序，並吃掉接下來那個 click；沒拖動 → 交給標準 click（開／關選單）
     list.addEventListener('pointerup', function (ev) {

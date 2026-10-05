@@ -418,6 +418,27 @@ d = ev(r"(function(){ const a=[...document.querySelectorAll('#watchList .wc')]; 
 touch('touchMove', x, fy + d); wait_ms(80)
 touch('touchEnd', x, fy + d); wait_ms(150)
 check('DR-20 放開 → B 移到 C 之後（最終順序正確）', cards() == [c[0], c[2], c[1], c[3]], cards())
+# ── 6d2d9a3d 複審：選單在上方時，輕點下方把手（移動 < 8px）仍是 click，門檻只看手指實際移動 ──
+def mouse(t, x, y):
+    cdp('Input.dispatchMouseEvent', {'type': t, 'x': x, 'y': y, 'button': 'left', 'buttons': 1 if t != 'mouseReleased' else 0, 'clickCount': 1, 'pointerType': 'mouse'})
+for (label, dev, dy) in [('觸控 3px', 'touch', 3), ('觸控 7px', 'touch', 7), ('滑鼠 1px', 'mouse', 1)]:
+    store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(100)
+    c = cards()
+    tx, ty = handle_xy(0); touch('touchStart', tx, ty); touch('touchEnd', tx, ty); wait_ms(250)
+    a_open = ev("Watch._state().menu") == c[0]
+    x, y = handle_xy(1)          # B 在 A 選單下方：按下時關閉選單會讓 B 上移約一個選單高
+    if dev == 'touch':
+        touch('touchStart', x, y); touch('touchMove', x, y + dy); wait_ms(60)
+        mid = ev("Watch._state().dragging")
+        touch('touchEnd', x, y + dy)
+    else:
+        mouse('mousePressed', x, y); mouse('mouseMoved', x, y + dy); wait_ms(60)
+        mid = ev("Watch._state().dragging")
+        mouse('mouseReleased', x, y + dy)
+    wait_ms(250)
+    check('DR-21 開 A 選單 → 輕點下方 B（%s，< 8px）：不開始拖曳、只開 B 選單、不重排' % label,
+          a_open and mid is False and ev("Watch._state().menu") == c[1] and ev("document.querySelectorAll('.wc-menu').length") == 1 and cards() == c and store() == c,
+          (a_open, mid, ev("Watch._state().menu"), cards() == c))
 DEFER = []
 DEFER.append('DR-R1 visualViewport.offsetTop > 0（鍵盤／瀏覽器 UI 造成可視區位移）時的拖曳與自動捲動：headless 無法產生，需 iPhone Chrome 真機')
 DEFER.append('DR-R2 實際觸控拖曳手感、iOS 長按選字抑制、Samsung 左緣返回手勢：需真機')
