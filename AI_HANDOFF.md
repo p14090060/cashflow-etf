@@ -435,6 +435,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
 - 第 2 節的歷史紀錄全部已 RESOLVED，包括 Phase 2 blockers、Plan Rev.1～Rev.3.3 blockers、resync blocker、visualViewport、3 秒處理中、QA C7／C9 等。不要把它們當成目前待辦。
 
 
+- **G3／PO Change #1：Codex Plan Delta Re-review PASS、G3 CLOSED、PO Change #1 正式核准**（Plan `e0f6aaaa`）。Codex 補充兩個測試前提，留到對應 checkpoint：RF-2 用真正有 Flow 資料且入口實際可見的 ETF／fixture；RF-8 Router 模擬用合法 ETF，且不得為測導航破壞紅綠方塊資訊顯示。
+- **CP2｜§6 舊功能退役與 dependency migration（§9 順序 2）— `2ee3f64f`，待 Codex CP2 Code Review。**
+  - `js/state.js`（新，最先載入）承接 `ETFS`／`CALENDAR`；`calc.js`、`lookup.js` 整檔刪除，`index.html` 移除兩支 script。
+  - 首頁 A-4 單檔查詢（`#todayCode`／`lookupToday`／`renderSignalCard`）移除；配息頁 B-1 計算機（`#chips`／`#customCode`／`#sharesIn`／`#calcOut`、`selChip`／`lookupCustom`）移除，`page-div` 只剩 B-2 日曆（保留為配息日曆子頁，§6 表）；`render.js` 刪 `selETF`／`renderChips()`／`calcUpdate()` 初始化。工具卡說明「配息計算機、近期配息日曆」→「近期配息日曆」（只改文字以免寫著不存在的功能；三張卡改版仍在 CP4）。
+  - Detail 配息分頁試算（`#dtSharesIn`／`#dtCalcOut`、`.calc-*`／`.input-*`／`.num-input` CSS）不動。CSS 只刪 `.etf-chip(s)`、`.custom-*`、`.big-num`。`.buy-card`／`.range-*`／`.div-pill` 仍被首頁 A-2（render.js）使用，留待首頁 checkpoint。
+  - `LAZY_WATCHLIST`：`render.js` A-2 與 fallback 仍引用 → **本 checkpoint 不刪**（Plan §6：首頁改版後 grep 無引用才刪；Python 三份不動）。MG-3 的 `LAZY_WATCHLIST` 斷言同樣延到首頁 checkpoint。
+  - `archived-check.js` 全檔為註解，無 `selETF`／`renderSignalCard` 實際引用，不動。
+  - 測試遷移（§6.1，非刪除）：regression「R page-div chip calc uses 0056」→「配息頁只剩日曆」＋Detail 0056 配息分頁 1→7 張：單次可領＝amount×張×1000、N 張市值約＝price×張×1000、年化領回連動、配息資訊倒數（N 天後／今日）；detail_ui T7「selETF untouched」→「Router 狀態不變」（shares kept、7 張市值保留）；新增 MG-1（`ETFS`／`CALENDAR` 由 state.js 提供、無 calc／lookup script）、MG-3（7 個退役全域皆 undefined）、首頁 A-4 已移除。R switch page div／yt、rank find、T11、category TOOLS card、X2 期望不變。
+  - 結果（headless 800×600，port 8766／9224）：router 64、search_compact 38、detail_ui 42、detail_history_fix 14、**regression 26**（原 14：-1 遷移、+13）、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。負向對照：試算改成不乘張數 → regression 2 FAIL。資料全擋（market／*.json blocked）＋切六頁＋`gs-ckm`：0 例外、`ETFS` 為空陣列。
+  - 環境備註：detail_state DS-10 前置條件（績效分頁可捲動）在 390×844 視窗下因內容不夠高而 FAIL，改改動前 baseline 亦同；以 800×600（過去跑法）全 PASS，非 regression。
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
