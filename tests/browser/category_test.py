@@ -396,7 +396,7 @@ ev("Router.toBase({base:'home'}); true"); wait_ms(200)
 ev("switchPage('cat'); true"); wait_ms(200)
 ev("document.querySelector('.cat-band[data-k=\"mcap\"]').click(); true"); wait_ms(450)
 p0 = pt()
-check('PT-1 portrait open: 進入 inside（其他分類收合，▾ 可見）', p0['ctl'] and p0['inside'] and p0['stripDisp'] == 'none' and p0['expText'] == '▾' and p0['expAria'] == 'false' and p0['expDisp'] != 'none', p0)
+check('PT-1 portrait open: 進入 inside（其他分類收合，▾ 可見）', p0['ctl'] and p0['inside'] and p0['stripDisp'] == 'none' and p0['expText'] == '切換分類 ▼' and p0['expAria'] == 'false' and p0['expDisp'] != 'none', p0)
 check('PT-1 inside: 說明列與外部「查看更多」隱藏，清單內有「查看更多」（D4／D5）', p0['footDisp'] == 'none' and p0['extMoreDisp'] == 'none' and p0['innerCount'] == 1, p0)
 check('PT-1 inside: 清單底部在導覽列上方（頁面未捲動）', p0['listBottom'] <= p0['navTop'] and p0['scrollY'] == 0, p0)
 # 排序／已展開數／捲動在 inside ↔ doorway 切換前後保留（Router 資料夾層）
@@ -408,7 +408,7 @@ ls_before = ev("document.getElementById('catList').scrollTop")
 h_inside = pt()['listH']
 PT_CLICK('#catExpand'); wait_ms(250)
 p1 = pt()
-check('PT-2 ▾ → doorway：其他分類顯示、▴、清單高度減少（約一列）', p1['inside'] is False and p1['stripDisp'] != 'none' and p1['expText'] == '▴' and p1['expAria'] == 'true' and p1['listH'] < h_inside, (p1['listH'], h_inside))
+check('PT-2 ▾ → doorway：其他分類顯示、▴、清單高度減少（約一列）', p1['inside'] is False and p1['stripDisp'] != 'none' and p1['expText'] == '切換分類 ▲' and p1['expAria'] == 'true' and p1['listH'] < h_inside, (p1['listH'], h_inside))
 check('PT-2 inside→doorway：清單多出的空間為次要標籤列高度（±4px）', abs((h_inside - p1['listH']) - 48) <= 4, (h_inside, p1['listH']))
 check('PT-2 doorway：排序、已展開數、捲動保留（Router 資料夾層不變）', ev("JSON.stringify(Router.state().stack[0].ui)") == ui_before, (ev("JSON.stringify(Router.state().stack[0].ui)"), ui_before))
 check('PT-2 doorway：清單捲動位置不跳動', ev("document.getElementById('catList').scrollTop") == ls_before, (ev("document.getElementById('catList').scrollTop"), ls_before))
@@ -425,7 +425,7 @@ check('PT-4 點主 TAB 標題區：doorway → inside', pt()['inside'] is True)
 PT_CLICK('#catExpand'); wait_ms(250)
 PT_CLICK('#catStrip button[data-k="div"]'); wait_ms(350)
 p3 = pt()
-check('PT-5 doorway 選「高股息」→ 新分類立即 inside（主 TAB 改名、其他分類收合）', p3['title'] == '高股息' and p3['inside'] and p3['stripDisp'] == 'none' and p3['expText'] == '▾', p3)
+check('PT-5 doorway 選「高股息」→ 新分類立即 inside（主 TAB 改名、其他分類收合）', p3['title'] == '高股息' and p3['inside'] and p3['stripDisp'] == 'none' and p3['expText'] == '切換分類 ▼', p3)
 # 高股息清單：查看更多在清單底部、捲到底可見、可點、導覽列不遮擋
 ev("document.getElementById('catList').scrollTop = 99999; true"); wait_ms(300)
 ib = ev("(function(){ const b=document.querySelector('#catList .cat-more-in'); if(!b) return null; const r=b.getBoundingClientRect(); const l=document.getElementById('catList').getBoundingClientRect(); const n=document.querySelector('.bottom-nav').getBoundingClientRect(); return {top:r.top, bottom:r.bottom, lTop:l.top, lBottom:l.bottom, navTop:n.top}; })()")
@@ -463,7 +463,7 @@ PT_CLICK('#catExpand'); wait_ms(250)
 ev("(function(){ document.querySelector('#catList .cat-row').click(); return true; })()"); wait_ms(300)
 check('PT-10 doorway 中開 Detail', ev("!document.getElementById('gsPanel').hidden") is True)
 ev("document.querySelector('#gsPanel .gs-panel-hd button').click(); true"); wait_ms(320)
-check('PT-10 關閉 Detail 後仍為 doorway（模式不變）', pt()['inside'] is False and pt()['expText'] == '▴')
+check('PT-10 關閉 Detail 後仍為 doorway（模式不變）', pt()['inside'] is False and pt()['expText'] == '切換分類 ▲')
 # 收合回到總覽：✕ → overview，展開控制與清單模式移除
 ev("document.getElementById('catClose').click(); true"); wait_ms(320)
 po = pt()
@@ -598,6 +598,52 @@ check('RL-4 Forward（Detail 再開）：Detail 開啟，清單仍在底部', f1
 ev("history.back(); true"); wait_ms(350)
 b2 = rl()
 check('RL-4 再次 Back：仍在底部，查看更多可見', b2['st'] == b2['max'] and b2['vis'] and not b2['detailOpen'], b2)
+
+# ── UX（UX-1 金色提醒與分類內容間距；UX-2「切換分類 ▼／▲」）：直向 inside／doorway ──
+UX_JS = """(function(){
+  const d = document.querySelector('.disclaimer').getBoundingClientRect();
+  const name = document.getElementById('catName'), rr = document.createRange(); rr.selectNodeContents(name);
+  const nt = rr.getBoundingClientRect(); const btn = document.getElementById('catExpand'), br = btn.getBoundingClientRect();
+  const t = document.querySelector('#catMain .cat-title');
+  return { gap: Math.round(nt.top - d.bottom), headH: Math.round(document.querySelector('#catMain .cat-head').getBoundingClientRect().height),
+           btnText: btn.textContent, btnW: Math.round(br.width), btnH: Math.round(br.height), btnInSubrow: btn.parentElement.classList.contains('cat-subrow'),
+           btnInHead: !!btn.closest('.cat-head'), ariaExpanded: btn.getAttribute('aria-expanded'), ariaLabel: btn.getAttribute('aria-label'),
+           titleScroll: t.scrollWidth, titleClient: t.clientWidth, titleW: Math.round(t.getBoundingClientRect().width),
+           nameText: name.textContent, countText: document.getElementById('catCount').textContent,
+           inside: document.getElementById('catMain').classList.contains('cat-inside'), btnDisp: getComputedStyle(btn).display };
+})()"""
+def ux(): return ev(UX_JS)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("Router.toBase({base:'home'}); true"); wait_ms(200)
+ev("switchPage('cat'); true"); wait_ms(200)
+ev("document.querySelector('.cat-band[data-k=\"tech\"]').click(); true"); wait_ms(450)
+u0 = ux()
+check('UX-1 金色提醒與分類內容之間保留正常間距（10–20px，不貼齊、不過大）', 10 <= u0['gap'] <= 20, u0)
+check('UX-1 標題列高度回到正常（≤ 40px，不再因 44px 按鈕撐高）', u0['headH'] <= 40, u0)
+check('UX-2 按鈕文字：inside 為「切換分類 ▼」', u0['btnText'] == '切換分類 ▼' and u0['inside'], u0)
+check('UX-2 按鈕可點擊區 ≥ 44×44', u0['btnW'] >= 44 and u0['btnH'] >= 44, u0)
+check('UX-2 按鈕位於說明列（不在標題列）', u0['btnInSubrow'] and not u0['btnInHead'], u0)
+check('UX-2 無障礙：aria-expanded=false、aria-label 含「切換分類」', u0['ariaExpanded'] == 'false' and '切換分類' in (u0['ariaLabel'] or ''), u0)
+check('長分類名稱保留完整空間：科技／半導體 不被截斷（標題無溢出）', u0['nameText'] == '科技／半導體' and u0['titleScroll'] <= u0['titleClient'] + 1 and u0['titleW'] >= 200, u0)
+# 點按鈕一次：只切換一次（inside → doorway），再點一次回到 inside
+ev("document.getElementById('catExpand').click(); true"); wait_ms(250)
+u1 = ux()
+check('UX-2 點「切換分類 ▼」一次：進入 doorway，按鈕變「▲」，aria-expanded=true', u1['btnText'] == '切換分類 ▲' and u1['ariaExpanded'] == 'true' and not u1['inside'], u1)
+ev("document.getElementById('catExpand').click(); true"); wait_ms(250)
+u2 = ux()
+check('UX-2 再點一次：回到 inside（只切換一次，沒有重複觸發）', u2['btnText'] == '切換分類 ▼' and u2['inside'], u2)
+# 主分類標題仍可切換（Gate 核准），與按鈕不衝突：各點一次都只切換一次
+ev("document.querySelector('#catMain .cat-title').click(); true"); wait_ms(250)
+check('UX-2 點主分類標題：inside → doorway（只切換一次）', ux()['btnText'] == '切換分類 ▲' and not ux()['inside'])
+ev("document.getElementById('catExpand').click(); true"); wait_ms(250)
+check('UX-2 標題切換後再點按鈕：doorway → inside（不衝突，只切換一次）', ux()['inside'] is True and ux()['btnText'] == '切換分類 ▼')
+# 橫向：按鈕不顯示；版面與 PASS 路徑一致
+set_view(844, 390, 'landscapePrimary'); wait_ms(300)
+ul = ux()
+check('UX 橫向：切換分類按鈕不顯示（landscape 路徑不變）', ul['btnDisp'] == 'none', ul)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+check('UX 回到直向：按鈕重新顯示（inside）', ux()['btnDisp'] != 'none' and ux()['inside'] is True)
+ev("document.getElementById('catClose').click(); true"); wait_ms(320)
 
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']
 check('no uncaught exceptions', len(exc) == 0, len(exc))

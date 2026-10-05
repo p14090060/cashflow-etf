@@ -138,9 +138,11 @@ const Category = (function () {
     const ctl = ctlActive();
     main.classList.toggle('cat-ctl', ctl);
     main.classList.toggle('cat-inside', ctl && !stripOpen);
-    btn.textContent = (ctl && stripOpen) ? '▴' : '▾';
+    const pgEl = $(PAGE_ID);
+    if (pgEl) pgEl.classList.toggle('cat-ctl', ctl);
+    btn.textContent = (ctl && stripOpen) ? '切換分類 ▲' : '切換分類 ▼';
     btn.setAttribute('aria-expanded', String(ctl && stripOpen));
-    btn.setAttribute('aria-label', (ctl && stripOpen) ? '收合其他分類' : '展開其他分類');
+    btn.setAttribute('aria-label', (ctl && stripOpen) ? '切換分類，收合其他分類' : '切換分類，展開其他分類');
   }
   function toggleStrip() {
     if (!ctlActive()) return;

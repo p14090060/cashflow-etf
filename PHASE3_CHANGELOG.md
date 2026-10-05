@@ -536,3 +536,75 @@ LR-4 恢復的 scroll 保留（40px，cat-off 路徑）、AB（3be2d19c 錨定�
 ### 版本
 
 - `index.html` 資源版本號 `20261005m` → `20261005n`（JS 有改動）。
+
+## UX-1、UX-2 小修（直向分類 inside／doorway；PO 已確認）
+
+### UX-1：金色提醒與分類內容之間的空白過大
+
+**真正來源（實測，390×844，inside）**：
+
+| 因素 | 數值 |
+|---|---|
+| `.disclaimer` 底部 | 207px |
+| `#page-cat` 頂端 padding（`.page` 的 `padding: 14px`） | 14px |
+| 標題列上方 padding（`.cat-head` 的 `padding: 6px 2px 4px`） | 6px |
+| 標題列高度（由 fdc1d139 起的 44px 按鈕撐高，文字在 54px 高的列中垂直置中） | 54px |
+| 標題文字頂端（距金色提醒底部） | **31px** |
+
+從 fdc1d139 起，44px 的 ▾ 按鈕把標題列從 46px 撐成 54px，文字因此往下置中，並加上 14px 的頁面 padding，共同造成 31px 的空白。
+
+**調整**：
+- 直向（`#page-cat.cat-ctl`）：頁面頂端 padding 14px → 8px。
+- 直向：標題列 padding 歸零，高度回到 36px（由排序按鈕決定）。
+- 結果：金色提醒與標題文字之間為 **15px**，保留正常的區塊呼吸感，不貼齊。
+- 只作用於直向 `cat-ctl`，橫向、LR-4、cat-tight3、844×390 的路徑不變。
+
+### UX-2：單獨的 ▼／▲ 不夠直覺
+
+**最終呈現**：
+- inside：按鈕文字「**切換分類 ▼**」。
+- doorway：按鈕文字「**切換分類 ▲**」。
+- 位置：分類說明列的右側，與說明文字同列（`.cat-subrow`）。按鈕 99×44px，整個按鈕都可點擊。
+- 無障礙：`aria-expanded` 保留；`aria-label` 為「切換分類，展開其他分類」／「切換分類，收合其他分類」（包含可見文字）。
+
+**為什麼不放在標題列**：標題列放不下「切換分類 ▼」與長分類名稱。「科技／半導體」名稱寬 102px、計數 34px、間距 8px，合計約 144px；加上排序（92px）、✕（33px）與按鈕（約 97px），總寬約 390px，超過標題列的 362px。若要放在標題列，必須縮小排序按鈕或字級，超出本次範圍。因此改放在說明列，標題列保留全寬（217px），「科技／半導體」完整顯示（無溢出）。
+
+**衝突檢查**：
+- 主分類標題仍可點擊切換（Gate 核准）。按鈕與標題是兩個獨立元素，點按鈕或點標題都只切換一次。
+- 說明列的按鈕與標題列之間有說明文字隔開，不會誤觸。
+
+### 自動驗收（`category_test.py` UX 區塊）
+
+| 編號 | 檢查 |
+|---|---|
+| UX-1 | 金色提醒與標題文字的間距在 10–20px 之間；標題列高度 ≤ 40px |
+| UX-2 | inside 按鈕文字為「切換分類 ▼」；按鈕可點擊區 ≥ 44×44；位於說明列而非標題列；`aria-expanded=false`；`aria-label` 含「切換分類」 |
+| UX-2 | 點按鈕一次：進入 doorway，文字變「▲」，`aria-expanded=true`；再點一次回到 inside（只切換一次） |
+| UX-2 | 點主分類標題：inside → doorway；再點按鈕：doorway → inside（不衝突，各只切換一次） |
+| 長名稱 | 「科技／半導體」與計數完整顯示（標題 scrollWidth ≤ clientWidth，標題寬 ≥ 200px） |
+| 橫向 | 切換分類按鈕不顯示（landscape 路徑不變）；回到直向後重新顯示 |
+
+既有 PT 測試中的 ▾／▴ 文字期望已更新為新的按鈕文字（行為與數字檢查不變）。
+
+### 負向對照
+
+還原 1418695a 的 index.html、js、css：UX-1 間距 31px、標題列 54px；UX-2 按鈕仍為「▾」、位於標題列；共 14 項 FAIL。修正版全部 PASS。
+
+### 測試結果（headless Chrome）
+
+| 測試 | 結果 |
+|---|---|
+| `router_test.py` | 64 / 64 PASS |
+| `search_compact_test.py`（Phase 1） | 38 / 38 PASS |
+| `detail_ui_test.py`（Phase 2） | 42 / 42 PASS |
+| `detail_history_fix_test.py`（Phase 2） | 14 / 14 PASS |
+| `regression_test.py`（Phase 2） | 14 / 14 PASS |
+| `detail_collapse_test.py`（Phase 2） | 25 / 25 PASS |
+| `detail_state_test.py` | 42 / 42 PASS |
+| `category_test.py` | 186 PASS，0 FAIL，**1 DEFER**（LR-8 真機） |
+
+renderList／D4 的真機修正（RL 區塊）、visualViewport 底部錨定（AB 區塊）、LR-4、cat-tight3、844×390 無鍵盤（BL 區塊）、橫向、直向 inside／doorway（PT 區塊）全部維持 PASS。
+
+### 版本
+
+- `index.html` 資源版本號 `20261005n` → `20261005o`（JS、CSS、HTML 都有改動）。

@@ -115,12 +115,13 @@ body.gs-ckm .cat-foot { display: none; }
 #page-cat .cat-main.cat-tight3 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "head seg" "strip strip" "body body";
+  grid-template-areas: "head seg" "sub sub" "strip strip" "body body";
   column-gap: 6px;
   row-gap: 0;
 }
 #page-cat .cat-tight3 > .cat-head { grid-area: head; padding: 0 2px; min-width: 0; }
 #page-cat .cat-tight3 > .cat-seg { grid-area: seg; margin: 0; }
+#page-cat .cat-tight3 > .cat-subrow { grid-area: sub; }
 #page-cat .cat-tight3 > .cat-seg button { min-height: 28px; padding: 0 8px; font-size: 13px; flex: none; }
 #page-cat .cat-tight3 > .cat-strip { grid-area: strip; margin: 2px 0 0; }
 #page-cat .cat-tight3 > .cat-list,
@@ -133,10 +134,16 @@ body.gs-ckm .cat-foot { display: none; }
 .cat-expand { display: none; }
 #catMain.cat-ctl .cat-expand {
   display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
-  width: 44px; height: 44px; padding: 0; margin: 0;
-  background: none; color: var(--dim); border: 1px solid var(--border); border-radius: 8px;
-  font: inherit; font-size: 16px; line-height: 1; cursor: pointer;
+  min-width: 44px; height: 44px; padding: 0 12px; margin: 0;
+  background: var(--card2); color: var(--bright); border: 1px solid var(--border); border-radius: 8px;
+  font: inherit; font-size: 14px; line-height: 1; white-space: nowrap; cursor: pointer;
 }
+/* 說明列與切換分類按鈕同列：說明文字在剩餘寬度內換行，標題列保留全寬給長分類名稱（例：科技／半導體） */
+.cat-subrow { display: flex; align-items: center; gap: 8px; }
+.cat-subrow > .cat-sub { flex: 1 1 auto; min-width: 0; }
+/* 直向（cat-ctl）：頁面頂端間距與標題列高度縮小，讓金色提醒與分類內容之間保留正常間距 */
+#page-cat.cat-ctl { padding-top: 8px; }
+#page-cat.cat-ctl .cat-main > .cat-head { padding: 0 2px; }
 #catMain.cat-ctl .cat-title { cursor: pointer; }
 #catMain.cat-inside > #catStrip { display: none; }
 #catMain.cat-ctl > .cat-more { display: none; }
