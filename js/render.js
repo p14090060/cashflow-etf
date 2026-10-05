@@ -32,6 +32,50 @@ function renderMood(market) {
     : '';
 }
 
+// ── 首頁（入口大廳，PHASE5_PLAN §2）──
+// 價格狀態文字：fair 為「合理」（不是「合理✓」）
+const HOME_SIG_LABEL = { cheap:'便宜', fair:'合理', hot:'過熱', dear:'偏貴', bond:'債券型' };
+const PZ_SHOW = 10;
+let _pzList = [];          // 價格合理區全部符合者（已排序）
+let _pzExpanded = false;   // 「查看全部」展開狀態：只在記憶體，30 秒輪詢重繪時保留
+
+function _homeEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+function renderPriceZone() {
+  const n = _pzList.length;
+  const list = document.getElementById('pzList');
+  const more = document.getElementById('pzMore');
+  const cnt  = document.getElementById('pzCount');
+  if (n === 0) {
+    cnt.textContent = '';
+    cnt.hidden = true;
+    list.innerHTML = '<div class="home-empty">目前沒有 ETF 符合價格條件</div>';
+    more.hidden = true;
+    return;
+  }
+  cnt.hidden = false;
+  cnt.textContent = '目前共有 ' + n + ' 檔 ETF 符合價格條件';
+  const shown = (_pzExpanded || n <= PZ_SHOW) ? _pzList : _pzList.slice(0, PZ_SHOW);
+  list.innerHTML = shown.map(e => {
+    const code = _homeEsc(e.code);
+    const cls = e.signal === 'cheap' ? 'sig-cheap' : 'sig-fair';
+    return '<button class="home-row pz-row" type="button" data-code="' + code + '" onclick="openDetail(\'' + code + '\')">'
+      + '<span class="wait-code">' + code + '</span>'
+      + '<span class="wait-name">' + _homeEsc(e.name) + '</span>'
+      + '<span class="' + cls + '">' + HOME_SIG_LABEL[e.signal] + '</span></button>';
+  }).join('');
+  more.hidden = n <= PZ_SHOW;
+  more.textContent = _pzExpanded ? '收起' : '查看全部 ' + n + ' 檔';
+  more.setAttribute('aria-expanded', _pzExpanded ? 'true' : 'false');
+}
+
+function homeTogglePz() {
+  _pzExpanded = !_pzExpanded;
+  renderPriceZone();
+}
+
 // ── renderAll：用資料渲染整頁 ──
 function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   ETFS = etfs;
@@ -59,7 +103,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   }
   renderMood(market);
 
-  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
+  const SIG_LABEL = HOME_SIG_LABEL;
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' };
 
   // 只從成交量前 100 篩選，避免冷門 ETF 混入
@@ -68,85 +112,28 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
     .sort((a, b) => (b.cur_vol || 0) - (a.cur_vol || 0))
     .slice(0, 100);
 
-  // ── A-2：便宜全顯示 + 合理最多5支 ──
-  const hasDividend = e => (e.div_frequency || '') !== '不配息';
-  const cheapList = TOP100.filter(e => e.signal === 'cheap' && e.price > 0 && hasDividend(e));
-  const a2Base    = e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && hasDividend(e);
-  const fairOnly  = TOP100.filter(e => e.signal === 'fair'  && a2Base(e)).slice(0, 5);
-  const showList  = [...cheapList, ...fairOnly];
+  // ── H4 價格合理區（PHASE5_PLAN §2.4，PO 決策 3、5、8、12、13）──
+  // 母體＝成交量前 100；cheap／fair 且有配息；cheap 在前、同狀態依 cur_vol。不用 LAZY_WATCHLIST、0 檔不給 fallback。
+  _pzList = TOP100
+    .filter(e => (e.signal === 'cheap' || e.signal === 'fair') && (e.div_frequency || '') !== '不配息')
+    .sort((a, b) => (a.signal === b.signal ? 0 : a.signal === 'cheap' ? -1 : 1) || (b.cur_vol || 0) - (a.cur_vol || 0));
+  renderPriceZone();
 
-  const renderBuyCard = (e, note='') => {
-    const hasRange = e.low52 != null && e.high52 != null && e.high52 > e.low52;
-    const pos = hasRange
-      ? Math.min(97, Math.max(3, (e.price - e.low52) / (e.high52 - e.low52) * 100))
-      : 50;
-    const maDStr = e.maD != null
-      ? `<span class="${e.maD>=0?'pos':'neg'}">${e.maD>=0?'+':''}${e.maD.toFixed(1)}%</span>`
-      : `<span style="color:var(--dim)">--</span>`;
-    return `<div class="buy-card">
-      <div class="buy-top">
-        <div><div class="buy-code">${e.code}</div><div class="buy-name">${e.name}</div></div>
-        <div class="${SIG_CLASS[e.signal] || 'sig-dear'}">${SIG_LABEL[e.signal] || '偏貴'}</div>
-      </div>
-      ${note}
-      <div class="buy-stats">
-        <span><span class="lbl">現價 </span><span class="val">${e.price}</span></span>
-        <span><span class="lbl">年化殖利率 </span><span class="val">${fmtYld(e)}</span></span>
-        <span><span class="lbl">60MA </span>${maDStr}</span>
-      </div>
-      ${hasRange ? `<div class="range-track"><div class="range-fill" style="width:${pos}%"></div><div class="range-dot" style="left:${pos}%"></div></div>
-      <div class="range-lbl"><span>低 ${e.low52}</span><span>高 ${e.high52}</span></div>` : ''}
-      <div class="div-pill">${(e.yld || 0) > 0
-        ? `🎁 ${e.days === 0 ? '今日配息' : `<span class="div-num">${e.days ?? '--'}</span> 天後配息`} · 預估 <span class="div-num">${e.est != null ? e.est.toFixed(2) : '--'}</span> 元/張`
-        : '🆕 新ETF 待首次配息公告'}</div>
-    </div>`;
-  };
-
-  if (showList.length > 0) {
-    document.getElementById('buyCount').textContent = showList.length + ' 支';
-    document.getElementById('buyCards').innerHTML = showList.map(e => renderBuyCard(e)).join('');
-  } else {
-    // fallback：LAZY_WATCHLIST 中最接近合理價的 3 支（maD 絕對值最小）
-    const closest = [...ETFS]
-      .filter(e => LAZY_WATCHLIST.has(e.code) && e.price > 0 && typeof e.maD === 'number'
-                && e.signal !== 'hot' && e.signal !== 'dear' && hasDividend(e))
-      .sort((a, b) => Math.abs(a.maD) - Math.abs(b.maD))
-      .slice(0, 3);
-    document.getElementById('buyCount').textContent = '0 支';
-    document.getElementById('buyCards').innerHTML =
-      (closest.length > 0
-        ? `<div class="empty-why" style="margin-bottom:10px">📊 今日無符合合理價條件的 ETF，以下為最接近門檻的標的，僅供參考</div>`
-          + closest.map(e => renderBuyCard(e)).join('')
-        : `<div class="empty-state">
-            目前沒有 ETF 符合篩選條件<br>
-            大盤偏熱，可參考下方熱門排行或自行搜尋
-            <div class="empty-why">
-              ℹ️ 為什麼今天沒有？<br>
-              當 ETF 普遍溢價、追在均線上方時，就會出現 0 支符合條件的情況。<br>
-              這代表今天不是好的進場時機。
-            </div>
-          </div>`
-      );
-  }
-
-  // TOP 10 熱門：與排行頁相同，取成交量前 10
+  // ── H5 今日成交量 TOP 10：與排行頁相同，取成交量前 10；整列開 Detail ──
   const top10 = TOP100.slice(0, 10);
   const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
   document.getElementById('waitItems').innerHTML = top10.map((e,i) => `
-    <div class="hot-item">
-      <div class="hot-rank ${rankClass(i)}">${i+1}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:6px">
-          <span class="wait-code" style="font-size:16px">${e.code}</span>
-          <span class="wait-name">${e.name}</span>
-        </div>
-        <div style="font-size:16px;margin-top:2px">
+    <button class="hot-item home-row" type="button" data-code="${_homeEsc(e.code)}" onclick="openDetail('${_homeEsc(e.code)}')">
+      <span class="hot-rank ${rankClass(i)}">${i+1}</span>
+      <span class="hr-main">
+        <span class="hr-line"><span class="wait-code">${_homeEsc(e.code)}</span><span class="wait-name">${_homeEsc(e.name)}</span></span>
+        <span class="hr-sub">
           <span style="color:#fb923c">現價 ${(+e.price).toFixed(2)}</span>
           <span style="color:var(--dim)"> · 年殖利率 </span><span style="color:#fbbf24">${(e.new_listing && !e.yld) ? '0%新上市' : fmtYld(e)}</span>
-        </div>
-      </div>
-      <div class="${SIG_CLASS[e.signal]}">${SIG_LABEL[e.signal]}</div>
-    </div>`).join('');
+        </span>
+      </span>
+      <span class="${SIG_CLASS[e.signal] || 'sig-dear'}">${SIG_LABEL[e.signal] || '偏貴'}</span>
+    </button>`).join('');
 
   const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD（本地時間）
   const futureCal = cal.filter(c => !c.iso_date || c.iso_date >= todayStr);

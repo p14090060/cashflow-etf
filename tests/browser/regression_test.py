@@ -31,7 +31,7 @@ cd = ev("""(()=>{const e=ETFS.find(x=>x.code==='0056'); const dv=_dvView(e,_dtCa
   const t=document.getElementById('gsPanel').innerText; return {future: !!(dv.date && !dv.past), ok: /（\\d+ 天後）|（今日）/.test(t)};})()""")
 check('R Detail 0056 配息資訊倒數（除息日在未來時顯示 N 天後／今日）', (not cd['future']) or cd['ok'], cd)
 ev("closeDetail(); true"); wait_ms(300)
-# MG-1／MG-3（LAZY_WATCHLIST 待首頁 checkpoint 移除後再加入 MG-3）
+# MG-1／MG-3（LAZY_WATCHLIST 於 CP3 首頁改版後一併驗證，見 home_test.py）
 check('MG-3 retired globals are undefined (selETF/renderChips/calcUpdate/selChip/lookupToday/lookupCustom/renderSignalCard)',
       ev("['selETF','renderChips','calcUpdate','selChip','lookupToday','lookupCustom','renderSignalCard'].every(n=>{try{return eval('typeof '+n)==='undefined'}catch(e){return true}})") is True)
 check('MG-1 ETFS／CALENDAR available from state.js', ev("Array.isArray(ETFS) && ETFS.length > 0 && Array.isArray(CALENDAR) && !!document.querySelector('script[src^=\\'js/state.js\\']') && !document.querySelector('script[src*=\\'calc.js\\'],script[src*=\\'lookup.js\\']')") is True)

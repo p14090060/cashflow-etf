@@ -10,9 +10,9 @@
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
 <link rel="stylesheet" href="css/base.css?v=20261005x">
-<link rel="stylesheet" href="css/components.css?v=20261006a">
+<link rel="stylesheet" href="css/components.css?v=20261006b">
 <link rel="stylesheet" href="css/pages.css?v=20261005x">
-<link rel="stylesheet" href="css/category.css?v=20261005x">
+<link rel="stylesheet" href="css/category.css?v=20261006b">
 <link rel="stylesheet" href="css/watch.css?v=20261005x">
 </head>
 <body>
@@ -72,19 +72,26 @@
       </div>
     </div>
 
-    <div class="section-hdr buy">
-      值得留意 ETF
-      <span class="badge-count" id="buyCount"></span>
+    <!-- H3 兩大入口：與底部導覽同一個 switchPage()（PHASE5_PLAN §2.3） -->
+    <div class="home-entries">
+      <button class="home-entry" type="button" id="homeGoCat" onclick="switchPage('cat')">
+        <span class="he-text"><b>我想看看 ETF</b><span>不知道從哪開始？從分類逛起</span></span><span class="he-arrow" aria-hidden="true">›</span>
+      </button>
+      <button class="home-entry" type="button" id="homeGoWatch" onclick="switchPage('watch')">
+        <span class="he-text"><b>我已經有 ETF</b><span>看我的 ETF、查配息</span></span><span class="he-arrow" aria-hidden="true">›</span>
+      </button>
     </div>
-    <div style="font-size:16px;color:#e8607a;margin:-8px 0 10px 2px">便宜：52週低位區、低於60MA｜合理：不超過60MA 3%、未追熱｜僅含配息型 ETF</div>
-    <div id="buyCards"></div>
 
-    <div class="section-hdr wait" style="margin-top:22px">
-      今日熱門 ETF TOP 10
-    </div>
-    <div id="waitItems"></div>
+    <!-- H4 價格合理區（PHASE5_PLAN §2.4） -->
+    <div class="section-hdr buy" id="pzTitle">價格合理區</div>
+    <div class="home-sub" id="pzCount"></div>
+    <div class="home-note">便宜：52 週位置偏低且低於 60MA 2% 以上｜合理：不超過 60MA 3%、未追熱｜僅含配息型、成交量前 100</div>
+    <div class="home-list" id="pzList"></div>
+    <button class="home-more" type="button" id="pzMore" hidden onclick="homeTogglePz()"></button>
 
-    <button class="entry-card" type="button" onclick="switchPage('yt')">YouTube 頻道：金流黑盒子 ›</button>
+    <!-- H5 今日成交量 TOP 10（cur_vol，不用 heat） -->
+    <div class="section-hdr wait" id="tvTitle" style="margin-top:22px">今日成交量 TOP 10</div>
+    <div class="home-list" id="waitItems"></div>
 
   </div>
 
@@ -357,12 +364,11 @@
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
-<script src="js/config.js?v=20261005x"></script>
 <script src="js/nav.js?v=20261005x"></script>
 <script src="js/flow.js?v=20261005x"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261005x"></script>
-<script src="js/render.js?v=20261006a"></script>
+<script src="js/render.js?v=20261006b"></script>
 <script src="js/rank.js?v=20261005x"></script>
 <script src="js/search.js?v=20261006a"></script>
 <script src="js/watch-store.js?v=20261005x"></script>
