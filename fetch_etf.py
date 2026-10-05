@@ -470,6 +470,18 @@ def pool_excluded(code, name):
     return None
 
 
+# etf_pool_cache.json 只存 [code, name, is_otc]，沒有 CFI／區段資訊，fallback 時用代號區段驗產品類型。
+# 2026-10-05 實測 ISIN 上市＋上櫃：ETF 區段 360 檔代號全為 00 開頭、ETN 區段 21 檔全為 02 開頭，
+# 其他區段（股票、權證、特別股、TDR、受益證券…）沒有任何 00／02 開頭代號。
+# 舊程式讀到頁尾時誤收的 01111S～01114S（受益證券-資產基礎證券）就靠這條擋。
+_CACHE_PRODUCT_RE = re.compile(r'0[02][0-9]{2,4}[A-Z]?')
+
+
+def cache_product_ok(code):
+    """cache fallback 的產品類型防線：只認 ETF（00…）／ETN（02…）代號格式。"""
+    return bool(_CACHE_PRODUCT_RE.fullmatch(code or ''))
+
+
 def isin_sections(html):
     """切出 ISIN 頁的區段 {區段名: 區段 HTML}，每段只到下一個區段標題列為止。"""
     marks = [(m.group(1).strip(), m.start(), m.end()) for m in _SECTION_RE.finditer(html)]
@@ -582,7 +594,7 @@ def build_pool():
                 # cache 是舊規則時代寫的也一樣要過篩選鏈（③槓反期貨可能還在裡面）
                 auto = [(r[0], r[1], bool(r[2]) if len(r) > 2 else False)
                         for r in cached if len(r) >= 2 and r[0] and r[1]
-                        and not pool_excluded(r[0], r[1])]
+                        and cache_product_ok(r[0]) and not pool_excluded(r[0], r[1])]
                 print(f"[POOL] ISIN 失敗，從 etf_pool_cache.json fallback 取得 {len(auto)} 支")
             except Exception as fb_err:
                 print(f"[POOL] fallback 讀取 cache 失敗: {fb_err}")

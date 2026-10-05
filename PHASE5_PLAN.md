@@ -264,7 +264,7 @@ Router 以 `confirmed.stack` 與 `commonPrefix` 計算 traversal 層數（`k = c
 | `regression_test.py`「R rank find 0050」 | 排行定位 | 在工具「成交量排行」分頁執行，期望不變 |
 | `detail_ui_test.py` T7「selETF untouched」 | Detail 計算不污染 B-1 的 `selETF` | `selETF` 已不存在 → 改驗 Detail 計算不影響其他狀態：`detailOnMarketUpdate()` 後 `#dtSharesIn` 保留、`Router.state()` 不變（T7 原有的「shares kept」「7 張市值」兩項保留不變） |
 | `detail_ui_test.py` T11「nav opened page-div」 | Detail 開著時切到配息頁 | `switchPage('div')` → 工具頁配息日曆分頁；Detail 關閉、單一 popstate 的斷言保留 |
-| `category_test.py`「TOOLS card opens 配息 subpage／back returns to tools list」 | 入口卡 → 子頁（push tool 層）→ Back 回列表 | 入口卡已退役 → 改驗：底部導覽「工具」顯示排行、`history.length` 不變；切到配息日曆 `history.length` 仍不變、stack＝`[tool div]`；在配息日曆開 Detail → Back 關 Detail 後仍在配息日曆 |
+| `category_test.py`「TOOLS card opens 配息 subpage／back returns to tools list」 | 入口卡 → 子頁（push tool 層）→ Back 回列表 | 入口卡已退役 → 改驗：底部導覽「工具」顯示排行、`history.length` 不變；切到配息日曆 `history.length` 仍不變、stack 仍為 `[]`（§3.3：分頁狀態不進 Router）；在配息日曆開 Detail → Back 關 Detail 後仍在配息日曆 |
 | `search_compact_test.py` X2「stays on requested page」 | 延遲搜尋中 `switchPage('div')` | 期望改為工具頁配息日曆分頁；「不開 Detail」斷言保留 |
 
 ---

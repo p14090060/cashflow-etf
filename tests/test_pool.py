@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FIX = ROOT / 'tests' / 'fixtures'
 
 WANT = {'EXCLUDE_KW', 'EXCLUDE_SUFFIX', 'ISIN_SECTIONS', '_SECTION_RE', '_TD_RE',
-        'CURATED', 'CURATED_CODES', 'pool_excluded', 'isin_sections',
+        'CURATED', 'CURATED_CODES', '_CACHE_PRODUCT_RE', 'cache_product_ok', 'pool_excluded', 'isin_sections',
         'parse_isin_rows', 'parse_isin_pool', '_isin_etf_pool',
         'fetch_twse_etf_pool', 'build_pool'}
 
@@ -145,6 +145,35 @@ pool, log = quiet(F['build_pool'])
 pc = {c for c, _ in pool}
 check('EX-7 cache 的 L／U／關鍵字項目被排除', not ({'00631L', '00682U', '009997', '00687C'} & pc), pc)
 check('EX-7 cache 的正常項目保留（含上櫃 TWO_CODES）', {'0050', '00411A'} <= pc and '00411A' in F['TWO_CODES'])
+
+# EX-7b ISIN 失敗 → 舊快取 fallback 的產品類型防線（Codex CP1 finding）
+pages[2] = page(2).replace('<B> ETF <B>', '<B> XXX <B>')   # 兩個市場別都抓不到
+old_cache = [['0050', '元大台灣50', False], ['00981A', '主動統一台股增長', False],
+             ['00980D', '主動聯博投等入息', True], ['00625K', '富邦上証+R', False],
+             ['020032', '元大綠能N', False], ['006201', '元大富櫃50', True],
+             ['01111S', '081中租賃A', True], ['01112S', '081中租賃B', True],
+             ['01113S', '111中租賃A', True], ['01114S', '111中租賃B', True],
+             ['00687C', '國泰20年美債+櫃U', True], ['02001L', '富邦蘋果正二N', False]]
+json.dump(old_cache, open(F['POOL_CACHE'], 'w', encoding='utf-8'))
+F['TWO_CODES'].clear()
+pool, log = quiet(F['build_pool'])
+pc = {c for c, _ in pool}
+check('EX-7b 確實走 cache fallback（ISIN 兩邊失敗）', 'fallback' in log, log)
+check('EX-7b 01111S～01114S 不重新進候選池', not ({'01111S', '01112S', '01113S', '01114S'} & pc), pc)
+check('EX-7b 合法 ETF／ETN 從快取恢復（0050、00981A、00980D、00625K、020032、006201）',
+      {'0050', '00981A', '00980D', '00625K', '020032', '006201'} <= pc, pc)
+check('EX-7b 既有防線維持（00687C、02001L 排除）', not ({'00687C', '02001L'} & pc))
+check('EX-7b 01111S 不被補進 TWO_CODES', '01111S' not in F['TWO_CODES'])
+# 現行 cache 與 ISIN 實頁 ETF／ETN 代號：產品類型防線 0 誤殺
+real = set()
+for m in (2, 4):
+    secs = F['isin_sections'](page(m))
+    real |= {c for t in ('ETF', 'ETN') for c in re.findall(r'<td[^>]*>([0-9A-Z]{4,6})　', secs[t])}
+check('EX-7b fixture ETF／ETN 全部代號通過產品類型防線', real and all(F['cache_product_ok'](c) for c in real),
+      [c for c in real if not F['cache_product_ok'](c)])
+cache_live = json.load(open(ROOT / 'data' / 'etf_pool_cache.json', encoding='utf-8'))
+miss = [r[0] for r in cache_live if not F['cache_product_ok'](r[0])]
+check('EX-7b 現行 etf_pool_cache.json 只擋掉 01111S～01114S', sorted(miss) == ['01111S', '01112S', '01113S', '01114S'], miss)
 
 # EX-8 CURATED 防禦性
 F['CURATED'] = F['CURATED'] + [('00631L', '元大台灣50正2')]
