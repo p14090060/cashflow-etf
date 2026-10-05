@@ -33,7 +33,8 @@
   - 仍有效的 Observation（不阻擋封版）：§0.7 的 Known Observation（清單剛好放得下時縮短，「查看更多」被裁約 16px；真機未造成問題）、0057 富邦摩台、低高度橫向的持股異動 treemap。
   - **Phase 4 尚未開始 coding。**
 - **Phase 4 Plan：Rev.2.1，Codex PASS；PO／Gate D1～D6 已決議（commit `df5d5072`）。**
-- **Phase 4 Coding commit：`b78134c1`**（本機，未手動 push；自動排程推送時 SHA 可能被改寫，commit 訊息開頭「feat(phase4): 我的 ETF（自選）」）。**下一位：Codex｜Code Review**（見下方「Phase 4 Coding — 交 Codex Code Review」）。**Phase 4 尚未完成**：Codex 審查與真機驗收都還沒做。
+- **Phase 4 Coding commit：`b78134c1`**（本機，未手動 push；自動排程推送時 SHA 可能被改寫，commit 訊息開頭「feat(phase4): 我的 ETF（自選）」）。**Codex Code Review：NEED FIX。下一位：Claude｜修正下方三項實際 bug（見「Phase 4 Implementation — Codex Code Review」）。** Phase 4 尚未完成，修正複審後才交 PO 真機驗收。
+- **Phase 4 Code Review 修正 commit：`6d2d9a3d`**（本機，未手動 push；推送後 SHA 可能被改寫，訊息開頭「fix(phase4): Codex Code Review 三項」）。三項 NEED FIX 已修並補 regression。**下一位：Codex｜Code Review 複審**（見「Phase 4 Code Review 修正 — 交 Codex 複審」）。尚未進真機驗收。
   - 產品需求已由 PO／GPT Gate 確認（自選／我的 ETF：♡ 收藏、自選大卡、近半年走勢 6 柱、台股漲紅跌綠、⠿ 拖曳排序、取消後可復原、引導式空狀態、localStorage only）。Plan 不重議需求。
   - 已標示的架構衝突（Plan §1）：C1 分類列是 `<button>`，無法內嵌 ♡ 按鈕 → 改為容器＋兩個並列按鈕；C2 `miniBars` 會把 0 畫成紅色且顏色寫死 → 新增選項參數，只有自選卡生效；C3 站上沒有淺色主題；C5 Detail 標題列捲動時會收合。
   - 待 PO／Gate 確認的做法（Plan §11 D1～D6）：miniBars 的 0 是否全站改中性、淺色主題、Detail ♡ 位置、Toast 規則、替代排序、頁面標題。
@@ -113,6 +114,39 @@
 - **watch_test 涵蓋**：ST-1～8（含寫入／讀取失敗、storage 不回寫、失敗後不被覆蓋、reload）、SY-1～3、CD-1～3、UN-1／3／4／5a／5b／5c／6、BR-1～3、CL-1～2、D1、ES-1～2、DR-1～3／5～9／11～14、DF-1～5、LV-1（844×390、390×300）、A11Y、FL-1～5／7、FL-4 四個來源（首頁／工具／分類／自選）。FL-6＝category_test 的 FD-1～6。
 - **DEFER（真機）**：DR-R1 `visualViewport.offsetTop > 0` 時的拖曳與自動捲動；DR-R2 觸控手感、iOS 長按選字、Samsung 左緣返回手勢；DR-R3 VoiceOver 點兩下 ⠿ 開選單；DF-6 Detail 收合時 ♡ 與 ✕ 同步隱藏（headless 內容不夠長，未觸發收合）。
 - **Codex 審查重點**：WatchStore 的通知／storage／失敗狀態；分類列結構與委派對 D4／renderList／LR-4／tight3 的影響；`_dtSyncFav` 與 Detail 狀態；拖曳的座標、rAF、所有終止路徑；D1 改動範圍；FL 保護是否確實；新測試是否真的驗證行為。
+
+### Phase 4 Code Review 修正 — 交 Codex 複審（Claude，2026-10-05）
+
+只修 Codex 三項，未改產品需求、未擴大重構；`router.js`／`flow.js` 仍無 diff。
+
+1. **把手標準 click**（`js/watch.js` `bind()`）：移動選單改由 `click` 開／關（涵蓋滑鼠、觸控 tap、原生 Enter／Space、VoiceOver／TalkBack 合成 click）。`pointerup` 不再開選單；拖曳放開時設 `suppressClick` 吃掉瀏覽器補發的 click（400ms 後自動解除）。按下把手時若關掉的是同一檔的選單（`pressClosedMenu`），隨後的 click 只把焦點還給把手、不重開（＝點同一把手關閉）。移除原本 keydown 的 Enter／Space 分支，避免與原生 activation 雙觸發；↑／↓ 與 focusCode 保留。
+2. **開選單時拖曳的幾何**（`startPress()`／`activate()`）：在 `startPress` 量測前先 `closeMenu`，記下這張卡關閉前後的 top 差 `shift`，`y0 = clientY − shift`，所以拖曳位移包含版面上移量，卡片維持在手指下；`activate()` 的快照一律在選單關閉後才量。選單在卡片下方時 shift＝0。
+3. **漲跌額／幅各自判色**（`chgHtml()` → `chgPart()`）：兩欄各自以四捨五入到 2 位後的值決定 up／dn／flat（`--up`／`--dn`／`--dim`）與 ▲▼／+−；null 一律灰「--」；`+0.004`／`−0.004` 顯示中性 0.00，不出現 −0.00。CSS 新增 `.wc-chgs` 容器。
+
+- **新增 regression（watch_test）**：CL-1 改為兩欄分別驗文字＋computed color；CL-3 ×6（−0.01／0、0／+0.01、null／+1.2、+0.3／null、±0.004、正負不同號）；DR-15 click-only 開／再 click 關且焦點回把手；DR-16 Enter、Space 各開一次且不捲頁；DR-17 真實 tap 只觸發一次；DR-18 拖曳放開不開選單；DR-19 以真實 tap 開 A 選單 → 拖 A 跟手（≤ 3px）＋最終順序；DR-20 開 A 選單 → 拖下方 B 10px 跟手（≤ 3px）＋依關閉選單後的新版面計算放下位置，驗最終順序。
+- **測試結果**：watch_test **114 PASS、0 FAIL、4 DEFER**（真機項目不變）；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
+- **負向對照**：以 `b78134c1` 的舊 `watch.js` 跑同一份測試 → 15 FAIL（CL-1／CL-3、DR-15、DR-19、DR-20；DR-20 實測手指 551.59 vs 把手 433.59，與 Codex 重現一致）。
+- 資源版本 `20261005t`。DF-6 收合驗收依 Codex 意見非 blocker，未新增。
+
+### Phase 4 Implementation — Codex Code Review（2026-10-05）：NEED FIX
+
+實際審查 `b78134c1`，基準 Plan／Gate `df5d5072`。只修改本 handoff；沒有修改程式、測試、Plan，沒有 commit／push。產品決策不重議。必要修正共三項：
+
+1. **標準 click 無法開把手選單（`js/watch.js` `bind()`，約 261–305 行）。** 移動選單只從 pointerup 與把手 keydown 開啟，click handler 沒有 `.drag-handle` 分支。補測 `document.querySelector('.drag-handle').click()` 後 `Watch._state().menu` 仍為 null；相同把手透過 pointerdown/up 則正常。VoiceOver／TalkBack 的合成 click 路徑缺少實作，不可只列 DR-R3 真機 DEFER。請加入標準 button activation 路徑並避免 pointerup＋隨後 click 雙觸發；拖曳放開不得誤開選單。補 click-only、Enter／Space、真實 tap 各一次及拖曳 release 的測試。
+
+2. **已有移動選單時，開始拖曳會使用過期幾何（`js/watch.js` `startPress()`／`activate()`，約 199–222 行）。** `activate()` 先量卡片 document top，再 `closeMenu(false)`；選單實際插在卡片之後、占版面高度，移除後其下方卡片立刻上移，但已保存的 y0／rect 仍含選單高度。補測四檔：開第一檔選單，拖第二檔向下 10px；手指期望位置 551.59，實際把手中心 433.59，偏離約 118px（scrollY=0）。請在開始量測前關閉選單，並維持 pointer／card 的起始錨點一致，不能只在快照完成後移除；若開始按下的卡片位於選單下方，也需處理移除造成的起始位置變動。補「開 A 選單 → 拖 A／下方 B」的跟手位置與最終順序驗收，勿只驗 Store 最後可 move。
+
+3. **今日漲跌額／幅共用一個判色與箭頭，0／缺值會被染成另一欄的狀態（`js/watch.js` `chgHtml()`，約 36–47 行）。** 用 pct 優先決定整個 span 的 k，再對 pt 取 Math.abs。補測：pt=-0.01、pct=0 → 顯示中性「0.01　0.00%」，跌幅符號與綠色消失；pt=0、pct=0.01 → 「▲0.00」變紅；pt=null、pct=1.2 → 缺值「--」也變紅。這些是數字各自四捨五入／部分缺欄時的有效邊界，違反 §6／Gate 的漲紅跌綠、0 中性、缺值灰。請每欄依自身值顯示顏色及正負語意，保留 pt 的下跌方向，不將 null 當另一欄的正值。補混合 0／正負／null fixture；原 CL 測試只涵蓋兩欄同號，無法抓此問題。
+
+**四項 Plan deviation 判定：** ① 提示同時說明拖曳與點選：可接受；② Enter／Space 開選單：可接受且有益，但須修第 1 項 click-only 路徑；③ 無 150ms 移除淡出：可接受，功能不受影響；④ 收藏清單變更整份重畫、行情只 patch：目前核心同步與順序測試通過，實作形式本身不阻擋。鍵盤排序已有 focusCode 還原，修正時保留。
+
+**Active Flow：** `router.js`／`flow.js` 無 diff；watch_test 重跑 FL 項目通過。computed treemap 紅加碼／綠減碼、海外正負／缺值列表、fetched=false／無異動／未更新文字、四種來源 Detail → Flow → Back 總覽 → Forward 同檔均被驗證，收藏重繪未重設 Flow。不得為修 Phase 4 而改這些封版語意。
+
+**驗證：** watch_test 重跑 98 PASS／0 FAIL／4 DEFER；另重跑 category_test 與 detail_state_test（Detail 42 PASS／0 FAIL），Category 的低高度實際點擊、D4 與 inside／doorway 等回歸已核對。另以獨立瀏覽器補測重現上述三項（未建立測試檔）。既有選擇器遷移 diff 沒有放寬 assertion，但新的把手測試只使用 pointer 事件，沒有驗 click-only；拖曳測試沒有先開選單；漲跌測試沒有混合欄位狀態，故 98 PASS 不代表這三項已涵蓋。
+
+**四個 DEFER：** offsetTop>0、真實觸控／系統手勢、VoiceOver 操作、Detail 收合目視可留真機 QA，不直接判 FAIL；但已可重現的 click-only 缺失需先修，不可用 VoiceOver DEFER 掩蓋。DF-6 可補自動收合驗收，現有 CSS 同列隱藏方向無明確 regression，不因此新增 blocker。
+
+下一位：Claude。只修三項並補對應 regression，交 Codex 複審；PO 現在無需操作，不開始下一 Phase。
 
 ### Phase 4 Rev.2.1 — 修訂內容（Claude，2026-10-05）：交 Codex 複審
 
@@ -215,7 +249,7 @@
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **Codex｜Code Review（下一位）**：審查 Phase 4 coding commit（見「Phase 4 Coding — 交 Codex Code Review」）。PASS 後由 Claude 提供 PO 真機驗收步驟（iPhone Chrome 主測、Samsung Chrome 抽測）。
+- **Codex｜Code Review 複審（下一位）**：只複審 `6d2d9a3d` 的三項修正與新增 regression（見「Phase 4 Code Review 修正 — 交 Codex 複審」）。PASS 後由 Claude 提供 PO 真機驗收步驟。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
