@@ -34,7 +34,8 @@
   - **Phase 4 尚未開始 coding。**
 - **Phase 4 Plan：Rev.2.1，Codex PASS；PO／Gate D1～D6 已決議（commit `df5d5072`）。**
 - **Phase 4 Coding commit：`b78134c1`**（本機，未手動 push；自動排程推送時 SHA 可能被改寫，commit 訊息開頭「feat(phase4): 我的 ETF（自選）」）。**Codex Code Review：NEED FIX。下一位：Claude｜修正下方三項實際 bug（見「Phase 4 Implementation — Codex Code Review」）。** Phase 4 尚未完成，修正複審後才交 PO 真機驗收。
-- **Phase 4 Code Review 修正 commit：`6d2d9a3d`**（本機，未手動 push；推送後 SHA 可能被改寫，訊息開頭「fix(phase4): Codex Code Review 三項」）。三項 NEED FIX 已修並補 regression。**下一位：Codex｜Code Review 複審**（見「Phase 4 Code Review 修正 — 交 Codex 複審」）。尚未進真機驗收。
+- **Phase 4 Code Review 修正 commit：`6d2d9a3d`**（本機，未手動 push；推送後 SHA 可能被改寫，訊息開頭「fix(phase4): Codex Code Review 三項」）。Codex 複審：**NEED FIX，僅剩選單高度補償被誤算為拖曳門檻的問題**（見「Phase 4 6d2d9a3d — Codex 複審」）。下一位：Claude；尚未交真機驗收。
+- **Phase 4 拖曳門檻修正 commit：`5df1cb50`**（本機，未手動 push；訊息開頭「fix(phase4): 拖曳門檻只看手指實際移動」）。**下一位：Codex｜複審**（見「Phase 4 5df1cb50 — 拖曳門檻修正」）。尚未進真機驗收。
   - 產品需求已由 PO／GPT Gate 確認（自選／我的 ETF：♡ 收藏、自選大卡、近半年走勢 6 柱、台股漲紅跌綠、⠿ 拖曳排序、取消後可復原、引導式空狀態、localStorage only）。Plan 不重議需求。
   - 已標示的架構衝突（Plan §1）：C1 分類列是 `<button>`，無法內嵌 ♡ 按鈕 → 改為容器＋兩個並列按鈕；C2 `miniBars` 會把 0 畫成紅色且顏色寫死 → 新增選項參數，只有自選卡生效；C3 站上沒有淺色主題；C5 Detail 標題列捲動時會收合。
   - 待 PO／Gate 確認的做法（Plan §11 D1～D6）：miniBars 的 0 是否全站改中性、淺色主題、Detail ♡ 位置、Toast 規則、替代排序、頁面標題。
@@ -127,6 +128,35 @@
 - **測試結果**：watch_test **114 PASS、0 FAIL、4 DEFER**（真機項目不變）；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
 - **負向對照**：以 `b78134c1` 的舊 `watch.js` 跑同一份測試 → 15 FAIL（CL-1／CL-3、DR-15、DR-19、DR-20；DR-20 實測手指 551.59 vs 把手 433.59，與 Codex 重現一致）。
 - 資源版本 `20261005t`。DF-6 收合驗收依 Codex 意見非 blocker，未新增。
+
+### Phase 4 5df1cb50 — 拖曳門檻修正（Claude，2026-10-05）：交 Codex 複審
+
+只修 Codex 指出的「真實手指移動與選單關閉版面補償混用」，`js/watch.js` 以外的程式未動：
+
+- 新增 `drag.yRaw`（原始 pointerdown 位置），`pointermove` 以 `|y − yRaw| ≥ 8` 判斷是否進入拖曳；`y0` 只作跟手錨點。
+- **選單改在確定拖曳（`activate()`）時才關閉**，不在 pointerdown 關閉：若按下時就關閉，選單上方的卡片會在手指下方上移約一個選單高，觸控輕點產生的 click 會落到別的元素上（實測 3px／7px 觸控輕點時 B 選單未開）。`activate()` 先 `closeMenu`、量這張卡關閉前後的 top 差，再 `y0 −= shift`，接著才做卡片快照 → DR-19／20 的跟手錨定不變（DR-20 手指 551.59＝把手 551.59）。
+- 移除 `pressClosedMenu`：點同一把手關閉選單由標準 click 的 toggle（`menu.code === code` → `closeMenu(true)`）處理；拖曳放開後的 `suppressClick` 保留。
+- **新增 DR-21 ×3**：開 A 選單 → 在下方 B 把手輕點（觸控 3px、觸控 7px、滑鼠 1px，皆 < 8px）→ 放開前 `dragging === false`、放開後只開 B 選單、只有一個選單、順序與 Store 不變。
+- **測試結果**：watch_test **117 PASS、0 FAIL、4 DEFER**（DR-15～20 仍 PASS：click-only／Enter／Space／tap 不雙觸發、拖曳後 click 不誤開、≥ 8px 跟手與最終排序）；category 250／1 DEFER；router 64；search_compact 38；detail_ui 42；detail_history_fix 14；regression 14；detail_collapse 25；detail_state 42，全部 PASS。
+- **負向對照**：以 `6d2d9a3d` 的 `watch.js` 跑同一份測試 → DR-21 三項 FAIL（按下後立即 `dragging === true`、B 選單未開），與 Codex 重現一致。
+- 資源版本 `20261005u`。
+
+### Phase 4 6d2d9a3d — Codex 複審（2026-10-05）：NEED FIX
+
+本輪只驗上一輪三項與 CL-3、DR-15～20；未改程式／測試、未 commit／push。重跑 watch_test：114 PASS／0 FAIL／4 DEFER。判色（第 3 項）RESOLVED；標準 click／Enter／Space／tap 與拖曳跟手的原問題已修，但第 1／2 項交界有一個新引入、可重現的 blocking bug：
+
+**選單在卡片上方時，輕點被誤判為拖曳。** `js/watch.js` `startPress()` 設 `y0 = ev.clientY - shift`（shift 是關閉選單造成的版面位移），但 `pointermove` 又用 `Math.abs(drag.y - drag.y0) >= 8` 判斷真實手指是否拖動。即使只移動 1～3px，只要 shift 約 118px，也會立即進入 dragging；pointerup 隨後設定 suppressClick，原本應開啟 B 選單的 click 被吃掉。
+
+獨立 CDP 滑鼠與觸控都重現（390×844，收藏 0050／0056／00878／00919）：
+1. 點第一檔 A（0050）把手，確認 A 選單已開。
+2. 在 A 選單下方的 B（0056）把手 pointerdown，輕移滑鼠 1px 或觸控 3px（皆小於 8px）。
+3. 放開前 `Watch._state().dragging === true`；放開後 menu 為 null，B 選單未開。正常 click-only 控制測試仍可開 B，確認是新門檻問題。
+
+**必要修正：** 使用未經版面補償的原始 pointer 起點判斷 DRAG_PX；跟手位移保留選單高度補償，勿移除原本已正確的 DR-19／20 錨定。補測「開 A 選單 → 輕點下方 B，移動 <8px → 只開 B 選單、不開始拖曳、不重排」，並維持 ≥8px 的跟手與最終排序、click-only／Enter／Space／tap 不雙觸發、拖曳後 click 不誤開。
+
+**新增測試有效性：** CL-3 以每欄完整文字及 computed color 驗混合值與四捨五入，未放寬驗收，通過；DR-15～18 有實際 activation／release；DR-19～20 驗 ≤3px 跟手誤差與最終順序，能抓舊 bug，但每次先移動 10px，沒有覆蓋上述 <8px 輕點門檻，114 PASS 不代表此交界已通過。四個 DEFER 繼續留真機 QA，與本 blocker 無關。
+
+下一位：Claude。只修這個門檻交界並補測，再交 Codex。PO 現在不用操作；不要擴大修正範圍或重審已關閉項目。
 
 ### Phase 4 Implementation — Codex Code Review（2026-10-05）：NEED FIX
 
@@ -249,7 +279,7 @@
 ### 0.6 下一步
 
 - **Phase 3 已 VERIFIED / CLOSED**，沒有待審或待測項目。不要重新 review 或重測已封版的 checkpoint。
-- **Codex｜Code Review 複審（下一位）**：只複審 `6d2d9a3d` 的三項修正與新增 regression（見「Phase 4 Code Review 修正 — 交 Codex 複審」）。PASS 後由 Claude 提供 PO 真機驗收步驟。
+- **Codex｜複審（下一位）**：只複審 `5df1cb50` 的拖曳門檻修正與 DR-21（見「Phase 4 5df1cb50 — 拖曳門檻修正」）。PASS 後由 Claude 提供 PO 真機驗收步驟。
 
 - **觀察項（不是待辦，現在不改程式）**：低高度橫向下「持股異動」treemap 可能落在導覽列下方（見 §0.7）。真機驗收後由 PO 決定是否處理。
 
