@@ -1,5 +1,5 @@
 {
-  "fetched": "2026-10-05 09:29",
+  "fetched": "2026-10-05 14:45",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
@@ -211,7 +211,7 @@
     "00403A": {
       "name": "主動統一升級50",
       "issuer": "統一",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -720,15 +720,15 @@
     "00410A": {
       "name": "主動永豐科技趨勢",
       "issuer": "永豐",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
-        "2330": {
-          "name": "台積電",
-          "shares": 45000
-        },
         "2455": {
           "name": "全新",
           "shares": 200000
+        },
+        "2330": {
+          "name": "台積電",
+          "shares": 45000
         },
         "3653": {
           "name": "健策",
@@ -758,13 +758,13 @@
           "name": "中砂",
           "shares": 80000
         },
-        "2454": {
-          "name": "聯發科",
-          "shares": 15000
-        },
         "3008": {
           "name": "大立光",
           "shares": 12000
+        },
+        "2454": {
+          "name": "聯發科",
+          "shares": 15000
         },
         "3081": {
           "name": "聯亞",
@@ -778,20 +778,24 @@
           "name": "川湖",
           "shares": 5000
         },
+        "4958": {
+          "name": "臻鼎-KY",
+          "shares": 100000
+        },
         "6669": {
           "name": "緯穎",
           "shares": 25776
         },
-        "2408": {
-          "name": "南亞科",
-          "shares": 100000
+        "6223": {
+          "name": "旺矽",
+          "shares": 10000
         },
         "8046": {
           "name": "南電",
           "shares": 36000
         },
-        "4958": {
-          "name": "臻鼎-KY",
+        "2408": {
+          "name": "南亞科",
           "shares": 100000
         },
         "1303": {
@@ -802,25 +806,21 @@
           "name": "金居",
           "shares": 100000
         },
-        "6223": {
-          "name": "旺矽",
-          "shares": 10000
+        "3406": {
+          "name": "玉晶光",
+          "shares": 45000
         },
         "3711": {
           "name": "日月光投控",
           "shares": 60000
         },
-        "3406": {
-          "name": "玉晶光",
-          "shares": 45000
+        "3037": {
+          "name": "欣興",
+          "shares": 30000
         },
         "1717": {
           "name": "長興",
           "shares": 500000
-        },
-        "3037": {
-          "name": "欣興",
-          "shares": 30000
         },
         "4749": {
           "name": "新應材",
@@ -1050,7 +1050,7 @@
     "00986A": {
       "name": "主動台新龍頭成長",
       "issuer": "台新",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-05",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -1068,13 +1068,13 @@
           "name": "超微半導體公司",
           "shares": 1400
         },
-        "CRWD": {
-          "name": "Crowdstrike控股公司",
-          "shares": 3000
-        },
         "LITE": {
           "name": "魯門特姆控股公司",
           "shares": 780
+        },
+        "CRWD": {
+          "name": "Crowdstrike控股公司",
+          "shares": 3000
         },
         "AMZN": {
           "name": "AMAZON. COM INC",
@@ -1112,9 +1112,17 @@
           "name": "連貫公司",
           "shares": 1300
         },
+        "6981": {
+          "name": "村田製作所有限公司",
+          "shares": 7000
+        },
         "SNOW": {
           "name": "Snowflake公司",
           "shares": 1100
+        },
+        "AMAT": {
+          "name": "應用材料",
+          "shares": 700
         },
         "JPM": {
           "name": "摩根大通銀行",
@@ -1124,21 +1132,13 @@
           "name": "Howmet航太公司",
           "shares": 1600
         },
-        "AMAT": {
-          "name": "應用材料",
-          "shares": 700
+        "SNDK": {
+          "name": "晟碟公司（德拉瓦州）",
+          "shares": 200
         },
         "ENR": {
           "name": "Siemens Energy AG",
           "shares": 2200
-        },
-        "6981": {
-          "name": "村田製作所有限公司",
-          "shares": 7000
-        },
-        "SNDK": {
-          "name": "晟碟公司（德拉瓦州）",
-          "shares": 200
         },
         "AAPL": {
           "name": "蘋果公司",
@@ -1185,7 +1185,7 @@
     "00987A": {
       "name": "主動台新優勢成長",
       "issuer": "台新",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-05",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -1215,25 +1215,25 @@
           "name": "台燿",
           "shares": 75000
         },
-        "3665": {
-          "name": "貿聯 -KY",
-          "shares": 44000
-        },
         "2455": {
           "name": "全新",
           "shares": 205000
+        },
+        "3665": {
+          "name": "貿聯 -KY",
+          "shares": 44000
         },
         "3443": {
           "name": "創意",
           "shares": 13000
         },
-        "6805": {
-          "name": "富世達",
-          "shares": 36000
-        },
         "3081": {
           "name": "聯亞",
           "shares": 29800
+        },
+        "6805": {
+          "name": "富世達",
+          "shares": 36000
         },
         "3491": {
           "name": "昇達科",
@@ -1251,10 +1251,6 @@
           "name": "南電",
           "shares": 46000
         },
-        "6187": {
-          "name": "萬潤",
-          "shares": 47000
-        },
         "3363": {
           "name": "上詮",
           "shares": 92729
@@ -1263,25 +1259,29 @@
           "name": "竹陞科技",
           "shares": 50000
         },
-        "8996": {
-          "name": "高力",
-          "shares": 35000
+        "4958": {
+          "name": "臻鼎 -KY",
+          "shares": 100000
         },
         "2345": {
           "name": "智邦",
           "shares": 28000
         },
-        "3529": {
-          "name": "力旺",
-          "shares": 16000
+        "8996": {
+          "name": "高力",
+          "shares": 35000
         },
         "2408": {
           "name": "南亞科",
           "shares": 100000
         },
-        "4958": {
-          "name": "臻鼎 -KY",
-          "shares": 100000
+        "3529": {
+          "name": "力旺",
+          "shares": 16000
+        },
+        "4991": {
+          "name": "環宇 -KY",
+          "shares": 92000
         },
         "6515": {
           "name": "穎崴",
@@ -1291,9 +1291,9 @@
           "name": "雍智科技",
           "shares": 26000
         },
-        "4991": {
-          "name": "環宇 -KY",
-          "shares": 71000
+        "3455": {
+          "name": "由田",
+          "shares": 135000
         },
         "6223": {
           "name": "旺矽",
@@ -1308,47 +1308,47 @@
     "00406A": {
       "name": "主動中信台灣收益",
       "issuer": "中信",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "2330": {
           "name": "台灣積體電路製造",
-          "shares": 2289000
+          "shares": 2369000
         },
         "2454": {
           "name": "聯發科技",
-          "shares": 747000
-        },
-        "3017": {
-          "name": "奇鋐科技",
-          "shares": 996000
+          "shares": 797000
         },
         "3037": {
           "name": "欣興電子",
-          "shares": 2735000
+          "shares": 2795000
+        },
+        "3017": {
+          "name": "奇鋐科技",
+          "shares": 1046000
         },
         "2383": {
           "name": "台光電子材料",
-          "shares": 647000
+          "shares": 677000
         },
         "3653": {
           "name": "健策精密工業",
-          "shares": 346000
-        },
-        "2308": {
-          "name": "台達電子工業",
-          "shares": 1123000
+          "shares": 358000
         },
         "6223": {
           "name": "旺矽科技",
           "shares": 401000
         },
-        "3665": {
-          "name": "貿聯控股",
-          "shares": 771000
+        "2308": {
+          "name": "台達電子工業",
+          "shares": 1123000
         },
         "2345": {
           "name": "智邦科技",
           "shares": 1028000
+        },
+        "3665": {
+          "name": "貿聯控股",
+          "shares": 771000
         },
         "5274": {
           "name": "信驊科技",
@@ -1358,17 +1358,21 @@
           "name": "南亞電路板",
           "shares": 1082000
         },
+        "3711": {
+          "name": "日月光投資控股",
+          "shares": 2195000
+        },
         "6669": {
           "name": "緯穎科技服務",
           "shares": 711711
         },
-        "3711": {
-          "name": "日月光投資控股",
-          "shares": 2115000
-        },
         "2303": {
           "name": "聯華電子",
           "shares": 9068000
+        },
+        "6274": {
+          "name": "台燿科技",
+          "shares": 688000
         },
         "3443": {
           "name": "創意電子",
@@ -1382,17 +1386,13 @@
           "name": "川湖科技",
           "shares": 80000
         },
-        "6274": {
-          "name": "台燿科技",
-          "shares": 508000
+        "3189": {
+          "name": "景碩科技",
+          "shares": 816000
         },
         "6510": {
           "name": "中華精測科技",
           "shares": 245000
-        },
-        "3189": {
-          "name": "景碩科技",
-          "shares": 686000
         },
         "2885": {
           "name": "元大金融控股",
@@ -1402,21 +1402,25 @@
           "name": "昇達科技",
           "shares": 330000
         },
+        "2360": {
+          "name": "致茂電子",
+          "shares": 204000
+        },
         "3167": {
           "name": "大量科技",
           "shares": 450000
+        },
+        "6488": {
+          "name": "環球晶圓",
+          "shares": 372000
         },
         "1560": {
           "name": "中國砂輪企業",
           "shares": 425000
         },
-        "2360": {
-          "name": "致茂電子",
-          "shares": 204000
-        },
-        "6488": {
-          "name": "環球晶圓",
-          "shares": 372000
+        "6147": {
+          "name": "頎邦科技",
+          "shares": 1830000
         },
         "2449": {
           "name": "京元電子",
@@ -1438,10 +1442,6 @@
           "name": "穎崴科技",
           "shares": 54000
         },
-        "6147": {
-          "name": "頎邦科技",
-          "shares": 1330000
-        },
         "4958": {
           "name": "臻鼎科技控股",
           "shares": 579000
@@ -1450,33 +1450,37 @@
           "name": "聯亞光電工業",
           "shares": 98000
         },
-        "3008": {
-          "name": "大立光電",
-          "shares": 40000
-        },
         "3363": {
           "name": "上詮光纖通信",
           "shares": 389000
         },
-        "8996": {
-          "name": "高力熱處理工業",
-          "shares": 152000
+        "3008": {
+          "name": "大立光電",
+          "shares": 40000
+        },
+        "3529": {
+          "name": "力旺電子",
+          "shares": 75000
         },
         "7769": {
           "name": "鴻勁",
           "shares": 41000
         },
-        "2344": {
-          "name": "華邦電子",
-          "shares": 1173000
+        "8996": {
+          "name": "高力熱處理工業",
+          "shares": 152000
+        },
+        "6187": {
+          "name": "萬潤科技",
+          "shares": 160000
         },
         "2486": {
           "name": "一詮精密工業",
           "shares": 837000
         },
-        "6187": {
-          "name": "萬潤科技",
-          "shares": 160000
+        "2344": {
+          "name": "華邦電子",
+          "shares": 1173000
         },
         "2481": {
           "name": "強茂",
@@ -1490,10 +1494,6 @@
           "name": "聯鈞光電",
           "shares": 315000
         },
-        "3529": {
-          "name": "力旺電子",
-          "shares": 50000
-        },
         "6531": {
           "name": "愛普科技",
           "shares": 165000
@@ -1502,13 +1502,13 @@
           "name": "欣銓科技",
           "shares": 600000
         },
-        "2886": {
-          "name": "兆豐金融控股",
-          "shares": 2500000
-        },
         "3105": {
           "name": "穩懋半導體",
           "shares": 216000
+        },
+        "2886": {
+          "name": "兆豐金融控股",
+          "shares": 2500000
         },
         "8358": {
           "name": "金居開發",
@@ -1538,21 +1538,21 @@
           "name": "威剛科技",
           "shares": 180000
         },
-        "8210": {
-          "name": "勤誠興業",
-          "shares": 71000
-        },
-        "8150": {
-          "name": "南茂科技",
-          "shares": 455000
+        "3583": {
+          "name": "辛耘企業",
+          "shares": 78000
         },
         "6139": {
           "name": "亞翔工程",
           "shares": 72000
         },
-        "3583": {
-          "name": "辛耘企業",
-          "shares": 78000
+        "8150": {
+          "name": "南茂科技",
+          "shares": 455000
+        },
+        "8210": {
+          "name": "勤誠興業",
+          "shares": 71000
         },
         "3131": {
           "name": "弘塑科技",
@@ -1567,7 +1567,7 @@
     "00983A": {
       "name": "主動中信ARK創新",
       "issuer": "中信",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "holdings": {
         "TSLA US": {
           "name": "特斯拉公司",
@@ -1746,19 +1746,19 @@
     "00995A": {
       "name": "主動中信台灣卓越",
       "issuer": "中信",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "2330": {
           "name": "台灣積體電路製造",
           "shares": 174000
         },
-        "2454": {
-          "name": "聯發科技",
-          "shares": 74000
-        },
         "2383": {
           "name": "台光電子材料",
           "shares": 72000
+        },
+        "2454": {
+          "name": "聯發科技",
+          "shares": 74000
         },
         "3017": {
           "name": "奇鋐科技",
@@ -1766,7 +1766,7 @@
         },
         "6669": {
           "name": "緯穎科技服務",
-          "shares": 128260
+          "shares": 119000
         },
         "8046": {
           "name": "南亞電路板",
@@ -1788,21 +1788,21 @@
           "name": "旺矽科技",
           "shares": 38000
         },
-        "5274": {
-          "name": "信驊科技",
-          "shares": 8800
-        },
         "2345": {
           "name": "智邦科技",
           "shares": 85000
         },
-        "3711": {
-          "name": "日月光投資控股",
-          "shares": 217000
+        "5274": {
+          "name": "信驊科技",
+          "shares": 8800
         },
         "3037": {
           "name": "欣興電子",
-          "shares": 110000
+          "shares": 123000
+        },
+        "3711": {
+          "name": "日月光投資控股",
+          "shares": 217000
         },
         "2327": {
           "name": "國巨*",
@@ -1812,29 +1812,25 @@
           "name": "台燿科技",
           "shares": 68000
         },
+        "2360": {
+          "name": "致茂電子",
+          "shares": 47000
+        },
         "6515": {
           "name": "穎崴科技",
           "shares": 14000
-        },
-        "2360": {
-          "name": "致茂電子",
-          "shares": 33000
         },
         "3443": {
           "name": "創意電子",
           "shares": 8000
         },
-        "7769": {
-          "name": "鴻勁",
-          "shares": 11000
-        },
         "6510": {
           "name": "中華精測科技",
           "shares": 20000
         },
-        "2344": {
-          "name": "華邦電子",
-          "shares": 332000
+        "7769": {
+          "name": "鴻勁",
+          "shares": 11000
         },
         "2455": {
           "name": "全新光電科技",
@@ -1852,37 +1848,33 @@
           "name": "金像電子",
           "shares": 38000
         },
-        "2486": {
-          "name": "一詮精密工業",
-          "shares": 150000
+        "8150": {
+          "name": "南茂科技",
+          "shares": 300000
         },
         "3264": {
           "name": "欣銓科技",
           "shares": 152000
         },
-        "8150": {
-          "name": "南茂科技",
-          "shares": 300000
+        "2486": {
+          "name": "一詮精密工業",
+          "shares": 150000
         },
         "6213": {
           "name": "聯茂電子",
           "shares": 50000
         },
-        "8996": {
-          "name": "高力熱處理工業",
-          "shares": 20000
+        "4958": {
+          "name": "臻鼎科技控股",
+          "shares": 59000
         },
         "3189": {
           "name": "景碩科技",
           "shares": 31000
         },
-        "4958": {
-          "name": "臻鼎科技控股",
-          "shares": 59000
-        },
-        "5289": {
-          "name": "宜鼎國際",
-          "shares": 22438
+        "8996": {
+          "name": "高力熱處理工業",
+          "shares": 20000
         },
         "1326": {
           "name": "台灣化學纖維",
@@ -1904,21 +1896,25 @@
           "name": "弘塑科技",
           "shares": 9000
         },
-        "6805": {
-          "name": "富世達股份有限公司",
-          "shares": 9000
+        "3450": {
+          "name": "聯鈞光電",
+          "shares": 40000
         },
         "6147": {
           "name": "頎邦科技",
           "shares": 94000
         },
-        "3450": {
-          "name": "聯鈞光電",
-          "shares": 40000
+        "6805": {
+          "name": "富世達股份有限公司",
+          "shares": 9000
         },
         "8358": {
           "name": "金居開發",
           "shares": 35000
+        },
+        "2344": {
+          "name": "華邦電子",
+          "shares": 100000
         },
         "3529": {
           "name": "力旺電子",
@@ -1955,6 +1951,10 @@
         "6139": {
           "name": "亞翔工程",
           "shares": 1000
+        },
+        "5289": {
+          "name": "宜鼎國際",
+          "shares": 438
         },
         "6438": {
           "name": "迅得機械",
@@ -4544,13 +4544,13 @@
           "name": "穩懋",
           "shares": 40000
         },
-        "7769": {
-          "name": "鴻勁",
-          "shares": 4000
-        },
         "3264": {
           "name": "欣銓",
           "shares": 91000
+        },
+        "7769": {
+          "name": "鴻勁",
+          "shares": 4000
         },
         "6187": {
           "name": "萬潤",
@@ -5409,7 +5409,7 @@
     "00990A": {
       "name": "主動元大AI新經濟",
       "issuer": "元大",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "LITE US": {
           "name": "LUMENTUM HOLDINGS INC",
@@ -5427,13 +5427,13 @@
           "name": "ADVANCED MICRO DEVICES",
           "shares": 81379
         },
-        "MU US": {
-          "name": "MICRON TECHNOLOGY INC",
-          "shares": 44085
-        },
         "NVDA US": {
           "name": "NVIDIA CORP",
           "shares": 207400
+        },
+        "MU US": {
+          "name": "MICRON TECHNOLOGY INC",
+          "shares": 44085
         },
         "MRVL US": {
           "name": "MARVELL TECHNOLOGY INC",
@@ -5463,6 +5463,10 @@
           "name": "SEMTECH CORP",
           "shares": 142700
         },
+        "3037": {
+          "name": "欣興",
+          "shares": 667000
+        },
         "INTC US": {
           "name": "INTEL CORP",
           "shares": 217400
@@ -5475,13 +5479,13 @@
           "name": "CLOUDFLARE INC - CLASS A",
           "shares": 72800
         },
-        "SNOW US": {
-          "name": "SNOWFLAKE INC",
-          "shares": 74000
-        },
         "6857 JP": {
           "name": "ADVANTEST CORP",
           "shares": 103200
+        },
+        "SNOW US": {
+          "name": "SNOWFLAKE INC",
+          "shares": 74000
         },
         "SNDK US": {
           "name": "SANDISK CORP",
@@ -5499,17 +5503,21 @@
           "name": "CROWDSTRIKE HOLDINGS INC - A",
           "shares": 74263
         },
-        "3037": {
-          "name": "欣興",
-          "shares": 519000
-        },
         "PANW US": {
           "name": "PALO ALTO NETWORKS INC",
           "shares": 47955
         },
+        "HPE US": {
+          "name": "HEWLETT PACKARD ENTERPRISE",
+          "shares": 277100
+        },
         "DDOG US": {
           "name": "DATADOG INC - CLASS A",
           "shares": 66200
+        },
+        "6920 JP": {
+          "name": "LASERTEC CORP",
+          "shares": 62100
         },
         "TWST US": {
           "name": "TWIST BIOSCIENCE CORP",
@@ -5519,13 +5527,9 @@
           "name": "IBIDEN CO LTD",
           "shares": 236200
         },
-        "6920 JP": {
-          "name": "LASERTEC CORP",
-          "shares": 62100
-        },
-        "DELL US": {
-          "name": "DELL TECHNOLOGIES -C",
-          "shares": 32900
+        "CLS US": {
+          "name": "CELESTICA INC",
+          "shares": 45160
         },
         "3017": {
           "name": "奇鋐",
@@ -5539,13 +5543,13 @@
           "name": "京元電子",
           "shares": 1665000
         },
-        "NTRA US": {
-          "name": "NATERA INC",
-          "shares": 34200
-        },
         "SHOP US": {
           "name": "SHOPIFY INC - CLASS A",
           "shares": 93200
+        },
+        "NTRA US": {
+          "name": "NATERA INC",
+          "shares": 34200
         },
         "285A JP": {
           "name": "KIOXIA HOLDINGS CORP",
@@ -5555,17 +5559,17 @@
           "name": "MICROSOFT CORP",
           "shares": 25280
         },
-        "OKTA US": {
-          "name": "OKTA INC",
-          "shares": 57400
-        },
         "AEHR US": {
           "name": "AEHR TEST SYSTEMS",
           "shares": 116500
         },
-        "HPE US": {
-          "name": "HEWLETT PACKARD ENTERPRISE",
-          "shares": 183900
+        "DELL US": {
+          "name": "DELL TECHNOLOGIES -C",
+          "shares": 21800
+        },
+        "OKTA US": {
+          "name": "OKTA INC",
+          "shares": 57400
         },
         "2345": {
           "name": "智邦",
@@ -5575,14 +5579,6 @@
           "name": "MODERNA INC",
           "shares": 58100
         },
-        "3529": {
-          "name": "力旺",
-          "shares": 106000
-        },
-        "CLS US": {
-          "name": "CELESTICA INC",
-          "shares": 29040
-        },
         "FORM US": {
           "name": "FORMFACTOR INC",
           "shares": 70000
@@ -5591,13 +5587,17 @@
           "name": "致茂",
           "shares": 130000
         },
-        "GOOGL US": {
-          "name": "ALPHABET INC-CL A",
-          "shares": 24760
-        },
         "009150 KP": {
           "name": "SAMSUNG ELECTRO-MECHANICS CO",
           "shares": 7234
+        },
+        "4958": {
+          "name": "臻鼎-KY",
+          "shares": 170000
+        },
+        "WOLF US": {
+          "name": "WOLFSPEED INC",
+          "shares": 58724
         }
       }
     },
@@ -5835,7 +5835,7 @@
     "00989A": {
       "name": "主動摩根美國科技",
       "issuer": "摩根",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "NVDA": {
           "name": "NVIDIA CORP",
@@ -5873,6 +5873,10 @@
           "name": "SNOWFLAKE INC-CLASS A",
           "shares": 3013
         },
+        "TSLA": {
+          "name": "TESLA INC",
+          "shares": 2696
+        },
         "NET": {
           "name": "CLOUDFLARE INC - CLASS A",
           "shares": 2834
@@ -5884,10 +5888,6 @@
         "MSFT": {
           "name": "MICROSOFT CORP",
           "shares": 1872
-        },
-        "TSLA": {
-          "name": "TESLA INC",
-          "shares": 2696
         },
         "LRCX": {
           "name": "LAM RESEARCH CORP",
@@ -5909,13 +5909,13 @@
           "name": "ALPHABET INC-CL C",
           "shares": 2359
         },
-        "HOOD": {
-          "name": "ROBINHOOD MARKETS INC - A",
-          "shares": 5927
-        },
         "LITE": {
           "name": "LUMENTUM HOLDINGS INC",
           "shares": 629
+        },
+        "HOOD": {
+          "name": "ROBINHOOD MARKETS INC - A",
+          "shares": 5927
         },
         "NOW": {
           "name": "SERVICENOW INC",
@@ -5945,21 +5945,21 @@
           "name": "MICRON TECHNOLOGY INC",
           "shares": 403
         },
-        "RIVN": {
-          "name": "RIVIAN AUTOMOTIVE INC-A",
-          "shares": 29569
-        },
         "TEAM": {
           "name": "ATLASSIAN CORP PLC-CLASS A",
           "shares": 2282
         },
-        "ADBE": {
-          "name": "ADOBE INC",
-          "shares": 1761
+        "RIVN": {
+          "name": "RIVIAN AUTOMOTIVE INC-A",
+          "shares": 29569
         },
         "TEM": {
           "name": "TEMPUS AI INC",
           "shares": 5506
+        },
+        "ADBE": {
+          "name": "ADOBE INC",
+          "shares": 1761
         },
         "ADI": {
           "name": "ANALOG DEVICES INC",
@@ -5969,29 +5969,25 @@
           "name": "TAIWAN SEMICONDUCTOR-SP ADR",
           "shares": 834
         },
-        "PLTR": {
-          "name": "PALANTIR TECHNOLOGIES INC-A",
-          "shares": 2015
+        "CIEN": {
+          "name": "CIENA CORP",
+          "shares": 1002
         },
         "GLW": {
           "name": "CORNING INC",
           "shares": 2371
         },
-        "CIEN": {
-          "name": "CIENA CORP",
-          "shares": 1002
-        },
-        "AMZN": {
-          "name": "AMAZON.COM INC",
-          "shares": 1437
+        "PLTR": {
+          "name": "PALANTIR TECHNOLOGIES INC-A",
+          "shares": 2015
         },
         "MPWR": {
           "name": "MONOLITHIC POWER SYSTEMS INC",
           "shares": 261
         },
-        "SNDK": {
-          "name": "SANDISK CORP-W/I",
-          "shares": 194
+        "AMZN": {
+          "name": "AMAZON.COM INC",
+          "shares": 1437
         },
         "CRDO": {
           "name": "CREDO TECHNOLOGY GROUP HOLDI",
@@ -6001,41 +5997,45 @@
           "name": "CADENCE DESIGN SYS INC",
           "shares": 958
         },
+        "SNDK": {
+          "name": "SANDISK CORP-W/I",
+          "shares": 194
+        },
         "U": {
           "name": "UNITY SOFTWARE INC",
           "shares": 7435
-        },
-        "ROK": {
-          "name": "ROCKWELL AUTOMATION INC",
-          "shares": 660
-        },
-        "MTSI": {
-          "name": "MACOM TECHNOLOGY SOLUTIONS H",
-          "shares": 958
         },
         "SPCX": {
           "name": "SPACE EXPLORATION TECHN-CL A",
           "shares": 1951
         },
-        "ALAB": {
-          "name": "ASTERA LABS INC",
-          "shares": 778
+        "MTSI": {
+          "name": "MACOM TECHNOLOGY SOLUTIONS H",
+          "shares": 958
+        },
+        "ROK": {
+          "name": "ROCKWELL AUTOMATION INC",
+          "shares": 660
         },
         "CRWV": {
           "name": "COREWEAVE INC",
           "shares": 3070
         },
+        "ALAB": {
+          "name": "ASTERA LABS INC",
+          "shares": 778
+        },
         "ESTC": {
           "name": "ELASTIC NV",
           "shares": 2871
         },
-        "VEEV": {
-          "name": "VEEVA SYSTEMS INC-CLASS A",
-          "shares": 912
-        },
         "ENTG": {
           "name": "ENTEGRIS INC",
           "shares": 1612
+        },
+        "VEEV": {
+          "name": "VEEVA SYSTEMS INC-CLASS A",
+          "shares": 912
         },
         "WRBY": {
           "name": "WARBY PARKER INC-CLASS A",
@@ -6114,31 +6114,31 @@
     "00998A": {
       "name": "主動復華金融股息",
       "issuer": "復華",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "SDLF LN": {
           "name": "標準人壽公開有限公司",
           "shares": 650000
         },
-        "BOCHGR GA": {
-          "name": "賽普勒斯銀行控股公開有限公司",
-          "shares": 540000
-        },
         "ABN NA": {
           "name": "荷蘭銀行公眾有限公司",
           "shares": 140000
+        },
+        "BOCHGR GA": {
+          "name": "賽普勒斯銀行控股公開有限公司",
+          "shares": 540000
         },
         "AGN NA": {
           "name": "荷蘭保險公司",
           "shares": 680000
         },
-        "TPEIR GA": {
-          "name": "Piraeus Bank SA",
-          "shares": 475000
-        },
         "AV/ LN": {
           "name": "英傑華保險",
           "shares": 630000
+        },
+        "TPEIR GA": {
+          "name": "Piraeus Bank SA",
+          "shares": 475000
         },
         "NWG LN": {
           "name": "國民西敏集團公開有限公司",
@@ -6156,10 +6156,6 @@
           "name": "Admiral集團公開有限公司",
           "shares": 90000
         },
-        "UCG IM": {
-          "name": "裕信銀行",
-          "shares": 46000
-        },
         "MNG LN": {
           "name": "M&G公開有限公司",
           "shares": 1000000
@@ -6168,9 +6164,21 @@
           "name": "勞埃德銀行集團",
           "shares": 3000000
         },
+        "UCG IM": {
+          "name": "裕信銀行",
+          "shares": 46000
+        },
+        "MRX US": {
+          "name": "馬雷克斯集團有限公司",
+          "shares": 50000
+        },
         "ASRNL NA": {
           "name": "ASR荷蘭公眾有限公司",
           "shares": 45000
+        },
+        "V US": {
+          "name": "威士卡",
+          "shares": 10000
         },
         "STAN LN": {
           "name": "渣打集團有限公司",
@@ -6184,21 +6192,25 @@
           "name": "公平控股公司",
           "shares": 65000
         },
-        "GPN US": {
-          "name": "環匯公司",
-          "shares": 40000
-        },
-        "7167 JP": {
-          "name": "Mebuki金融集團公司",
-          "shares": 300000
+        "BLK US": {
+          "name": "貝萊德公司",
+          "shares": 3000
         },
         "BMPS IM": {
           "name": "義大利西恩那銀行股份公司",
           "shares": 250000
         },
-        "BLK US": {
-          "name": "貝萊德公司",
-          "shares": 3000
+        "7167 JP": {
+          "name": "Mebuki金融集團公司",
+          "shares": 300000
+        },
+        "GPN US": {
+          "name": "環匯公司",
+          "shares": 40000
+        },
+        "055550 KS": {
+          "name": "新韓金融集團",
+          "shares": 40000
         },
         "INGA NA": {
           "name": "荷蘭國際集團",
@@ -6208,9 +6220,9 @@
           "name": "忠意保險股份公司",
           "shares": 65000
         },
-        "055550 KS": {
-          "name": "新韓金融集團",
-          "shares": 40000
+        "ENX FP": {
+          "name": "泛歐交易所",
+          "shares": 15000
         },
         "CABK SM": {
           "name": "凱克薩銀行有限責任公司",
@@ -6228,13 +6240,9 @@
           "name": "法通保險集團公開有限公司",
           "shares": 700000
         },
-        "V US": {
-          "name": "威士卡",
-          "shares": 7000
-        },
-        "UNI IM": {
-          "name": "Unipol保險股份公司",
-          "shares": 85000
+        "DB1 GY": {
+          "name": "德意志證交所",
+          "shares": 8000
         },
         "AMUN FP": {
           "name": "東方匯理資產管理有限責任公司",
@@ -6244,25 +6252,25 @@
           "name": "法國巴黎銀行股份有限公司",
           "shares": 24000
         },
+        "UNI IM": {
+          "name": "Unipol保險股份公司",
+          "shares": 85000
+        },
         "CHYM US": {
           "name": "Chime Financial Inc",
           "shares": 90000
-        },
-        "MRX US": {
-          "name": "馬雷克斯集團有限公司",
-          "shares": 33000
         },
         "ETE GA": {
           "name": "希臘國家銀行",
           "shares": 120000
         },
-        "8331 JP": {
-          "name": "千葉銀行有限公司",
-          "shares": 125000
-        },
         "8308 JP": {
           "name": "Resona控股公司",
           "shares": 140000
+        },
+        "8331 JP": {
+          "name": "千葉銀行有限公司",
+          "shares": 125000
         },
         "C US": {
           "name": "花旗集團公司",
@@ -6272,21 +6280,9 @@
           "name": "匯豐控股有限公司",
           "shares": 110000
         },
-        "ENX FP": {
-          "name": "泛歐交易所",
-          "shares": 10000
-        },
         "CS FP": {
           "name": "安盛有限責任公司",
           "shares": 38000
-        },
-        "DB1 GY": {
-          "name": "德意志證交所",
-          "shares": 5300
-        },
-        "KBC BB": {
-          "name": "比利時聯合金融集團",
-          "shares": 12000
         },
         "105560 KS": {
           "name": "韓國國民銀行金融集團公司",
@@ -6296,6 +6292,14 @@
           "name": "三星火災海上保險有限公司",
           "shares": 3700
         },
+        "KBC BB": {
+          "name": "比利時聯合金融集團",
+          "shares": 12000
+        },
+        "IBKR US": {
+          "name": "盈透證券集團公司",
+          "shares": 19000
+        },
         "UBS US": {
           "name": "瑞銀集團公司",
           "shares": 35000
@@ -6303,10 +6307,6 @@
         "BKT SM": {
           "name": "西班牙洲際銀行有限責任公司",
           "shares": 92000
-        },
-        "IBKR US": {
-          "name": "盈透證券集團公司",
-          "shares": 19000
         },
         "8377 JP": {
           "name": "北北金融集團公司",
@@ -6333,19 +6333,19 @@
     "00409A": {
       "name": "主動復華全球50",
       "issuer": "復華",
-      "data_date": "2026-10-01",
+      "data_date": "2026-10-02",
       "holdings": {
         "LITE US": {
           "name": "魯門特姆控股公司",
           "shares": 25500
         },
-        "PLTR US": {
-          "name": "帕蘭提爾科技公司",
-          "shares": 125500
-        },
         "BE US": {
           "name": "布魯姆能源公司",
           "shares": 85000
+        },
+        "PLTR US": {
+          "name": "帕蘭提爾科技公司",
+          "shares": 125500
         },
         "MU US": {
           "name": "美光科技公司",
@@ -6355,61 +6355,61 @@
           "name": "南亞電路",
           "shares": 446000
         },
-        "SNDK US": {
-          "name": "晟碟公司（德拉瓦州）",
-          "shares": 11000
-        },
-        "3017": {
-          "name": "奇鋐科技",
-          "shares": 173000
-        },
         "000660 KS": {
           "name": "愛思開海力士公司",
           "shares": 14054
+        },
+        "SNDK US": {
+          "name": "晟碟公司（德拉瓦州）",
+          "shares": 11000
         },
         "NVDA US": {
           "name": "輝達公司",
           "shares": 80000
         },
+        "3017": {
+          "name": "奇鋐科技",
+          "shares": 173000
+        },
         "3026": {
           "name": "禾伸堂企",
           "shares": 659000
-        },
-        "5274": {
-          "name": "信驊科技",
-          "shares": 29000
         },
         "HOOD US": {
           "name": "羅賓漢市場公司",
           "shares": 153000
         },
-        "3653": {
-          "name": "健策精密",
-          "shares": 69000
+        "5274": {
+          "name": "信驊科技",
+          "shares": 29000
         },
         "CRWD US": {
           "name": "Crowdstrike控股公司",
           "shares": 55000
         },
+        "3653": {
+          "name": "健策精密",
+          "shares": 69000
+        },
         "INTC US": {
           "name": "英特爾",
           "shares": 120000
-        },
-        "2454": {
-          "name": "聯發科技",
-          "shares": 84000
         },
         "3189": {
           "name": "景碩科技",
           "shares": 414000
         },
-        "BMNR US": {
-          "name": "BitMine Immersion技術公司",
-          "shares": 438640
+        "2454": {
+          "name": "聯發科技",
+          "shares": 84000
         },
         "TSM US": {
           "name": "台灣積體電路製造股份有限公司",
           "shares": 25000
+        },
+        "BMNR US": {
+          "name": "BitMine Immersion技術公司",
+          "shares": 438640
         },
         "SPCX US": {
           "name": "太空探索科技公司",
@@ -6419,13 +6419,13 @@
           "name": "AXT公司",
           "shares": 125000
         },
-        "ALAB US": {
-          "name": "Astera實驗室公司",
-          "shares": 28000
-        },
         "AMD US": {
           "name": "超微半導體公司",
           "shares": 16000
+        },
+        "ALAB US": {
+          "name": "Astera實驗室公司",
+          "shares": 28000
         },
         "DELL US": {
           "name": "戴爾科技公司",
@@ -6459,13 +6459,13 @@
           "name": "Cloudflare公司",
           "shares": 18100
         },
-        "STX US": {
-          "name": "希捷科技控股公開有限公司",
-          "shares": 6000
-        },
         "6787 JP": {
           "name": "名幸電子股份有限公司",
           "shares": 35500
+        },
+        "STX US": {
+          "name": "希捷科技控股公開有限公司",
+          "shares": 6000
         },
         "AEHR US": {
           "name": "愛赫測試系統",
@@ -6491,21 +6491,25 @@
           "name": "福達電子公司",
           "shares": 18000
         },
+        "TSEM US": {
+          "name": "塔爾半導體有限公司",
+          "shares": 8000
+        },
         "6857 JP": {
           "name": "愛德萬測試",
           "shares": 6000
         },
-        "TSLA US": {
-          "name": "特斯拉公司",
-          "shares": 4000
-        },
-        "TWLO US": {
-          "name": "Twilio公司",
-          "shares": 3500
+        "5801 JP": {
+          "name": "古河電氣工業有限公司",
+          "shares": 50000
         },
         "NBIS US": {
           "name": "尼比厄斯集團公眾有限公司",
           "shares": 4500
+        },
+        "TWLO US": {
+          "name": "Twilio公司",
+          "shares": 3500
         },
         "IREN US": {
           "name": "IREN有限公司",
@@ -6514,10 +6518,6 @@
         "COHR US": {
           "name": "連貫公司",
           "shares": 1800
-        },
-        "009150 KS": {
-          "name": "三星電機",
-          "shares": 300
         },
         "GOOGL US": {
           "name": "Alphabet公司",
@@ -6533,10 +6533,6 @@
         },
         "NOW US": {
           "name": "ServiceNow公司",
-          "shares": 1000
-        },
-        "2360": {
-          "name": "致茂電子",
           "shares": 1000
         }
       }
