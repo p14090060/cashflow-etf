@@ -478,13 +478,20 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 沒有 skip、沒有放寬 assertion、產品程式未改。負向對照：把 `_dvView` 的 `offIso >= today` 拿掉 → T17 兩項 FAIL。
   - 結果（800×600）：detail_ui 48（44→48）全 PASS；完整 regression：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER＝779 PASS／0 FAIL／5 DEFER。
 
-- **CP5｜Y1 Header YouTube＋G1 page-yt 退役（§4、§9 順序 5）— `86500f11`，待 Codex CP5 Code Review。**
+- **CP5｜Y1 Header YouTube＋G1 page-yt 退役（§4、§9 順序 5）— `86500f11`：Codex Code Review PASS、GPT Gate CLOSED。**
   - Header `.topbar` 右側改為 `.hdr-actions` 按鈕群：`#hdrYt`（`<a>`，inline SVG YouTube 圖示、44×44、`href` 頻道、`target="_blank"`、`rel="noopener noreferrer"`、`aria-label="金流黑盒子 YouTube 頻道"`，不經 Router）＋既有 `#refreshBtn`（`reloadData()` 不變，尺寸統一為 44×44、補 aria-label）。標題與 `#statusBadge` 留在左側原位。主題切換鈕屬 CP7，未做。
   - `page-yt`（HTML）與 `.yt-*` CSS 移除；`TOOL_PAGE` 刪 `yt`（舊 history entry 若帶 `tool yt`，`applyBasePage` 落回 `BASE_PAGE.tools`＝工具卡片頁）。`_NAV_SPEC.yt` 改 `{external: 頻道}`，`switchPage('yt')` 以 `window.open(url,'_blank','noopener')` 開外部頻道、不寫 history。`logo.png` 已無引用但檔案保留（未刪資產）。
   - 首頁 YouTube 大卡（CP3）、Tools YouTube 卡（CP4）維持移除；全站只剩 Header 一個 youtube.com 連結。
   - CLAUDE.md 頁面區塊代號 C-1／C-2 標記退役。
   - 測試：regression_test 新增 9 項——YT-1（a 連結、在 Header、≥44×44、href／target／rel／aria、點擊不改 history 與 Router 狀態、不影響 statusBadge／↻、390px 下標題與徽章不截斷不重疊、搜尋列 ≥340px、無水平溢出）、YT-2（`switchPage('yt')` 以 noopener 開同一連結且不換頁不寫 history、`page-yt` 不存在、首頁／工具頁無 YouTube、只剩 1 個 youtube 連結、舊 entry `tool yt` 經 popstate 還原落回工具卡片頁）。switch page 迴圈去掉 yt（check 改為疊在配息日曆子頁上）。26→34。
   - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 34、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER＝787 PASS／0 FAIL／5 DEFER。360px 截圖目視：標題、徽章、兩顆按鈕、搜尋列不擁擠。
+
+- **CP6｜F1 持股異動直向切換分類（§8.2、§9 順序 6）— `4053c4a4`，待 Codex CP6 Code Review。**（Gate／PO 確認：CP6 只做 F1；F2 selector 已於 CP4 完成，本 checkpoint 不動）
+  - `js/category.js`：`swActive()`＝已開資料夾＋直向＋非 `gs-ckm`；`ctlActive()`＝`swActive()`＋`view==='list'`。`syncMode()` 對 `#catMain`／`#page-cat` 切 `cat-sw`（兩種檢視）與 `cat-ctl`（只清單），`cat-inside`＝`cat-sw && !stripOpen`，按鈕文字／aria 依 `cat-sw`。`toggleStrip()` 以 `swActive()` 為條件，持股異動時展開／收起後 `flowRedrawIfVisible()`。`applyFolder` 的 `stripOpen=false` 條件由「flow→list」擴為「view 改變」（清單 doorway → 持股異動也預設收起）。
+  - `css/category.css`：`.cat-expand` 顯示、標題列單列化（wrap／gap）、標題、← 44px、切換分類靠右、頁首 padding 由 `cat-ctl` 改掛 `cat-sw`；`> .cat-more`、`> .cat-foot` 隱藏仍只在 `cat-ctl`；`cat-inside > #catStrip` 不變。
+  - 橫向、鍵盤不套 `cat-sw`；`stripOpen` 不寫 Router；`flow.js`、F2 selector、Flow 層、資料與計算未改。`index.html` 只改這兩檔的快取版本參數（範圍外但只是 `?v=`）。
+  - 測試：category_test 舊 PT-9「持股異動檢視不啟用 inside、次要標籤列顯示」依核准規格改寫（直向收起、橫向顯示），新增 SW-1～6 共 20 項：直向持股異動預設 inside＋「切換分類 ▼」44px＋← 44px＋標題列單列（≤52px）；無清單專屬行為；▼／▲ 與點標題切換、不寫 history／Router；展開時 treemap 下移、收起回原位、重畫不溢出；doorway 選高股息 → 進高股息清單（replace，history 不增）；清單 doorway → 持股異動預設收起、持股異動 doorway → 清單回 inside；橫向不套 cat-sw、標籤直接顯示、treemap 依寬度重畫；轉回直向恢復；鍵盤不套 cat-sw；F2 selector 單列＋完整名稱仍在。250→270 PASS。負向對照：category.js／category.css 還原為 CP5 版 → 8 FAIL。
+  - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 34、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝807 PASS／0 FAIL／5 DEFER。390px 截圖目視：← 主動式 … 代碼⇅ 切換分類 ▼ 單列，分段下方直接接 selector 與紅綠方塊。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
