@@ -494,7 +494,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 34、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝807 PASS／0 FAIL／5 DEFER。390px 截圖目視：← 主動式 … 代碼⇅ 切換分類 ▼ 單列，分段下方直接接 selector 與紅綠方塊。
 
 - **PO Change #2（Plan `4222de54`）：成交量排行第一屏（CP6b，§3.8）**。排程 CP6 → CP6b → CP7 → CP8 → Final。排行搜尋維持**定位**（PO 選 A，不用「篩選」字眼）；RK-1 依 Gate 核准方案 1：sticky ≤120px、完整 ≥4 列＋第 5 列部分可見（≥5 列在保留 Header／全站警示／44px 標題列／109px 卡片下無法達成，不縮卡片）。
-- **CP6b — `e3852d6a`；Codex NEED FIX 2 項 → fix `768844d2`（見本段末），待 Codex CP6b NEED FIX 限定複審。**
+- **CP6b — `e3852d6a`；Codex NEED FIX 2 項 → fix `768844d2`（見本段末），Codex 限定複審 PASS → **CP6b CLOSED**。**
   - `index.html`：`.rank-sticky` 改為 `.rank-top`（「成交量排行」＋`#rankFindBtn` 🔍＋`#rankInfoBtn` ⓘ，各 44×44、`aria-expanded`／`aria-controls`）、`#rankFindBox`（既有 `#rankFind`，placeholder「在排行中找 ETF」、`#rankFindClear`、`#rankFindMsg`）、`#rankInfo`（原兩段文字逐字、`#rankTotal`），兩個區塊預設 `hidden`；欄位名稱 `.rank-hdr` 不變（只縮內距）。
   - `js/rank.js`：`_rankFindOpen`／`_rankInfoOpen`、`rankToggleFind()`（展開時 `focus({preventScroll})`）、`rankToggleInfo()`、`_rankSyncTop()`；輸入有內容即保持展開；`clearRankFind` 同步。定位邏輯（`applyRankFind`、捲動扣 sticky 高度、榜外提示）未改。
   - `css/pages.css`：`.rank-top／.rank-title／.rank-ic(.on)／.rank-info`，`[hidden]{display:none}`；`.rank-hdr` padding 9/10 → 6、margin 8 → 6。標題色沿用原 #FFD700（CP7 token 化）。
@@ -510,6 +510,15 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - Mutation：(1) `pushEntry` 改 `replaceState` → TC-2、TC-3、PZ-11 push 防線 FAIL（push=0），之後 Back 直接離站使 tools_test 中斷（TC-4 未執行到，等同 FAIL）；結構比對在 mutation 下仍 same=True，證明 push 次數這條才是關鍵防線。(2) rank.js 還原舊 offset → RK-4b 12 項 FAIL（第 1 名 y=204～313 被遮）。
     - 結果（800×600）：rank 44、tools 91、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝858 PASS／0 FAIL／5 DEFER。
   - **B（只記錄，未執行）**：GPT Gate 提供的 Active Flow／PCF 線索（00407A 10/06 股數異動 0；00983A NVIDIA、RKLB 加碼，TSLA、WGS、XE 減碼，第三方 10/06／10/07 日期定義不一；00986A 10/05 逐筆可核；00996A 10/05 尖點、景碩、汎銓加碼，矽力-KY、致茂減碼，10/06 異動日待核）。僅為除錯線索，不寫入正式資料。正式調查若開啟，順序＝投信官方 PCF → 原始持股股數逐日比較 → 第三方交叉驗證；以股數變化判定、不以權重；第三方日期定義不得混用；官方有新 PCF 而專案停在舊日期時沿 Download → Parse → Compare → Write → Publish／Monitor 追中斷點；官方無新 PCF 不得自行製造異動。待 CP6b CLOSED 後由 GPT Gate／PO 決定何時啟動。本輪未改 pipeline、未改資料。
+
+- **CP6c｜排行／日曆 Detail navigation 規格校正（Plan `86cb7b83`，§3.5）— `b9aeccf4`，待 Codex CP6c Code Review。**
+  - 調查（記入 Plan）：§3.5「排行列／日曆列 → openDetail」自 Rev.4 寫入，「既有」指 Router intent，UI 從未接線；排行列自 `599a5ecc` 起只有 PCF 列可點且開 Flow，日曆列從無點擊；CP4／CP6b 測試以程式呼叫 openDetail 或只點 tappable 列，所以沒抓到。
+  - `js/rank.js`：排行列移除 inline `onclick`；每列 `.rank-hit`（覆蓋整列的 button，aria-label「第 N 名 代碼 名稱，查看詳細資料」）＋兄弟 `.rank-flow` button（「持股異動 ›」，aria-label「查看 代碼 持股異動」）。`#rankRows` delegated click：`.rank-flow` → `openFlow` 並 return，否則 `.rank-hit` → `openDetail`。「持股異動 ›」顯示條件改為 `_flowData.etfs[code]` 存在（決策 B）；`.tappable` 改名 `.has-flow`。`_changedWithin()`（flow.js）因此已無呼叫端，留給 CP8 死碼清理。代碼／名稱經 `_rankEsc` 轉義。
+  - `js/render.js`：日曆列加 `data-code` 與 `.cal-hit`；`#calList` delegated click → `openDetail`（不在 ETFS 的代碼由 Detail 既有「這檔目前不在清單中」處理）。
+  - CSS：`.rank-row`／`.cal-item` `position:relative`，覆蓋按鈕 `inset:0`，列內容 `pointer-events:none`；`.rank-flow` `min-height:44px` 以 `margin:-14px` 抵銷不撐高卡片（RK-1 仍 PASS）；focus-visible 外框。
+  - 測試：rank_test 新增 NV-1～5 共 28 項（一般列 A0 與有 Flow 列 F0 真實點擊——以 elementFromPoint 命中後 click——→ Detail、只多一層、pushState 1 次、history.state 結構一致、Back 保留搜尋／定位／捲動；有 Flow 資料者皆有按鈕（含 7 天無換股者）、button ≥44px、aria-label、無巢狀；按鈕 → Flow、pushState 1 次、不開 Detail；三層返回；renderAll／renderRank 後仍有效；Tab 焦點 Enter／Space → Detail、Esc 關閉；日曆首末列 → Detail、pushState 1 次、Back 捲動保留、重繪後仍可點）。RK-4b 點擊驗證改為「整列 → Detail（一般列首末＋有 Flow 列）」＋「按鈕 → Flow」；TC-7 改真實點擊排行列與日曆列（刪除原「略過」分支）；RF-3 改點「持股異動 ›」（加 pushState 1 次、未開 Detail）。
+  - Mutation：M1 移除排行列與日曆列 navigation → RK-4b 整列點擊 FAIL，之後 Back 離站使 rank_test 中斷（NV 未執行，等同 FAIL）。M2 「持股異動 ›」不 return、往下也 openDetail（模擬冒泡雙 navigation）→ 15 FAIL（RK-4b 按鈕兩項、NV-2／3／4 等）。
+  - 結果（800×600）：rank 72、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝888 PASS／0 FAIL／5 DEFER。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
