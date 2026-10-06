@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-10-05",
+    "last_updated": "2026-10-06",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -32,13 +32,6 @@
       "name": "元大台灣價值高息",
       "ex_dividend_date": "2026-10-07",
       "amount": 0.055,
-      "amount_source": "TWSE"
-    },
-    "00939": {
-      "code": "00939",
-      "name": "統一台灣高息動能",
-      "ex_dividend_date": "2026-10-05",
-      "amount": 0.125,
       "amount_source": "TWSE"
     }
   }

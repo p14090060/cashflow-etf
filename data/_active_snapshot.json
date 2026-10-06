@@ -1,5 +1,5 @@
 {
-  "fetched": "2026-10-05 23:41",
+  "fetched": "2026-10-06 09:17",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
@@ -839,7 +839,7 @@
     "00407A": {
       "name": "主動凱基台灣",
       "issuer": "凱基",
-      "data_date": "2026-10-05",
+      "data_date": "2026-10-06",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -6297,7 +6297,7 @@
     "00409A": {
       "name": "主動復華全球50",
       "issuer": "復華",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-05",
       "holdings": {
         "LITE US": {
           "name": "魯門特姆控股公司",
@@ -6307,61 +6307,57 @@
           "name": "布魯姆能源公司",
           "shares": 85000
         },
+        "8046": {
+          "name": "南亞電路",
+          "shares": 475000
+        },
         "PLTR US": {
           "name": "帕蘭提爾科技公司",
-          "shares": 125500
+          "shares": 115500
         },
         "MU US": {
           "name": "美光科技公司",
           "shares": 19800
         },
-        "8046": {
-          "name": "南亞電路",
-          "shares": 446000
+        "3017": {
+          "name": "奇鋐科技",
+          "shares": 173000
         },
         "000660 KS": {
           "name": "愛思開海力士公司",
           "shares": 14054
         },
-        "SNDK US": {
-          "name": "晟碟公司（德拉瓦州）",
-          "shares": 11000
-        },
         "NVDA US": {
           "name": "輝達公司",
           "shares": 80000
-        },
-        "3017": {
-          "name": "奇鋐科技",
-          "shares": 173000
-        },
-        "3026": {
-          "name": "禾伸堂企",
-          "shares": 659000
-        },
-        "HOOD US": {
-          "name": "羅賓漢市場公司",
-          "shares": 153000
         },
         "5274": {
           "name": "信驊科技",
           "shares": 29000
         },
-        "CRWD US": {
-          "name": "Crowdstrike控股公司",
-          "shares": 55000
+        "3026": {
+          "name": "禾伸堂企",
+          "shares": 659000
         },
         "3653": {
           "name": "健策精密",
           "shares": 69000
         },
-        "INTC US": {
-          "name": "英特爾",
-          "shares": 120000
-        },
         "3189": {
           "name": "景碩科技",
-          "shares": 414000
+          "shares": 454000
+        },
+        "SNDK US": {
+          "name": "晟碟公司（德拉瓦州）",
+          "shares": 9000
+        },
+        "CRWD US": {
+          "name": "Crowdstrike控股公司",
+          "shares": 55000
+        },
+        "HOOD US": {
+          "name": "羅賓漢市場公司",
+          "shares": 130000
         },
         "2454": {
           "name": "聯發科技",
@@ -6371,25 +6367,29 @@
           "name": "台灣積體電路製造股份有限公司",
           "shares": 25000
         },
+        "SPCX US": {
+          "name": "太空探索科技公司",
+          "shares": 70000
+        },
         "BMNR US": {
           "name": "BitMine Immersion技術公司",
           "shares": 438640
         },
-        "SPCX US": {
-          "name": "太空探索科技公司",
-          "shares": 70000
+        "INTC US": {
+          "name": "英特爾",
+          "shares": 100000
         },
         "AXTI US": {
           "name": "AXT公司",
           "shares": 125000
         },
-        "AMD US": {
-          "name": "超微半導體公司",
-          "shares": 16000
-        },
         "ALAB US": {
           "name": "Astera實驗室公司",
           "shares": 28000
+        },
+        "AMD US": {
+          "name": "超微半導體公司",
+          "shares": 16000
         },
         "DELL US": {
           "name": "戴爾科技公司",
@@ -6411,13 +6411,13 @@
           "name": "村田製作所有限公司",
           "shares": 130000
         },
-        "SNOW US": {
-          "name": "Snowflake公司",
-          "shares": 19500
-        },
         "6805": {
           "name": "富世達股",
           "shares": 89000
+        },
+        "SNOW US": {
+          "name": "Snowflake公司",
+          "shares": 19500
         },
         "NET US": {
           "name": "Cloudflare公司",
@@ -6426,10 +6426,6 @@
         "6787 JP": {
           "name": "名幸電子股份有限公司",
           "shares": 35500
-        },
-        "STX US": {
-          "name": "希捷科技控股公開有限公司",
-          "shares": 6000
         },
         "AEHR US": {
           "name": "愛赫測試系統",
@@ -6459,6 +6455,10 @@
           "name": "塔爾半導體有限公司",
           "shares": 8000
         },
+        "STM US": {
+          "name": "意法半導體公司",
+          "shares": 30000
+        },
         "6857 JP": {
           "name": "愛德萬測試",
           "shares": 6000
@@ -6467,13 +6467,13 @@
           "name": "古河電氣工業有限公司",
           "shares": 50000
         },
-        "NBIS US": {
-          "name": "尼比厄斯集團公眾有限公司",
-          "shares": 4500
-        },
         "TWLO US": {
           "name": "Twilio公司",
           "shares": 3500
+        },
+        "NBIS US": {
+          "name": "尼比厄斯集團公眾有限公司",
+          "shares": 4500
         },
         "IREN US": {
           "name": "IREN有限公司",
