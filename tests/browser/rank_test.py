@@ -229,6 +229,49 @@ for key, kc in (('Enter', 'Enter'), (' ', 'Space')):
     check('NV-4 Esc → 關 Detail、回排行（Router 不受影響）', types() == 'tool' and ev("document.getElementById('gsPanel').hidden") is True, types())
 check('NV-4 HTML 無 button 巢狀（排行、日曆）', ev("document.querySelectorAll('#rankRows button button, #calList button button').length") == 0)
 
+# NV-6（CP6c fix）：近 3 月小柱狀圖不得被 .rank-hit 蓋住——hover 取得原 title 報酬提示；點柱狀圖 → Detail（單一 navigation）
+cdp('Emulation.setDeviceMetricsOverride', {'width': 1280, 'height': 800, 'deviceScaleFactor': 1, 'mobile': False})   # 桌面 pointer
+wait_ms(300)
+MB = ev("""(()=>{const e=_rankSorted.find(x=>(x.ret_months||[]).slice(-3).filter(v=>v!=null&&v!==0).length===3 && !(_flowData.etfs||{})[x.code]); return e?e.code:null})()""")
+check('NV-6 前提：有 3 根非零柱、且無 Flow 按鈕干擾的排行列', bool(MB), MB)
+bring(MB)
+exp = ev("_rankSorted.find(x=>x.code===%s).ret_months.slice(-3).map(v=>(v>0?'+':'')+v.toFixed(1)+'%%')" % json.dumps(MB))
+bars = ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]');
+  return [...row.querySelectorAll('.mini-bars .mb')].map(b=>{const r=b.querySelector('.mb-bar').getBoundingClientRect(); const x=r.left+r.width/2, y=r.top+r.height/2;
+    const hit=document.elementFromPoint(x,y); const mb=hit&&hit.closest('.mb');
+    return {x:x, y:y, hit:hit?(hit.className||hit.tagName):null, title: mb?mb.getAttribute('title'):null, rowHit: !!hit && hit.classList.contains('rank-hit')}})})()""" % MB)
+print('   NV-6 bars (expected %s):' % exp, bars)
+check('NV-6 每根柱子的實際可見位置命中柱狀圖元素（不是 .rank-hit）', len(bars) == 3 and all(b['title'] is not None and not b['rowHit'] for b in bars), bars)
+check('NV-6 命中元素的 title＝原報酬提示（%s）' % ' / '.join(exp or []), [b['title'] for b in bars] == exp, ([b['title'] for b in bars], exp))
+b0 = bars[0]
+cdp('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': b0['x'], 'y': b0['y']}); wait_ms(150)
+hov = ev("(()=>{const h=[...document.querySelectorAll(':hover')].pop(); const mb=h&&h.closest('.mb'); return mb?mb.getAttribute('title'):(h?h.className:null)})()")
+check('NV-6 滑鼠移到柱子上：:hover 落在帶 title 的柱狀圖元素（瀏覽器 tooltip 來源）', hov == exp[0], hov)
+ev(HSPY)
+cdp('Input.dispatchMouseEvent', {'type': 'mousePressed', 'x': b0['x'], 'y': b0['y'], 'button': 'left', 'clickCount': 1})
+cdp('Input.dispatchMouseEvent', {'type': 'mouseReleased', 'x': b0['x'], 'y': b0['y'], 'button': 'left', 'clickCount': 1}); wait_ms(400)
+check('NV-6 點柱狀圖 → 該檔 Detail、pushState 恰好 1 次、未開 Flow（單一 navigation）',
+      types() == 'tool,detail' and ev("_curEtfCode") == MB and ev("window.__hc.push") == 1 and ev("flowLayerVisible()") is False, (types(), ev("window.__hc")))
+back()
+# 有 Flow 按鈕的列：柱狀圖與按鈕各自獨立
+bring(F0)
+fb = ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]'); const b=row.querySelector('.rank-flow').getBoundingClientRect();
+  const hit=document.elementFromPoint(b.left+b.width/2, b.top+b.height/2); const mbs=row.querySelector('.mini-bars .mb .mb-bar'); let mh=null;
+  if(mbs){const r=mbs.getBoundingClientRect(); const h=document.elementFromPoint(r.left+r.width/2, r.top+r.height/2); mh=h&&!!h.closest('.mb');}
+  return {flowHit: hit&&hit.className, barHit: mh}})()""" % F0)
+check('NV-6 有 Flow 的列：「持股異動 ›」仍命中按鈕、柱狀圖仍命中柱子（互不遮擋）', fb['flowHit'] == 'rank-flow' and fb['barHit'] in (True, None), fb)
+ev(HSPY)
+tap_flow(F0); wait_ms(400)
+check('NV-6 「持股異動 ›」仍只開 Flow（pushState 1 次、Detail 未開）', types() == 'tool,flow' and ev("window.__hc.push") == 1 and ev("document.getElementById('gsPanel').hidden") is True)
+back()
+ev("document.querySelector('#rankRows .rank-row[data-code=\"%s\"] .rank-hit').focus(); true" % A0)
+fo = ev("(()=>{const b=document.activeElement; return {cls:b.className, outline:getComputedStyle(b).outlineStyle}})()")
+cdp('Input.dispatchKeyEvent', {'type': 'keyDown', 'key': 'Enter', 'code': 'Enter', 'windowsVirtualKeyCode': 13, 'text': '\r'})
+cdp('Input.dispatchKeyEvent', {'type': 'keyUp', 'key': 'Enter', 'code': 'Enter', 'windowsVirtualKeyCode': 13}); wait_ms(400)
+check('NV-6 鍵盤：列按鈕可取得焦點、Enter → Detail', fo['cls'] == 'rank-hit' and types() == 'tool,detail' and ev("_curEtfCode") == A0, (fo, types()))
+back()
+cdp('Emulation.setDeviceMetricsOverride', {'width': 390, 'height': 844, 'deviceScaleFactor': 2, 'mobile': True}); wait_ms(300)
+
 # NV-5 日曆列 → Detail
 back()
 ev("document.getElementById('toolDiv').click(); true"); wait_ms(350)

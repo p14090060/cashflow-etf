@@ -96,7 +96,7 @@ document.getElementById('rankRows').addEventListener('click', function (ev) {
   const row = ev.target.closest('.rank-row');
   if (!row) return;
   if (ev.target.closest('.rank-flow')) { openFlow(row.dataset.code); return; }
-  if (ev.target.closest('.rank-hit')) openDetail(row.dataset.code);
+  if (ev.target.closest('.rank-hit, .mini-bars')) openDetail(row.dataset.code);   // 小柱狀圖可 hover 看報酬，點擊同整列 → Detail
 });
 
 // ── 排行頁：找自己的 ETF ──────────────────────────────────────

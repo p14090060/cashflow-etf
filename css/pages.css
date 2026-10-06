@@ -107,6 +107,9 @@
   .rank-hit:focus-visible { outline:2px solid var(--fair); outline-offset:2px; }
   .rank-row:active { background:var(--card2); }
   .rank-main, .rank-sub { position:relative; pointer-events:none; }
+  /* CP6c fix：近 3 月小柱狀圖要能接收指標，hover 才看得到 format.js 每根柱子的 title 報酬提示；
+     點擊在 #rankRows handler 中與整列一樣開 Detail（一次只走一條） */
+  .rank-sub .mini-bars { position:relative; z-index:1; pointer-events:auto; cursor:pointer; }
   /* 用金色而非紅綠——這個標記是「可點」的提示，不是漲跌方向，
      擺在報酬率（紅正綠負）旁邊用紅綠會被讀成方向。
      觸控高度 44px，以負 margin 抵銷，不撐高排名卡片（RK-1 不變） */
