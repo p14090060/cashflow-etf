@@ -11,7 +11,7 @@
 <title>ETF 存股雷達 v2</title>
 <link rel="stylesheet" href="css/base.css?v=20261006e">
 <link rel="stylesheet" href="css/components.css?v=20261007b">
-<link rel="stylesheet" href="css/pages.css?v=20261007c">
+<link rel="stylesheet" href="css/pages.css?v=20261007d">
 <link rel="stylesheet" href="css/category.css?v=20261006f">
 <link rel="stylesheet" href="css/watch.css?v=20261005x">
 </head>
@@ -134,8 +134,16 @@
     <!-- ══ PAGE 4: 主動式 ETF 買賣超 ══ -->
     <div class="cat-flow" id="page-check">
   
-      <div class="flow-head">
+      <div class="flow-head" id="flowHead">
         <div class="flow-title">主動式 ETF 持股異動</div>
+        <!-- PO Change #3（PHASE5_PLAN §8.4）：快速找 ETF；四條入口共用此節點 -->
+        <button type="button" class="flow-q-btn" id="flowQBtn" aria-expanded="false" aria-controls="flowQBox"
+                aria-label="在主動式 ETF 中搜尋" onclick="flowQToggle()" disabled>🔍</button>
+      </div>
+      <div class="flow-q" id="flowQBox" hidden>
+        <input id="flowQ" type="search" placeholder="代碼或名稱，例：00981A／統一" autocomplete="off" enterkeyhint="go"
+               aria-label="主動式 ETF 代碼或名稱" oninput="flowQSearch()">
+        <div class="flow-q-list" id="flowQList" role="group" aria-label="搜尋結果"></div>
       </div>
 
       <!-- F2：單列橫向 ETF 選擇器＋目前 ETF 完整名稱（PHASE5_PLAN §8.3） -->
@@ -374,7 +382,7 @@
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
 <script src="js/nav.js?v=20261006e"></script>
-<script src="js/flow.js?v=20261006c"></script>
+<script src="js/flow.js?v=20261007d"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261005x"></script>
 <script src="js/render.js?v=20261007b"></script>
@@ -382,7 +390,7 @@
 <script src="js/search.js?v=20261006a"></script>
 <script src="js/watch-store.js?v=20261005x"></script>
 <script src="js/category-rules.js?v=20261005x"></script>
-<script src="js/category.js?v=20261006f"></script>
+<script src="js/category.js?v=20261007d"></script>
 <script src="js/detail.js?v=20261006d"></script>
 <script src="js/watch.js?v=20261005x"></script>
 <script src="js/router.js?v=20261006e"></script>

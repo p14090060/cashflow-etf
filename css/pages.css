@@ -139,7 +139,24 @@
   /* ── 月月領息組合 ── */
 
   /* ── 主動式 ETF 買賣超 treemap ── */
-  .flow-head   { padding:14px 14px 6px; }
+  .flow-head   { padding:14px 14px 6px; display:flex; align-items:center; gap:8px; }
+  .flow-head .flow-title { flex:1; min-width:0; }
+  /* PO Change #3：🔍 快速找 ETF（≥ 44px）；搜尋區在 #flowChips 外，renderFlow 重繪不會清掉 */
+  .flow-q-btn  { flex:0 0 auto; width:44px; height:44px; padding:0; display:inline-flex; align-items:center; justify-content:center;
+                 background:none; border:1px solid var(--border); border-radius:10px; color:var(--bright); font:inherit; font-size:18px; cursor:pointer; }
+  .flow-q-btn[aria-expanded="true"] { border-color:#58a6ff; background:rgba(88,166,255,.12); }
+  .flow-q-btn:disabled { opacity:.4; cursor:default; }
+  .flow-q[hidden] { display:none; }
+  .flow-q      { padding:0 14px 8px; }
+  .flow-q input { width:100%; box-sizing:border-box; background:var(--card); color:var(--bright); border:1px solid var(--border);
+                  border-radius:8px; padding:10px 12px; font-size:16px; font-family:var(--sans); outline:none; }
+  .flow-q input:focus { border-color:#58a6ff; }
+  .flow-q-list { display:flex; flex-direction:column; gap:4px; margin-top:6px; }
+  .flow-q-item { display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; text-align:left;
+                 background:var(--card); color:var(--bright); border:1px solid var(--border); border-radius:8px; font:inherit; cursor:pointer; }
+  .flow-q-item b { font-family:var(--mono); font-size:16px; flex:0 0 auto; }
+  .flow-q-item span { font-size:15px; color:var(--dim); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .flow-q-empty { font-size:14px; color:var(--dim); padding:6px 2px; }
   .flow-title  { font-size:19px; font-weight:700; letter-spacing:.02em; }
   .flow-meta   { font-size:15px; color:var(--dim); margin-top:4px; line-height:1.5; }
   .flow-totals { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:6px 14px 10px; }

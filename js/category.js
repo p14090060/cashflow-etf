@@ -244,6 +244,7 @@ const Category = (function () {
       renderFlowFor();
     } else {
       renderList();
+      _resetFlowSearch();   // 分類原生離開持股異動＝Flow 關閉（PHASE5_PLAN §8.4）
     }
     fit();
   }
@@ -272,8 +273,13 @@ const Category = (function () {
   }
 
   // Router 呼叫：依已確認的 folder 層更新畫面（不重設 ui）
+  function _resetFlowSearch() {
+    if (typeof flowSearchReset === 'function' && !(typeof flowLayerVisible === 'function' && flowLayerVisible())) flowSearchReset();
+  }
+
   function applyFolder(layer) {
     if (!layer) {
+      if (open && open.view === 'flow') _resetFlowSearch();
       if (open) { open = null; lastKey = null; lastView = null; renderedKey = null; renderedView = null; closeUi(); }
       syncMode();
       return;

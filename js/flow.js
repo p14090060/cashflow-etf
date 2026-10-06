@@ -84,6 +84,92 @@ function flowSelect(code) {
   renderFlow();
 }
 
+// ── Active Flow 快速搜尋（PO Change #3，PHASE5_PLAN §8.4）──
+// selector 的第二種操作方式：範圍＝chips 同一份清單（_flowData.etfs），比對沿用 rank.js 的 _matchEtf，
+// 選取直接 flowSelect(code)（與點 chip 相同，不寫新 history）。展開狀態與 query 只在記憶體，不進 Router。
+let _flowQOpen = false;
+const _FLOWQ_MAX = 8;
+function _flowQEl(id) { return document.getElementById(id); }
+function _flowQEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+function _flowQSync() {
+  const btn = _flowQEl('flowQBtn'), box = _flowQEl('flowQBox');
+  if (!btn || !box) return;
+  const ok = _flowStatus === 'ok' && !!_flowData;
+  btn.disabled = !ok;
+  if (!ok) _flowQOpen = false;
+  box.hidden = !_flowQOpen;
+  btn.setAttribute('aria-expanded', String(_flowQOpen));
+}
+function _flowQItems() {
+  const all = (_flowData && _flowData.etfs) || {};
+  return Object.keys(all).map(c => {
+    const etf = (typeof ETFS !== 'undefined' && ETFS) ? ETFS.find(e => e.code === c) : null;
+    return { code: c, name: all[c].name || (etf && etf.name) || '' };
+  });
+}
+function flowQSearch() {
+  const input = _flowQEl('flowQ'), list = _flowQEl('flowQList');
+  if (!input || !list) return;
+  const q = (input.value || '').trim().toUpperCase();
+  if (!q) { list.innerHTML = ''; return; }
+  const hits = _flowQItems().map(e => ({ e, s: _matchEtf(e, q) })).filter(x => x.s > 0)
+    .sort((a, b) => b.s - a.s || a.e.code.localeCompare(b.e.code)).slice(0, _FLOWQ_MAX);
+  list.innerHTML = hits.length
+    ? hits.map(h => '<button type="button" class="flow-q-item" data-code="' + _flowQEsc(h.e.code) + '">' +
+        '<b>' + _flowQEsc(h.e.code) + '</b><span>' + _flowQEsc(h.e.name) + '</span></button>').join('')
+    : '<div class="flow-q-empty">找不到「' + _flowQEsc(input.value.trim()) + '」——這裡只找有持股異動資料的主動式 ETF</div>';
+}
+function flowQOpen() {
+  if (_flowStatus !== 'ok' || !_flowData) return;
+  _flowQOpen = true;
+  _flowQSync();
+  _flowQEl('flowQ').focus({ preventScroll: true });
+  flowQSearch();
+}
+function flowQClose(focusBtn) {
+  _flowQOpen = false;
+  _flowQSync();
+  if (focusBtn) _flowQEl('flowQBtn').focus({ preventScroll: true });
+}
+function flowQToggle() { if (_flowQOpen) flowQClose(true); else flowQOpen(); }
+function flowQPick(code) {
+  flowSelect(code);        // 與點 chip 完全相同：寫入目標依 §3.4.3、replace 不 push
+  flowQClose(true);
+}
+// Flow 真正關閉（Flow 層關閉，或分類原生離開持股異動）→ 清空 query、恢復預設收起
+function flowSearchReset() {
+  const input = _flowQEl('flowQ'), list = _flowQEl('flowQList');
+  if (input) input.value = '';
+  if (list) list.innerHTML = '';
+  _flowQOpen = false;
+  _flowQSync();
+}
+(function () {
+  const list = _flowQEl('flowQList'), head = _flowQEl('flowHead'), box = _flowQEl('flowQBox'), input = _flowQEl('flowQ');
+  if (!list || !head || !box || !input) return;
+  list.addEventListener('click', function (ev) {
+    const b = ev.target.closest('.flow-q-item');
+    if (b) flowQPick(b.dataset.code);
+  });
+  input.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter') return;
+    ev.preventDefault();
+    const first = _flowQEl('flowQList').querySelector('.flow-q-item');
+    if (first) flowQPick(first.dataset.code);
+  });
+  // Esc（Blocking）：搜尋開啟時只關搜尋，不讓 Router 的 document keydown 關掉整個 Flow
+  const onEsc = function (ev) {
+    if (ev.key !== 'Escape' || !_flowQOpen) return;
+    ev.stopPropagation();
+    ev.preventDefault();
+    flowQClose(true);
+  };
+  head.addEventListener('keydown', onEsc);
+  box.addEventListener('keydown', onEsc);
+})();
+
 // ── Source-aware Flow 層（PHASE5_PLAN §3.4.2）──
 // 持股異動內容節點（#page-check）只有一份：Flow 層顯示時移進 #flowLayer，關閉時移回 #catFlowHost。
 // 來源畫面（Tools／排行／Detail）不卸載、不重繪，只被覆蓋，所以分頁、捲動、輸入自然保留；這裡不碰 window 捲動。
@@ -120,6 +206,7 @@ function flowLayerHide() {
   const node = document.getElementById('page-check');
   if (host && node) host.appendChild(node);
   if (layer) { layer.hidden = true; layer.classList.remove('over-detail'); }
+  flowSearchReset();
 }
 
 // 選取的代碼捲到選擇列中間附近：只調整 #flowChips 的 scrollLeft，不捲 window
@@ -211,6 +298,7 @@ function renderFlow(code) {
       '<button type="button" class="flow-chip' + (c === _flowSel ? ' active' : '') + '" data-code="' + c + '"'
       + ' aria-pressed="' + (c === _flowSel) + '" onclick="flowSelect(\'' + c + '\')">' + c + '</button>').join('');
     _flowChipIntoView();
+    _flowQSync();
     document.getElementById('flowSelName').textContent = e.name || _flowSel;
 
     const span = (e.flow_from && e.flow_to) ? e.flow_from + ' → ' + e.flow_to : '';
