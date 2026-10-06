@@ -5,6 +5,12 @@
 > 前置：Phase 2～4 VERIFIED / CLOSED（Phase 4 baseline `edb065d2`）。Phase 5 的回歸測試是**保護**，不重開舊 Phase。
 > 原則：靜態 PWA、傳統 `<script>`、無 build、無框架；不新增第三方套件、不新增資料來源；文件配合程式，**不改 `calc_signal` 公式**。
 
+## PO Change #3（2026-10-07，CP6c CLOSED 之後）：Active Flow ETF 快速搜尋（CP6d）
+
+- 排程：CP6c CLOSED → **CP6d** → CP7 Theme → CP8 UX closeout → Final。詳 §8.4。
+- **WHY**：橫向 selector 適合「附近瀏覽」，但主動式 ETF 已 30 多檔，已知要看哪一檔的使用者得一路橫滑尋找。🔍 是 selector 的第二種操作方式（精準跳到指定 ETF），不取代 selector、不新增 navigation：選取結果直接呼叫既有 `flowSelect(code)`，與點 chip 完全相同（不寫新 history、Back 不變）。
+- 搜尋範圍＝selector 上的 ETF（`Object.keys(_flowData.etfs)`），不另造資料來源；不用 Header 全站搜尋（範圍是全部 ETF、選取會開 Detail，用途不同）。
+
 ## CP6c（2026-10-07，CP6b CLOSED 之後）：排行／日曆 Detail navigation 規格校正
 
 - 排程：CP6b CLOSED → **CP6c** → CP7 Theme → CP8 UX closeout → Final。不是新產品方向，而是把 §3.5 已核准、但從未接到 UI 的 navigation 補上。
@@ -454,6 +460,27 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 
 ---
 
+### 8.4 Active Flow ETF 快速搜尋（CP6d，PO Change #3）
+
+```
+主動式 ETF 持股異動                         [🔍]   ← .flow-head 右側（四條入口共用同一節點）
+（🔍 展開時）[ 代碼或名稱，例：00981A／統一  ✕ ]
+             00981A 主動統一台股增長            ← 結果最多 8 筆，各為 <button>
+00980A  00981A [00982A] …                         ← 既有橫向 selector（保留）
+```
+
+- 🔍：真正的 `<button>`、≥ 44px、`aria-expanded`、`aria-controls`、accessible name「在主動式 ETF 中搜尋」；預設收起；`_flowStatus !== 'ok'` 時停用。
+- 範圍：`Object.keys(_flowData.etfs)`（與 chips 一致）；名稱優先用 Flow 資料 `name`，無則用 `ETFS` 名稱。
+- 比對與排序沿用 `rank.js` 的 `_matchEtf`：代碼完全相同 → 代碼開頭 → 代碼／名稱包含；最多 8 筆；查無顯示「找不到」。
+- 選取（點結果或 Enter 選第一筆）→ `flowSelect(code)` → 收起搜尋、焦點回 🔍。pushState 0、Back 層數不變；寫入目標沿用 §3.4.3（Flow 層 → `flow.ui.code`；分類原生 → `folder.ui.code`）。
+- 展開／收起與 query 只在 `flow.js` 記憶體，不進 Router。展開時 focus 輸入框（`preventScroll`）。`renderFlow` 重繪、鍵盤 resize 不清 query（搜尋區在 `#flowChips` 外）。Flow 真正關閉（Flow 層關閉，或分類原生離開持股異動）→ 清空 query 並收起。
+- **Esc（Blocking）**：搜尋開啟且焦點在搜尋區時，Esc 只關搜尋並 `stopPropagation`，不傳給 Router；搜尋未開啟時維持既有 Esc（關閉頂層）。
+- 360／390px 直向標題單行；橫向與手機鍵盤無水平溢出。
+- 不改：Router、Active Flow 資料、PCF pipeline、排行（CP6b／CP6c）、Theme／token、橫向 selector 行為。
+- 範圍：`index.html`（`.flow-head` 🔍＋搜尋區）、`js/flow.js`、`css/pages.css`、tests。
+
+---
+
 ## 9. 檔案與實作順序
 
 | 順序 | 內容 | 主要檔案 |
@@ -466,6 +493,7 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | 6 | F1 持股異動直向切換分類＋F2 橫向 ETF 選擇器 | `js/category.js`、`css/category.css`、`js/flow.js`（僅代碼列 markup／捲入可見區）、`css/pages.css`、`index.html`（`#flowSelName`） |
 | 6b | PO Change #2 成交量排行第一屏（§3.8） | `index.html`、`css/pages.css`、`js/rank.js`、tests |
 | 6c | 排行／日曆 Detail navigation 規格校正（§3.5） | `js/rank.js`、`js/render.js`、`css/pages.css`、`css/components.css`、tests |
+| 6d | PO Change #3 Active Flow ETF 快速搜尋（§8.4） | `index.html`、`js/flow.js`、`css/pages.css`、tests |
 | 7 | V1～V2 主題切換與 token 化（含 Active Flow 色值） | `index.html`、`css/*.css`、`js/format.js`、`js/rank.js`、`js/flow.js`（僅色值） |
 | 8 | V3 UX closeout、文件 | 全站、`CLAUDE.md` |
 | 9 | 全回歸 → Codex Code Review → 真機（§10.3） | |
@@ -540,6 +568,16 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | NV-3 | 三層返回 | 排行列 → Detail →「查看完整持股異動」→ Back → Detail → Back → 排行 |
 | NV-4 | 重繪與鍵盤 | `renderRank`／`renderAll` 重繪後點擊仍有效；Tab 到列按鈕 Enter／Space 開 Detail、Esc 關閉；無 button 巢狀 |
 | NV-5 | 日曆列 → Detail | 真實點擊 → 該檔 Detail、pushState 1 次、Back 回日曆；重繪後仍可點 |
+| FQ-1 | 預設與尺寸 | 四種入口（Tools／排行／Detail／分類原生）都有 🔍；預設收起、無輸入框；🔍 ≥ 44px、aria-expanded／aria-controls／accessible name；360／390px 標題單行 |
+| FQ-2 | 展開 | 點 🔍 展開、輸入框取得焦點、window 不捲動；可收起，焦點回 🔍 |
+| FQ-3 | 搜尋 | 代碼完全相同、代碼開頭、名稱包含都找得到，排序依 `_matchEtf`；只出現 chips 上的 ETF；非 Flow ETF 查無；≤ 8 筆 |
+| FQ-4 | 選取同 chip | 選取後 active chip、`#flowSelName`、加碼／減碼、treemap 與點同一 chip 的結果相同；選取 chip 捲入可見；搜尋收起 |
+| FQ-5 | 不寫 history | 選取時 pushState 0、Back 層數不變；Flow 層寫 `flow.ui.code`、分類原生寫 `folder.ui.code` |
+| FQ-6 | 返回 | 各入口 Back 回原來源；Forward 回 Flow 顯示剛選的 ETF |
+| FQ-7 | Esc（Blocking） | 搜尋開啟時 Esc 只關搜尋、Flow 仍開；搜尋未開啟時 Esc 關 Flow（既有行為） |
+| FQ-8 | Enter 與保留 | Enter 選第一筆；`renderFlow` 重繪與鍵盤 resize 不清 query；Flow 關閉後重新進入為預設收起 |
+| FQ-9 | 版面 | portrait／landscape、鍵盤開啟無水平溢出 |
+| FQ-10 | 回歸 | FS-1～6 與完整 regression 全 PASS |
 | TL-8 | 無 YouTube、無計算機 | 工具頁無 YouTube 連結、無 B-1 元素 |
 | YT-1 | Header YouTube | 圖示存在、≥ 44×44、`href`＝頻道、`target="_blank"`、`rel` 含 `noopener`；不改變 `#statusBadge`／↻ 行為 |
 | YT-2 | 舊入口移除 | 首頁、工具頁無 YouTube 連結；`page-yt` 不存在；`switchPage('yt')` 不丟例外 |
