@@ -5,6 +5,13 @@
 > 前置：Phase 2～4 VERIFIED / CLOSED（Phase 4 baseline `edb065d2`）。Phase 5 的回歸測試是**保護**，不重開舊 Phase。
 > 原則：靜態 PWA、傳統 `<script>`、無 build、無框架；不新增第三方套件、不新增資料來源；文件配合程式，**不改 `calc_signal` 公式**。
 
+## CP6c（2026-10-07，CP6b CLOSED 之後）：排行／日曆 Detail navigation 規格校正
+
+- 排程：CP6b CLOSED → **CP6c** → CP7 Theme → CP8 UX closeout → Final。不是新產品方向，而是把 §3.5 已核准、但從未接到 UI 的 navigation 補上。
+- **Git history 調查**：§3.5「排行列／日曆列 → `openDetail(code)`：既有 `intentDetail`」自 Rev.4 起寫入，「既有」指 Router 已有 Detail intent，UI 並未接線。排行列自持股異動上線（`599a5ecc`）起只有「有 PCF 資料」的列可點、且點了開 Flow；日曆列（`.cal-item`）從未有點擊動作。CP4 TC-7／RT-T2(c)、CP6b RK-6 以程式呼叫 `openDetail()` 驗 Router，真實點擊的 RF-3／RK-4b 只點 tappable 列 → Flow，因此落差未被測出；CP6b RK-4b 首次點一般列時浮現。
+- **核准規格**：排行列 → Detail；列內「持股異動 ›」→ Active Flow（一次點擊只產生一種 navigation）；日曆 ETF 列 → Detail。Router 沿用既有 navigation，不新增規格。詳 §3.5。
+- **Active Flow 入口採 B**：只要該 ETF 有 Active Flow 資料（沿用既有判定 `_flowData.etfs[code]` 存在，與原 `.tappable` 相同）就顯示「持股異動 ›」。WHY：「近期沒有異動」不等於「沒有持股異動資料」，最新資料可能正確代表 0 異動，入口不應因此消失；7 天條件不再控制入口是否存在。
+
 ## PO Change #2（2026-10-06，CP6 CLOSED 之後）：成交量排行第一屏（CP6b）
 
 - 排程：CP6 CLOSED → **CP6b** → CP7 Theme → CP8 UX closeout → Final regression／Codex Review／PO 真機。詳 §3.8。
@@ -238,7 +245,9 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 
 ### 3.5 從子頁開 ETF Detail 後返回
 
-- 排行列／日曆列 → `openDetail(code)`：既有 `intentDetail`，在目前 entry 上 push detail（stack `[tool rank, detail]`）。
+- 排行列／日曆列 → `openDetail(code)`：既有 `intentDetail`，在目前 entry 上 push detail（stack `[tool rank, detail]`）。（CP6c 起實際接到 UI）
+- **CP6c 事件設計**：排行列與日曆列各放一顆覆蓋整列的 `<button>`（`.rank-hit`／`.cal-hit`，`aria-label`＝代碼＋名稱＋「詳細資料」），列內容不攔截點擊；「持股異動 ›」為列內另一顆 `<button class="rank-flow">`（≥ 44px、`aria-label`「查看 <代碼> 持股異動」），疊在覆蓋按鈕之上。兩者是兄弟元素，**不巢狀**。`#rankRows`／`#calList` 各一個 delegated click handler：先判斷 `.rank-flow` → `openFlow`，否則 `.rank-hit`／`.cal-hit` → `openDetail`；一次點擊只走一條。移除列上的 inline `onclick`。鍵盤以原生 button 的 Enter／Space 觸發。
+- 「持股異動 ›」顯示條件：該 ETF 有 Active Flow 資料即顯示（不再限最近 7 天有換股）。
 - ✕／Back／Esc → 關閉 Detail，回到原子頁；Detail 是覆蓋面板，window 捲動自然保留；`rankFind` 值與定位結果保留；30 秒輪詢的 `renderRank` 仍套用定位。Forward → 再開同一檔。
 - 子頁再 Back → 工具卡片列表（stack `[]`）。
 - 排行「持股異動 ›」→ Flow → Back：回原排行（§3.4）。
@@ -456,6 +465,7 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | 5 | Y1 Header YouTube、舊入口與 `page-yt` 退役 | `index.html`、`css/base.css`、`js/router.js`（`TOOL_PAGE`） |
 | 6 | F1 持股異動直向切換分類＋F2 橫向 ETF 選擇器 | `js/category.js`、`css/category.css`、`js/flow.js`（僅代碼列 markup／捲入可見區）、`css/pages.css`、`index.html`（`#flowSelName`） |
 | 6b | PO Change #2 成交量排行第一屏（§3.8） | `index.html`、`css/pages.css`、`js/rank.js`、tests |
+| 6c | 排行／日曆 Detail navigation 規格校正（§3.5） | `js/rank.js`、`js/render.js`、`css/pages.css`、`css/components.css`、tests |
 | 7 | V1～V2 主題切換與 token 化（含 Active Flow 色值） | `index.html`、`css/*.css`、`js/format.js`、`js/rank.js`、`js/flow.js`（僅色值） |
 | 8 | V3 UX closeout、文件 | 全站、`CLAUDE.md` |
 | 9 | 全回歸 → Codex Code Review → 真機（§10.3） | |
@@ -525,6 +535,11 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | RK-6 | 往返保留 | 🔍 展開＋搜尋內容＋捲動 → Detail／Flow → Back：展開、內容、定位、捲動保留；`renderAll` 輪詢後也保留 |
 | RK-7 | 橫向／鍵盤 | 844×390 與 `gs-ckm` 下無水平溢出、🔍／ⓘ 可操作；排行頂部文字 ≥ 13px |
 | RK-8 | 回歸 | 完整 regression 全數 PASS |
+| NV-1 | 排行列 → Detail | 真實點擊一般列（含無 Flow 資料的列）→ 該檔 Detail；pushState 恰好 1 次；stack `[tool rank, detail]`；Back 回排行且搜尋／定位／捲動保留 |
+| NV-2 | 持股異動 › → Flow | 真實點擊 → `[tool rank, flow]`、pushState 1 次、不開 Detail；有 Flow 資料的 ETF 都有此按鈕（含 7 天內無換股者）；≥ 44px、aria-label |
+| NV-3 | 三層返回 | 排行列 → Detail →「查看完整持股異動」→ Back → Detail → Back → 排行 |
+| NV-4 | 重繪與鍵盤 | `renderRank`／`renderAll` 重繪後點擊仍有效；Tab 到列按鈕 Enter／Space 開 Detail、Esc 關閉；無 button 巢狀 |
+| NV-5 | 日曆列 → Detail | 真實點擊 → 該檔 Detail、pushState 1 次、Back 回日曆；重繪後仍可點 |
 | TL-8 | 無 YouTube、無計算機 | 工具頁無 YouTube 連結、無 B-1 元素 |
 | YT-1 | Header YouTube | 圖示存在、≥ 44×44、`href`＝頻道、`target="_blank"`、`rel` 含 `noopener`；不改變 `#statusBadge`／↻ 行為 |
 | YT-2 | 舊入口移除 | 首頁、工具頁無 YouTube 連結；`page-yt` 不存在；`switchPage('yt')` 不丟例外 |
