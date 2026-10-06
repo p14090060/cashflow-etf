@@ -494,7 +494,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 34、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝807 PASS／0 FAIL／5 DEFER。390px 截圖目視：← 主動式 … 代碼⇅ 切換分類 ▼ 單列，分段下方直接接 selector 與紅綠方塊。
 
 - **PO Change #2（Plan `4222de54`）：成交量排行第一屏（CP6b，§3.8）**。排程 CP6 → CP6b → CP7 → CP8 → Final。排行搜尋維持**定位**（PO 選 A，不用「篩選」字眼）；RK-1 依 Gate 核准方案 1：sticky ≤120px、完整 ≥4 列＋第 5 列部分可見（≥5 列在保留 Header／全站警示／44px 標題列／109px 卡片下無法達成，不縮卡片）。
-- **CP6b — `e3852d6a`，待 Codex CP6b Code Review。**
+- **CP6b — `e3852d6a`；Codex NEED FIX 2 項 → fix `768844d2`（見本段末），待 Codex CP6b NEED FIX 限定複審。**
   - `index.html`：`.rank-sticky` 改為 `.rank-top`（「成交量排行」＋`#rankFindBtn` 🔍＋`#rankInfoBtn` ⓘ，各 44×44、`aria-expanded`／`aria-controls`）、`#rankFindBox`（既有 `#rankFind`，placeholder「在排行中找 ETF」、`#rankFindClear`、`#rankFindMsg`）、`#rankInfo`（原兩段文字逐字、`#rankTotal`），兩個區塊預設 `hidden`；欄位名稱 `.rank-hdr` 不變（只縮內距）。
   - `js/rank.js`：`_rankFindOpen`／`_rankInfoOpen`、`rankToggleFind()`（展開時 `focus({preventScroll})`）、`rankToggleInfo()`、`_rankSyncTop()`；輸入有內容即保持展開；`clearRankFind` 同步。定位邏輯（`applyRankFind`、捲動扣 sticky 高度、榜外提示）未改。
   - `css/pages.css`：`.rank-top／.rank-title／.rank-ic(.on)／.rank-info`，`[hidden]{display:none}`；`.rank-hdr` padding 9/10 → 6、margin 8 → 6。標題色沿用原 #FFD700（CP7 token 化）。
@@ -503,6 +503,13 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 另修測試偶發 FAIL：TC-2／TC-3／TC-4（tools_test）與 PZ-11（home_test）原斷言 history.length 恰好 +1／≥L，但 push 會清掉先前 Back 留下的「多筆」forward entry，長度可能不增反減 → 改為 ≤ L+1，「確實多一層」仍由 stack 檢查與下一步 Back 驗證。非產品問題。
   - 負向對照：index.html／pages.css／rank.js 還原為 CP6 版 → rank_test 多項 FAIL＋未捕捉例外。
   - 結果（800×600）：rank 22、tools 88、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝832 PASS／0 FAIL／5 DEFER。
+  - **CP6b fix `768844d2`**
+    - FIX-1（定位列被 sticky 遮住）：原公式只扣 `.rank-sticky` 高度，但 sticky 黏在 Header 下方（`top: var(--hdr-h)`）。新增 `_rankOccludedTop()`＝max(Header 若 `position:sticky` 則其 `offsetHeight`, 排行 sticky 若 `position:sticky` 則 `parseFloat(computed top)＋offsetHeight`)；gs-ckm（Header static）與矮螢幕（sticky static）自動不計。實測 390×844：00406A（第 1 名）修正前 y=204～313、sticky 底 314（Codex 重現值）；修正後 y=326～435；第 5／34／51／67 名 y=326、第 100 名 y=506（頁尾不能再捲），全部在 sticky 下方、導覽列（782）上方。
+    - rank_test 新增 RK-4b 22 項：6 個名次（1、5、34、51、67、100）定位後整列可見、列中心 `elementFromPoint` 命中該列、仍 100 列；ⓘ 展開時亦然；第一／中間／最後一檔 tappable 列在可見中心點擊 → 開該檔持股異動。⚠ 排行列本身沒有「點擊開 Detail」——既有設計是 tappable（有 PCF）列 → Flow、其他列無點擊動作；Plan §3.5 寫「排行列 → openDetail」與實作不符（CP4 起即如此，TC-7 用程式呼叫 openDetail）。本輪不改產品行為，請 Gate 判斷是否需要另開項目。
+    - FIX-2（push 防線）：TC-2／TC-3／TC-4、PZ-11 加 `history.pushState`／`replaceState` 計數 spy：斷言 pushState 恰好 1 次、push 後 `history.state` 與 `Router.state()` 結構一致（base＋各層 t／id／code／key；不比 ui——Flow 層預設選取依 §3.4.3 只 `setUi` 進記憶體）、頂層型別／代碼正確；`history.length` 只保留 ≤ L+1。Router 未改。
+    - Mutation：(1) `pushEntry` 改 `replaceState` → TC-2、TC-3、PZ-11 push 防線 FAIL（push=0），之後 Back 直接離站使 tools_test 中斷（TC-4 未執行到，等同 FAIL）；結構比對在 mutation 下仍 same=True，證明 push 次數這條才是關鍵防線。(2) rank.js 還原舊 offset → RK-4b 12 項 FAIL（第 1 名 y=204～313 被遮）。
+    - 結果（800×600）：rank 44、tools 91、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝858 PASS／0 FAIL／5 DEFER。
+  - **B（只記錄，未執行）**：GPT Gate 提供的 Active Flow／PCF 線索（00407A 10/06 股數異動 0；00983A NVIDIA、RKLB 加碼，TSLA、WGS、XE 減碼，第三方 10/06／10/07 日期定義不一；00986A 10/05 逐筆可核；00996A 10/05 尖點、景碩、汎銓加碼，矽力-KY、致茂減碼，10/06 異動日待核）。僅為除錯線索，不寫入正式資料。正式調查若開啟，順序＝投信官方 PCF → 原始持股股數逐日比較 → 第三方交叉驗證；以股數變化判定、不以權重；第三方日期定義不得混用；官方有新 PCF 而專案停在舊日期時沿 Download → Parse → Compare → Write → Publish／Monitor 追中斷點；官方無新 PCF 不得自行製造異動。待 CP6b CLOSED 後由 GPT Gate／PO 決定何時啟動。本輪未改 pipeline、未改資料。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
