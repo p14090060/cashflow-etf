@@ -158,6 +158,12 @@
   .cal-item.soon  { background:rgba(255,215,0,.05); border-color:rgba(255,215,0,.25); }
   .cal-item.today { background:rgba(0,229,160,.06); border-color:rgba(0,229,160,.35); }
   .cal-item:last-child { margin:0; }
+  /* CP6c：日曆列 → Detail。覆蓋整列的 .cal-hit 按鈕；列內容不攔截點擊 */
+  .cal-item { position:relative; cursor:pointer; }
+  .cal-item > :not(.cal-hit) { position:relative; pointer-events:none; }
+  .cal-hit  { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0;
+              background:none; border:0; border-radius:9px; cursor:pointer; }
+  .cal-hit:focus-visible { outline:2px solid var(--fair); outline-offset:2px; }
   .cal-date { text-align:center; width:38px; flex-shrink:0; }
   .cal-day   { font-family:var(--mono); font-size:16px; font-weight:700; display:block; line-height:1; }
   .cal-mon   { font-size:14px; color:var(--bright); }

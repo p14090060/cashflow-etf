@@ -49,6 +49,14 @@ def push_ok(t, extra=None):
       return {push:window.__hc.push, same: !!hs && sk(hs)===sk(rs), topT: top&&top.t, topId: top&&(top.id_||top.id), topCode: top&&top.code, n: hs&&hs.stack.length}})()""")
     return r if isinstance(r, dict) else {'push': -1, 'same': False, 'topT': None, 'topId': None, 'topCode': None, 'n': -1, 'err': r}   # history.state 異常時判 FAIL、不中斷
 
+
+def click_at(sel):
+    """在 sel 元素的可見中心以 elementFromPoint 取得實際命中元素並 click；回傳命中元素描述。"""
+    return ev("""(()=>{const el=document.querySelector(%s); if(!el) return null; el.scrollIntoView({block:'center'}); const r=el.getBoundingClientRect();
+      const sb=(document.querySelector('.rank-sticky')||{getBoundingClientRect:()=>({bottom:0})}).getBoundingClientRect().bottom;
+      const y=(Math.max(r.top, sb)+r.bottom)/2; const hit=document.elementFromPoint(r.left+r.width/2, y); if(!hit) return null; hit.click();
+      return hit.className||hit.tagName})()""" % json.dumps(sel))
+
 # ════════ TC：三張功能卡 ════════
 home()
 h0 = hlen()
@@ -116,24 +124,27 @@ ev("{const f=document.getElementById('rankFind'); f.value='0050'; f.dispatchEven
 check('TC-6 rankFind 只定位不過濾、訊息含 0050', ev("document.querySelectorAll('#page-rank .rank-row').length") == n_rows and '0050' in (ev("document.getElementById('rankFindMsg').innerText") or ''), n_rows)
 
 # TC-7 子頁 → Detail → 返回（排行：捲動、rankFind 保留）
-ev("window.scrollTo(0, 900); true"); wait_ms(300)
+ev("[...document.querySelectorAll('#page-rank .rank-row')][12].scrollIntoView({block:'center'}); true"); wait_ms(300)
 y0 = ev("window.scrollY")
 code_mid = ev("[...document.querySelectorAll('#page-rank .rank-row')][12].dataset.code")
-ev("openDetail(%s); true" % json.dumps(code_mid)); wait_ms(350)
-check('TC-7 排行 → Detail：stack [tool, detail]', types() == 'tool,detail')
+# CP6c：改為真的點排行列（原本以程式呼叫 openDetail）。點列的左側（名次／代碼），避開「持股異動 ›」
+ev(HSPY)
+ev("""(()=>{const row=[...document.querySelectorAll('#page-rank .rank-row')][12]; const r=row.querySelector('.rank-code').getBoundingClientRect();
+  document.elementFromPoint(r.left+r.width/2, r.top+r.height/2).click(); return true})()"""); wait_ms(350)
+check('TC-7 真實點擊排行列 → Detail：stack [tool, detail]、該列 ETF、pushState 1 次', types() == 'tool,detail' and st()['stack'][-1]['code'] == code_mid and ev("window.__hc.push") == 1, (types(), code_mid))
 back()
 check('TC-7 Back → 仍在排行、捲動不變、rankFind 值與定位保留', types() == 'tool' and page_on('page-rank') and abs(ev("window.scrollY") - y0) <= 2
       and ev("document.getElementById('rankFind').value") == '0050' and ev("!!document.querySelector('#page-rank .rank-row.found')") is True, (ev("window.scrollY"), y0))
 back()
 check('TC-7 再 Back → 三張卡', page_on('page-tools') and st()['stack'] == [])
 ev("document.getElementById('toolDiv').click(); true"); wait_ms(300)
-dcode = ev("(document.querySelector('#calList .cal-code2')||{}).textContent")
-if dcode and ev("ETFS.some(e=>e.code===%s)" % json.dumps(dcode)):
-    ev("openDetail(%s); true" % json.dumps(dcode)); wait_ms(350)
-    back()
-    check('TC-7 配息日曆 → Detail → Back：回配息日曆', types() == 'tool' and page_on('page-div'))
-else:
-    check('TC-7 配息日曆 → Detail → Back（日曆無可開代碼，略過）', True, dcode)
+dcode = ev("(document.querySelector('#calList .cal-item')||{dataset:{}}).dataset.code")
+check('TC-7 前提：配息日曆有列', bool(dcode), dcode)
+ev(HSPY)
+click_at('#calList .cal-item'); wait_ms(350)
+check('TC-7 真實點擊配息日曆列 → 該檔 Detail、pushState 1 次', types() == 'tool,detail' and st()['stack'][-1]['code'] == dcode and ev("window.__hc.push") == 1, (types(), dcode))
+back()
+check('TC-7 配息日曆 → Detail → Back：回配息日曆', types() == 'tool' and page_on('page-div'))
 back()
 
 # TC-8 相容入口
@@ -217,9 +228,14 @@ check('RF-3 先展開 🔍，輸入框可見', ev("(()=>{ if(document.getElement
 ev("{const f=document.getElementById('rankFind'); f.value='0056'; f.dispatchEvent(new Event('input'));} true"); wait_ms(250)
 ev("window.scrollTo(0, 700); true"); wait_ms(300)
 y0 = ev("window.scrollY")
-rcode = ev("(document.querySelector('#page-rank .rank-row.tappable')||{dataset:{}}).dataset.code")
-ev("document.querySelector('#page-rank .rank-row.tappable').click(); true"); wait_ms(400)
-check('RF-3 排行列 → Flow 層、stack [tool, flow]、選取＝該列 ETF', types() == 'tool,flow' and flow_on() and ev("_flowSel") == rcode, (types(), rcode))
+rcode = ev("(document.querySelector('#page-rank .rank-row.has-flow')||{dataset:{}}).dataset.code")
+ev("new Promise(r=>{let last=-1,same=0;const i=setInterval(()=>{const y=Math.round(scrollY); same=(y===last)?same+1:0; last=y; if(same>=3){clearInterval(i);r(y)}},120)})", True)   # 等 0056 定位的 smooth scroll 停下
+ev("document.querySelector('#page-rank .rank-row.has-flow .rank-flow').scrollIntoView({block:'center', behavior:'instant'}); true"); wait_ms(300)
+y0 = ev("window.scrollY")
+ev(HSPY)
+ev("""(()=>{const b=document.querySelector('#page-rank .rank-row.has-flow .rank-flow'); const r=b.getBoundingClientRect(); const h=document.elementFromPoint(r.left+r.width/2, r.top+r.height/2); if(h) h.click(); return true})()"""); wait_ms(400)
+check('RF-3 排行「持股異動 ›」→ Flow 層、stack [tool, flow]、選取＝該列 ETF、未開 Detail、pushState 1 次（CP6c：row → Detail，按鈕 → Flow）',
+      types() == 'tool,flow' and flow_on() and ev("_flowSel") == rcode and ev("document.getElementById('gsPanel').hidden") is True and ev("window.__hc.push") == 1, (types(), rcode, ev("window.__hc.push")))
 check('RF-9 開 Flow 不捲動來源頁', abs(ev("window.scrollY") - y0) <= 2, (ev("window.scrollY"), y0))
 back()
 check('RF-3 Back → 原排行：捲動、rankFind 值、定位標示保留', page_on('page-rank') and types() == 'tool' and abs(ev("window.scrollY") - y0) <= 2

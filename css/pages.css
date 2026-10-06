@@ -100,12 +100,20 @@
   .rank-row      { padding:12px 10px; margin-bottom:8px;
                    background:var(--card); border:1px solid var(--border);
                    border-radius:10px; }
-  .rank-row.tappable { cursor:pointer; }
-  .rank-row.tappable:active { background:var(--card2); }
+  /* CP6c：.rank-hit 覆蓋整列（→ Detail）；列內容不攔截點擊；「持股異動 ›」是疊在上面的獨立按鈕 */
+  .rank-row      { position:relative; }
+  .rank-hit      { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0;
+                   background:none; border:0; border-radius:10px; cursor:pointer; z-index:0; }
+  .rank-hit:focus-visible { outline:2px solid var(--fair); outline-offset:2px; }
+  .rank-row:active { background:var(--card2); }
+  .rank-main, .rank-sub { position:relative; pointer-events:none; }
   /* 用金色而非紅綠——這個標記是「可點」的提示，不是漲跌方向，
-     擺在報酬率（紅正綠負）旁邊用紅綠會被讀成方向 */
-  .rank-flow     { font-size:11px; font-weight:700; color:var(--fair); white-space:nowrap;
-                   margin-left:8px; flex-shrink:0; }
+     擺在報酬率（紅正綠負）旁邊用紅綠會被讀成方向。
+     觸控高度 44px，以負 margin 抵銷，不撐高排名卡片（RK-1 不變） */
+  .rank-flow     { position:relative; z-index:1; pointer-events:auto; min-height:44px; margin:-14px 0 -14px 8px; padding:0 6px;
+                   background:none; border:0; font:inherit; font-size:11px; font-weight:700; color:var(--fair);
+                   white-space:nowrap; flex-shrink:0; cursor:pointer; }
+  .rank-flow:focus-visible { outline:2px solid var(--fair); outline-offset:-2px; border-radius:6px; }
   .rank-main     { display:flex; align-items:center; }
   .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
   .rank-no       { width:36px; text-align:center; font-size:18px; font-weight:700; color:var(--dim); flex-shrink:0; }

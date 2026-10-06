@@ -63,16 +63,23 @@ for idx in sorted({0, 4, len(ranked) // 3, len(ranked) // 2, (2 * len(ranked)) /
           pr['found'] and pr['top'] >= pr['stickyBottom'] and pr['bottom'] <= pr['nav'], pr)
     check('RK-4b 第 %d 名 %s：列中心 elementFromPoint 命中該列（可點）' % (idx + 1, code), pr['hit'], pr)
     check('RK-4b 第 %d 名 %s：仍是定位不過濾（%d 列都在）' % (idx + 1, code, n_all), ev("document.querySelectorAll('#rankRows .rank-row').length") == n_all)
-# 排行列的點擊行為是既有設計：有持股異動資料的列（.tappable）→ 開 Flow；其他列沒有點擊動作（PHASE5 未改）。
-# 這裡驗「定位後在可見位置真的點得到」：挑一檔 tappable 的列定位，於列的可見中心點擊 → 開該檔 Flow。
-tap = ev("[...document.querySelectorAll('#rankRows .rank-row.tappable')].map(r=>r.dataset.code)")
-for code in [c for c in (tap[0], tap[len(tap) // 2], tap[-1])]:
+# CP6c：定位後在可見中心點擊整列 → 該檔 Detail（一般列與有 Flow 的列都一樣）；「持股異動 ›」另驗 → Flow
+nof = ev("[...document.querySelectorAll('#rankRows .rank-row:not(.has-flow)')].map(r=>r.dataset.code)")
+hf = ev("[...document.querySelectorAll('#rankRows .rank-row.has-flow')].map(r=>r.dataset.code)")
+for code in [c for c in (nof[0], nof[-1], hf[0]) if c]:
     pr = locate_probe(code)
-    ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]'); const r=row.getBoundingClientRect();
-      const sb=document.querySelector('.rank-sticky').getBoundingClientRect().bottom; const y=(Math.max(r.top,sb)+r.bottom)/2;
+    ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]'); const r=row.querySelector('.rank-code').getBoundingClientRect();
+      const sb=document.querySelector('.rank-sticky').getBoundingClientRect().bottom; const y=Math.max(r.top+r.height/2, sb+2);
       document.elementFromPoint(r.left+r.width/2, y).click(); return true})()""" % code); wait_ms(450)
-    check('RK-4b 第 %d 名 %s（可點列）：定位後在可見中心點擊 → 開該檔持股異動' % (ranked.index(code) + 1, code),
-          pr['top'] >= pr['stickyBottom'] and pr['hit'] and ev("flowLayerVisible() && _flowSel") == code, (pr, ev("_flowSel")))
+    check('RK-4b 第 %d 名 %s：定位後在可見位置點擊整列 → 該檔 Detail（未開 Flow）' % (ranked.index(code) + 1, code),
+          pr['top'] >= pr['stickyBottom'] and pr['hit'] and ev("!document.getElementById('gsPanel').hidden && _curEtfCode") == code and ev("flowLayerVisible()") is False, (pr, ev("_curEtfCode")))
+    back()
+for code in [hf[0], hf[-1]]:
+    pr = locate_probe(code)
+    ev("""(()=>{const b=document.querySelector('#rankRows .rank-row[data-code="%s"] .rank-flow'); const r=b.getBoundingClientRect();
+      document.elementFromPoint(r.left+r.width/2, r.top+r.height/2).click(); return true})()""" % code); wait_ms(450)
+    check('RK-4b 第 %d 名 %s：定位後點「持股異動 ›」→ 該檔持股異動（未開 Detail）' % (ranked.index(code) + 1, code),
+          ev("flowLayerVisible() && _flowSel") == code and ev("document.getElementById('gsPanel').hidden") is True, ev("_flowSel"))
     back()
 # 展開 ⓘ（sticky 變高）時也不被遮住
 ev("if(document.getElementById('rankInfoBtn').getAttribute('aria-expanded')!=='true') document.getElementById('rankInfoBtn').click(); true"); wait_ms(150)
@@ -118,13 +125,132 @@ back()
 r6a = top()
 check('RK-6 Detail 往返：🔍 展開、內容、定位標示、捲動保留', r6a['fbDisp'] != 'none' and ev("document.getElementById('rankFind').value") == '0056'
       and ev("!!document.querySelector('#rankRows .rank-row.found')") is True and abs(ev("window.scrollY") - y0) <= 2, (r6a, y0))
-fc = ev("(document.querySelector('#rankRows .rank-row.tappable')||{dataset:{}}).dataset.code")
+fc = ev("(document.querySelector('#rankRows .rank-row.has-flow')||{dataset:{}}).dataset.code")
 ev("openFlow(%s); true" % json.dumps(fc)); wait_ms(400)
 back()
 check('RK-6 Flow 往返：🔍 展開、內容、定位、捲動保留', top()['fbDisp'] != 'none' and ev("document.getElementById('rankFind').value") == '0056'
       and ev("!!document.querySelector('#rankRows .rank-row.found')") is True and abs(ev("window.scrollY") - y0) <= 2)
 ev("clearRankFind(); document.getElementById('rankFindBtn').click(); window.scrollTo(0,0); true"); wait_ms(250)
 check('RK-6 清除後可收起', top()['fbDisp'] == 'none')
+
+# ════════ NV（CP6c，PHASE5_PLAN §3.5）：排行列 → Detail、「持股異動 ›」→ Flow、日曆列 → Detail ════════
+HSPY = """(()=>{ window.__hc = {push:0, rep:0};
+  if (!window.__hspy) { window.__hspy = 1; const P = history.pushState, Rp = history.replaceState;
+    history.pushState = function () { window.__hc.push++; return P.apply(history, arguments); };
+    history.replaceState = function () { window.__hc.rep++; return Rp.apply(history, arguments); }; }
+  return true; })()"""
+def types(): return ev("Router.state().stack.map(l=>l.t).join()")
+def tap_row(code, part='.rank-code'):
+    """在該列 part 元素的可見中心做真實點擊（elementFromPoint 命中什麼就點什麼）。"""
+    return ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]'); const el=row.querySelector('%s'); const r=el.getBoundingClientRect();
+      const hit=document.elementFromPoint(r.left+r.width/2, r.top+r.height/2); hit.click(); return hit.className})()""" % (code, part))
+def tap_flow(code):
+    return ev("""(()=>{const b=document.querySelector('#rankRows .rank-row[data-code="%s"] .rank-flow'); const r=b.getBoundingClientRect();
+      const hit=document.elementFromPoint(r.left+r.width/2, r.top+r.height/2); hit.click(); return hit.className})()""" % code)
+def bring(code):
+    ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]'); const sb=document.querySelector('.rank-sticky').getBoundingClientRect().bottom;
+      window.scrollTo(0, row.getBoundingClientRect().top + scrollY - sb - 20); return true})()""" % code); wait_ms(300)
+
+cdp('Emulation.setDeviceMetricsOverride', {'width': 390, 'height': 844, 'deviceScaleFactor': 2, 'mobile': True})
+ev("switchPage('tools'); true"); wait_ms(250)
+ev("switchPage('rank'); window.scrollTo(0,0); true"); wait_ms(400)
+nof = ev("[...document.querySelectorAll('#rankRows .rank-row:not(.has-flow)')].map(r=>r.dataset.code)")
+hf = ev("[...document.querySelectorAll('#rankRows .rank-row.has-flow')].map(r=>r.dataset.code)")
+A0 = nof[min(6, len(nof) - 1)]          # 一般列（無 Flow 資料）
+F0 = hf[0]                              # 有 Flow 資料的列
+
+# NV-1 一般列 → Detail
+ev("{const f=document.getElementById('rankFind'); if(document.getElementById('rankFindBtn').getAttribute('aria-expanded')!=='true') document.getElementById('rankFindBtn').click(); f.value=%s; f.dispatchEvent(new Event('input'));} true" % json.dumps(A0)); wait_ms(300)
+ev("new Promise(r=>{let last=-1,same=0;const i=setInterval(()=>{const y=Math.round(scrollY); same=(y===last)?same+1:0; last=y; if(same>=3){clearInterval(i);r(y)}},120)})", True)
+y0 = ev("window.scrollY"); s0 = json.loads(st())
+ev(HSPY)
+hitc = tap_row(A0); wait_ms(400)
+s1 = json.loads(st())
+check('NV-1 真實點擊一般排行列（%s，無 Flow 資料）→ 命中 .rank-hit' % A0, hitc == 'rank-hit', hitc)
+check('NV-1 → 該檔 Detail、只多一層 detail、pushState 恰好 1 次',
+      ev("!document.getElementById('gsPanel').hidden && _curEtfCode") == A0 and types() == 'tool,detail' and s1['stack'][-1]['code'] == A0
+      and ev("window.__hc.push") == 1 and len(s1['stack']) == len(s0['stack']) + 1 and ev("flowLayerVisible()") is False, (types(), ev("window.__hc")))
+check('NV-1 history.state 與 Router.state() 結構一致', ev("JSON.stringify(history.state.stack.map(l=>[l.t,l.code||null]))===JSON.stringify(Router.state().stack.map(l=>[l.t,l.code||null]))") is True)
+back()
+check('NV-1 Back → 原排行：stack [tool]、搜尋內容與定位、捲動保留', types() == 'tool' and ev("document.getElementById('rankFind').value") == A0
+      and ev("!!document.querySelector('#rankRows .rank-row.found[data-code=\"%s\"]')" % A0) is True and abs(ev("window.scrollY") - y0) <= 2, (ev("window.scrollY"), y0))
+ev("clearRankFind(); document.getElementById('rankFindBtn').click(); true"); wait_ms(150)
+
+# NV-2 「持股異動 ›」→ Flow（不開 Detail）
+nflow = ev("Object.keys(_flowData.etfs).filter(k=>_rankSorted.some(e=>e.code===k)).length")
+nbtn = ev("document.querySelectorAll('#rankRows .rank-flow').length")
+stale = ev("Object.keys(_flowData.etfs).filter(k=>_rankSorted.some(e=>e.code===k) && !_changedWithin(_flowData.etfs[k].last_change_date, 7))")
+check('NV-2 有 Active Flow 資料的排行 ETF 都有「持股異動 ›」（%d 檔；含 7 天內無換股者 %d 檔）' % (nflow, len(stale)),
+      nbtn == nflow and nflow > 0 and all(ev("!!document.querySelector('#rankRows .rank-row[data-code=\"%s\"] .rank-flow')" % c) for c in stale), (nbtn, nflow, stale))
+check('NV-2 無 Flow 資料的列沒有此按鈕', ev("document.querySelectorAll('#rankRows .rank-row:not(.has-flow) .rank-flow').length") == 0)
+fb = ev("""(()=>{const b=document.querySelector('#rankRows .rank-row[data-code="%s"] .rank-flow'); const r=b.getBoundingClientRect();
+  return {tag:b.tagName, h:r.height, aria:b.getAttribute('aria-label'), nested: !!b.closest('button:not(.rank-flow)') || !!document.querySelector('#rankRows button button')}})()""" % F0)
+check('NV-2 「持股異動 ›」是 button、≥ 44px、aria-label 含代碼、無 button 巢狀', fb['tag'] == 'BUTTON' and fb['h'] >= 44 and F0 in fb['aria'] and not fb['nested'], fb)
+bring(F0)
+ev(HSPY)
+hitc = tap_flow(F0); wait_ms(450)
+check('NV-2 真實點擊「持股異動 ›」→ [tool, flow]、該檔、pushState 恰好 1 次、Detail 未開',
+      hitc == 'rank-flow' and types() == 'tool,flow' and ev("_flowSel") == F0 and ev("window.__hc.push") == 1 and ev("document.getElementById('gsPanel').hidden") is True, (hitc, types(), ev("window.__hc")))
+back()
+check('NV-2 Back → 排行', types() == 'tool' and ev("flowLayerVisible()") is False)
+# 同一有 Flow 的列，點列的其他區域 → Detail（不是 Flow）
+ev(HSPY)
+hitc = tap_row(F0); wait_ms(400)
+check('NV-2 有 Flow 資料的列，點列其他區域 → Detail（不開 Flow）、pushState 1 次', hitc == 'rank-hit' and types() == 'tool,detail' and ev("_curEtfCode") == F0
+      and ev("flowLayerVisible()") is False and ev("window.__hc.push") == 1, (hitc, types()))
+
+# NV-3 三層返回：row → Detail → 查看完整持股異動 → Back → Detail → Back → 排行
+ev("detailTab('holdings'); true"); wait_ms(250)
+ev("document.querySelector('.gs-flow-btn').click(); true"); wait_ms(450)
+check('NV-3 Detail → 查看完整持股異動：[tool, detail, flow]', types() == 'tool,detail,flow' and ev("_flowSel") == F0)
+back()
+check('NV-3 Back → Detail（同檔、持股分頁）', types() == 'tool,detail' and ev("_curEtfCode") == F0 and ev("_detailTab") == 'holdings')
+back()
+check('NV-3 再 Back → 排行', types() == 'tool' and ev("document.getElementById('page-rank').classList.contains('active')") is True)
+
+# NV-4 重繪後仍有效；鍵盤 Enter／Space；Esc
+ev("renderAll(ETFS, CALENDAR, '2026-10-07 10:00:00', null, true, false); renderRank(); true"); wait_ms(300)
+bring(A0)
+ev(HSPY)
+tap_row(A0); wait_ms(400)
+check('NV-4 renderAll／renderRank 重繪後點列仍開 Detail（pushState 1 次）', types() == 'tool,detail' and ev("_curEtfCode") == A0 and ev("window.__hc.push") == 1)
+back()
+bring(F0)
+tap_flow(F0); wait_ms(400)
+check('NV-4 重繪後點「持股異動 ›」仍開 Flow', types() == 'tool,flow' and ev("_flowSel") == F0)
+back()
+for key, kc in (('Enter', 'Enter'), (' ', 'Space')):
+    ev("document.querySelector('#rankRows .rank-row[data-code=\"%s\"] .rank-hit').focus(); true" % A0)
+    cdp('Input.dispatchKeyEvent', {'type': 'keyDown', 'key': key, 'code': kc, 'windowsVirtualKeyCode': 13 if kc == 'Enter' else 32, 'text': '\r' if kc == 'Enter' else ' '})
+    cdp('Input.dispatchKeyEvent', {'type': 'keyUp', 'key': key, 'code': kc, 'windowsVirtualKeyCode': 13 if kc == 'Enter' else 32})
+    wait_ms(400)
+    check('NV-4 鍵盤 %s（焦點在列按鈕）→ Detail' % kc, types() == 'tool,detail' and ev("_curEtfCode") == A0, types())
+    ev("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); true"); wait_ms(400)
+    check('NV-4 Esc → 關 Detail、回排行（Router 不受影響）', types() == 'tool' and ev("document.getElementById('gsPanel').hidden") is True, types())
+check('NV-4 HTML 無 button 巢狀（排行、日曆）', ev("document.querySelectorAll('#rankRows button button, #calList button button').length") == 0)
+
+# NV-5 日曆列 → Detail
+back()
+ev("document.getElementById('toolDiv').click(); true"); wait_ms(350)
+dcodes = ev("[...document.querySelectorAll('#calList .cal-item')].map(r=>r.dataset.code)")
+check('NV-5 前提：日曆有列且帶代碼', isinstance(dcodes, list) and len(dcodes) > 0 and all(dcodes), dcodes)
+for dc in [dcodes[0], dcodes[-1]]:
+    ev("""(()=>{const row=document.querySelector('#calList .cal-item[data-code="%s"]'); row.scrollIntoView({block:'center'}); return true})()""" % dc); wait_ms(250)
+    y0 = ev("window.scrollY")
+    ev(HSPY)
+    hitc = ev("""(()=>{const row=document.querySelector('#calList .cal-item[data-code="%s"]'); const r=row.querySelector('.cal-info').getBoundingClientRect();
+      const hit=document.elementFromPoint(r.left+r.width/2, r.top+r.height/2); hit.click(); return hit.className})()""" % dc); wait_ms(400)
+    check('NV-5 真實點擊日曆列（%s）→ 該檔 Detail、pushState 恰好 1 次' % dc, hitc == 'cal-hit' and types() == 'tool,detail' and ev("_curEtfCode") == dc and ev("window.__hc.push") == 1, (hitc, types()))
+    back()
+    check('NV-5 Back → 回配息日曆、捲動保留', types() == 'tool' and ev("document.getElementById('page-div').classList.contains('active')") is True and abs(ev("window.scrollY") - y0) <= 2)
+ev("renderAll(ETFS, CALENDAR, '2026-10-07 10:00:00', null, true, false); true"); wait_ms(300)
+ev(HSPY)
+ev("document.querySelector('#calList .cal-item').scrollIntoView({block:'center'}); true"); wait_ms(250)
+hitc = ev("""(()=>{const r=document.querySelector('#calList .cal-item .cal-info').getBoundingClientRect(); const hit=document.elementFromPoint(r.left+r.width/2, r.top+r.height/2); hit.click(); return hit.className})()"""); wait_ms(400)
+check('NV-5 重繪後日曆列仍可點 → Detail', types() == 'tool,detail' and ev("window.__hc.push") == 1, (hitc, types()))
+back(); back()
+cdp('Emulation.clearDeviceMetricsOverride')
+ev("switchPage('rank'); window.scrollTo(0,0); true"); wait_ms(300)
 
 # RK-7 橫向／鍵盤
 cdp('Emulation.setDeviceMetricsOverride', {'width': 844, 'height': 390, 'deviceScaleFactor': 2, 'mobile': True})

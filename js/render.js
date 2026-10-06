@@ -32,6 +32,12 @@ function renderMood(market) {
     : '';
 }
 
+// ── 配息日曆列 → Detail（CP6c，PHASE5_PLAN §3.5）：覆蓋整列的 .cal-hit 按鈕；delegated，renderAll 重畫後仍有效 ──
+document.getElementById('calList').addEventListener('click', function (ev) {
+  const row = ev.target.closest('.cal-item');
+  if (row && ev.target.closest('.cal-hit')) openDetail(row.dataset.code);
+});
+
 // ── 首頁（入口大廳，PHASE5_PLAN §2）──
 // 價格狀態文字：fair 為「合理」（不是「合理✓」）
 const HOME_SIG_LABEL = { cheap:'便宜', fair:'合理', hot:'過熱', dear:'偏貴', bond:'債券型' };
@@ -157,7 +163,8 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
       ? `<div class="cal-amt">${c.amt.toFixed(2)} 元</div><div class="cal-ulbl">每單位</div>`
       : `<div class="cal-amt" style="color:var(--dim);font-size:14px;font-weight:400;">待公告</div>`;
     return `
-    <div class="cal-item ${isToday?'today':c.soon?'soon':''}">
+    <div class="cal-item ${isToday?'today':c.soon?'soon':''}" data-code="${_homeEsc(c.code)}">
+      <button type="button" class="cal-hit" aria-label="${_homeEsc(c.code)} ${_homeEsc(c.name)} 配息，查看詳細資料"></button>
       <div class="cal-date"><span class="cal-day">${c.day}</span><span class="cal-mon">${c.mon}</span></div>
       <div class="cal-line"></div>
       <div class="cal-info">

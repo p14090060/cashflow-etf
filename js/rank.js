@@ -54,14 +54,16 @@ function renderRank() {
     const y1C   = retClr(e.ret1y);
     const _tag  = getEtfTag(e.code, e.name);
     const tagHtml = _tag ? `<div class="rank-tag" style="color:${_tag.color};border-color:${_tag.border};background:${_tag.bg}">${_tag.label}</div>` : '';
-    // 有 PCF 持股資料的主動式 ETF 才可點；抓不到的維持原樣，不標記也不給點。
-    // 標籤只在「最近一週內真的有換檔」時顯示——超過一週沒動作還掛著標籤，
-    // 等於在說有東西可看，點進去卻是舊資料。可點與否不受影響。
+    // CP6c（PHASE5_PLAN §3.5）：整列 → Detail（覆蓋整列的 .rank-hit 按鈕）；列內「持股異動 ›」→ Active Flow（獨立按鈕，兩者是兄弟、不巢狀）。
+    // 「持股異動 ›」只要有 Active Flow 資料就顯示（沿用既有判定 _flowData.etfs[code]）——近期沒換股≠沒有資料（Gate 決策 B），
+    // 不再用最近 7 天有無換檔決定入口在不在。點擊由 #rankRows 的 delegated handler 分流，一次只走一條。
     const fe       = _flowData && _flowData.etfs && _flowData.etfs[e.code];
     const hasFlow  = !!fe;
-    const flowHtml = (hasFlow && _changedWithin(fe.last_change_date, 7))
-                   ? `<div class="rank-flow">持股異動 ›</div>` : '';
-    return `<div class="rank-row${hasFlow ? ' tappable' : ''}" data-code="${e.code}" data-rank="${rank}"${hasFlow ? ` onclick="openFlow('${e.code}')"` : ''}>
+    const code     = _rankEsc(e.code), name = _rankEsc(e.name);
+    const flowHtml = hasFlow
+                   ? `<button type="button" class="rank-flow" aria-label="查看 ${code} 持股異動">持股異動 ›</button>` : '';
+    return `<div class="rank-row${hasFlow ? ' has-flow' : ''}" data-code="${code}" data-rank="${rank}">
+      <button type="button" class="rank-hit" aria-label="第 ${rank} 名 ${code} ${name}，查看詳細資料"></button>
       <div class="rank-main">
         <div class="rank-no ${cls}">${rank}</div>
         <div class="rank-etf">
@@ -83,6 +85,19 @@ function renderRank() {
 
   applyRankFind(false);   // 每 30 秒重畫一次，把使用者的搜尋高亮補回來（不重新捲動）
 }
+
+function _rankEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+// CP6c：排行列點擊分流（delegated；renderRank 每 30 秒重畫 innerHTML，事件掛在不重建的 #rankRows 上）。
+// 先判斷「持股異動 ›」→ Flow 並結束；否則覆蓋整列的 .rank-hit → Detail。一次點擊只產生一種 navigation。
+document.getElementById('rankRows').addEventListener('click', function (ev) {
+  const row = ev.target.closest('.rank-row');
+  if (!row) return;
+  if (ev.target.closest('.rank-flow')) { openFlow(row.dataset.code); return; }
+  if (ev.target.closest('.rank-hit')) openDetail(row.dataset.code);
+});
 
 // ── 排行頁：找自己的 ETF ──────────────────────────────────────
 // 只定位不過濾——使用者要看的是「我在第幾名」，把其他 99 支藏掉就失去參照。
