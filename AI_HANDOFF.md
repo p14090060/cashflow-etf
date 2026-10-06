@@ -525,7 +525,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - 結果（800×600）：rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝896 PASS／0 FAIL／5 DEFER。
 
 - **PO Change #3（Plan `2b98ba32`，§8.4）：Active Flow ETF 快速搜尋（CP6d）**。排程 CP6c → CP6d → CP7 → CP8 → Final。WHY：selector＝附近瀏覽、🔍＝已知要找哪檔直接跳；選取走既有 `flowSelect`，不新增 navigation。
-- **CP6d — `455f5769`，待 Codex CP6d Code Review。**
+- **CP6d — `455f5769`：Codex PASS、GPT Gate CLOSED。**
   - `index.html`：`.flow-head#flowHead` 右側 `#flowQBtn`（🔍，預設 disabled 直到 flow 資料 ok）；其後 `#flowQBox`（`#flowQ` 輸入框、`#flowQList` 結果），在 `#flowChips` 之外。
   - `js/flow.js`：`_flowQOpen`、`_flowQSync()`（`_flowStatus !== 'ok'` 時停用並收起；renderFlow 每次呼叫）、`_flowQItems()`（`Object.keys(_flowData.etfs)`，名稱 flow → ETFS）、`flowQSearch()`（`_matchEtf` 分數排序、同分依代碼、最多 8 筆、查無說明）、`flowQOpen／flowQClose(focusBtn)／flowQToggle／flowQPick(code)`（→ `flowSelect(code)` → 收起、焦點回 🔍）、`flowSearchReset()`（清 query、收起；`flowLayerHide` 呼叫）。結果 `#flowQList` delegated click；輸入框 Enter 選第一筆；`#flowHead`／`#flowQBox` keydown 在搜尋開啟時攔 Esc 並 `stopPropagation` → Router 的 document Esc 收不到。
   - `js/category.js`（範圍外但必要的兩處 hook）：分類原生離開持股異動（`refreshAll` 進清單、`applyFolder(null)` 時原本是 flow）→ `flowSearchReset()`，Flow 層持有節點時不清。
@@ -533,6 +533,15 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試：新增 `tests/browser/flowq_test.py` 35 項——FQ-1 四種入口（Tools／排行／Detail／分類原生）都有 🔍、預設收起、button 44px、aria、標題與 🔍 同列單行；360px 單行無溢出。FQ-2 展開取得焦點、window 不捲、收起焦點回 🔍。FQ-3 代碼完全相同第一、代碼開頭只出現 Flow ETF 且依代碼、名稱關鍵字、非 Flow ETF（0056）查無、`_matchEtf` 分數遞減。FQ-4 搜尋選取與點同一 chip 的 active／名稱／加碼減碼／treemap 格數／提示完全相同、chip 可見、收起。FQ-5 pushState 0、history.length 與 stack 不變；Tools 入口寫 `flow.ui.code`、分類原生寫 `folder.ui.code`。FQ-6 Tools／排行／Detail 入口 Back 回原處、Forward 顯示剛選 ETF。FQ-7 焦點在輸入框或結果時 Esc 只關搜尋、Flow 仍開；未開啟時 Esc 關 Flow。FQ-8 Enter 選第一筆；renderFlow＋高度縮小 resize 保留 query；Flow 關閉後重進、分類原生切走再回都為預設收起。FQ-9 390×844、844×390、1280×800、gs-ckm 無水平溢出。
   - Mutation：(1) 選取改 `openFlow(code)`（navigation）→ 3 FAIL（FQ-4、分類原生 FQ-5 push、FQ-8）；(2) 不攔 Esc → FQ-7 兩項 FAIL（Flow 被關）；(3) 搜尋範圍改用 ETFS → FQ-3 三項 FAIL（出現非 Flow ETF、0056 不再查無）。
   - 結果（800×600）：flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝931 PASS／0 FAIL／5 DEFER。390px 截圖目視：標題＋🔍 同列，展開後輸入框與結果在 selector 上方。
+
+- **CP7｜V1 Dark／Light＋V2 visual tokens（§7.1、§7.2、§9 順序 7）— `033041ea`，待 Codex CP7 Code Review。**
+  - V1：`index.html` `<head>` 在 CSS 前的行內 script：`localStorage.etfRadar.theme`（dark／light）優先，否則 `prefers-color-scheme`；未手動時 matchMedia `change` 跟著變，手動後不覆寫；讀寫失敗 try/catch（只在本次頁面生效）；`window.themeToggle()`、`themeApply()`；同步 `meta theme-color`（dark #0d1117／light #f6f8fa）。Header `.hdr-actions` 依序 YouTube（位置不動）→ `#themeBtn`（☀／🌙、44×44、aria-label「切換為淺色／深色模式」、aria-pressed）→ ↻。
+  - V2：`css/base.css` `:root`＝dark，值與改版前實際色相同；新增語意 token（`--hot --warn --brand --link --silver --bronze --violet --mood-cta --src-official --err-text --err-soft --on-strong --fair-dim --hdr-bg --nav-bg --tm-border --shadow-pop/-menu/-lift/-band`）與 RGB 三元組（`--rgb-cheap/fair/up/dn/warn/hot/link/gold/violet/neutral/veil`，用法 `rgba(var(--rgb-x),α)`）；`:root[data-theme="light"]` 覆寫整組。CSS（base／components／pages／watch／category）與 JS（format miniBars、rank 標籤／SIG_COLOR／retClr／殖利率／配息方式、render 首頁 TOP 10、flow treemap）寫死色值全部改 token；剩下 pages.css 兩處 `#000` 為 mask 透明度，非顏色。archived-check.js（封存註解）未動。
+  - 語意：兩主題 `--up` 紅、`--dn` 綠、0 中性、缺值灰；treemap `rgba(var(--rgb-up|dn), 0.30～0.85)`。light 下 treemap 格內文字隨 `--bright` 變深色。
+  - dark 外觀刻意變更（依 Plan）：miniBars 從 #ff6b6b／#00e5a0 改 `--up`／`--dn`（Plan §7.2 明列）；排行狀態色（原 #4ade80／#fde047）、近一年報酬色、標籤色統一用全站 token；TH-6 對比調整 `--hot` #ef4444→#f25a5a（在 --card2 上原 4.3:1）、`--fair-dim` #8b7020→#a8913f（原 3.4～4.0:1）。
+  - 測試：新增 `tests/browser/theme_test.py` 36 項——TH-1 系統 light／dark 初始、未手動時跟系統變、按鈕順序與 44px；TH-2 切換寫入、手動後系統不覆寫、重新整理維持、theme-color、切換不寫 history／Router；TH-3 Storage 全部丟例外時初始依系統、切換仍生效、無主題相關例外；TH-4（兩主題）miniBars、排行近一年報酬、我的 ETF 今日漲跌紅漲綠跌、0／缺值中性；TH-5（兩主題）treemap 只有紅系與綠系、加碼紅減碼綠、海外清單正紅負綠；TH-6（兩主題）28 組 token 對比全 ≥ 4.5（數值印在 log）、B6 警示條 ≥ 4.5；TH-7 文件夾陰影存在、B6 低調（字級 ≤ 主標、淡底 α<0.2）、無水平溢出。共用 header（detail_ui_test）加 `Emulation.setEmulatedMedia` 固定系統 dark（既有色值斷言以 dark 為基準）。依規格更新：watch D1（miniBars 改 --up／--dn）、tools FS-6（treemap 改讀 computed 色）。
+  - Mutation：light 的 `--up` 改成綠 → theme_test 5 FAIL（TH-4 三項、TH-5 兩項）。
+  - 結果（800×600）：theme 36、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝967 PASS／0 FAIL／5 DEFER。390px light 截圖目視：首頁、排行、Active Flow、分類、我的 ETF 可讀，紅綠語意正確。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
