@@ -486,12 +486,23 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試：regression_test 新增 9 項——YT-1（a 連結、在 Header、≥44×44、href／target／rel／aria、點擊不改 history 與 Router 狀態、不影響 statusBadge／↻、390px 下標題與徽章不截斷不重疊、搜尋列 ≥340px、無水平溢出）、YT-2（`switchPage('yt')` 以 noopener 開同一連結且不換頁不寫 history、`page-yt` 不存在、首頁／工具頁無 YouTube、只剩 1 個 youtube 連結、舊 entry `tool yt` 經 popstate 還原落回工具卡片頁）。switch page 迴圈去掉 yt（check 改為疊在配息日曆子頁上）。26→34。
   - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 34、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER＝787 PASS／0 FAIL／5 DEFER。360px 截圖目視：標題、徽章、兩顆按鈕、搜尋列不擁擠。
 
-- **CP6｜F1 持股異動直向切換分類（§8.2、§9 順序 6）— `4053c4a4`，待 Codex CP6 Code Review。**（Gate／PO 確認：CP6 只做 F1；F2 selector 已於 CP4 完成，本 checkpoint 不動）
+- **CP6｜F1 持股異動直向切換分類（§8.2、§9 順序 6）— `4053c4a4`：Codex PASS、GPT Gate CLOSED。**（Gate／PO 確認：CP6 只做 F1；F2 selector 已於 CP4 完成，本 checkpoint 不動）
   - `js/category.js`：`swActive()`＝已開資料夾＋直向＋非 `gs-ckm`；`ctlActive()`＝`swActive()`＋`view==='list'`。`syncMode()` 對 `#catMain`／`#page-cat` 切 `cat-sw`（兩種檢視）與 `cat-ctl`（只清單），`cat-inside`＝`cat-sw && !stripOpen`，按鈕文字／aria 依 `cat-sw`。`toggleStrip()` 以 `swActive()` 為條件，持股異動時展開／收起後 `flowRedrawIfVisible()`。`applyFolder` 的 `stripOpen=false` 條件由「flow→list」擴為「view 改變」（清單 doorway → 持股異動也預設收起）。
   - `css/category.css`：`.cat-expand` 顯示、標題列單列化（wrap／gap）、標題、← 44px、切換分類靠右、頁首 padding 由 `cat-ctl` 改掛 `cat-sw`；`> .cat-more`、`> .cat-foot` 隱藏仍只在 `cat-ctl`；`cat-inside > #catStrip` 不變。
   - 橫向、鍵盤不套 `cat-sw`；`stripOpen` 不寫 Router；`flow.js`、F2 selector、Flow 層、資料與計算未改。`index.html` 只改這兩檔的快取版本參數（範圍外但只是 `?v=`）。
   - 測試：category_test 舊 PT-9「持股異動檢視不啟用 inside、次要標籤列顯示」依核准規格改寫（直向收起、橫向顯示），新增 SW-1～6 共 20 項：直向持股異動預設 inside＋「切換分類 ▼」44px＋← 44px＋標題列單列（≤52px）；無清單專屬行為；▼／▲ 與點標題切換、不寫 history／Router；展開時 treemap 下移、收起回原位、重畫不溢出；doorway 選高股息 → 進高股息清單（replace，history 不增）；清單 doorway → 持股異動預設收起、持股異動 doorway → 清單回 inside；橫向不套 cat-sw、標籤直接顯示、treemap 依寬度重畫；轉回直向恢復；鍵盤不套 cat-sw；F2 selector 單列＋完整名稱仍在。250→270 PASS。負向對照：category.js／category.css 還原為 CP5 版 → 8 FAIL。
   - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 34、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝807 PASS／0 FAIL／5 DEFER。390px 截圖目視：← 主動式 … 代碼⇅ 切換分類 ▼ 單列，分段下方直接接 selector 與紅綠方塊。
+
+- **PO Change #2（Plan `4222de54`）：成交量排行第一屏（CP6b，§3.8）**。排程 CP6 → CP6b → CP7 → CP8 → Final。排行搜尋維持**定位**（PO 選 A，不用「篩選」字眼）；RK-1 依 Gate 核准方案 1：sticky ≤120px、完整 ≥4 列＋第 5 列部分可見（≥5 列在保留 Header／全站警示／44px 標題列／109px 卡片下無法達成，不縮卡片）。
+- **CP6b — `e3852d6a`，待 Codex CP6b Code Review。**
+  - `index.html`：`.rank-sticky` 改為 `.rank-top`（「成交量排行」＋`#rankFindBtn` 🔍＋`#rankInfoBtn` ⓘ，各 44×44、`aria-expanded`／`aria-controls`）、`#rankFindBox`（既有 `#rankFind`，placeholder「在排行中找 ETF」、`#rankFindClear`、`#rankFindMsg`）、`#rankInfo`（原兩段文字逐字、`#rankTotal`），兩個區塊預設 `hidden`；欄位名稱 `.rank-hdr` 不變（只縮內距）。
+  - `js/rank.js`：`_rankFindOpen`／`_rankInfoOpen`、`rankToggleFind()`（展開時 `focus({preventScroll})`）、`rankToggleInfo()`、`_rankSyncTop()`；輸入有內容即保持展開；`clearRankFind` 同步。定位邏輯（`applyRankFind`、捲動扣 sticky 高度、榜外提示）未改。
+  - `css/pages.css`：`.rank-top／.rank-title／.rank-ic(.on)／.rank-info`，`[hidden]{display:none}`；`.rank-hdr` padding 9/10 → 6、margin 8 → 6。標題色沿用原 #FFD700（CP7 token 化）。
+  - 實測（390×844）：sticky **114px**（原 210）、第一筆 **y=300**（原 395）、完整可見 **4 列**（原 3）、第 5 列 top 768 < 導覽列 782（露出 14px）；捲動後 sticky 114px 黏在 Header 下。
+  - 測試：新增 `tests/browser/rank_test.py` 22 項（RK-1 第一屏數值／display:none、RK-2 🔍 展開＋焦點＋placeholder＋無「篩選」字樣＋有內容時 ⓘ／輪詢不收起、RK-3 ⓘ 原文逐字＋筆數、RK-5 不寫 history／Router、RK-6 Detail 與 Flow 往返保留展開／內容／定位／捲動、RK-7 橫向與 gs-ckm 無溢出、文字 ≥13px）。RK-4：tools_test TC-6、RF-3 與 regression「R rank find 0050」各加「先展開 🔍、輸入框可見」一步，原斷言不變（TC-7 沿用 TC-6 的展開）。
+  - 另修測試偶發 FAIL：TC-2／TC-3／TC-4（tools_test）與 PZ-11（home_test）原斷言 history.length 恰好 +1／≥L，但 push 會清掉先前 Back 留下的「多筆」forward entry，長度可能不增反減 → 改為 ≤ L+1，「確實多一層」仍由 stack 檢查與下一步 Back 驗證。非產品問題。
+  - 負向對照：index.html／pages.css／rank.js 還原為 CP6 版 → rank_test 多項 FAIL＋未捕捉例外。
+  - 結果（800×600）：rank 22、tools 88、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝832 PASS／0 FAIL／5 DEFER。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
