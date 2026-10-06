@@ -511,7 +511,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - 結果（800×600）：rank 44、tools 91、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝858 PASS／0 FAIL／5 DEFER。
   - **B（只記錄，未執行）**：GPT Gate 提供的 Active Flow／PCF 線索（00407A 10/06 股數異動 0；00983A NVIDIA、RKLB 加碼，TSLA、WGS、XE 減碼，第三方 10/06／10/07 日期定義不一；00986A 10/05 逐筆可核；00996A 10/05 尖點、景碩、汎銓加碼，矽力-KY、致茂減碼，10/06 異動日待核）。僅為除錯線索，不寫入正式資料。正式調查若開啟，順序＝投信官方 PCF → 原始持股股數逐日比較 → 第三方交叉驗證；以股數變化判定、不以權重；第三方日期定義不得混用；官方有新 PCF 而專案停在舊日期時沿 Download → Parse → Compare → Write → Publish／Monitor 追中斷點；官方無新 PCF 不得自行製造異動。待 CP6b CLOSED 後由 GPT Gate／PO 決定何時啟動。本輪未改 pipeline、未改資料。
 
-- **CP6c｜排行／日曆 Detail navigation 規格校正（Plan `86cb7b83`，§3.5）— `b9aeccf4`，待 Codex CP6c Code Review。**
+- **CP6c｜排行／日曆 Detail navigation 規格校正（Plan `86cb7b83`，§3.5）— `b9aeccf4`，Codex NEED FIX 1 項（柱狀圖 tooltip regression）→ fix `2703a7a5`，待 Codex 限定複審。**
   - 調查（記入 Plan）：§3.5「排行列／日曆列 → openDetail」自 Rev.4 寫入，「既有」指 Router intent，UI 從未接線；排行列自 `599a5ecc` 起只有 PCF 列可點且開 Flow，日曆列從無點擊；CP4／CP6b 測試以程式呼叫 openDetail 或只點 tappable 列，所以沒抓到。
   - `js/rank.js`：排行列移除 inline `onclick`；每列 `.rank-hit`（覆蓋整列的 button，aria-label「第 N 名 代碼 名稱，查看詳細資料」）＋兄弟 `.rank-flow` button（「持股異動 ›」，aria-label「查看 代碼 持股異動」）。`#rankRows` delegated click：`.rank-flow` → `openFlow` 並 return，否則 `.rank-hit` → `openDetail`。「持股異動 ›」顯示條件改為 `_flowData.etfs[code]` 存在（決策 B）；`.tappable` 改名 `.has-flow`。`_changedWithin()`（flow.js）因此已無呼叫端，留給 CP8 死碼清理。代碼／名稱經 `_rankEsc` 轉義。
   - `js/render.js`：日曆列加 `data-code` 與 `.cal-hit`；`#calList` delegated click → `openDetail`（不在 ETFS 的代碼由 Detail 既有「這檔目前不在清單中」處理）。
@@ -519,6 +519,10 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試：rank_test 新增 NV-1～5 共 28 項（一般列 A0 與有 Flow 列 F0 真實點擊——以 elementFromPoint 命中後 click——→ Detail、只多一層、pushState 1 次、history.state 結構一致、Back 保留搜尋／定位／捲動；有 Flow 資料者皆有按鈕（含 7 天無換股者）、button ≥44px、aria-label、無巢狀；按鈕 → Flow、pushState 1 次、不開 Detail；三層返回；renderAll／renderRank 後仍有效；Tab 焦點 Enter／Space → Detail、Esc 關閉；日曆首末列 → Detail、pushState 1 次、Back 捲動保留、重繪後仍可點）。RK-4b 點擊驗證改為「整列 → Detail（一般列首末＋有 Flow 列）」＋「按鈕 → Flow」；TC-7 改真實點擊排行列與日曆列（刪除原「略過」分支）；RF-3 改點「持股異動 ›」（加 pushState 1 次、未開 Detail）。
   - Mutation：M1 移除排行列與日曆列 navigation → RK-4b 整列點擊 FAIL，之後 Back 離站使 rank_test 中斷（NV 未執行，等同 FAIL）。M2 「持股異動 ›」不 return、往下也 openDetail（模擬冒泡雙 navigation）→ 15 FAIL（RK-4b 按鈕兩項、NV-2／3／4 等）。
   - 結果（800×600）：rank 72、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝888 PASS／0 FAIL／5 DEFER。
+  - **CP6c fix `2703a7a5`（排行小柱狀圖 hover 報酬提示消失）**：原因＝CP6c 讓 `.rank-main／.rank-sub` `pointer-events:none`，指標穿透到 `.rank-hit`，`format.js` miniBars 每根柱子的 `title` 無法 hover。修法：`.rank-sub .mini-bars { position:relative; z-index:1; pointer-events:auto }` 疊在 `.rank-hit` 上；`#rankRows` handler 將 `.mini-bars` 視同整列 → `openDetail`（`.rank-flow` 仍先判斷並 return）。修正前柱子中心命中 `rank-hit`（title 無）；修正後命中 `mb-bar`，title＝`-7.2%`／`+8.8%`／`+9.0%`（009816）。
+    - rank_test 新增 NV-6 8 項（桌面 1280×800）：三根柱子 elementFromPoint 命中柱子且 title＝`ret_months` 末 3 筆格式化值；CDP mouseMoved 後 `:hover` 在該柱；CDP 真實點擊柱子 → Detail、pushState 1 次、不開 Flow；有 Flow 的列「持股異動 ›」與柱子互不遮擋、按鈕仍只開 Flow；列按鈕焦點＋Enter → Detail。既有 NV-1～5（一般區域 → Detail、按鈕 → Flow、Enter／Space、無巢狀）照跑全 PASS。
+    - Mutation：移除該 CSS → NV-6 4 項 FAIL（命中 rank-hit、title 為空、:hover 落在 rank-hit、有 Flow 列柱子被蓋）。
+    - 結果（800×600）：rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝896 PASS／0 FAIL／5 DEFER。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
