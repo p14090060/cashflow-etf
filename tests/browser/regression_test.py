@@ -2,10 +2,49 @@ import sys, json
 src=open('tests/browser/detail_ui_test.py',encoding='utf-8').read()
 exec(src.split("# ── T2 開啟 0050")[0])
 check('flow status ok', ev("_flowStatus") == 'ok', ev("_flowStatus"))
-for pg in ['today','div','yt','check','rank','today']:
+YT_URL = 'https://www.youtube.com/@CashFlowDataRecorder'
+# ── YT-1／YT-2（PHASE5_PLAN §4、G1）：Header YouTube 外部連結；page-yt 與舊入口退役 ──
+ev("switchPage('today'); true"); wait_ms(150)
+yt = ev("""(()=>{const a=document.getElementById('hdrYt'); if(!a) return null; const r=a.getBoundingClientRect();
+  return {tag:a.tagName, href:a.getAttribute('href'), target:a.target, rel:a.rel, aria:a.getAttribute('aria-label'), w:r.width, h:r.height,
+          inHdr: !!a.closest('.app-hdr .topbar')}})()""")
+check('YT-1 Header YouTube：a 連結、在 Header 標題列、≥ 44×44', yt and yt['tag'] == 'A' and yt['inHdr'] and yt['w'] >= 44 and yt['h'] >= 44, yt)
+check('YT-1 href＝頻道、target=_blank、rel 含 noopener、aria-label', yt and yt['href'] == YT_URL and yt['target'] == '_blank' and 'noopener' in yt['rel'].split() and yt['aria'] == '金流黑盒子 YouTube 頻道', yt)
+h0 = ev("history.length"); s0 = ev("JSON.stringify(Router.state())")
+ev("window.__opened=[]; window.__origOpen=window.open; window.open=function(u,t,f){ window.__opened.push([u,t,f]); return null; }; true")
+ev("document.getElementById('hdrYt').addEventListener('click', e=>{ window.__ytClick = {def: e.defaultPrevented}; e.preventDefault(); }, {once:true}); document.getElementById('hdrYt').click(); true"); wait_ms(150)
+check('YT-1 點 Header YouTube 不經 Router：history 與 Router 狀態不變', ev("history.length") == h0 and ev("JSON.stringify(Router.state())") == s0 and ev("window.__ytClick && window.__ytClick.def === false") is True)
+check('YT-1 不影響 #statusBadge 與 ↻', ev("!!document.getElementById('statusBadge').textContent && document.getElementById('refreshBtn').getAttribute('onclick') === 'reloadData()' && document.getElementById('refreshBtn').closest('.topbar') !== null") is True)
+ev("switchPage('yt'); true"); wait_ms(150)
+check('YT-2 switchPage(yt) 相容入口：開同一外部連結（新分頁、noopener）、不寫 history、不換頁',
+      ev("JSON.stringify(window.__opened)") == json.dumps([[YT_URL, '_blank', 'noopener']]).replace(' ', '') and ev("history.length") == h0
+      and ev("JSON.stringify(Router.state())") == s0 and ev("document.getElementById('page-today').classList.contains('active')") is True, ev("JSON.stringify(window.__opened)"))
+ev("window.open=window.__origOpen; true")
+check('YT-2 page-yt 不存在、首頁與工具頁無 YouTube 連結',
+      ev("""!document.getElementById('page-yt') && !document.querySelector('#page-today a[href*=youtube], #page-tools a[href*=youtube]')
+        && ![...document.querySelectorAll('#page-today button, #page-tools button')].some(b=>/YouTube/.test(b.textContent))
+        && document.querySelectorAll('a[href*="youtube.com"]').length === 1""") is True)
+# 舊 history entry 帶 tool yt（升級前開過頻道頁）→ 落回工具卡片頁，不壞
+ev("history.pushState({v:2, base:'tools', stack:[{t:'tool', id:'yt', ui:{}}]}, ''); true"); wait_ms(50)
+ev("history.back(); true"); wait_ms(300)
+ev("history.forward(); true"); wait_ms(300)
+check('YT-2 舊 entry（tool yt）經 popstate 還原 → 顯示工具卡片頁、無例外', ev("Router.state().stack.map(l=>l.t+':'+l.id.slice(0,2)).join()") is not None and ev("document.getElementById('page-tools').classList.contains('active')") is True, ev("JSON.stringify(Router.state())"))
+# 390px 直向 Header 不擁擠：標題不截斷、狀態徽章完整、搜尋列寬度不縮、無水平溢出
+cdp('Emulation.setDeviceMetricsOverride', {'width': 390, 'height': 844, 'deviceScaleFactor': 2, 'mobile': True})
+ev("switchPage('today'); window.scrollTo(0,0); true"); wait_ms(300)
+hd = ev("""(()=>{const t=document.querySelector('.topbar-title'), b=document.getElementById('statusBadge'), a=document.querySelector('.hdr-actions'), g=document.getElementById('gsearch');
+  const tr=t.getBoundingClientRect(), br=b.getBoundingClientRect(), ar=a.getBoundingClientRect();
+  return {tTrunc:t.scrollWidth>t.clientWidth, bTrunc:b.scrollWidth>b.clientWidth, overlap: Math.max(tr.right, br.right) > ar.left,
+          gw:g.getBoundingClientRect().width, ov:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+          hdrH:document.querySelector('.app-hdr').getBoundingClientRect().height, btnH:[...a.children].map(x=>x.getBoundingClientRect().height)}})()""")
+check('YT-1 390px Header：標題與狀態徽章完整、不與右側按鈕重疊、無水平溢出', not hd['tTrunc'] and not hd['bTrunc'] and not hd['overlap'] and hd['ov'] <= 0, hd)
+check('YT-1 390px 搜尋列仍為全寬（≥ 340px）、右側按鈕皆 44px', hd['gw'] >= 340 and all(h >= 44 for h in hd['btnH']), hd)
+cdp('Emulation.clearDeviceMetricsOverride')
+ev("switchPage('today'); true"); wait_ms(150)
+for pg in ['today','div','check','rank','today']:
     ev("switchPage('%s'); true" % pg); wait_ms(150)
-    if pg == 'check':   # Phase 5 G3：在目前 entry（前一步的頻道子頁）上開 Flow 層，來源頁留在下面
-        check('R switch page check opens Flow layer over the source page (Phase 5 G3)', ev("flowLayerVisible() && Router.state().stack.map(l=>l.t).join() === 'tool,flow' && document.getElementById('page-yt').classList.contains('active')") is True, ev("JSON.stringify(Router.state())"))
+    if pg == 'check':   # Phase 5 G3：在目前 entry（前一步的配息日曆子頁）上開 Flow 層，來源頁留在下面
+        check('R switch page check opens Flow layer over the source page (Phase 5 G3)', ev("flowLayerVisible() && Router.state().stack.map(l=>l.t).join() === 'tool,flow' && document.getElementById('page-div').classList.contains('active')") is True, ev("JSON.stringify(Router.state())"))
     else:
         check('R switch page %s active' % pg, ev("document.getElementById('page-%s').classList.contains('active')" % pg) is True)
 # Phase 5 §6.1：舊配息頁 B-1 計算機退役 → 配息頁只剩日曆；張數試算改驗正式入口 Detail 配息分頁

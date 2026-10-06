@@ -159,6 +159,12 @@
   .data-error[hidden] { display:none; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:16px; cursor:pointer; line-height:1; }
+  /* Header 右側按鈕群（Phase 5 Y1）：YouTube 外部連結＋↻，各 44×44；標題與狀態徽章留在左側不動 */
+  .hdr-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .hdr-btn { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0;
+             background:none; border:1px solid var(--border); border-radius:10px; color:var(--dim);
+             font-size:18px; line-height:1; text-decoration:none; cursor:pointer; }
+  .hdr-btn:active { background:var(--card2); }
   .refresh-btn.spinning { animation:spin .6s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
   .disclaimer {

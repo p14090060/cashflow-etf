@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0d1117">
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261005x">
+<link rel="stylesheet" href="css/base.css?v=20261006e">
 <link rel="stylesheet" href="css/components.css?v=20261006b">
-<link rel="stylesheet" href="css/pages.css?v=20261006c">
+<link rel="stylesheet" href="css/pages.css?v=20261006e">
 <link rel="stylesheet" href="css/category.css?v=20261006c">
 <link rel="stylesheet" href="css/watch.css?v=20261005x">
 </head>
@@ -24,7 +24,12 @@
       <div class="topbar-title">ETF 存股雷達</div>
       <div id="statusBadge" class="status-badge status-closed">載入中…</div>
     </div>
-    <button class="refresh-btn" id="refreshBtn" onclick="reloadData()">↻</button>
+    <!-- Y1（PHASE5_PLAN §4）：右側按鈕群。YouTube 為低調固定的外部連結（新分頁、不經 Router） -->
+    <div class="hdr-actions">
+      <a class="hdr-btn hdr-yt" id="hdrYt" href="https://www.youtube.com/@CashFlowDataRecorder" target="_blank" rel="noopener noreferrer"
+         aria-label="金流黑盒子 YouTube 頻道" title="金流黑盒子 YouTube 頻道"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3z"/></svg></a>
+      <button class="hdr-btn refresh-btn" id="refreshBtn" onclick="reloadData()" aria-label="重新載入資料">↻</button>
+    </div>
   </div>
 
   <div class="gsearch-bar">
@@ -282,27 +287,6 @@
 
   </div>
 
-  <!-- ══ PAGE 3: 頻道 ══ -->
-  <div class="page" id="page-yt">
-
-    <div class="yt-hero">
-      <div class="yt-logo"><img src="logo.png"></div>
-      <div class="yt-name">金流黑盒子</div>
-      <div class="yt-desc">
-        看懂資金流向，才知道主力在做什麼。<br>
-        ETF 存股 × 大盤分析 × 個股佈局
-      </div>
-      <a class="yt-btn" href="https://www.youtube.com/@CashFlowDataRecorder" target="_blank">訂閱頻道 ▶</a>
-      <div class="yt-stats">
-        <div class="yt-stat"><div class="n">每週</div><div class="l">固定更新</div></div>
-        <div class="yt-stat"><div class="n">ETF</div><div class="l">深度分析</div></div>
-        <div class="yt-stat"><div class="n">免費</div><div class="l">完全公開</div></div>
-      </div>
-    </div>
-
-  </div>
-
-
   <!-- ══ PAGE 5: 排行 ══ -->
   <div class="page" id="page-rank">
     <div class="rank-sticky">
@@ -380,7 +364,7 @@
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
-<script src="js/nav.js?v=20261006c"></script>
+<script src="js/nav.js?v=20261006e"></script>
 <script src="js/flow.js?v=20261006c"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261005x"></script>
@@ -392,7 +376,7 @@
 <script src="js/category.js?v=20261006c"></script>
 <script src="js/detail.js?v=20261006d"></script>
 <script src="js/watch.js?v=20261005x"></script>
-<script src="js/router.js?v=20261006d"></script>
+<script src="js/router.js?v=20261006e"></script>
 <script src="js/boot.js?v=20261005x"></script>
 
 </body>

@@ -8,7 +8,7 @@ const _NAV_SPEC = {
   tools: { base: 'tools' },
   div:   { base: 'tools', tool: 'div' },
   rank:  { base: 'tools', tool: 'rank' },
-  yt:    { base: 'tools', tool: 'yt' },
+  yt:    { external: 'https://www.youtube.com/@CashFlowDataRecorder' },   // Phase 5 G1：頻道頁退役，相容入口直接開外部頻道（新分頁、不寫 history）
   check: { flow: true }   // 主動式 ETF 持股異動：在目前 entry 上開 Flow 層（PHASE5_PLAN §3.4）
 };
 
@@ -16,6 +16,7 @@ function switchPage(id) {
   cancelPendingSearch();
   const spec = _NAV_SPEC[id];
   if (!spec) return;
+  if (spec.external) { window.open(spec.external, '_blank', 'noopener'); return; }
   if (spec.flow) Router.openFlow(_flowSel);
   else Router.toBase(spec);
 }

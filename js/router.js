@@ -19,7 +19,7 @@ const Router = (function () {
   const BASES = ['home', 'cat', 'watch', 'tools'];
   const TIMEOUT_MS = 500;      // 逾時：取消 continuation，槽位仍佔用
   const PROCESSING_MS = 3000;  // 只顯示「處理中」，不改任何狀態
-  const TOOL_PAGE = { div: 'page-div', rank: 'page-rank', yt: 'page-yt' };
+  const TOOL_PAGE = { div: 'page-div', rank: 'page-rank' };   // Phase 5 G1：page-yt 退役（舊 entry 的 tool yt 落回工具卡片頁）
   const BASE_PAGE = { home: 'page-today', cat: 'page-cat', watch: 'page-watch', tools: 'page-tools' };
   const BASE_NAV = { home: 'nav-today', cat: 'nav-cat', watch: 'nav-watch', tools: 'nav-tools' };
 
