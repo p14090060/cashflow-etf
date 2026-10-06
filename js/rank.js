@@ -6,21 +6,21 @@
 function getEtfTag(code, name) {
   const c = code || '', n = name || '';
   if (c.endsWith('L') || /正2|2倍/.test(n))
-    return { label:'槓桿', color:'#ef4444', border:'rgba(239,68,68,.35)', bg:'rgba(239,68,68,.08)' };
+    return { label:'槓桿', color:'var(--hot)', border:'rgba(var(--rgb-hot),.35)', bg:'rgba(var(--rgb-hot),.08)' };
   if (c.endsWith('R') || /反[12]|放空/.test(n))
-    return { label:'反向', color:'#f87171', border:'rgba(248,113,113,.35)', bg:'rgba(248,113,113,.08)' };
+    return { label:'反向', color:'var(--up)', border:'rgba(var(--rgb-up),.35)', bg:'rgba(var(--rgb-up),.08)' };
   if (c.endsWith('B') || n.includes('債'))
-    return { label:'債券', color:'#60a5fa', border:'rgba(96,165,250,.35)', bg:'rgba(96,165,250,.08)' };
+    return { label:'債券', color:'var(--bond)', border:'rgba(var(--rgb-link),.35)', bg:'rgba(var(--rgb-link),.08)' };
   if (c.endsWith('U') || /黃金|原油|黃豆|農產|白銀|天然氣/.test(n))
-    return { label:'商品期貨', color:'#fb923c', border:'rgba(251,146,60,.35)', bg:'rgba(251,146,60,.08)' };
+    return { label:'商品期貨', color:'var(--warn)', border:'rgba(var(--rgb-warn),.35)', bg:'rgba(var(--rgb-warn),.08)' };
   return null;
 }
 
 function renderRank() {
   const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
-  const SIG_COLOR = { cheap:'#4ade80', fair:'#fde047', hot:'#ef4444', dear:'#fb923c', bond:'var(--bond)' };
+  const SIG_COLOR = { cheap:'var(--cheap)', fair:'var(--fair)', hot:'var(--hot)', dear:'var(--warn)', bond:'var(--bond)' };   // V2：與全站價格狀態標籤同一組 token
   const fmtRet = v => (v == null) ? '--' : (v > 0 ? '+' : '') + v.toFixed(1) + '%';
-  const retClr = v => (v == null || v === 0) ? 'var(--dim)' : v > 0 ? '#ff6b6b' : '#00e5a0';   // 台股：漲紅跌綠、0 中性（D1）
+  const retClr = v => (v == null || v === 0) ? 'var(--dim)' : v > 0 ? 'var(--up)' : 'var(--dn)';   // 台股：漲紅跌綠、0 中性（D1）
 
   // 開盤初期多數 ETF 當日成交量還是 0，只靠 cur_vol 過濾會只剩 20 幾支。
   // 有量的不足 100 支時放寬條件補滿，並以 avg_vol 當次要排序（未成交者依平時量排）。
@@ -38,7 +38,7 @@ function renderRank() {
   document.getElementById('rankRows').innerHTML = sorted.map((e, i) => {
     const rank  = i + 1;
     const cls   = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
-    const sigC  = SIG_COLOR[e.signal] || '#8b949e';
+    const sigC  = SIG_COLOR[e.signal] || 'var(--dim)';
     const freq   = e.div_freq || e.div_frequency || '?';
     const noDiv  = freq === '不配息';
     const yldTxt = noDiv                          ? '不適用'
@@ -48,7 +48,7 @@ function renderRank() {
                  : e.yld > 0                      ? '~' + e.yld.toFixed(1) + '%'
                  : '--';
     const yldClr = (e.yld > 0 && !noDiv)
-                   ? (e.yld_verified ? '#f5c842' : '#8b7020')
+                   ? (e.yld_verified ? 'var(--fair)' : 'var(--fair-dim)')
                    : 'var(--dim)';
     const ret1y = fmtRet(e.ret1y);
     const y1C   = retClr(e.ret1y);
@@ -74,7 +74,7 @@ function renderRank() {
         <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
       </div>
       <div class="rank-sub">
-        <div class="rank-freq" style="${noDiv ? '' : 'color:#ff9500'}">${freq}</div>
+        <div class="rank-freq" style="${noDiv ? '' : 'color:var(--brand)'}">${freq}</div>
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>

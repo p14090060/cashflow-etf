@@ -2,7 +2,7 @@
    從 index.html 行 318–516 原樣搬出（2026-10-03 拆檔，未改內容）*/
   /* ── Check page ── */
   .check-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:22px; }
-  .check-title { font-size:16px; font-weight:700; margin-bottom:16px; color:#ff9500; }
+  .check-title { font-size:16px; font-weight:700; margin-bottom:16px; color:var(--brand); }
   .check-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; }
   .check-lbl { font-size:16px; color:var(--bright); flex-shrink:0; }
   .input-prefix { display:flex; align-items:center; background:var(--card2); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
@@ -11,32 +11,32 @@
   .input-prefix input:focus { outline:none; }
   .dca-toggle { display:flex; gap:8px; }
   .dca-btn { padding:12px 28px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:16px; font-weight:600; cursor:pointer; }
-  .dca-btn.active { background:rgba(0,229,160,.12); border-color:var(--cheap); color:var(--cheap); }
-  .dca-tip { font-size:16px; color:var(--dim); line-height:1.7; padding:14px 16px; background:rgba(255,255,255,.03); border-radius:8px; margin-bottom:16px; }
+  .dca-btn.active { background:rgba(var(--rgb-cheap),.12); border-color:var(--cheap); color:var(--cheap); }
+  .dca-tip { font-size:16px; color:var(--dim); line-height:1.7; padding:14px 16px; background:rgba(var(--rgb-veil),.03); border-radius:8px; margin-bottom:16px; }
   .rate-presets { display:flex; gap:8px; margin-bottom:14px; }
   .rate-btn { flex:1; padding:14px 4px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--dim); font-size:16px; font-weight:600; cursor:pointer; text-align:center; line-height:1.4; }
   .rate-btn small { display:block; font-size:14px; font-weight:400; margin-top:4px; }
-  .rate-btn.active { background:rgba(88,166,255,.12); border-color:#58a6ff; color:#58a6ff; }
-  .rate-btn.active small { color:#58a6ff; }
+  .rate-btn.active { background:rgba(var(--rgb-link),.12); border-color:var(--link); color:var(--link); }
+  .rate-btn.active small { color:var(--link); }
   .rate-slider-row { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
   .rate-slider-row input[type=range] { flex:1; height:6px; }
-  .rate-num { font-family:var(--mono); font-size:16px; font-weight:700; color:#58a6ff; min-width:54px; text-align:right; }
-  .check-calc-btn { width:100%; padding:18px; background:linear-gradient(90deg,rgba(88,166,255,.15),rgba(0,229,160,.15)); border:1px solid rgba(88,166,255,.3); border-radius:10px; color:var(--bright); font-size:14px; font-weight:700; cursor:pointer; margin-top:8px; }
+  .rate-num { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--link); min-width:54px; text-align:right; }
+  .check-calc-btn { width:100%; padding:18px; background:linear-gradient(90deg,rgba(var(--rgb-link),.15),rgba(var(--rgb-cheap),.15)); border:1px solid rgba(var(--rgb-link),.3); border-radius:10px; color:var(--bright); font-size:14px; font-weight:700; cursor:pointer; margin-top:8px; }
   .check-calc-btn:active { opacity:.8; }
   .proj-table { width:100%; border-collapse:collapse; margin-top:16px; }
   .proj-table th { font-size:16px; color:var(--dim); padding:12px 4px; text-align:center; border-bottom:1px solid var(--border); }
-  .proj-table td { font-size:16px; font-family:var(--mono); padding:14px 4px; text-align:center; border-bottom:1px solid rgba(255,255,255,.05); color:var(--bright); }
+  .proj-table td { font-size:16px; font-family:var(--mono); padding:14px 4px; text-align:center; border-bottom:1px solid rgba(var(--rgb-veil),.05); color:var(--bright); }
   .proj-table tr:last-child td { border-bottom:none; }
   .proj-table td.year-col { color:var(--dim); font-size:16px; }
   .risk-badge { display:inline-block; padding:10px 20px; border-radius:20px; font-size:16px; font-weight:700; margin:14px 0 10px; }
-  .risk-C { background:rgba(0,229,160,.12); color:var(--cheap); border:1px solid rgba(0,229,160,.3); }
-  .risk-M { background:rgba(240,184,64,.12); color:var(--fair); border:1px solid rgba(240,184,64,.3); }
-  .risk-A { background:rgba(255,63,94,.12); color:var(--dear); border:1px solid rgba(255,63,94,.3); }
+  .risk-C { background:rgba(var(--rgb-cheap),.12); color:var(--cheap); border:1px solid rgba(var(--rgb-cheap),.3); }
+  .risk-M { background:rgba(var(--rgb-fair),.12); color:var(--fair); border:1px solid rgba(var(--rgb-fair),.3); }
+  .risk-A { background:rgba(var(--rgb-up),.12); color:var(--dear); border:1px solid rgba(var(--rgb-up),.3); }
   .suggest-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-  .suggest-chip { padding:10px 18px; border-radius:20px; font-size:16px; font-weight:700; background:rgba(88,166,255,.1); color:#58a6ff; border:1px solid rgba(88,166,255,.25); }
+  .suggest-chip { padding:10px 18px; border-radius:20px; font-size:16px; font-weight:700; background:rgba(var(--rgb-link),.1); color:var(--link); border:1px solid rgba(var(--rgb-link),.25); }
   .etf-inputs { display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
   .etf-code-inp { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:16px 18px; font-size:16px; color:var(--bright); font-family:var(--mono); text-align:center; letter-spacing:.08em; }
-  .etf-code-inp:focus { outline:none; border-color:rgba(88,166,255,.5); }
+  .etf-code-inp:focus { outline:none; border-color:rgba(var(--rgb-link),.5); }
   .etf-code-inp::placeholder { font-size:16px; letter-spacing:0; color:var(--dim); }
   .health-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:14px; }
   .health-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
@@ -60,11 +60,11 @@
   }
   /* PO Change #2：標題列（44px）＋🔍／ⓘ；收起的搜尋與說明 display:none，sticky 只剩標題列＋欄位名稱（≤120px） */
   .rank-top      { display:flex; align-items:center; gap:8px; min-height:44px; margin-bottom:4px; }
-  .rank-title    { flex:1; min-width:0; font-size:17px; font-weight:700; color:#FFD700; }
+  .rank-title    { flex:1; min-width:0; font-size:17px; font-weight:700; color:var(--gold); }
   .rank-ic       { flex:0 0 auto; width:44px; height:44px; padding:0; display:inline-flex; align-items:center; justify-content:center;
                    background:none; border:1px solid var(--border); border-radius:10px; color:var(--bright);
                    font:inherit; font-size:18px; line-height:1; cursor:pointer; }
-  .rank-ic.on    { border-color:var(--fair); background:rgba(240,184,64,.10); }
+  .rank-ic.on    { border-color:var(--fair); background:rgba(var(--rgb-fair),.10); }
   .rank-findbox[hidden], .rank-info[hidden] { display:none; }
   .rank-info     { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px; }
   .rank-info-total { font-size:14px; color:var(--dim); margin-bottom:4px; }
@@ -89,9 +89,9 @@
   .rank-find-msg.miss { color:var(--dim); }
   /* 找到的那一列用靜態底色 + 整圈金框標出來（卡片化後不再用左側標線，
      那會讓左邊圓角對不齊）。不用閃爍動畫——這個 App 明確不要閃框/閃光。 */
-  .rank-row.found { background:rgba(240,184,64,.14);
+  .rank-row.found { background:rgba(var(--rgb-fair),.14);
                     border-color:var(--fair); }
-  .rank-hdr      { font-size:15px; color:#c4b5fd; background:rgba(196,181,253,.13); border-radius:8px; margin-bottom:6px; padding:6px 10px; }
+  .rank-hdr      { font-size:15px; color:var(--violet); background:rgba(var(--rgb-violet),.13); border-radius:8px; margin-bottom:6px; padding:6px 10px; }
   .rank-hdr-main { display:flex; align-items:center; margin-bottom:3px; }
   .rank-hdr-sub  { display:flex; align-items:center; gap:0; padding-left:36px; }
   /* 每個排名一張圓角卡：一列有兩行（代碼名稱 / 配息報酬），原本只靠
@@ -120,12 +120,12 @@
   .rank-main     { display:flex; align-items:center; }
   .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
   .rank-no       { width:36px; text-align:center; font-size:18px; font-weight:700; color:var(--dim); flex-shrink:0; }
-  .rank-no.gold  { color:#FFD700; }
-  .rank-no.silver{ color:#C0C0C0; }
-  .rank-no.bronze{ color:#CD7F32; }
+  .rank-no.gold  { color:var(--gold); }
+  .rank-no.silver{ color:var(--silver); }
+  .rank-no.bronze{ color:var(--bronze); }
   .rank-etf      { flex:1; min-width:0; padding-right:6px; }
   .rank-code     { font-size:20px; font-weight:700; font-family:var(--mono); color:var(--bright); }
-  .rank-name     { font-size:18px; color:#58a6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-name     { font-size:18px; color:var(--link); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rank-price    { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); flex-shrink:0; text-align:right; margin-right:8px; min-width:44px; }
   .rank-sig      { font-size:18px; font-weight:600; flex-shrink:0; white-space:nowrap; }
   .rank-freq     { width:68px; font-size:18px; color:var(--dim); flex-shrink:0; }
@@ -144,13 +144,13 @@
   /* PO Change #3：🔍 快速找 ETF（≥ 44px）；搜尋區在 #flowChips 外，renderFlow 重繪不會清掉 */
   .flow-q-btn  { flex:0 0 auto; width:44px; height:44px; padding:0; display:inline-flex; align-items:center; justify-content:center;
                  background:none; border:1px solid var(--border); border-radius:10px; color:var(--bright); font:inherit; font-size:18px; cursor:pointer; }
-  .flow-q-btn[aria-expanded="true"] { border-color:#58a6ff; background:rgba(88,166,255,.12); }
+  .flow-q-btn[aria-expanded="true"] { border-color:var(--link); background:rgba(var(--rgb-link),.12); }
   .flow-q-btn:disabled { opacity:.4; cursor:default; }
   .flow-q[hidden] { display:none; }
   .flow-q      { padding:0 14px 8px; }
   .flow-q input { width:100%; box-sizing:border-box; background:var(--card); color:var(--bright); border:1px solid var(--border);
                   border-radius:8px; padding:10px 12px; font-size:16px; font-family:var(--sans); outline:none; }
-  .flow-q input:focus { border-color:#58a6ff; }
+  .flow-q input:focus { border-color:var(--link); }
   .flow-q-list { display:flex; flex-direction:column; gap:4px; margin-top:6px; }
   .flow-q-item { display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; text-align:left;
                  background:var(--card); color:var(--bright); border:1px solid var(--border); border-radius:8px; font:inherit; cursor:pointer; }
@@ -164,8 +164,8 @@
                  padding:8px 10px; display:flex; align-items:baseline; justify-content:space-between; }
   .flow-tot span { font-size:15px; color:var(--dim); }
   .flow-tot b    { font-size:20px; font-family:var(--mono); font-weight:700; }
-  .flow-tot b.buy  { color:#ff3f5e; }   /* 加碼＝紅（台股慣例，同 --up） */
-  .flow-tot b.sell { color:#00c87a; }   /* 減碼＝綠（同 --dn） */
+  .flow-tot b.buy  { color:var(--up); }   /* 加碼＝紅（台股慣例） */
+  .flow-tot b.sell { color:var(--dn); }   /* 減碼＝綠 */
   /* F2（PHASE5_PLAN §8.3）：單列橫向捲動選擇器，取代 4 欄多列換行，讓紅綠方塊早點進第一屏。
      選取色刻意用中性藍：本頁紅＝加碼、綠＝減碼，選取狀態不能借用這兩色。 */
   .flow-chips  { position:relative; display:flex; flex-wrap:nowrap; gap:8px; overflow-x:auto; overflow-y:hidden;
@@ -178,7 +178,7 @@
                  border-radius:22px; padding:0 16px; font:inherit; font-size:16px; color:var(--dim);
                  font-family:var(--mono); font-weight:700; cursor:pointer; white-space:nowrap;
                  scroll-snap-align:center; }
-  .flow-chip.active { background:rgba(88,166,255,.18); border:2px solid #58a6ff; color:var(--bright); }
+  .flow-chip.active { background:rgba(var(--rgb-link),.18); border:2px solid var(--link); color:var(--bright); }
   .flow-sel      { padding:0 14px 6px; }
   .flow-sel-name { font-size:17px; font-weight:700; color:var(--bright); line-height:1.4; }
   .flow-sel .flow-meta { margin-top:2px; }
@@ -199,7 +199,7 @@
   .treemap     { position:relative; width:100%; height:520px; margin:0 auto;
                  background:var(--card); border-top:1px solid var(--border);
                  border-bottom:1px solid var(--border); overflow:hidden; }
-  .tm-cell     { position:absolute; overflow:hidden; border:1px solid rgba(13,17,23,.85);
+  .tm-cell     { position:absolute; overflow:hidden; border:1px solid var(--tm-border);
                  display:flex; flex-direction:column; align-items:center; justify-content:center;
                  text-align:center; padding:2px; cursor:pointer; }
   .tm-name     { font-weight:700; line-height:1.15; word-break:break-all; }
@@ -209,7 +209,7 @@
      而且會把下方的海外持股清單整個推出畫面外 */
   .treemap.tm-slim { height:auto; }
   .treemap.tm-slim .tm-empty { height:auto; padding:30px 24px; }
-  .tm-empty.sea { background:var(--sea); color:#fff; }
+  .tm-empty.sea { background:var(--sea); color:var(--on-strong); }
   .tm-empty    { display:flex; align-items:center; justify-content:center; height:100%;
                  color:var(--dim); font-size:15px; text-align:center; padding:0 24px; }
 
@@ -227,9 +227,9 @@
               background:var(--card); overflow:hidden; }
   /* 藍底白字＝海外。全海外與混合兩種情況都會出現這塊，標示掛在這裡才蓋得全
      （上面那個空狀態框只有「全海外」那 3 檔才看得到） */
-  .np-hd    { padding:9px 12px; font-size:13px; color:#fff;
+  .np-hd    { padding:9px 12px; font-size:13px; color:var(--on-strong);
               background:var(--sea); }
-  .np-hd b  { color:#fff; }
+  .np-hd b  { color:var(--on-strong); }
   .np-wrap  { border-color:var(--sea); }
   .np-list  { max-height:290px; overflow-y:auto; }
   .np-row   { display:flex; align-items:center; gap:9px; padding:9px 12px;

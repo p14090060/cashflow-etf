@@ -400,8 +400,8 @@ function renderFlow(code) {
       // 台股慣例：紅=加碼(正)、綠=減碼(負)。與 App 其他頁的 --up/--dn、retClr 一致，
       // 不要改成歐美的綠漲紅跌，同一個 App 用兩套相反的顏色語言會讓人讀反。
       const bg = c.side === 'buy'
-        ? 'rgba(255,63,94,'  + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')'
-        : 'rgba(0,200,122,' + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')';
+        ? 'rgba(var(--rgb-up),' + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')'   // V2：由 --up／--dn 換算，透明度仍依面積
+        : 'rgba(var(--rgb-dn),' + (0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2) + ')';
       const fs   = Math.max(11, Math.min(19, big / 4.0));   // 手機上 9px 太小，下限拉到 11
       const show = c.w > 42 && c.h > 26;
       const sub  = c.w > 58 && c.h > 46;

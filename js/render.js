@@ -134,8 +134,8 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
       <span class="hr-main">
         <span class="hr-line"><span class="wait-code">${_homeEsc(e.code)}</span><span class="wait-name">${_homeEsc(e.name)}</span></span>
         <span class="hr-sub">
-          <span style="color:#fb923c">現價 ${(+e.price).toFixed(2)}</span>
-          <span style="color:var(--dim)"> · 年殖利率 </span><span style="color:#fbbf24">${(e.new_listing && !e.yld) ? '0%新上市' : fmtYld(e)}</span>
+          <span style="color:var(--warn)">現價 ${(+e.price).toFixed(2)}</span>
+          <span style="color:var(--dim)"> · 年殖利率 </span><span style="color:var(--fair)">${(e.new_listing && !e.yld) ? '0%新上市' : fmtYld(e)}</span>
         </span>
       </span>
       <span class="${SIG_CLASS[e.signal] || 'sig-dear'}">${SIG_LABEL[e.signal] || '偏貴'}</span>

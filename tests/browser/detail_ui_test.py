@@ -41,6 +41,9 @@ def wait_ms(ms):
 cdp('Runtime.enable')
 cdp('Page.enable')
 
+# Phase 5 CP7：網站預設跟隨系統主題。既有測試的色值以 dark 為基準 → 固定模擬系統 dark；Light／切換由 theme_test.py 驗
+cdp('Emulation.setEmulatedMedia', {'features': [{'name': 'prefers-color-scheme', 'value': 'dark'}]})
+
 def load_page():
     cdp('Page.navigate', {'url': BASE})
     time.sleep(1.5)

@@ -24,6 +24,89 @@
                           兩個藍分屬排行頁與主動頁，不會同框出現。 */
   --gold:  #ffd700;
     --nav-h: 62px;
+    /* ── Phase 5 V2：全站 visual tokens（PHASE5_PLAN §7.2）。dark 值＝改版前實際色，換主題只換這裡 ── */
+    --hot:   #f25a5a;   /* 過熱（原 #ef4444 在 --card2 上 4.3:1，TH-6 調亮至 ≥ 4.9:1） */
+    --warn:  #fb923c;   /* 偏貴（橘）、現價 */
+    --brand: #ff9500;   /* 品牌橘：面板標題、配息方式 */
+    --link:  #58a6ff;   /* ETF 名稱、連結、中性藍強調（選取框） */
+    --silver:#c0c0c0;
+    --bronze:#cd7f32;
+    --violet:#c4b5fd;   /* 排行欄位名稱 */
+    --mood-cta:#e8607a;
+    --src-official:#7ec8e3;
+    --err-text:#ff6b7f;
+    --err-soft:#ffb3bd;
+    --on-strong:#ffffff;   /* 深色色塊（--sea）上的文字 */
+    --fair-dim:#a8913f;    /* 殖利率未核實（原 #8b7020 對比 3.4～4.0:1，TH-6 調亮至 ≥ 5.2:1） */
+    --hdr-bg: rgba(13,17,23,.92);
+    --nav-bg: rgba(22,27,34,.96);
+    --tm-border: rgba(13,17,23,.85);
+    --shadow-pop:  0 10px 28px rgba(0,0,0,.45);
+    --shadow-menu: 0 6px 18px rgba(0,0,0,.45);
+    --shadow-lift: 0 10px 26px rgba(0,0,0,.6);
+    --shadow-band: 0 -3px 8px rgba(0,0,0,.28);
+    /* RGB 三元組：給 rgba(var(--rgb-x), α) 的淡底／框線／treemap 透明度使用 */
+    --rgb-cheap: 0,229,160;
+    --rgb-fair:  240,184,64;
+    --rgb-up:    255,63,94;
+    --rgb-dn:    0,200,122;
+    --rgb-warn:  251,146,60;
+    --rgb-hot:   242,90,90;
+    --rgb-link:  88,166,255;
+    --rgb-gold:  255,215,0;
+    --rgb-violet:196,181,253;
+    --rgb-neutral:139,148,158;
+    --rgb-veil:  255,255,255;   /* 深底上的白色薄紗；light 換成黑色薄紗 */
+    color-scheme: dark;
+  }
+  /* Light（PHASE5_PLAN §7.1／§7.2）：台股漲紅跌綠、紅＝加碼／綠＝減碼語意不變，只換成淺底可讀的加深版。
+     對比以 theme_test TH-6 量測（正文 ≥ 4.5:1、大字與圖形 ≥ 3:1） */
+  :root[data-theme="light"] {
+    --bg:    #f6f8fa;
+    --card:  #ffffff;
+    --card2: #eef1f4;
+    --border:#d0d7de;
+    --dim:   #57606a;
+    --bright:#1f2328;
+    --cheap: #157350;
+    --fair:  #8a5a00;
+    --dear:  #c4333a;
+    --up:    #c4333a;
+    --dn:    #1a7a57;
+    --bond:  #0969da;
+    --sea:   #164c80;
+    --gold:  #8a5a00;
+    --hot:   #cf222e;
+    --warn:  #b54700;
+    --brand: #b54700;
+    --link:  #0969da;
+    --silver:#5f6874;
+    --bronze:#9c5a2b;
+    --violet:#6639ba;
+    --mood-cta:#c4333a;
+    --src-official:#0a6680;
+    --err-text:#c4333a;
+    --err-soft:#82071e;
+    --fair-dim:#7a6a3a;
+    --hdr-bg: rgba(246,248,250,.94);
+    --nav-bg: rgba(255,255,255,.96);
+    --tm-border: rgba(255,255,255,.9);
+    --shadow-pop:  0 10px 28px rgba(31,35,40,.16);
+    --shadow-menu: 0 6px 18px rgba(31,35,40,.16);
+    --shadow-lift: 0 10px 26px rgba(31,35,40,.24);
+    --shadow-band: 0 -3px 8px rgba(31,35,40,.10);
+    --rgb-cheap: 21,115,80;
+    --rgb-fair:  154,103,0;
+    --rgb-up:    196,51,58;
+    --rgb-dn:    26,122,87;
+    --rgb-warn:  181,71,0;
+    --rgb-hot:   207,34,46;
+    --rgb-link:  9,105,218;
+    --rgb-gold:  154,103,0;
+    --rgb-violet:102,57,186;
+    --rgb-neutral:87,96,106;
+    --rgb-veil:  0,0,0;
+    color-scheme: light;
   }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 
@@ -45,7 +128,7 @@
      不會跟排行頁的 .rank-sticky 互相打架 */
   .app-hdr {
     position:sticky; top:0; z-index:50;
-    background:rgba(13,17,23,.92); backdrop-filter:blur(12px);
+    background:var(--hdr-bg); backdrop-filter:blur(12px);
     border-bottom:1px solid var(--border);
   }
   .topbar {
@@ -80,7 +163,7 @@
     /* 最後防線。實際高度由 search.js 的 _gsSyncListMax() 依 visualViewport
        逐次量測後以行內樣式覆蓋——vh 量不到虛擬鍵盤佔掉的空間。 */
     max-height:46vh;
-    box-shadow:0 10px 28px rgba(0,0,0,.45);
+    box-shadow:var(--shadow-pop);
   }
   .gs-row {
     display:flex; align-items:center; gap:10px;
@@ -147,15 +230,15 @@
   .topbar-title { font-size:16px; font-weight:700; letter-spacing:.02em; }
   .topbar-sub   { font-family:var(--mono); font-size:16px; color:var(--dim); margin-top:1px; }
   .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; border-radius:6px; padding:2px 8px; margin-top:3px; }
-  .status-live  { background:rgba(0,229,160,.12); color:#00e5a0; border:1px solid rgba(0,229,160,.3); }
-  .status-live::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:#00e5a0; animation:pulse 1.2s ease-in-out infinite; }
-  .status-closed  { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
-  .status-holiday { background:rgba(139,148,158,.10); color:var(--dim); border:1px solid var(--border); }
+  .status-live  { background:rgba(var(--rgb-cheap),.12); color:var(--cheap); border:1px solid rgba(var(--rgb-cheap),.3); }
+  .status-live::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--cheap); animation:pulse 1.2s ease-in-out infinite; }
+  .status-closed  { background:rgba(var(--rgb-neutral),.10); color:var(--dim); border:1px solid var(--border); }
+  .status-holiday { background:rgba(var(--rgb-neutral),.10); color:var(--dim); border:1px solid var(--border); }
   /* 資料載入失敗。刻意不加 animation——會閃的東西一律不要 */
-  .status-error   { background:rgba(255,63,94,.12); color:#ff6b7f; border:1px solid rgba(255,63,94,.35); }
+  .status-error   { background:rgba(var(--rgb-up),.12); color:var(--err-text); border:1px solid rgba(var(--rgb-up),.35); }
   .data-error     { margin:0 14px 12px; padding:12px 14px; border-radius:8px; font-size:14px; line-height:1.7;
-                    background:rgba(255,63,94,.08); border:1px solid rgba(255,63,94,.3); color:#ffb3bd; }
-  .data-error b   { color:#fff; font-weight:600; }
+                    background:rgba(var(--rgb-up),.08); border:1px solid rgba(var(--rgb-up),.3); color:var(--err-soft); }
+  .data-error b   { color:var(--bright); font-weight:600; }
   .data-error[hidden] { display:none; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:16px; cursor:pointer; line-height:1; }
@@ -168,13 +251,13 @@
   .refresh-btn.spinning { animation:spin .6s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
   .disclaimer {
-    background:rgba(240,184,64,.08); border-bottom:1px solid rgba(240,184,64,.2);
+    background:rgba(var(--rgb-fair),.08); border-bottom:1px solid rgba(var(--rgb-fair),.2);
     padding:4px 12px; font-size:14px; color:var(--fair);
     text-align:center; letter-spacing:0; line-height:1.45;
   }
   .demo-badge {
-    background:rgba(240,184,64,.12); color:var(--fair);
-    border:1px solid rgba(240,184,64,.4); border-radius:4px;
+    background:rgba(var(--rgb-fair),.12); color:var(--fair);
+    border:1px solid rgba(var(--rgb-fair),.4); border-radius:4px;
     padding:2px 8px; font-size:16px; font-family:var(--mono);
   }
 
@@ -188,7 +271,7 @@
     position:fixed; bottom:0; left:50%; transform:translateX(-50%);
     width:100%; max-width:430px;
     height:var(--nav-h);
-    background:rgba(22,27,34,.96); backdrop-filter:blur(16px);
+    background:var(--nav-bg); backdrop-filter:blur(16px);
     border-top:1px solid var(--border);
     display:flex; z-index:100;
   }

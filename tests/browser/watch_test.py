@@ -227,7 +227,8 @@ if part:
     want = ev("ETFS.find(e=>e.code===%s).ret_months.filter(v=>v==null).length" % json.dumps(part))
     check('BR-3 新上市部分缺值（%s）：灰柱數量正確' % part, ev("document.querySelectorAll('#watchList .mb[data-k=na]').length") == want, want)
 d1 = ev("(function(){ const h=miniBars([1.5,0,-2,null]); const d=document.createElement('div'); d.innerHTML=h; document.body.appendChild(d); const r=[...d.querySelectorAll('.mb')].map(m=>m.dataset.k+':'+getComputedStyle(m.querySelector('.mb-bar')).backgroundColor); d.remove(); return r; })()")
-check('D1 全站 miniBars（排行／Detail 預設）：0 為中性、漲紅跌綠', d1[1] == 'zero:' + DIM and d1[0].startswith('up:rgb(255, 107, 107)') and d1[2].startswith('dn:rgb(0, 229, 160)'), d1)
+# PHASE5_PLAN §7.2：全站 miniBars 統一改用 --up／--dn（原排行／Detail 預設 #ff6b6b／#00e5a0），規則不變
+check('D1 全站 miniBars（排行／Detail 預設）：0 為中性、漲紅跌綠（--up／--dn）', d1[1] == 'zero:' + DIM and d1[0] == 'up:' + UP and d1[2] == 'dn:' + DN, d1)
 
 # ── ES：空狀態 → 前往分類 ──
 store_set([]); go_watch()

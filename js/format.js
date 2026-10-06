@@ -9,14 +9,14 @@
 function miniBars(months, opts) {
   if (!months || !months.length) return '<span style="color:var(--dim);font-size:11px">--</span>';
   const o = opts || {};
-  const UP = o.token ? 'var(--up)' : '#ff6b6b', DN = o.token ? 'var(--dn)' : '#00e5a0';
+  const UP = 'var(--up)', DN = 'var(--dn)';   // Phase 5 V2：全站 miniBars 統一用 token（0 中性、缺值灰規則不變）
   const vals = months.map(v => v ?? 0);
   const maxAbs = Math.max(...vals.map(Math.abs), 2);
   return months.map(v => {
     const val = v ?? 0;
     let h, pos, col, rad, kind;
     if (v == null) {            // 缺值：灰色短柱（中線上方）
-      h = 2; pos = 'bottom:13px'; col = 'rgba(255,255,255,.15)'; rad = '1px 1px 0 0'; kind = 'na';
+      h = 2; pos = 'bottom:13px'; col = 'rgba(var(--rgb-veil),.15)'; rad = '1px 1px 0 0'; kind = 'na';
     } else if (val === 0) {     // 0：中性色短柱，壓在中線上
       h = 3; pos = 'top:11px'; col = 'var(--dim)'; rad = '1px'; kind = 'zero';
     } else {
@@ -28,7 +28,7 @@ function miniBars(months, opts) {
     }
     const tip = v == null ? '--' : (val > 0 ? '+' : '') + val.toFixed(1) + '%';
     return `<div class="mb" data-k="${kind}" style="position:relative;width:8px;height:26px;flex-shrink:0" title="${tip}">
-      <div style="position:absolute;top:12px;left:0;right:0;height:1px;background:rgba(255,255,255,.12)"></div>
+      <div style="position:absolute;top:12px;left:0;right:0;height:1px;background:rgba(var(--rgb-veil),.12)"></div>
       <div class="mb-bar" style="position:absolute;width:8px;height:${h}px;${pos};background:${col};border-radius:${rad}"></div>
     </div>`;
   }).join('');

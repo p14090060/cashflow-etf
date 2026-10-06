@@ -6,11 +6,11 @@
     font-size:16px; font-weight:700; margin-bottom:10px;
     padding-bottom:7px; border-bottom:1px solid var(--border);
   }
-  .section-hdr.buy  { color:var(--bright); border-color:rgba(0,229,160,.2); }
+  .section-hdr.buy  { color:var(--bright); border-color:rgba(var(--rgb-cheap),.2); }
   .section-hdr.wait { color:var(--bright); }
   .badge-count {
     font-family:var(--sans); font-size:16px; font-weight:700;
-    background:rgba(255,255,255,.07); border-radius:10px; padding:2px 10px;
+    background:rgba(var(--rgb-veil),.07); border-radius:10px; padding:2px 10px;
     color:var(--bright);
   }
 
@@ -23,36 +23,36 @@
   .mood-emoji { font-size:36px; line-height:1; flex-shrink:0; }
   .mood-main  { font-size:16px; font-weight:700; }
   .mood-sub   { font-size:14px; color:var(--bright); margin-top:3px; line-height:1.5; }
-  .mood-cta   { font-size:16px; color:#e8607a; margin-top:5px; font-weight:600; }
+  .mood-cta   { font-size:16px; color:var(--mood-cta); margin-top:5px; font-weight:600; }
   .mood-idx   { font-family:var(--mono); font-size:14px; margin-top:4px; }
   .mood-idx.up{ color:var(--up); } .mood-idx.dn{ color:var(--dn); } .mood-idx.flat{ color:var(--dim); }
 
   /* ── 價格狀態標籤（首頁、Detail 等共用） ── */
   .sig-cheap {
-    background:rgba(0,229,160,.12); color:var(--cheap);
+    background:rgba(var(--rgb-cheap),.12); color:var(--cheap);
     border:1px solid var(--cheap); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-fair {
-    background:rgba(240,184,64,.12); color:var(--fair);
+    background:rgba(var(--rgb-fair),.12); color:var(--fair);
     border:1px solid var(--fair); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-dear {
-    background:rgba(251,146,60,.12); color:#fb923c;
-    border:1px solid #fb923c; border-radius:6px;
+    background:rgba(var(--rgb-warn),.12); color:var(--warn);
+    border:1px solid var(--warn); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   /* 債券 ETF 不套股價訊號，用中性灰藍——刻意不借用四態任何一色，
      免得被當成買賣判斷。只是在說「這是債券型」。 */
   .sig-bond {
-    background:rgba(88,166,255,.14); color:var(--bond);
+    background:rgba(var(--rgb-link),.14); color:var(--bond);
     border:1px solid var(--bond); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-hot {
-    background:rgba(239,68,68,.12); color:#ef4444;
-    border:1px solid #ef4444; border-radius:6px;
+    background:rgba(var(--rgb-hot),.12); color:var(--hot);
+    border:1px solid var(--hot); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .empty-state {
@@ -67,11 +67,11 @@
   }
   .hot-rank { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--dim); width:22px; flex-shrink:0; }
   .hot-rank.gold { color:var(--gold); }
-  .hot-rank.silver { color:#aab0b8; }
-  .hot-rank.bronze { color:#cd7f32; }
-  .range-track { height:5px; background:rgba(255,255,255,.08); border-radius:3px; position:relative; margin-bottom:4px; }
-  .range-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,rgba(88,166,255,.15),rgba(88,166,255,.6)); }
-  .range-dot   { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:#58a6ff; border:2px solid var(--bg); }
+  .hot-rank.silver { color:var(--silver); }
+  .hot-rank.bronze { color:var(--bronze); }
+  .range-track { height:5px; background:rgba(var(--rgb-veil),.08); border-radius:3px; position:relative; margin-bottom:4px; }
+  .range-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,rgba(var(--rgb-link),.15),rgba(var(--rgb-link),.6)); }
+  .range-dot   { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:var(--link); border:2px solid var(--bg); }
   .range-lbl   { display:flex; justify-content:space-between; font-family:var(--mono); font-size:16px; color:var(--dim); }
 
   /* ── 首頁入口大廳（PHASE5_PLAN §2）：入口、精簡列表。字級不小於 14px、整列可點 ≥ 44px ── */
@@ -113,18 +113,18 @@
   /* ── Wait list ── */
   .wait-item {
     display:flex; align-items:center; gap:9px;
-    background:rgba(255,255,255,.03); border:1px solid var(--border);
+    background:rgba(var(--rgb-veil),.03); border:1px solid var(--border);
     border-radius:8px; padding:10px 12px; margin-bottom:7px;
   }
   .wait-code  { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); width:68px; flex-shrink:0; }
-  .wait-name  { font-size:16px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#58a6ff; }
+  .wait-name  { font-size:16px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--link); }
   .wait-sig   { border-radius:6px; padding:4px 12px; font-size:16px; font-weight:700; flex-shrink:0; white-space:nowrap; }
-  .wait-sig.dear { background:rgba(255,63,94,.1); color:var(--dear); border:1px solid rgba(255,63,94,.3); }
-  .wait-sig.fair { background:rgba(240,184,64,.1); color:var(--fair); border:1px solid rgba(240,184,64,.3); }
+  .wait-sig.dear { background:rgba(var(--rgb-up),.1); color:var(--dear); border:1px solid rgba(var(--rgb-up),.3); }
+  .wait-sig.fair { background:rgba(var(--rgb-fair),.1); color:var(--fair); border:1px solid rgba(var(--rgb-fair),.3); }
 
   /* ── Dividend page ── */
   .panel { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:15px; margin-bottom:22px; }
-  .panel-title { font-size:16px; font-weight:700; margin-bottom:12px; color:#ff9500; }
+  .panel-title { font-size:16px; font-weight:700; margin-bottom:12px; color:var(--brand); }
   .panel-title .ic { margin-right:6px; }
 
   /* 張數試算（Detail 配息分頁 #dtCalcOut 使用；舊配息頁 B-1 計算機已於 Phase 5 退役） */
@@ -140,11 +140,11 @@
   }
   .num-input:focus { border-color:var(--cheap); }
   .calc-out {
-    background:rgba(0,229,160,.06); border:1px solid rgba(0,229,160,.18);
+    background:rgba(var(--rgb-cheap),.06); border:1px solid rgba(var(--rgb-cheap),.18);
     border-radius:9px; padding:13px 14px;
   }
   .calc-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
-  .calc-row:last-child { margin:0; padding-top:9px; border-top:1px solid rgba(255,63,94,.15); }
+  .calc-row:last-child { margin:0; padding-top:9px; border-top:1px solid rgba(var(--rgb-up),.15); }
   .calc-lbl  { font-size:16px; color:var(--bright); }
   .calc-val  { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--dear); }
   .calc-val.sm { font-size:16px; color:var(--dear); }
@@ -153,10 +153,10 @@
   .cal-item {
     display:flex; align-items:center; gap:11px;
     border-radius:9px; padding:10px 12px; margin-bottom:8px;
-    background:rgba(255,255,255,.03); border:1px solid var(--border);
+    background:rgba(var(--rgb-veil),.03); border:1px solid var(--border);
   }
-  .cal-item.soon  { background:rgba(255,215,0,.05); border-color:rgba(255,215,0,.25); }
-  .cal-item.today { background:rgba(0,229,160,.06); border-color:rgba(0,229,160,.35); }
+  .cal-item.soon  { background:rgba(var(--rgb-gold),.05); border-color:rgba(var(--rgb-gold),.25); }
+  .cal-item.today { background:rgba(var(--rgb-cheap),.06); border-color:rgba(var(--rgb-cheap),.35); }
   .cal-item:last-child { margin:0; }
   /* CP6c：日曆列 → Detail。覆蓋整列的 .cal-hit 按鈕；列內容不攔截點擊 */
   .cal-item { position:relative; cursor:pointer; }
@@ -170,23 +170,23 @@
   .cal-line  { width:1px; height:30px; background:var(--border); flex-shrink:0; }
   .cal-info  { flex:1; }
   .cal-code2 { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); }
-  .cal-name2 { font-size:16px; color:#58a6ff; margin-top:2px; }
+  .cal-name2 { font-size:16px; color:var(--link); margin-top:2px; }
   .cal-r     { text-align:right; }
   .cal-amt   { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--gold); }
   .cal-ulbl  { font-size:14px; color:var(--bright); }
   .soon-pill {
-    display:inline-block; background:rgba(255,215,0,.15); color:var(--gold);
+    display:inline-block; background:rgba(var(--rgb-gold),.15); color:var(--gold);
     border-radius:4px; padding:1px 6px; font-size:16px; font-family:var(--mono);
     margin-top:3px;
   }
   .today-pill {
-    background:rgba(0,229,160,.18); color:var(--cheap);
-    border:1px solid rgba(0,229,160,.4);
+    background:rgba(var(--rgb-cheap),.18); color:var(--cheap);
+    border:1px solid rgba(var(--rgb-cheap),.4);
   }
 
   /* Source badges */
   .src-lbl         { font-size:11px; margin-top:3px; }
-  .src-official    { color:#7ec8e3; }
+  .src-official    { color:var(--src-official); }
   .src-estimate    { color:var(--dim); }
   .yld-badge       { font-size:12px; margin-left:2px; opacity:.8; }
 
@@ -196,7 +196,7 @@
     border-top:1px solid var(--border); border-radius:8px;
     font-size:12px; color:var(--dim); line-height:1.8;
   }
-  .site-footer a { color:#58a6ff; text-decoration:none; }
+  .site-footer a { color:var(--link); text-decoration:none; }
   .site-footer a:hover { text-decoration:underline; }
 
   /* ── ETF 詳細頁（js/detail.js）── */

@@ -35,7 +35,7 @@
   background: var(--card); border: 1px solid var(--border); border-radius: 12px;
   padding: 6px 0;
 }
-.wc.lifting { z-index: 5; box-shadow: 0 10px 26px rgba(0, 0, 0, .6); border: 2px solid var(--fair); background: var(--card2); margin: -1px; }   /* 抓起＝明顯亮起（只在真正拖曳中；色彩美化留 Phase 5） */
+.wc.lifting { z-index: 5; box-shadow: var(--shadow-lift); border: 2px solid var(--fair); background: var(--card2); margin: -1px; }   /* 抓起＝明顯亮起（只在真正拖曳中；色彩美化留 Phase 5） */
 body.wt-dragging .wc:not(.lifting) { transition: transform 150ms ease; }
 @media (prefers-reduced-motion: reduce) { body.wt-dragging .wc:not(.lifting) { transition: none; } }
 .drag-handle {
@@ -87,7 +87,7 @@ body.wt-dragging .drag-handle { cursor: grabbing; }
   width: calc(100% - 28px); max-width: 402px; z-index: 130;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   background: var(--card2); color: var(--bright); border: 1px solid var(--border); border-radius: 10px;
-  padding: 4px 6px 4px 14px; font-size: 14px; box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+  padding: 4px 6px 4px 14px; font-size: 14px; box-shadow: var(--shadow-menu);
 }
 .wt-toast span { min-width: 0; }
 .wt-toast button {
