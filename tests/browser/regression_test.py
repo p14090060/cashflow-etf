@@ -76,6 +76,7 @@ check('MG-3 retired globals are undefined (selETF/renderChips/calcUpdate/selChip
 check('MG-1 ETFS／CALENDAR available from state.js', ev("Array.isArray(ETFS) && ETFS.length > 0 && Array.isArray(CALENDAR) && !!document.querySelector('script[src^=\\'js/state.js\\']') && !document.querySelector('script[src*=\\'calc.js\\'],script[src*=\\'lookup.js\\']')") is True)
 check('MG home A-4 single-ETF lookup removed', ev("!document.getElementById('todayCode') && !document.getElementById('todayResult')") is True)
 ev("switchPage('rank'); true"); wait_ms(100)
+check('R rank find: 先展開 🔍（PO Change #2：預設收起）', ev("(()=>{ if(document.getElementById('rankFindBtn').getAttribute('aria-expanded')!=='true') document.getElementById('rankFindBtn').click(); const i=document.getElementById('rankFind'); return i.offsetParent!==null && i.getBoundingClientRect().height>0; })()") is True)   # 只多「先展開」一步，原斷言不變
 ev("const f=document.getElementById('rankFind'); f.value='0050'; f.dispatchEvent(new Event('input')); true"); wait_ms(150)
 check('R rank find 0050 message', '0050' in (ev("document.getElementById('rankFindMsg').innerText") or ''))
 ev("switchPage('check'); true"); wait_ms(200)

@@ -11,7 +11,7 @@
 <title>ETF 存股雷達 v2</title>
 <link rel="stylesheet" href="css/base.css?v=20261006e">
 <link rel="stylesheet" href="css/components.css?v=20261006b">
-<link rel="stylesheet" href="css/pages.css?v=20261006e">
+<link rel="stylesheet" href="css/pages.css?v=20261006g">
 <link rel="stylesheet" href="css/category.css?v=20261006f">
 <link rel="stylesheet" href="css/watch.css?v=20261005x">
 </head>
@@ -290,17 +290,26 @@
   <!-- ══ PAGE 5: 排行 ══ -->
   <div class="page" id="page-rank">
     <div class="rank-sticky">
-      <div class="section-hdr" style="color:#FFD700; border-color:rgba(255,215,0,.2); margin-bottom:6px;">
-        ETF 成交量排行
+      <!-- PO Change #2（PHASE5_PLAN §3.8）：標題列＋🔍／ⓘ 按需展開；收起時 display:none 不佔 sticky 高度 -->
+      <div class="rank-top">
+        <div class="rank-title">成交量排行</div>
+        <button class="rank-ic" id="rankFindBtn" type="button" aria-expanded="false" aria-controls="rankFindBox"
+                aria-label="在排行中找 ETF" onclick="rankToggleFind()">🔍</button>
+        <button class="rank-ic" id="rankInfoBtn" type="button" aria-expanded="false" aria-controls="rankInfo"
+                aria-label="排行說明" onclick="rankToggleInfo()">ⓘ</button>
       </div>
-      <div style="font-size:13px; color:var(--dim); margin-bottom:2px;">依當日成交量排序 · 共 <span id="rankTotal">-</span> 支</div>
-      <div class="rank-caveat">⚠ 排名高＝今天很多人在買賣，<b>不代表比較好或比較適合存股</b></div>
-      <div class="rank-find">
-        <input id="rankFind" type="search" placeholder="🔍 輸入代碼或名稱，找你的 ETF"
-               autocomplete="off" oninput="findInRank()" onkeydown="if(event.key==='Enter')findInRank()">
-        <button id="rankFindClear" onclick="clearRankFind()" hidden>✕</button>
+      <div class="rank-findbox" id="rankFindBox" hidden>
+        <div class="rank-find">
+          <input id="rankFind" type="search" placeholder="在排行中找 ETF"
+                 autocomplete="off" oninput="findInRank()" onkeydown="if(event.key==='Enter')findInRank()">
+          <button id="rankFindClear" onclick="clearRankFind()" aria-label="清除" hidden>✕</button>
+        </div>
+        <div class="rank-find-msg" id="rankFindMsg"></div>
       </div>
-      <div class="rank-find-msg" id="rankFindMsg"></div>
+      <div class="rank-info" id="rankInfo" hidden>
+        <div class="rank-info-total">依當日成交量排序 · 共 <span id="rankTotal">-</span> 支</div>
+        <div class="rank-caveat">⚠ 排名高＝今天很多人在買賣，<b>不代表比較好或比較適合存股</b></div>
+      </div>
       <div class="rank-hdr">
         <div class="rank-hdr-main">
           <div style="width:34px">#</div>
@@ -369,7 +378,7 @@
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261005x"></script>
 <script src="js/render.js?v=20261006b"></script>
-<script src="js/rank.js?v=20261005x"></script>
+<script src="js/rank.js?v=20261006g"></script>
 <script src="js/search.js?v=20261006a"></script>
 <script src="js/watch-store.js?v=20261005x"></script>
 <script src="js/category-rules.js?v=20261005x"></script>

@@ -113,7 +113,7 @@ h0 = ev("history.length")
 ev("document.querySelector('#pzList .pz-row').click(); true"); wait_ms(300)
 s = json.loads(st())
 check('PZ-11 整列點擊開 Detail（push 一層）', ev("!document.getElementById('gsPanel').hidden") is True and s['stack'][-1]['t'] == 'detail'
-      and s['stack'][-1]['code'] == exp_order[0] and ev("history.length") == h0 + 1, s)
+      and s['stack'][-1]['code'] == exp_order[0] and ev("history.length") <= h0 + 1, s)   # push 會清掉先前 Back 留下的 forward entry（可能不只 1 筆），history.length 不一定 +1；Back 回首頁見下一項
 ev("history.back(); true"); wait_ms(400)
 check('PZ-11 Back → 回首頁、Detail 關閉', ev("document.getElementById('gsPanel').hidden") is True and json.loads(st())['base'] == 'home'
       and json.loads(st())['stack'] == [] and ev("document.getElementById('page-today').classList.contains('active')") is True, st())

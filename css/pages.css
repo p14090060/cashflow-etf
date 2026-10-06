@@ -58,7 +58,18 @@
   @media (max-height: 520px) {
     .rank-sticky { position:static; }
   }
+  /* PO Change #2：標題列（44px）＋🔍／ⓘ；收起的搜尋與說明 display:none，sticky 只剩標題列＋欄位名稱（≤120px） */
+  .rank-top      { display:flex; align-items:center; gap:8px; min-height:44px; margin-bottom:4px; }
+  .rank-title    { flex:1; min-width:0; font-size:17px; font-weight:700; color:#FFD700; }
+  .rank-ic       { flex:0 0 auto; width:44px; height:44px; padding:0; display:inline-flex; align-items:center; justify-content:center;
+                   background:none; border:1px solid var(--border); border-radius:10px; color:var(--bright);
+                   font:inherit; font-size:18px; line-height:1; cursor:pointer; }
+  .rank-ic.on    { border-color:var(--fair); background:rgba(240,184,64,.10); }
+  .rank-findbox[hidden], .rank-info[hidden] { display:none; }
+  .rank-info     { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px; }
+  .rank-info-total { font-size:14px; color:var(--dim); margin-bottom:4px; }
   .rank-caveat   { font-size:13px; color:var(--dim); margin-bottom:8px; line-height:1.5; }
+  .rank-info .rank-caveat { margin-bottom:0; font-size:14px; }
   .rank-caveat b { color:var(--fair); }
   .rank-find     { position:relative; margin-bottom:6px; }
   .rank-find input {
@@ -80,8 +91,8 @@
      那會讓左邊圓角對不齊）。不用閃爍動畫——這個 App 明確不要閃框/閃光。 */
   .rank-row.found { background:rgba(240,184,64,.14);
                     border-color:var(--fair); }
-  .rank-hdr      { font-size:15px; color:#c4b5fd; background:rgba(196,181,253,.13); border-radius:8px; margin-bottom:8px; padding:9px 10px 10px; }
-  .rank-hdr-main { display:flex; align-items:center; margin-bottom:5px; }
+  .rank-hdr      { font-size:15px; color:#c4b5fd; background:rgba(196,181,253,.13); border-radius:8px; margin-bottom:6px; padding:6px 10px; }
+  .rank-hdr-main { display:flex; align-items:center; margin-bottom:3px; }
   .rank-hdr-sub  { display:flex; align-items:center; gap:0; padding-left:36px; }
   /* 每個排名一張圓角卡：一列有兩行（代碼名稱 / 配息報酬），原本只靠
      4% 白的底線分隔，在深色底幾乎看不見，兩行會跟下一名黏成一團。

@@ -86,12 +86,38 @@ function renderRank() {
 
 // ── 排行頁：找自己的 ETF ──────────────────────────────────────
 // 只定位不過濾——使用者要看的是「我在第幾名」，把其他 99 支藏掉就失去參照。
+// PO Change #2（PHASE5_PLAN §3.8）：搜尋與說明改為 🔍／ⓘ 按需展開，預設收起。
+// 展開狀態只在記憶體（不寫 Router／history）；有搜尋內容時不因 ⓘ、輪詢重繪、Detail／Flow 往返而收起。
 let _rankFind = '';
+let _rankFindOpen = false, _rankInfoOpen = false;
+
+function _rankSyncTop() {
+  const fb = document.getElementById('rankFindBox'), ib = document.getElementById('rankInfo');
+  if (!fb || !ib) return;
+  fb.hidden = !_rankFindOpen;
+  ib.hidden = !_rankInfoOpen;
+  const f = document.getElementById('rankFindBtn'), i = document.getElementById('rankInfoBtn');
+  f.setAttribute('aria-expanded', String(_rankFindOpen));
+  f.classList.toggle('on', _rankFindOpen || !!_rankFind);
+  i.setAttribute('aria-expanded', String(_rankInfoOpen));
+  i.classList.toggle('on', _rankInfoOpen);
+}
+function rankToggleFind() {
+  _rankFindOpen = !_rankFindOpen;
+  _rankSyncTop();
+  if (_rankFindOpen) document.getElementById('rankFind').focus({ preventScroll: true });
+}
+function rankToggleInfo() {
+  _rankInfoOpen = !_rankInfoOpen;
+  _rankSyncTop();
+}
 
 function findInRank() {
   const el = document.getElementById('rankFind');
   _rankFind = (el.value || '').trim();
   document.getElementById('rankFindClear').hidden = !_rankFind;
+  if (_rankFind) _rankFindOpen = true;   // 有內容一定保持展開
+  _rankSyncTop();
   applyRankFind(true);
 }
 
@@ -100,6 +126,7 @@ function clearRankFind() {
   _rankFind = '';
   document.getElementById('rankFindClear').hidden = true;
   applyRankFind(false);
+  _rankSyncTop();
 }
 
 function _matchEtf(e, q) {

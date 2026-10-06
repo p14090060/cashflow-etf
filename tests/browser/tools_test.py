@@ -49,7 +49,8 @@ for cid, page, tool in (('toolRank', 'page-rank', 'rank'), ('toolDiv', 'page-div
     L = hlen()
     ev("(function(){ const b=document.getElementById('%s'); b.querySelector('.tc-text > span').click(); return true; })()" % cid); wait_ms(300)
     n = 'TC-2' if tool == 'rank' else 'TC-3'
-    check('%s 點卡片說明文字也能進入 %s、stack [tool %s]、push 一層' % (n, page, tool), page_on(page) and types() == 'tool' and st()['stack'][0]['id'] == tool and L <= hlen() <= L + 1, (types(), hlen(), L))   # 先前 Back 留下的 forward entry 會被 push 取代
+    # push 會清掉先前 Back 留下的 forward entry（可能不只 1 筆），故只驗 history.length ≤ L+1；「確實多一層」由 stack 與下一步 Back 驗證
+    check('%s 點卡片說明文字也能進入 %s、stack [tool %s]、push 一層' % (n, page, tool), page_on(page) and types() == 'tool' and st()['stack'][0]['id'] == tool and hlen() <= L + 1, (types(), hlen(), L))   # 先前 Back 留下的 forward entry 會被 push 取代
     if tool == 'div':
         check('TC-3 配息日曆有內容、無 B-1 元素', ev("document.getElementById('calList').children.length>0 && !document.getElementById('sharesIn')") is True)
     back()
@@ -62,7 +63,7 @@ for cid, page, tool in (('toolRank', 'page-rank', 'rank'), ('toolDiv', 'page-div
 ev("switchPage('tools'); true"); wait_ms(200)
 L = hlen(); t0 = tc()
 ev("document.getElementById('toolFlow').click(); true"); wait_ms(400)
-check('TC-4 持股異動卡：base 仍 tools、stack [flow]、traversal 0、push 一層', st()['base'] == 'tools' and types() == 'flow' and tc() == t0 and L <= hlen() <= L + 1, (st(), hlen(), L))
+check('TC-4 持股異動卡：base 仍 tools、stack [flow]、traversal 0、push 一層', st()['base'] == 'tools' and types() == 'flow' and tc() == t0 and hlen() <= L + 1, (st(), hlen(), L))
 check('TC-4 Flow 層可見、紅綠方塊有內容、底部導覽亮「工具」', flow_on() and cells() > 0 and ev("document.getElementById('nav-tools').classList.contains('active')") is True, cells())
 back()
 check('TC-4 Back → 三張卡、stack []、Flow 層隱藏', page_on('page-tools') and st()['stack'] == [] and not flow_on() and ev("document.getElementById('catFlowHost').contains(document.getElementById('page-check'))") is True)
@@ -87,6 +88,7 @@ check('TC-5 「卡片 → 子頁 → Back」×3 後仍在卡片列表、stack []
 # TC-6 排行定位（只定位不過濾）
 ev("document.getElementById('toolRank').click(); true"); wait_ms(300)
 n_rows = ev("document.querySelectorAll('#page-rank .rank-row').length")
+check('TC-6 先展開 🔍（PO Change #2：預設收起），輸入框可見', ev("(()=>{ if(document.getElementById('rankFindBtn').getAttribute('aria-expanded')!=='true') document.getElementById('rankFindBtn').click(); const i=document.getElementById('rankFind'); return i.offsetParent!==null && i.getBoundingClientRect().height>0; })()") is True)
 ev("{const f=document.getElementById('rankFind'); f.value='0050'; f.dispatchEvent(new Event('input'));} true"); wait_ms(250)
 check('TC-6 rankFind 只定位不過濾、訊息含 0050', ev("document.querySelectorAll('#page-rank .rank-row').length") == n_rows and '0050' in (ev("document.getElementById('rankFindMsg').innerText") or ''), n_rows)
 
@@ -188,6 +190,7 @@ back()
 
 # RF-3 排行 → Flow → Back 保留來源狀態
 ev("switchPage('rank'); true"); wait_ms(300)
+check('RF-3 先展開 🔍，輸入框可見', ev("(()=>{ if(document.getElementById('rankFindBtn').getAttribute('aria-expanded')!=='true') document.getElementById('rankFindBtn').click(); const i=document.getElementById('rankFind'); return i.offsetParent!==null && i.getBoundingClientRect().height>0; })()") is True)
 ev("{const f=document.getElementById('rankFind'); f.value='0056'; f.dispatchEvent(new Event('input'));} true"); wait_ms(250)
 ev("window.scrollTo(0, 700); true"); wait_ms(300)
 y0 = ev("window.scrollY")
