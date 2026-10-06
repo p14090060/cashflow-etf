@@ -68,12 +68,42 @@ print('   0050 dividend pane:\n   ' + str(dv).replace('\n', '\n   '))
 check('T3 0050 no fallback 0.30 / 90天', dv and '0.30' not in dv and '90 天' not in dv)
 check('T3 0050 labelled 依歷史推算 + 未經官方核實', '依歷史推算' in dv and '未經官方核實' in dv)
 
-# ── T4 00939 官方公告 2026-10-05
-ev("gsPick('00939'); detailTab('dividend'); true")
-wait_ms(200)
-dv = ev("document.querySelector('[data-pane=dividend]').innerText") or ''
+# ── T4 00939 官方公告 2026-10-05（固定 fixture＋可控日期；原本依賴 live 行事曆，該筆過期後已從資料移除）
+# __fx939(today)：在同一個同步 evaluate 內注入 00939 的官方公告行事曆（2026-10-05、0.12 元、TWSE）與
+# div_next 2026-11-01（驗「日期不取 div_next」），並把 Date.now 固定在台北時間 today；
+# 回傳 Detail 配息分頁與試算文字後，在 finally 內全部還原（Date.now、CALENDAR、div_next、必要時移除補上的 ETF）。
+FX939 = """window.__fx939 = function (today) {
+  const realNow = Date.now;
+  const calBak = CALENDAR.slice();
+  let e = ETFS.find(x => x.code === '00939'), added = false;
+  if (!e) { e = Object.assign(JSON.parse(JSON.stringify(ETFS.find(x => x.code === '0050'))), { code: '00939', name: '統一台灣高息動能' }); ETFS.push(e); added = true; }
+  const nextBak = e.div_next;
+  try {
+    Date.now = () => Date.parse(today + 'T01:00:00Z') - 8 * 3600000;   // 台北時間 today 01:00
+    e.div_next = '2026-11-01';
+    CALENDAR.length = 0;
+    calBak.filter(c => c.code !== '00939').forEach(c => CALENDAR.push(c));
+    CALENDAR.push({ code: '00939', name: e.name, iso_date: '2026-10-05', day: '05', mon: '10月', source: 'official', amt: 0.12, amount_source: 'TWSE' });
+    gsPick('00939'); detailTab('dividend');
+    return JSON.stringify({ today: _dtToday(), dv: document.querySelector('[data-pane=dividend]').innerText, out: document.getElementById('dtCalcOut').innerText });
+  } finally {
+    Date.now = realNow;
+    e.div_next = nextBak;
+    CALENDAR.length = 0; calBak.forEach(c => CALENDAR.push(c));
+    if (added) ETFS.splice(ETFS.indexOf(e), 1);
+    detailOnMarketUpdate(); closeDetail();
+  }
+}; true"""
+ev(FX939)
+import json as _j
+r4 = _j.loads(ev("__fx939('2026-10-03')"))
+dv = r4['dv']
+check('T4 controlled date is 2026-10-03 (Taipei)', r4['today'] == '2026-10-03', r4['today'])
 check('T4 00939 official date 2026-10-05', '2026-10-05' in dv and '官方公告' in dv, dv[:120].replace('\n', ' | '))
 check('T4 00939 date not from div_next 11-01', '2026-11-01' not in dv)
+check('T4 00939 official future: countdown（2 天後）, calc enabled with announced amount', '（2 天後）' in dv and '單次可領' in r4['out'] and '依公告金額試算' in r4['out'], (dv[:160].replace('\n', ' | '), r4['out'][:60]))
+check('T4 fixture fully restored (Date.now real, CALENDAR without fixture row)', ev("Math.abs(Date.now() - new Date().getTime()) < 5000 && !CALENDAR.some(c => c.code === '00939' && c.iso_date === '2026-10-05' && c.amt === 0.12 && c.amount_source === 'TWSE' && c.mon === '10月')") is True)
+wait_ms(300)
 
 # ── T5 009818 資料不足，不得顯示 0.30
 has5 = ev("ETFS.some(e=>e.code==='009818')")
@@ -205,16 +235,10 @@ check('T16 base state after restored close', ev("history.state === null || !hist
 # ── T17 / T18 假日期（記憶體內）：同一個同步 evaluate 內設定、檢查、還原
 n3 = load_page()
 check('T17 reloaded for fixtures', isinstance(n3, int) and n3 > 0)
-r17 = ev("""(()=>{
-  const c=CALENDAR.find(c=>c.code==='00939'); const orig=c.iso_date; c.iso_date='2026-10-01';
-  gsPick('00939'); detailTab('dividend');
-  const dv=document.querySelector('[data-pane=dividend]').innerText;
-  const out=document.getElementById('dtCalcOut').innerText;
-  c.iso_date=orig; detailOnMarketUpdate(); closeDetail();
-  return JSON.stringify({dv, out});
-})()""")
-import json as _j
-r17 = _j.loads(r17) if isinstance(r17, str) else {'dv':'','out':''}
+# 同一份 00939 官方公告 fixture，日期控制在除息日之後（2026-10-06）→ 官方公告已過
+ev(FX939)   # 重新載入頁面後要再定義一次
+r17 = _j.loads(ev("__fx939('2026-10-06')"))
+check('T17 controlled date is 2026-10-06 (after official 2026-10-05)', r17['today'] == '2026-10-06', r17['today'])
 check('T17 official expired shows 已過, no countdown', '已過' in r17['dv'] and '天後' not in r17['dv'])
 check('T17 official expired calc disabled', '計算停用' in r17['out'], r17['out'][:40].replace('\n',' | '))
 
