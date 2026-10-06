@@ -469,7 +469,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - 新增 tools_test RF-10（00996A 7 張・持股・捲動 → Flow → 全站搜尋開 0056 改 2 張・績效 → Back → Back）、RF-11（同一檔 00996A → Flow → 00996A）各 8 項：兩個 detail 層 id 不同、第一層 ui 未被寫入、Back ① 回 Flow 且紅綠方塊數量不變、Back ② 回 A 的 ETF／7 張／持股分頁／捲動、Forward ×2 回第二個 Detail 自己的狀態。負向對照：detail.js 還原成 `937abe70` → RF-10／11 各 2 項 FAIL（重現 Codex 的 2 張與分頁污染）。
     - detail_ui T7：張數現在記進 Detail 層 ui → 改驗「輸入後該層 ui.shares＝7」＋「之後的資料更新不改 Router 狀態」（43→44）。
     - category「UI band counts」依 PHASE5_PLAN §5.3 改比 live `catClassify` 計數（CP1 預定的遷移，先前漏做；今天資料池依 P1 更新後「其他」4→1，live ≠ fixture 才浮現）。FX-*（fixture 驗分類規則）不變。
-    - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER 全 PASS；**detail_ui 44 中 41 PASS／3 FAIL（T4、T17×2）**——依賴 live 行事曆中 00939 的 2026-10-05 官方公告，今日資料更新後該筆已從 calendar 移除；在未改動的 `937abe70` 上同樣 3 FAIL，屬資料老化，非本次修正造成，未改（Phase 2 測試，待 Codex 判斷是否改 fixture）。總計 776 PASS／3 FAIL／5 DEFER。
+    - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER 全 PASS；**detail_ui 44 中 41 PASS／3 FAIL（T4、T17×2）**——依賴 live 行事曆中 00939 的 2026-10-05 官方公告，今日資料更新後該筆已從 calendar 移除；在未改動的 `937abe70` 上同樣 3 FAIL，屬資料老化，非本次修正造成，未改（Phase 2 測試，待 Codex 判斷是否改 fixture）。總計 772 PASS／3 FAIL／5 DEFER。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
