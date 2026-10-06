@@ -6,6 +6,7 @@ let _curEtfCode = null;      // 目前 Detail 的代碼
 let _detailOpen = false;     // 等同 #gsPanel 可見
 let _detailTab = 'overview';
 let _dtSkeleton = false;     // 骨架只在一次開啟中建一次，股數輸入框因此保留
+let _dtLayerId = null;       // 面板目前代表的 Router detail 層 id（CP4 fix：[detail, flow, detail] 共用同一個面板）
 
 const _DT_TABS = [['overview', '總覽'], ['dividend', '配息'], ['perf', '績效'], ['holdings', '成分']];
 const _DT_SIG = { cheap: '便宜', fair: '合理✓', hot: '過熱', dear: '偏貴', bond: '債券型' };
@@ -226,7 +227,7 @@ function _dtBuild() {
     '<section class="dt-pane" data-pane="perf"><div data-slot="perf"></div></section>' +
     '<section class="dt-pane" data-pane="holdings"><div data-slot="holdings"></div></section>' +
     '<div class="dt-foot">本站資訊僅供參考，非個別標的買賣建議。</div>';
-  _dtEl('dtSharesIn').addEventListener('input', _dtCalc);
+  _dtEl('dtSharesIn').addEventListener('input', () => { _dtCalc(); _dtSaveUi(true); });   // 張數也記進該層 ui
   _dtEl('dtSharesIn').addEventListener('focus', () => {
     setTimeout(() => _dtEl('dtSharesIn').scrollIntoView({ block: 'center' }), 300);
   });
@@ -339,14 +340,19 @@ function closeDetail() {
 }
 
 // 只由 router 的 apply() 呼叫：依已確認的 detail 層顯示。
-// ui 是該層自己記住的狀態（tab、scrollTop）；同一檔已開著時保留畫面上的即時狀態。
-function detailShow(code, ui) {
+// ui 是該層自己記住的狀態（tab、scrollTop、shares）。
+// 以「層 id」判斷是不是同一層（CP4 fix）：Flow 上可再開 Detail 形成 [detail A, flow, detail B]，
+// 面板只有一個，若只比代碼，回到 A 時會沿用 B 的張數與分頁（同一檔 A→Flow→A 也一樣）。
+// 同一層 → 保留畫面上的即時狀態；不同層 → 依該層 ui 還原（ui 沒記張數時保留輸入框現值，Phase 2 語意）。
+function detailShow(code, ui, layerId) {
   const u = ui || {};
-  if (_detailOpen && code === _curEtfCode) {
+  const lid = layerId || null;
+  if (_detailOpen && code === _curEtfCode && lid === _dtLayerId) {
     detailPatch();
     _dtSyncCollapse();
     return;
   }
+  _dtLayerId = lid;
   if (!_detailOpen) {
     _curEtfCode = code;
     _detailTab = u.tab || 'overview';
@@ -357,6 +363,7 @@ function detailShow(code, ui) {
     _curEtfCode = code;
     _detailTab = u.tab || 'overview';
   }
+  if (u.shares != null) _dtEl('dtSharesIn').value = u.shares;
   _dtEl('gsPanel').scrollTop = 0;
   detailPatch();                                  // 內容要先長出來，捲動位置才夾得住
   _dtEl('gsPanel').scrollTop = u.scrollTop || 0;
@@ -368,7 +375,7 @@ function _dtIsMyLayer() {
   if (!_detailOpen || typeof Router === 'undefined') return false;
   const st = Router.state();
   const top = st.stack[st.stack.length - 1];
-  return !!top && top.t === 'detail' && top.code === _curEtfCode;
+  return !!top && top.t === 'detail' && top.code === _curEtfCode && (!_dtLayerId || top.id === _dtLayerId);
 }
 
 // 把分頁與捲動記進目前 Detail 層，Back → Forward 時還原。
@@ -378,6 +385,7 @@ let _dtSaveTimer = null;
 function _dtSaveUi(flush) {
   if (!_dtIsMyLayer()) return;
   const patch = { tab: _detailTab, scrollTop: _dtEl('gsPanel').scrollTop };
+  if (_dtSkeleton) patch.shares = _dtEl('dtSharesIn').value;
   if (flush) {
     clearTimeout(_dtSaveTimer); _dtSaveTimer = null;
     Router.updateUi(patch);
@@ -390,6 +398,7 @@ function _dtSaveUi(flush) {
 
 function hideDetail() {
   _detailOpen = false;
+  _dtLayerId = null;
   _dtSkeleton = false;
   _dtEl('gsPanel').hidden = true;
   if (document.body.classList.contains('dt-collapsed')) {
@@ -406,6 +415,7 @@ function detailTab(k) {
 }
 
 function detailGoFlow(code) {
+  _dtSaveUi(true);   // 進 Flow 前把這一層的分頁／捲動／張數寫定，Back 回來依此還原
   gsClear();
   openFlow(code);
 }

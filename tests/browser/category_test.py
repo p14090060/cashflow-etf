@@ -45,8 +45,10 @@ check('LV-1 live: all categories are among the 8 keys', all(k in order for _, k 
 check('UI 8 bands in total', ev("document.querySelectorAll('.cat-band').length") == 8)
 check('UI left stack has 4 bands', ev("document.querySelectorAll('#catStackL .cat-band').length") == 4)
 check('UI right stack has 4 bands', ev("document.querySelectorAll('#catStackR .cat-band').length") == 4)
-want_counts = ','.join('%d 檔' % dist[k] for k in ['mcap', 'div', 'active', 'tech', 'overseas', 'theme', 'bond', 'other'])
-check('UI band counts match fixture distribution (DOM order L then R)', ev("[...document.querySelectorAll('.cb-n')].map(x=>x.textContent).join(',')") == want_counts,
+# PHASE5_PLAN §5.3：資料池（P1）變動後 live 與 fixture 不再相同 → 改比 live 的 catGroup 計數；分類規則仍由 FX-* 以 fixture 驗
+live_dist = collections.Counter(k for _, k in live)
+want_counts = ','.join('%d 檔' % live_dist[k] for k in ['mcap', 'div', 'active', 'tech', 'overseas', 'theme', 'bond', 'other'])
+check('UI band counts match live catGroup(ETFS) distribution (DOM order L then R)', ev("[...document.querySelectorAll('.cb-n')].map(x=>x.textContent).join(',')") == want_counts,
       ev("[...document.querySelectorAll('.cb-n')].map(x=>x.textContent).join(',')"))
 
 # ── 開啟「主動式」：前 10 檔、查看更多每次 +10、排序 ──

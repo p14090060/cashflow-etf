@@ -107,7 +107,7 @@ const Router = (function () {
     const folder = (!layersPending && st.base === 'cat') ? (st.stack.find(l => l.t === 'folder') || null) : null;
     if (typeof Category !== "undefined") Category.applyFolder(folder);
     const det = (!layersPending) ? (st.stack.filter(l => l.t === 'detail').pop() || null) : null;
-    if (det) detailShow(det.code, det.ui);
+    if (det) detailShow(det.code, det.ui, det.id);
     else if (_detailOpen) hideDetail();
   }
 

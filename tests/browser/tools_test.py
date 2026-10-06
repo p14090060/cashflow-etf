@@ -278,6 +278,54 @@ check('RF-9 Flow 開／換 ETF／關：window.scrollTo 呼叫 0 次、來源頁 
 ev("window.scrollTo = window.__origST; true")
 back()
 
+# ════════ RF-10／RF-11（CP4 fix）：Detail → Flow → 第二個 Detail → Back → Back，第二個 Detail 不得污染第一個 ════════
+def dstate():
+    return ev("({code:_curEtfCode, tab:_detailTab, top:document.getElementById('gsPanel').scrollTop, shares:document.getElementById('dtSharesIn').value, open:!document.getElementById('gsPanel').hidden})")
+
+def prep_first(code):
+    """Detail A：張數 7、持股分頁、面板捲到中段，經可見的「查看完整持股異動」進 Flow。回傳 A 的狀態。"""
+    home()
+    ev("openDetail(%s); true" % json.dumps(code)); wait_ms(350)
+    ev("detailTab('dividend'); true"); wait_ms(150)
+    ev("{const i=document.getElementById('dtSharesIn'); i.value='7'; i.dispatchEvent(new Event('input'));} true"); wait_ms(120)
+    ev("detailTab('holdings'); true"); wait_ms(200)
+    ev("document.getElementById('gsPanel').scrollTop = 120; document.getElementById('gsPanel').dispatchEvent(new Event('scroll')); true"); wait_ms(300)
+    a = dstate()
+    vis = ev("(()=>{const b=document.querySelector('.gs-flow-btn'); if(!b) return false; const r=b.getBoundingClientRect(); return r.height>0 && r.width>0})()")
+    ev("document.querySelector('.gs-flow-btn').click(); true"); wait_ms(400)
+    return a, vis
+
+def second_detail(code):
+    """Flow 上以全站搜尋開第二個 Detail，改張數 2、切到績效分頁、捲回頂端。"""
+    ev("gsPick(%s); true" % json.dumps(code)); wait_ms(400)
+    ev("detailTab('dividend'); true"); wait_ms(150)
+    ev("{const i=document.getElementById('dtSharesIn'); i.value='2'; i.dispatchEvent(new Event('input'));} true"); wait_ms(120)
+    ev("detailTab('perf'); true"); wait_ms(150)
+    ev("document.getElementById('gsPanel').scrollTop = 0; document.getElementById('gsPanel').dispatchEvent(new Event('scroll')); true"); wait_ms(300)
+    return dstate()
+
+for tag, second in (('RF-10 A→Flow→B（0056）', '0056'), ('RF-11 A→Flow→同一檔 A', A)):
+    a, vis = prep_first(A)
+    check('%s 前提：%s 入口可見、A 狀態（7 張、持股、捲動 >0）' % (tag, A), vis is True and a['shares'] == '7' and a['tab'] == 'holdings' and a['top'] > 0, a)
+    fl = ev("Object.keys(_flowData.etfs).length"); c0 = cells()
+    b = second_detail(second)
+    check('%s 第二個 Detail：stack [detail, flow, detail]、B 為 %s、2 張、績效分頁' % (tag, second), types() == 'detail,flow,detail' and b['code'] == second and b['shares'] == '2' and b['tab'] == 'perf', (types(), b))
+    ids = ev("Router.state().stack.filter(l=>l.t==='detail').map(l=>l.id)")
+    check('%s 兩個 detail 層是不同層（id 不同）' % tag, isinstance(ids, list) and len(ids) == 2 and ids[0] != ids[1], ids)
+    check('%s 第一個 detail 層的 ui 未被第二個寫入' % tag, ev("JSON.stringify(Router.state().stack[0].ui.shares)") == '"7"' and ev("Router.state().stack[0].ui.tab") == 'holdings', ev("JSON.stringify(Router.state().stack[0].ui)"))
+    back()
+    check('%s Back ①：回 Flow（[detail, flow]），紅綠方塊仍在' % tag, types() == 'detail,flow' and flow_on() and cells() == c0 and c0 > 0, (types(), cells(), c0))
+    back()
+    r = dstate()
+    check('%s Back ②：回原 Detail A——ETF、7 張、持股分頁、捲動都是 A 的' % tag, r['open'] and r['code'] == A and r['shares'] == '7' and r['tab'] == 'holdings' and abs(r['top'] - a['top']) <= 2 and types() == 'detail', (r, a))
+    fwd()
+    check('%s Forward → Flow' % tag, types() == 'detail,flow' and flow_on())
+    fwd()
+    r2 = dstate()
+    check('%s 再 Forward → 第二個 Detail 還原為它自己的狀態（%s、2 張、績效）' % (tag, second), types() == 'detail,flow,detail' and r2['code'] == second and r2['shares'] == '2' and r2['tab'] == 'perf', r2)
+    back(); back(); back()
+    ev("gsClear(); true")
+
 # ════════ FS：橫向選擇器（390×844 直向） ════════
 cdp('Emulation.setDeviceMetricsOverride', {'width': 390, 'height': 844, 'deviceScaleFactor': 2, 'mobile': True})
 ev("switchPage('tools'); true"); wait_ms(300)
