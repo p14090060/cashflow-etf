@@ -455,7 +455,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - CLAUDE.md「頁面區塊代號」A-2／A-3／A-4／B-1 改為現況（全面文件更新仍在 CP8）。
   - 測試：新增 `tests/browser/home_test.py` 37 項（HM-1～3、PZ-1～13、TV-1～3、MG-3 `LAZY_WATCHLIST` undefined、390×844 下可見文字 ≥14px／按鈕 ≥44px／入口 ≥64px／無水平捲動／兩大入口在第一屏）。fixture＝實際 ETFS 深拷貝改寫 signal／cur_vol／div_frequency 後呼叫 `renderAll`（停掉 `_pollTimer`）。負向對照：排序改成 fair 先＋說明字改 12px → 6 FAIL（PZ-5／7／8／11、可讀性）。
   - 結果（800×600）：home 37、router 64、search_compact 38、detail_ui 42、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。390px 截圖目視：入口、列表、標籤無截斷或溢出。
-- **CP4｜T1 三張功能卡＋G3 source-aware Flow layer＋F2 橫向 ETF 選擇器（§3、§3.4、§8.3）— `937abe70`，待 Codex CP4 Code Review。**
+- **CP4｜T1 三張功能卡＋G3 source-aware Flow layer＋F2 橫向 ETF 選擇器（§3、§3.4、§8.3）— `937abe70`；Codex NEED FIX 1 項 → fix `db4150dc`（見本段末），待 Codex CP4 Re-review。**
   - Tools：`page-tools` 三張整卡 button（`#toolRank`／`#toolDiv`／`#toolFlow`，icon＋標題＋PO 文案＋›，84px）。排行／配息日曆沿用既有 `tool` 層（Back 回卡片）；持股異動卡＝`switchPage('check')`。YouTube 連結移除（Header 入口在 CP5）；`TOOL_PAGE.yt`／`page-yt` 仍在，CP5 退役。
   - Router（不新增公開 API，`Object.keys(Router)` 不變）：`intentFlow(code)`——頂層非 flow → 同 base push `{t:'flow', ui:{code}}`（k=0）；頂層是 flow → 同檔 null、他檔 replaceTop（新 id，避免 uiCache 用舊 code 覆蓋）。`sameLayer`：flow 對 flow 為同層。`apply()` 先算最上層 flow／detail 的 index → `flowLayerShow(ui, fi>di)`／`flowLayerHide()`，再 `applyFolder`。`intentBase` 的 flow 分支移除；`_NAV_SPEC.check` 改 `{flow:true}`。
   - 畫面：`#flowLayer`（與 `gsPanel` 同位置的 fixed 覆蓋層，‹ 返回＝`history.back()`；z 39，`.over-detail` 時 41；`dt-collapsed` 時 top:0；`gs-ckm` 時隱藏）。`#page-check` 節點只有一份，Flow 層開時移入 `#flowLayerBody`、關時移回 `#catFlowHost`；`Category.renderFlowFor` 在 Flow 層持有節點時不重繪。來源頁與 Detail 不卸載、不呼叫 `scrollTo`。
@@ -465,6 +465,12 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 既有測試期望更新（G3 行為改變，非放寬）：router RT-22（排行 → Flow → Back 回排行）、watch FL-4 ×4 base（Detail → Flow → Back 回原 Detail、同分頁；Forward 回同檔 Flow）、detail_ui T13（Detail 上開 Flow、無 popstate、Back 回 Detail；42→43）、regression「switch page check」（Flow 層蓋在來源頁上）、category「TOOLS card」改點 `#toolDiv`。router RT-14～21 的 traversal 驅動改用 `openFolder('mcap')`（openFlow 已不 traverse），R4～R8 斷言不變。
   - 負向對照：flowSelect 改寫 folder＋選擇器改 wrap → tools_test 7 FAIL（RF-4、RF-5、FS-1、FS-3、FS-4）。
   - 結果（800×600）：tools 70、home 37、router 64、search_compact 38、detail_ui 43、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS（761 PASS／0 FAIL／5 DEFER）。390px 截圖目視：三張卡、Flow 層、選擇列與名稱、紅綠方塊正常。
+  - **CP4 fix `db4150dc`（Codex NEED FIX：Detail → Flow → 第二個 Detail → Back 污染原 Detail）**：根因＝`[detail, flow, detail]` 共用一個 Detail 面板，`detailShow()` 只比代碼（同檔 A→Flow→A 直接沿用畫面），`_dtSaveUi()` 不存張數。修正：`apply()` 傳 detail 層 id；`detailShow(code, ui, layerId)` 以層 id 判斷同一層，不同層依該層 ui 還原分頁／捲動／張數（ui 無 `shares` 時保留輸入框現值＝Phase 2 語意）；`_dtSaveUi` 加 `shares`，張數輸入即寫入該層；`_dtIsMyLayer` 比對層 id；`detailGoFlow` 進 Flow 前先 `_dtSaveUi(true)`。Router 規則、公開 API、Flow／folder 寫入方式不變。
+    - 新增 tools_test RF-10（00996A 7 張・持股・捲動 → Flow → 全站搜尋開 0056 改 2 張・績效 → Back → Back）、RF-11（同一檔 00996A → Flow → 00996A）各 8 項：兩個 detail 層 id 不同、第一層 ui 未被寫入、Back ① 回 Flow 且紅綠方塊數量不變、Back ② 回 A 的 ETF／7 張／持股分頁／捲動、Forward ×2 回第二個 Detail 自己的狀態。負向對照：detail.js 還原成 `937abe70` → RF-10／11 各 2 項 FAIL（重現 Codex 的 2 張與分頁污染）。
+    - detail_ui T7：張數現在記進 Detail 層 ui → 改驗「輸入後該層 ui.shares＝7」＋「之後的資料更新不改 Router 狀態」（43→44）。
+    - category「UI band counts」依 PHASE5_PLAN §5.3 改比 live `catClassify` 計數（CP1 預定的遷移，先前漏做；今天資料池依 P1 更新後「其他」4→1，live ≠ fixture 才浮現）。FX-*（fixture 驗分類規則）不變。
+    - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER 全 PASS；**detail_ui 44 中 41 PASS／3 FAIL（T4、T17×2）**——依賴 live 行事曆中 00939 的 2026-10-05 官方公告，今日資料更新後該筆已從 calendar 移除；在未改動的 `937abe70` 上同樣 3 FAIL，屬資料老化，非本次修正造成，未改（Phase 2 測試，待 Codex 判斷是否改 fixture）。總計 776 PASS／3 FAIL／5 DEFER。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
