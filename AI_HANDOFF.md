@@ -471,12 +471,20 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - category「UI band counts」依 PHASE5_PLAN §5.3 改比 live `catClassify` 計數（CP1 預定的遷移，先前漏做；今天資料池依 P1 更新後「其他」4→1，live ≠ fixture 才浮現）。FX-*（fixture 驗分類規則）不變。
     - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER 全 PASS；**detail_ui 44 中 41 PASS／3 FAIL（T4、T17×2）**——依賴 live 行事曆中 00939 的 2026-10-05 官方公告，今日資料更新後該筆已從 calendar 移除；在未改動的 `937abe70` 上同樣 3 FAIL，屬資料老化，非本次修正造成，未改（Phase 2 測試，待 Codex 判斷是否改 fixture）。總計 772 PASS／3 FAIL／5 DEFER。
 
-- **Test maintenance：detail_ui T4／T17 — `546f7e9e`，待 Codex 簡短複審（CP5 尚未開始）。** Codex 判定 3 個 FAIL 為測試維護：原本依賴 live 行事曆的 00939 2026-10-05 官方公告，資料更新後被移除。
+- **Test maintenance：detail_ui T4／T17 — `546f7e9e`：Codex 複審 PASS／CLOSED。→ CP4 正式 CLOSED（baseline 779 PASS／0 FAIL／5 DEFER）。** Codex 判定 3 個 FAIL 為測試維護：原本依賴 live 行事曆的 00939 2026-10-05 官方公告，資料更新後被移除。
   - 改法：`FX939` 定義 `window.__fx939(today)`，在同一個同步 evaluate 內注入 00939 官方公告（`iso_date` 2026-10-05、`amt` 0.12、`amount_source` TWSE、`source` official）與 `div_next` 2026-11-01，`Date.now` 固定在台北時間 today 01:00，讀 Detail 配息分頁與試算後在 `finally` 還原（Date.now、CALENDAR、div_next；00939 不在 ETFS 時以 0050 複本補上並移除）。頁面重新載入後（T17 前）再定義一次。
   - T4（today 2026-10-03）：原兩項斷言不變（官方公告＋2026-10-05、不取 div_next 11-01），另加受控日期、「（2 天後）＋單次可領＋依公告金額試算」、fixture 還原檢查。
   - T17（today 2026-10-06）：原兩項斷言不變（「已過」且無「天後」、「計算停用」），另加受控日期檢查。T18 不變。
   - 沒有 skip、沒有放寬 assertion、產品程式未改。負向對照：把 `_dvView` 的 `offIso >= today` 拿掉 → T17 兩項 FAIL。
   - 結果（800×600）：detail_ui 48（44→48）全 PASS；完整 regression：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER＝779 PASS／0 FAIL／5 DEFER。
+
+- **CP5｜Y1 Header YouTube＋G1 page-yt 退役（§4、§9 順序 5）— `86500f11`，待 Codex CP5 Code Review。**
+  - Header `.topbar` 右側改為 `.hdr-actions` 按鈕群：`#hdrYt`（`<a>`，inline SVG YouTube 圖示、44×44、`href` 頻道、`target="_blank"`、`rel="noopener noreferrer"`、`aria-label="金流黑盒子 YouTube 頻道"`，不經 Router）＋既有 `#refreshBtn`（`reloadData()` 不變，尺寸統一為 44×44、補 aria-label）。標題與 `#statusBadge` 留在左側原位。主題切換鈕屬 CP7，未做。
+  - `page-yt`（HTML）與 `.yt-*` CSS 移除；`TOOL_PAGE` 刪 `yt`（舊 history entry 若帶 `tool yt`，`applyBasePage` 落回 `BASE_PAGE.tools`＝工具卡片頁）。`_NAV_SPEC.yt` 改 `{external: 頻道}`，`switchPage('yt')` 以 `window.open(url,'_blank','noopener')` 開外部頻道、不寫 history。`logo.png` 已無引用但檔案保留（未刪資產）。
+  - 首頁 YouTube 大卡（CP3）、Tools YouTube 卡（CP4）維持移除；全站只剩 Header 一個 youtube.com 連結。
+  - CLAUDE.md 頁面區塊代號 C-1／C-2 標記退役。
+  - 測試：regression_test 新增 9 項——YT-1（a 連結、在 Header、≥44×44、href／target／rel／aria、點擊不改 history 與 Router 狀態、不影響 statusBadge／↻、390px 下標題與徽章不截斷不重疊、搜尋列 ≥340px、無水平溢出）、YT-2（`switchPage('yt')` 以 noopener 開同一連結且不換頁不寫 history、`page-yt` 不存在、首頁／工具頁無 YouTube、只剩 1 個 youtube 連結、舊 entry `tool yt` 經 popstate 還原落回工具卡片頁）。switch page 迴圈去掉 yt（check 改為疊在配息日曆子頁上）。26→34。
+  - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 34、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER＝787 PASS／0 FAIL／5 DEFER。360px 截圖目視：標題、徽章、兩顆按鈕、搜尋列不擁擠。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
