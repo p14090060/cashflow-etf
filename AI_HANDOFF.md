@@ -511,7 +511,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - 結果（800×600）：rank 44、tools 91、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝858 PASS／0 FAIL／5 DEFER。
   - **B（只記錄，未執行）**：GPT Gate 提供的 Active Flow／PCF 線索（00407A 10/06 股數異動 0；00983A NVIDIA、RKLB 加碼，TSLA、WGS、XE 減碼，第三方 10/06／10/07 日期定義不一；00986A 10/05 逐筆可核；00996A 10/05 尖點、景碩、汎銓加碼，矽力-KY、致茂減碼，10/06 異動日待核）。僅為除錯線索，不寫入正式資料。正式調查若開啟，順序＝投信官方 PCF → 原始持股股數逐日比較 → 第三方交叉驗證；以股數變化判定、不以權重；第三方日期定義不得混用；官方有新 PCF 而專案停在舊日期時沿 Download → Parse → Compare → Write → Publish／Monitor 追中斷點；官方無新 PCF 不得自行製造異動。待 CP6b CLOSED 後由 GPT Gate／PO 決定何時啟動。本輪未改 pipeline、未改資料。
 
-- **CP6c｜排行／日曆 Detail navigation 規格校正（Plan `86cb7b83`，§3.5）— `b9aeccf4`，Codex NEED FIX 1 項（柱狀圖 tooltip regression）→ fix `2703a7a5`，待 Codex 限定複審。**
+- **CP6c｜排行／日曆 Detail navigation 規格校正（Plan `86cb7b83`，§3.5）— `b9aeccf4`，Codex NEED FIX 1 項（柱狀圖 tooltip regression）→ fix `2703a7a5`：Codex 限定複審 PASS → **CP6c CLOSED**。**
   - 調查（記入 Plan）：§3.5「排行列／日曆列 → openDetail」自 Rev.4 寫入，「既有」指 Router intent，UI 從未接線；排行列自 `599a5ecc` 起只有 PCF 列可點且開 Flow，日曆列從無點擊；CP4／CP6b 測試以程式呼叫 openDetail 或只點 tappable 列，所以沒抓到。
   - `js/rank.js`：排行列移除 inline `onclick`；每列 `.rank-hit`（覆蓋整列的 button，aria-label「第 N 名 代碼 名稱，查看詳細資料」）＋兄弟 `.rank-flow` button（「持股異動 ›」，aria-label「查看 代碼 持股異動」）。`#rankRows` delegated click：`.rank-flow` → `openFlow` 並 return，否則 `.rank-hit` → `openDetail`。「持股異動 ›」顯示條件改為 `_flowData.etfs[code]` 存在（決策 B）；`.tappable` 改名 `.has-flow`。`_changedWithin()`（flow.js）因此已無呼叫端，留給 CP8 死碼清理。代碼／名稱經 `_rankEsc` 轉義。
   - `js/render.js`：日曆列加 `data-code` 與 `.cal-hit`；`#calList` delegated click → `openDetail`（不在 ETFS 的代碼由 Detail 既有「這檔目前不在清單中」處理）。
@@ -523,6 +523,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - rank_test 新增 NV-6 8 項（桌面 1280×800）：三根柱子 elementFromPoint 命中柱子且 title＝`ret_months` 末 3 筆格式化值；CDP mouseMoved 後 `:hover` 在該柱；CDP 真實點擊柱子 → Detail、pushState 1 次、不開 Flow；有 Flow 的列「持股異動 ›」與柱子互不遮擋、按鈕仍只開 Flow；列按鈕焦點＋Enter → Detail。既有 NV-1～5（一般區域 → Detail、按鈕 → Flow、Enter／Space、無巢狀）照跑全 PASS。
     - Mutation：移除該 CSS → NV-6 4 項 FAIL（命中 rank-hit、title 為空、:hover 落在 rank-hit、有 Flow 列柱子被蓋）。
     - 結果（800×600）：rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝896 PASS／0 FAIL／5 DEFER。
+
+- **PO Change #3（Plan `2b98ba32`，§8.4）：Active Flow ETF 快速搜尋（CP6d）**。排程 CP6c → CP6d → CP7 → CP8 → Final。WHY：selector＝附近瀏覽、🔍＝已知要找哪檔直接跳；選取走既有 `flowSelect`，不新增 navigation。
+- **CP6d — `455f5769`，待 Codex CP6d Code Review。**
+  - `index.html`：`.flow-head#flowHead` 右側 `#flowQBtn`（🔍，預設 disabled 直到 flow 資料 ok）；其後 `#flowQBox`（`#flowQ` 輸入框、`#flowQList` 結果），在 `#flowChips` 之外。
+  - `js/flow.js`：`_flowQOpen`、`_flowQSync()`（`_flowStatus !== 'ok'` 時停用並收起；renderFlow 每次呼叫）、`_flowQItems()`（`Object.keys(_flowData.etfs)`，名稱 flow → ETFS）、`flowQSearch()`（`_matchEtf` 分數排序、同分依代碼、最多 8 筆、查無說明）、`flowQOpen／flowQClose(focusBtn)／flowQToggle／flowQPick(code)`（→ `flowSelect(code)` → 收起、焦點回 🔍）、`flowSearchReset()`（清 query、收起；`flowLayerHide` 呼叫）。結果 `#flowQList` delegated click；輸入框 Enter 選第一筆；`#flowHead`／`#flowQBox` keydown 在搜尋開啟時攔 Esc 並 `stopPropagation` → Router 的 document Esc 收不到。
+  - `js/category.js`（範圍外但必要的兩處 hook）：分類原生離開持股異動（`refreshAll` 進清單、`applyFolder(null)` 時原本是 flow）→ `flowSearchReset()`，Flow 層持有節點時不清。
+  - `css/pages.css`：`.flow-head` 改 flex；`.flow-q-btn`（44px、展開時中性藍框）、`.flow-q`、`.flow-q-item`（44px）、`.flow-q-empty`。
+  - 測試：新增 `tests/browser/flowq_test.py` 35 項——FQ-1 四種入口（Tools／排行／Detail／分類原生）都有 🔍、預設收起、button 44px、aria、標題與 🔍 同列單行；360px 單行無溢出。FQ-2 展開取得焦點、window 不捲、收起焦點回 🔍。FQ-3 代碼完全相同第一、代碼開頭只出現 Flow ETF 且依代碼、名稱關鍵字、非 Flow ETF（0056）查無、`_matchEtf` 分數遞減。FQ-4 搜尋選取與點同一 chip 的 active／名稱／加碼減碼／treemap 格數／提示完全相同、chip 可見、收起。FQ-5 pushState 0、history.length 與 stack 不變；Tools 入口寫 `flow.ui.code`、分類原生寫 `folder.ui.code`。FQ-6 Tools／排行／Detail 入口 Back 回原處、Forward 顯示剛選 ETF。FQ-7 焦點在輸入框或結果時 Esc 只關搜尋、Flow 仍開；未開啟時 Esc 關 Flow。FQ-8 Enter 選第一筆；renderFlow＋高度縮小 resize 保留 query；Flow 關閉後重進、分類原生切走再回都為預設收起。FQ-9 390×844、844×390、1280×800、gs-ckm 無水平溢出。
+  - Mutation：(1) 選取改 `openFlow(code)`（navigation）→ 3 FAIL（FQ-4、分類原生 FQ-5 push、FQ-8）；(2) 不攔 Esc → FQ-7 兩項 FAIL（Flow 被關）；(3) 搜尋範圍改用 ETFS → FQ-3 三項 FAIL（出現非 Flow ETF、0056 不再查無）。
+  - 結果（800×600）：flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝931 PASS／0 FAIL／5 DEFER。390px 截圖目視：標題＋🔍 同列，展開後輸入框與結果在 selector 上方。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
