@@ -143,10 +143,11 @@ body.gs-ckm .cat-foot { display: none; }
 #page-cat .cat-tight3 .cat-btn { min-height: 28px; padding: 2px 8px; font-size: 13px; }
 #page-cat .cat-tight3 .cat-title { font-size: 15px; }
 #page-cat .cat-tight3 > .cat-more { display: none; }
-/* 直向店內／店門口（PHASE3 Gate 核准）：主 TAB 的 ▾／▴ 控制（44×44）；inside 時其他分類收合；
-   查看更多在清單底部（外部按鈕隱藏）；分類說明文字（catFoot）隱藏。只在 #catMain.cat-ctl（直向、列表、非鍵盤）生效。 */
+/* 直向店內／店門口（PHASE3 Gate 核准；PHASE5_PLAN §8.2 F1 拆兩層）：
+   切換分類層 cat-sw（直向、非鍵盤；清單與持股異動都套用）：「切換分類 ▼／▲」（44 高）、inside 時其他分類收合、標題列單列化。
+   清單專屬層 cat-ctl（另需 view=list）：查看更多在清單底部（外部按鈕隱藏）、分類說明文字（catFoot）隱藏。 */
 .cat-expand { display: none; }
-#catMain.cat-ctl .cat-expand {
+#catMain.cat-sw .cat-expand {
   display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
   min-width: 44px; height: 44px; padding: 0 12px; margin: 0;
   background: var(--card2); color: var(--bright); border: 1px solid var(--border); border-radius: 8px;
@@ -157,12 +158,12 @@ body.gs-ckm .cat-foot { display: none; }
 .cat-subrow > .cat-sub { flex: 1 1 auto; min-width: 0; }
 .cat-sub:empty { padding: 0; }   /* 分類說明在文件夾紙張上、切換分類已移到標題列：說明列為空，零高度 */
 /* 直向（cat-ctl）：頁面頂端間距與標題列高度縮小，讓金色提醒與分類內容之間保留正常間距 */
-#page-cat.cat-ctl { padding-top: 4px; }
+#page-cat.cat-sw { padding-top: 4px; }
 /* 直向 inside 標題列：[←] 分類名稱 … [代碼 ⇅] [切換分類 ▼]，一列放完；寬度不足（320）時切換分類換到第二列靠右，名稱不截斷 */
-#page-cat.cat-ctl .cat-main > .cat-head { padding: 0 2px; flex-wrap: wrap; column-gap: 6px; row-gap: 6px; }
-#catMain.cat-ctl .cat-title { cursor: pointer; flex: 1 0 auto; overflow: visible; }
-#catMain.cat-ctl .cat-back { min-width: 44px; height: 44px; padding: 0; }
-#catMain.cat-ctl .cat-expand { margin-left: auto; }
+#page-cat.cat-sw .cat-main > .cat-head { padding: 0 2px; flex-wrap: wrap; column-gap: 6px; row-gap: 6px; }
+#catMain.cat-sw .cat-title { cursor: pointer; flex: 1 0 auto; overflow: visible; }
+#catMain.cat-sw .cat-back { min-width: 44px; height: 44px; padding: 0; }
+#catMain.cat-sw .cat-expand { margin-left: auto; }
 #catMain.cat-inside > #catStrip { display: none; }
 #catMain.cat-ctl > .cat-more { display: none; }
 #catMain.cat-ctl > .cat-foot { display: none; }

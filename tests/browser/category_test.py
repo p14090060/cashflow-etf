@@ -453,14 +453,83 @@ ev("window.scrollTo(0, 99999); true"); wait_ms(300)
 foot = ev("(function(){ const f=document.querySelector('.site-footer').getBoundingClientRect(); const n=document.querySelector('.bottom-nav').getBoundingClientRect(); return {top:f.top, bottom:f.bottom, navTop:n.top, scrollY:scrollY, docH:document.documentElement.scrollHeight, innerH:innerHeight}; })()")
 check('PT-8 footer：正常捲動可到達（scrollY > 0，footer 完整在導覽列上方）', foot['scrollY'] > 0 and foot['top'] >= 0 and foot['bottom'] <= foot['navTop'] + 1, foot)
 ev("window.scrollTo(0, 0); true"); wait_ms(250)
-# flow（持股異動）：不啟用 inside；次要標籤列顯示。回到清單：重新進入 inside
+# ── SW（PHASE5_PLAN §8.2 F1）：持股異動直向改用「切換分類 ▼／▲」；舊 PT-9「flow 時次要標籤列顯示」依核准規格改為直向收起、橫向顯示 ──
+SW_JS = """(function(){
+  const q = id => document.getElementById(id), m = q('catMain'), pg = q('page-cat');
+  const head = document.querySelector('#catMain .cat-head'), tm = q('treemap'), host = q('catFlowHost');
+  const hb = [...head.children].filter(c => getComputedStyle(c).display !== 'none' && c.offsetParent !== null).map(c => c.getBoundingClientRect());
+  return { sw: m.classList.contains('cat-sw'), ctl: m.classList.contains('cat-ctl'), inside: m.classList.contains('cat-inside'),
+    view: Router.state().stack[0] && Router.state().stack[0].view, key: Router.state().stack[0] && Router.state().stack[0].key,
+    expText: q('catExpand').textContent, expAria: q('catExpand').getAttribute('aria-expanded'), expDisp: getComputedStyle(q('catExpand')).display,
+    expH: Math.round(q('catExpand').getBoundingClientRect().height), backH: Math.round(q('catClose').getBoundingClientRect().height),
+    stripDisp: getComputedStyle(q('catStrip')).display, flowVis: Category.isFlowVisible(), hostHidden: host.hidden,
+    listHidden: q('catList').hidden, extMoreDisp: getComputedStyle(q('catMore')).display, innerMore: document.querySelectorAll('#catList .cat-more-in').length,
+    headRows: new Set(hb.map(r => Math.round((r.top + r.bottom) / 2 / 8))).size, headH: Math.round(head.getBoundingClientRect().height), title: q('catName').textContent,
+    tmTop: Math.round(tm.getBoundingClientRect().top), tmW: Math.round(tm.getBoundingClientRect().width), tmH: Math.round(tm.getBoundingClientRect().height),
+    hostW: Math.round(host.getBoundingClientRect().width), cells: document.querySelectorAll('#treemap .tm-cell').length,
+    cellOverflow: [...document.querySelectorAll('#treemap .tm-cell')].some(c => { const r = c.getBoundingClientRect(), t = tm.getBoundingClientRect(); return r.right > t.right + 1 || r.bottom > t.bottom + 1 || r.left < t.left - 1; }),
+    hlen: history.length, chips: document.querySelectorAll('#flowChips .flow-chip').length, chipRows: new Set([...document.querySelectorAll('#flowChips .flow-chip')].map(c => c.offsetTop)).size,
+    selName: q('flowSelName').textContent, pgCtl: pg.classList.contains('cat-ctl') };
+})()"""
+def sw(): return ev(SW_JS)
+set_view(390, 844, 'portraitPrimary'); wait_ms(300)
+ev("Router.toBase({base:'cat'}); true"); wait_ms(250)
+ev("document.querySelector('.cat-band[data-k=\"active\"]').click(); true"); wait_ms(450)
+h_sw = ev("history.length"); ui_sw = ev("JSON.stringify(Router.state().stack[0].ui)")
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"flow\"]').click(); return true; })()"); wait_ms(400)
+f0 = sw()
+check('SW-1 直向持股異動：切換分類層啟用、預設 inside（分類標籤收起）、「切換分類 ▼」可見 44px、← 44px',
+      f0['sw'] and f0['inside'] and f0['view'] == 'flow' and f0['flowVis'] and not f0['hostHidden'] and f0['stripDisp'] == 'none'
+      and f0['expText'] == '切換分類 ▼' and f0['expAria'] == 'false' and f0['expDisp'] != 'none' and f0['expH'] >= 44 and f0['backH'] >= 44, f0)
+check('SW-1 標題列單列（390px）：高度 ≤ 52px、按鈕與標題同一列', f0['headH'] <= 52 and f0['headRows'] == 1, (f0['headH'], f0['headRows']))
+check('SW-4 持股異動無清單專屬行為（cat-ctl 不啟用、清單隱藏、無清單內查看更多）', not f0['ctl'] and not f0['pgCtl'] and f0['listHidden'] and f0['innerMore'] == 0 and f0['extMoreDisp'] == 'none', f0)
+check('SW-5 treemap 有內容、寬度＝容器、方塊不溢出', f0['cells'] > 0 and abs(f0['tmW'] - f0['hostW']) <= 2 and not f0['cellOverflow'], f0)
+check('SW-5 F2 selector 保留（單列、全部 chips、完整名稱）', f0['chipRows'] == 1 and f0['chips'] >= 10 and bool(f0['selName']), f0)
+PT_CLICK('#catExpand'); wait_ms(300)
+f1 = sw()
+check('SW-2 ▼ → doorway：分類標籤展開、「切換分類 ▲」、仍在持股異動', not f1['inside'] and f1['stripDisp'] != 'none' and f1['expText'] == '切換分類 ▲' and f1['expAria'] == 'true' and f1['view'] == 'flow' and f1['flowVis'], f1)
+check('SW-5 標籤列展開時 treemap 下移、收起時上移（收起讓出高度）', f1['tmTop'] > f0['tmTop'], (f0['tmTop'], f1['tmTop']))
+check('SW-5 doorway：treemap 重畫後仍不溢出', f1['cells'] > 0 and not f1['cellOverflow'], f1)
+check('SW-2 展開／收起不新增 history、不改 Router 資料夾 ui', f1['hlen'] == h_sw and ev("Router.state().stack.length") == 1, (f1['hlen'], h_sw))
+PT_CLICK('#catExpand'); wait_ms(300)
+f2 = sw()
+check('SW-2 ▲ → 再收起（inside）、treemap 回到原位置', f2['inside'] and f2['stripDisp'] == 'none' and f2['expText'] == '切換分類 ▼' and f2['tmTop'] == f0['tmTop'], (f2['tmTop'], f0['tmTop']))
+ev("document.querySelector('#catMain .cat-title').click(); true"); wait_ms(250)
+check('SW-2 點標題區也能切換（與清單相同）', sw()['inside'] is False)
+ev("document.querySelector('#catMain .cat-title').click(); true"); wait_ms(250)
+check('SW-2 點標題區收回 inside', sw()['inside'] is True)
+# SW-3 doorway 選其他分類 → 進入該分類清單（Router 既有 openFolder：替換資料夾層，不新增 entry）
+PT_CLICK('#catExpand'); wait_ms(250)
+h3 = ev("history.length")
+PT_CLICK('#catStrip button[data-k="div"]'); wait_ms(400)
+f3 = sw()
+check('SW-3 doorway 選「高股息」→ 進入高股息清單、inside、清單專屬層啟用', f3['key'] == 'div' and f3['view'] == 'list' and f3['title'] == '高股息' and f3['inside'] and f3['ctl'] and f3['sw'] and not f3['listHidden'] and not f3['flowVis'], f3)
+check('SW-3 換分類不新增 history（replace 資料夾層）', f3['hlen'] == h3, (f3['hlen'], h3))
+# 回到主動式 → 清單 → 持股異動：進入時預設收起；清單 ⇄ 持股異動切換都回 inside
 PT_CLICK('#catExpand'); wait_ms(250)
 PT_CLICK('#catStrip button[data-k="active"]'); wait_ms(350)
-ev("(function(){ document.querySelector('#catSeg button[data-v=\"flow\"]').click(); return true; })()"); wait_ms(300)
-pf = pt()
-check('PT-9 持股異動檢視：不啟用 inside，次要標籤列與 ▾ 不影響（展開控制隱藏）', pf['ctl'] is False and pf['expDisp'] == 'none' and pf['stripDisp'] != 'none', pf)
+PT_CLICK('#catExpand'); wait_ms(250)
+check('SW-1 前置：清單 doorway', sw()['inside'] is False)
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"flow\"]').click(); return true; })()"); wait_ms(350)
+check('SW-1 清單 doorway → 持股異動：預設收起（inside）', sw()['inside'] is True and sw()['view'] == 'flow')
+PT_CLICK('#catExpand'); wait_ms(250)
 ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click(); return true; })()"); wait_ms(300)
-check('PT-9 回到清單：重新進入 inside（其他分類收合）', pt()['inside'] is True)
+check('PT-9 持股異動 doorway → 回到清單：重新進入 inside（其他分類收合）', pt()['inside'] is True and pt()['ctl'] is True)
+# SW-6 橫向：維持直接分類標籤（不套 cat-sw）
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"flow\"]').click(); return true; })()"); wait_ms(300)
+set_view(844, 390, 'landscapePrimary'); wait_ms(400)
+f6 = sw()
+check('SW-6 橫向持股異動：不套切換分類層、分類標籤直接顯示、切換分類鈕隱藏', not f6['sw'] and not f6['inside'] and f6['stripDisp'] != 'none' and f6['expDisp'] == 'none' and f6['flowVis'], f6)
+check('SW-6 橫向 treemap 依新寬度重畫、不溢出', f6['cells'] > 0 and not f6['cellOverflow'] and abs(f6['tmW'] - f6['hostW']) <= 2, f6)
+set_view(390, 844, 'portraitPrimary'); wait_ms(400)
+check('SW-6 轉回直向：恢復切換分類層與 inside', sw()['sw'] is True and sw()['inside'] is True)
+# 鍵盤（gs-ckm）：維持既有（不套 cat-sw，Phase 1 規則隱藏次要標籤）
+ev("document.body.classList.add('gs-ckm'); true"); wait_ms(250)
+fk = sw()
+check('SW-6 鍵盤（gs-ckm）持股異動：不套切換分類層、次要標籤依 Phase 1 隱藏', not fk['sw'] and fk['expDisp'] == 'none' and fk['stripDisp'] == 'none', fk)
+ev("document.body.classList.remove('gs-ckm'); true"); wait_ms(250)
+check('SW 前後 Router 資料夾 ui 未被切換分類動作寫入（stripOpen 不進 Router）', 'stripOpen' not in (ev("JSON.stringify(Router.state())") or ''))
+ev("(function(){ document.querySelector('#catSeg button[data-v=\"list\"]').click(); return true; })()"); wait_ms(300)
 # Detail 開關不改變模式（doorway 保留）
 PT_CLICK('#catExpand'); wait_ms(250)
 ev("(function(){ document.querySelector('#catList .cat-row .cr-main').click(); return true; })()"); wait_ms(300)

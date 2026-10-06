@@ -126,30 +126,38 @@ const Category = (function () {
     inner.textContent = more.textContent;
   }
 
-  // 直向、列表檢視、非鍵盤模式才有 inside／doorway；其他情況（橫向、鍵盤、持股異動）完全維持原本版面
+  // 直向＋非鍵盤才有 inside／doorway。PHASE5_PLAN §8.2（F1）拆成兩層：
+  //   切換分類層 cat-sw（標題列 ←、「切換分類 ▼／▲」、inside 收起 #catStrip、標題列單列化）——清單與持股異動都套用；
+  //   清單專屬層 cat-ctl（查看更多移入清單、隱藏 catFoot、清單 fit／tight3、LR-4）——只在 view === 'list'。
+  // 橫向與鍵盤（gs-ckm）完全維持原本版面。stripOpen 只存在這裡，不寫 Router。
   function portraitNow() {
     return !!(window.matchMedia && window.matchMedia('(orientation: portrait)').matches);
   }
+  function swActive() {
+    return !!open && portraitNow() && !document.body.classList.contains('gs-ckm');
+  }
   function ctlActive() {
-    return !!open && open.view === 'list' && portraitNow() && !document.body.classList.contains('gs-ckm');
+    return swActive() && open.view === 'list';
   }
   function syncMode() {
     const main = $('catMain'), btn = $('catExpand');
     if (!main || !btn) return;
-    const ctl = ctlActive();
+    const sw = swActive(), ctl = ctlActive();
+    main.classList.toggle('cat-sw', sw);
     main.classList.toggle('cat-ctl', ctl);
-    main.classList.toggle('cat-inside', ctl && !stripOpen);
+    main.classList.toggle('cat-inside', sw && !stripOpen);
     const pgEl = $(PAGE_ID);
-    if (pgEl) pgEl.classList.toggle('cat-ctl', ctl);
-    btn.textContent = (ctl && stripOpen) ? '切換分類 ▲' : '切換分類 ▼';
-    btn.setAttribute('aria-expanded', String(ctl && stripOpen));
-    btn.setAttribute('aria-label', (ctl && stripOpen) ? '切換分類，收合其他分類' : '切換分類，展開其他分類');
+    if (pgEl) { pgEl.classList.toggle('cat-sw', sw); pgEl.classList.toggle('cat-ctl', ctl); }
+    btn.textContent = (sw && stripOpen) ? '切換分類 ▲' : '切換分類 ▼';
+    btn.setAttribute('aria-expanded', String(sw && stripOpen));
+    btn.setAttribute('aria-label', (sw && stripOpen) ? '切換分類，收合其他分類' : '切換分類，展開其他分類');
   }
   function toggleStrip() {
-    if (!ctlActive()) return;
+    if (!swActive()) return;
     stripOpen = !stripOpen;
     syncMode();
     fit();
+    if (open.view === 'flow' && typeof flowRedrawIfVisible === 'function') flowRedrawIfVisible();   // 可用高度改變：treemap 依容器重畫
   }
 
   function fit() {
@@ -274,7 +282,8 @@ const Category = (function () {
     open = JSON.parse(JSON.stringify(layer));
     // 進入分類、換分類、從持股異動回到清單：一律進入「店內」，其他分類立即收合（不需先捲動）。
     // Detail 開關、返回同一分類時 key 與 view 不變，保留目前模式。
-    if (!wasOpen || open.key !== lastKey || (open.view === 'list' && lastView === 'flow')) stripOpen = false;
+    // F1：清單 ⇄ 持股異動切換時也回到 inside（持股異動進入時預設收起分類標籤）
+    if (!wasOpen || open.key !== lastKey || open.view !== lastView) stripOpen = false;
     // 分類或檢視改變：畫面上的清單不再代表這一層（例如持股異動隱藏清單時 scrollTop 不可靠），之後以該層記住的位置還原
     if (open.key !== lastKey || open.view !== lastView) { renderedKey = null; renderedView = null; }
     lastKey = open.key; lastView = open.view;
