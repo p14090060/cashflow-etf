@@ -455,7 +455,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - CLAUDE.md「頁面區塊代號」A-2／A-3／A-4／B-1 改為現況（全面文件更新仍在 CP8）。
   - 測試：新增 `tests/browser/home_test.py` 37 項（HM-1～3、PZ-1～13、TV-1～3、MG-3 `LAZY_WATCHLIST` undefined、390×844 下可見文字 ≥14px／按鈕 ≥44px／入口 ≥64px／無水平捲動／兩大入口在第一屏）。fixture＝實際 ETFS 深拷貝改寫 signal／cur_vol／div_frequency 後呼叫 `renderAll`（停掉 `_pollTimer`）。負向對照：排序改成 fair 先＋說明字改 12px → 6 FAIL（PZ-5／7／8／11、可讀性）。
   - 結果（800×600）：home 37、router 64、search_compact 38、detail_ui 42、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER，全 PASS。390px 截圖目視：入口、列表、標籤無截斷或溢出。
-- **CP4｜T1 三張功能卡＋G3 source-aware Flow layer＋F2 橫向 ETF 選擇器（§3、§3.4、§8.3）— `937abe70`；Codex NEED FIX 1 項 → fix `db4150dc`（見本段末），待 Codex CP4 Re-review。**
+- **CP4｜T1 三張功能卡＋G3 source-aware Flow layer＋F2 橫向 ETF 選擇器（§3、§3.4、§8.3）— `937abe70`＋fix `db4150dc`：Codex Re-review PASS（Detail 污染 CLOSED、無 regression）。**
   - Tools：`page-tools` 三張整卡 button（`#toolRank`／`#toolDiv`／`#toolFlow`，icon＋標題＋PO 文案＋›，84px）。排行／配息日曆沿用既有 `tool` 層（Back 回卡片）；持股異動卡＝`switchPage('check')`。YouTube 連結移除（Header 入口在 CP5）；`TOOL_PAGE.yt`／`page-yt` 仍在，CP5 退役。
   - Router（不新增公開 API，`Object.keys(Router)` 不變）：`intentFlow(code)`——頂層非 flow → 同 base push `{t:'flow', ui:{code}}`（k=0）；頂層是 flow → 同檔 null、他檔 replaceTop（新 id，避免 uiCache 用舊 code 覆蓋）。`sameLayer`：flow 對 flow 為同層。`apply()` 先算最上層 flow／detail 的 index → `flowLayerShow(ui, fi>di)`／`flowLayerHide()`，再 `applyFolder`。`intentBase` 的 flow 分支移除；`_NAV_SPEC.check` 改 `{flow:true}`。
   - 畫面：`#flowLayer`（與 `gsPanel` 同位置的 fixed 覆蓋層，‹ 返回＝`history.back()`；z 39，`.over-detail` 時 41；`dt-collapsed` 時 top:0；`gs-ckm` 時隱藏）。`#page-check` 節點只有一份，Flow 層開時移入 `#flowLayerBody`、關時移回 `#catFlowHost`；`Category.renderFlowFor` 在 Flow 層持有節點時不重繪。來源頁與 Detail 不卸載、不呼叫 `scrollTo`。
@@ -470,6 +470,13 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - detail_ui T7：張數現在記進 Detail 層 ui → 改驗「輸入後該層 ui.shares＝7」＋「之後的資料更新不改 Router 狀態」（43→44）。
     - category「UI band counts」依 PHASE5_PLAN §5.3 改比 live `catClassify` 計數（CP1 預定的遷移，先前漏做；今天資料池依 P1 更新後「其他」4→1，live ≠ fixture 才浮現）。FX-*（fixture 驗分類規則）不變。
     - 結果（800×600）：tools 86、home 37、router 64、search_compact 38、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER 全 PASS；**detail_ui 44 中 41 PASS／3 FAIL（T4、T17×2）**——依賴 live 行事曆中 00939 的 2026-10-05 官方公告，今日資料更新後該筆已從 calendar 移除；在未改動的 `937abe70` 上同樣 3 FAIL，屬資料老化，非本次修正造成，未改（Phase 2 測試，待 Codex 判斷是否改 fixture）。總計 772 PASS／3 FAIL／5 DEFER。
+
+- **Test maintenance：detail_ui T4／T17 — `546f7e9e`，待 Codex 簡短複審（CP5 尚未開始）。** Codex 判定 3 個 FAIL 為測試維護：原本依賴 live 行事曆的 00939 2026-10-05 官方公告，資料更新後被移除。
+  - 改法：`FX939` 定義 `window.__fx939(today)`，在同一個同步 evaluate 內注入 00939 官方公告（`iso_date` 2026-10-05、`amt` 0.12、`amount_source` TWSE、`source` official）與 `div_next` 2026-11-01，`Date.now` 固定在台北時間 today 01:00，讀 Detail 配息分頁與試算後在 `finally` 還原（Date.now、CALENDAR、div_next；00939 不在 ETFS 時以 0050 複本補上並移除）。頁面重新載入後（T17 前）再定義一次。
+  - T4（today 2026-10-03）：原兩項斷言不變（官方公告＋2026-10-05、不取 div_next 11-01），另加受控日期、「（2 天後）＋單次可領＋依公告金額試算」、fixture 還原檢查。
+  - T17（today 2026-10-06）：原兩項斷言不變（「已過」且無「天後」、「計算停用」），另加受控日期檢查。T18 不變。
+  - 沒有 skip、沒有放寬 assertion、產品程式未改。負向對照：把 `_dvView` 的 `offIso >= today` 拿掉 → T17 兩項 FAIL。
+  - 結果（800×600）：detail_ui 48（44→48）全 PASS；完整 regression：tools 86、home 37、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 26、detail_collapse 25、detail_state 42、category 250＋1 DEFER、watch 149＋4 DEFER＝779 PASS／0 FAIL／5 DEFER。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
