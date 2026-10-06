@@ -32,6 +32,23 @@ A, B = FC[0], FC[1]
 ALL = ev("Object.keys(_flowData.etfs).sort()")
 LAST = ALL[-1]
 
+
+# CP6b FIX-2：push 防線。forward entry 會被截斷，history.length 不能當證據 → 改計 history.pushState 呼叫次數，
+# 並比對 push 後的 history.state 與 Router.state()（同一個 top layer）。
+HSPY = """(()=>{ window.__hc = {push:0, rep:0};
+  if (!window.__hspy) { window.__hspy = 1;
+    const P = history.pushState, Rp = history.replaceState;
+    history.pushState = function () { window.__hc.push++; return P.apply(history, arguments); };
+    history.replaceState = function () { window.__hc.rep++; return Rp.apply(history, arguments); }; }
+  return true; })()"""
+def push_ok(t, extra=None):
+    """恰好一次 pushState；history.state 與 Router.state() 一致且頂層型別為 t。"""
+    r = ev("""(()=>{const hs=history.state, rs=Router.state(); const top=hs&&hs.stack&&hs.stack[hs.stack.length-1];
+      const sk = x => JSON.stringify({b:x.base, s:x.stack.map(l=>[l.t, l.id, l.code||null, l.key||null])});
+      // 比對結構（base、各層型別／id／代碼）；ui 不比——Flow 層的預設選取只 setUi 進記憶體、刻意不寫 history（§3.4.3）
+      return {push:window.__hc.push, same: !!hs && sk(hs)===sk(rs), topT: top&&top.t, topId: top&&(top.id_||top.id), topCode: top&&top.code, n: hs&&hs.stack.length}})()""")
+    return r if isinstance(r, dict) else {'push': -1, 'same': False, 'topT': None, 'topId': None, 'topCode': None, 'n': -1, 'err': r}   # history.state 異常時判 FAIL、不中斷
+
 # ════════ TC：三張功能卡 ════════
 home()
 h0 = hlen()
@@ -47,10 +64,13 @@ check('TC-1 底部導覽進工具：history.length 不變、stack []', hlen() ==
 for cid, page, tool in (('toolRank', 'page-rank', 'rank'), ('toolDiv', 'page-div', 'div')):
     ev("switchPage('tools'); true"); wait_ms(200)
     L = hlen()
+    ev(HSPY)
     ev("(function(){ const b=document.getElementById('%s'); b.querySelector('.tc-text > span').click(); return true; })()" % cid); wait_ms(300)
     n = 'TC-2' if tool == 'rank' else 'TC-3'
-    # push 會清掉先前 Back 留下的 forward entry（可能不只 1 筆），故只驗 history.length ≤ L+1；「確實多一層」由 stack 與下一步 Back 驗證
-    check('%s 點卡片說明文字也能進入 %s、stack [tool %s]、push 一層' % (n, page, tool), page_on(page) and types() == 'tool' and st()['stack'][0]['id'] == tool and hlen() <= L + 1, (types(), hlen(), L))   # 先前 Back 留下的 forward entry 會被 push 取代
+    pk = push_ok('tool')
+    check('%s 點卡片說明文字也能進入 %s、stack [tool %s]' % (n, page, tool), page_on(page) and types() == 'tool' and st()['stack'][0]['id'] == tool and hlen() <= L + 1, (types(), hlen(), L))
+    check('%s push 防線：history.pushState 恰好 1 次、history.state 與 Router.state() 結構一致、頂層為 tool %s' % (n, tool),
+          pk['push'] == 1 and pk['same'] and pk['topT'] == 'tool' and pk['n'] == 1 and ev("(history.state && history.state.stack[0] || {}).id") == tool, pk)
     if tool == 'div':
         check('TC-3 配息日曆有內容、無 B-1 元素', ev("document.getElementById('calList').children.length>0 && !document.getElementById('sharesIn')") is True)
     back()
@@ -62,8 +82,11 @@ for cid, page, tool in (('toolRank', 'page-rank', 'rank'), ('toolDiv', 'page-div
 # TC-4 持股異動卡
 ev("switchPage('tools'); true"); wait_ms(200)
 L = hlen(); t0 = tc()
+ev(HSPY)
 ev("document.getElementById('toolFlow').click(); true"); wait_ms(400)
-check('TC-4 持股異動卡：base 仍 tools、stack [flow]、traversal 0、push 一層', st()['base'] == 'tools' and types() == 'flow' and tc() == t0 and hlen() <= L + 1, (st(), hlen(), L))
+pk = push_ok('flow')
+check('TC-4 持股異動卡：base 仍 tools、stack [flow]、traversal 0', st()['base'] == 'tools' and types() == 'flow' and tc() == t0 and hlen() <= L + 1, (st(), hlen(), L))
+check('TC-4 push 防線：history.pushState 恰好 1 次、history.state 與 Router.state() 結構一致、頂層為 flow', pk['push'] == 1 and pk['same'] and pk['topT'] == 'flow' and pk['n'] == 1, pk)
 check('TC-4 Flow 層可見、紅綠方塊有內容、底部導覽亮「工具」', flow_on() and cells() > 0 and ev("document.getElementById('nav-tools').classList.contains('active')") is True, cells())
 back()
 check('TC-4 Back → 三張卡、stack []、Flow 層隱藏', page_on('page-tools') and st()['stack'] == [] and not flow_on() and ev("document.getElementById('catFlowHost').contains(document.getElementById('page-check'))") is True)

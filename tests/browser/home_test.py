@@ -109,11 +109,20 @@ check('PZ-12 精簡列：button、代碼＋名稱（省略號）＋標籤、無�
       and ev("document.querySelectorAll('#page-today .buy-card').length") == 0, row)
 
 # PZ-11 整列點擊 → Detail；Back → 首頁
+# CP6b FIX-2：forward entry 會被截斷，history.length 不能當證據 → 計 history.pushState 次數並比對 history.state
 h0 = ev("history.length")
+ev("""(()=>{ window.__hc = {push:0, rep:0};
+  if (!window.__hspy) { window.__hspy = 1; const P = history.pushState, Rp = history.replaceState;
+    history.pushState = function () { window.__hc.push++; return P.apply(history, arguments); };
+    history.replaceState = function () { window.__hc.rep++; return Rp.apply(history, arguments); }; }
+  return true; })()""")
 ev("document.querySelector('#pzList .pz-row').click(); true"); wait_ms(300)
 s = json.loads(st())
-check('PZ-11 整列點擊開 Detail（push 一層）', ev("!document.getElementById('gsPanel').hidden") is True and s['stack'][-1]['t'] == 'detail'
-      and s['stack'][-1]['code'] == exp_order[0] and ev("history.length") <= h0 + 1, s)   # push 會清掉先前 Back 留下的 forward entry（可能不只 1 筆），history.length 不一定 +1；Back 回首頁見下一項
+check('PZ-11 整列點擊開 Detail', ev("!document.getElementById('gsPanel').hidden") is True and s['stack'][-1]['t'] == 'detail'
+      and s['stack'][-1]['code'] == exp_order[0] and ev("history.length") <= h0 + 1, s)
+pk = ev("({push:window.__hc.push, same:JSON.stringify(history.state)===JSON.stringify(Router.state()), n:history.state.stack.length, t:history.state.stack.slice(-1)[0].t, code:history.state.stack.slice(-1)[0].code})")
+check('PZ-11 push 防線：history.pushState 恰好 1 次、history.state＝Router.state()、頂層 detail＝%s' % exp_order[0],
+      pk['push'] == 1 and pk['same'] and pk['n'] == 1 and pk['t'] == 'detail' and pk['code'] == exp_order[0], pk)
 ev("history.back(); true"); wait_ms(400)
 check('PZ-11 Back → 回首頁、Detail 關閉', ev("document.getElementById('gsPanel').hidden") is True and json.loads(st())['base'] == 'home'
       and json.loads(st())['stack'] == [] and ev("document.getElementById('page-today').classList.contains('active')") is True, st())

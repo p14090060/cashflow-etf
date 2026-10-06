@@ -39,6 +39,47 @@ t1 = top()
 check('RK-1 捲動後 sticky 黏在 Header 下方且仍 ≤ 120px', t1['sticky'] <= 120 and t1['stickyTop'] == ev("Math.round(document.querySelector('.app-hdr').getBoundingClientRect().bottom)"), t1)
 ev("window.scrollTo(0, 0); true"); wait_ms(300)
 
+# RK-4b（CP6b FIX-1）：定位後目標列實際可見、未被 Header／排行 sticky 遮住、可點進 Detail——不同名次都要成立
+def locate_probe(code):
+    ev("clearRankFind(); window.scrollTo(0,0); true"); wait_ms(250)
+    ev("if(document.getElementById('rankFindBtn').getAttribute('aria-expanded')!=='true') document.getElementById('rankFindBtn').click(); true"); wait_ms(150)
+    ev("{const f=document.getElementById('rankFind'); f.value=%s; f.dispatchEvent(new Event('input'));} true" % json.dumps(code)); wait_ms(300)
+    # smooth scroll 距離長時要等它停下來（連續 3 次 scrollY 不變）
+    ev("new Promise(r=>{let last=-1,same=0;const i=setInterval(()=>{const y=Math.round(scrollY); same=(y===last)?same+1:0; last=y; if(same>=3){clearInterval(i);r(y)}},120)})", True)
+    return ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]'); const r=row.getBoundingClientRect();
+      const sb=document.querySelector('.rank-sticky').getBoundingClientRect().bottom, hb=document.querySelector('.app-hdr').getBoundingClientRect().bottom;
+      const nav=document.querySelector('.bottom-nav').getBoundingClientRect().top; const cx=r.left+r.width/2, cy=(Math.max(r.top,sb)+Math.min(r.bottom,nav))/2;
+      const hit=document.elementFromPoint(cx, cy);
+      return {top:Math.round(r.top), bottom:Math.round(r.bottom), stickyBottom:Math.round(sb), hdrBottom:Math.round(hb), nav:Math.round(nav), scrollY:Math.round(scrollY),
+              found:row.classList.contains('found'), hit:!!hit && hit.closest('.rank-row')===row}})()""" % code)
+
+ranked = ev("_rankSorted.map(e=>e.code)")
+n_all = ev("document.querySelectorAll('#rankRows .rank-row').length")
+for idx in sorted({0, 4, len(ranked) // 3, len(ranked) // 2, (2 * len(ranked)) // 3, len(ranked) - 1}):
+    code = ranked[idx]
+    pr = locate_probe(code)
+    print('   RK-4b rank %d %s:' % (idx + 1, code), pr)
+    check('RK-4b 第 %d 名 %s：定位後整列在 sticky 下方、導覽列上方（不被遮住）' % (idx + 1, code),
+          pr['found'] and pr['top'] >= pr['stickyBottom'] and pr['bottom'] <= pr['nav'], pr)
+    check('RK-4b 第 %d 名 %s：列中心 elementFromPoint 命中該列（可點）' % (idx + 1, code), pr['hit'], pr)
+    check('RK-4b 第 %d 名 %s：仍是定位不過濾（%d 列都在）' % (idx + 1, code, n_all), ev("document.querySelectorAll('#rankRows .rank-row').length") == n_all)
+# 排行列的點擊行為是既有設計：有持股異動資料的列（.tappable）→ 開 Flow；其他列沒有點擊動作（PHASE5 未改）。
+# 這裡驗「定位後在可見位置真的點得到」：挑一檔 tappable 的列定位，於列的可見中心點擊 → 開該檔 Flow。
+tap = ev("[...document.querySelectorAll('#rankRows .rank-row.tappable')].map(r=>r.dataset.code)")
+for code in [c for c in (tap[0], tap[len(tap) // 2], tap[-1])]:
+    pr = locate_probe(code)
+    ev("""(()=>{const row=document.querySelector('#rankRows .rank-row[data-code="%s"]'); const r=row.getBoundingClientRect();
+      const sb=document.querySelector('.rank-sticky').getBoundingClientRect().bottom; const y=(Math.max(r.top,sb)+r.bottom)/2;
+      document.elementFromPoint(r.left+r.width/2, y).click(); return true})()""" % code); wait_ms(450)
+    check('RK-4b 第 %d 名 %s（可點列）：定位後在可見中心點擊 → 開該檔持股異動' % (ranked.index(code) + 1, code),
+          pr['top'] >= pr['stickyBottom'] and pr['hit'] and ev("flowLayerVisible() && _flowSel") == code, (pr, ev("_flowSel")))
+    back()
+# 展開 ⓘ（sticky 變高）時也不被遮住
+ev("if(document.getElementById('rankInfoBtn').getAttribute('aria-expanded')!=='true') document.getElementById('rankInfoBtn').click(); true"); wait_ms(150)
+pr = locate_probe(ranked[len(ranked) // 2])
+check('RK-4b ⓘ 展開（sticky 變高）時定位列仍完整可見、可點', pr['top'] >= pr['stickyBottom'] and pr['bottom'] <= pr['nav'] and pr['hit'], pr)
+ev("document.getElementById('rankInfoBtn').click(); clearRankFind(); document.getElementById('rankFindBtn').click(); window.scrollTo(0,0); true"); wait_ms(300)
+
 # RK-2 🔍
 check('RK-2 🔍、ⓘ touch target ≥ 44×44', t0['findBtn']['h'] >= 44 and t0['findBtn']['w'] >= 44 and t0['infoBtn']['h'] >= 44 and t0['infoBtn']['w'] >= 44, (t0['findBtn'], t0['infoBtn']))
 h0 = ev("history.length"); s0 = st()

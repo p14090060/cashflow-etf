@@ -129,6 +129,19 @@ function clearRankFind() {
   _rankSyncTop();
 }
 
+// 捲動定位時，畫面上方被「黏住」的區塊總高（CP6b FIX-1）：排行 sticky 黏在 Header 下方（top＝--hdr-h），
+// 所以遮擋＝sticky 的實際 top＋高度，不是只有 sticky 自己的高度。Header 或 sticky 不黏時（gs-ckm、矮螢幕
+// media query 讓它 static）就不算它。全部讀 computed style 與實際高度，不寫死尺寸。
+function _rankOccludedTop() {
+  const hdr = document.querySelector('.app-hdr');
+  const hs = hdr ? getComputedStyle(hdr) : null;
+  let occ = (hs && hs.position === 'sticky' && hs.display !== 'none') ? hdr.offsetHeight : 0;
+  const st = document.querySelector('.rank-sticky');
+  const ss = st ? getComputedStyle(st) : null;
+  if (ss && ss.position === 'sticky') occ = Math.max(occ, (parseFloat(ss.top) || 0) + st.offsetHeight);
+  return occ;
+}
+
 function _matchEtf(e, q) {
   const code = (e.code || '').toUpperCase();
   const name = e.name || '';
@@ -164,8 +177,7 @@ function applyRankFind(scroll) {
       : `${hits.length} 支符合，已全部標示（最前面是 ${h.e.code} ${h.e.name}，第 ${h.rank} 名）`;
     const row = document.querySelector(`#rankRows .rank-row[data-code="${h.e.code}"]`);
     if (row && scroll) {
-      const top = row.getBoundingClientRect().top + window.scrollY
-                - (document.querySelector('.rank-sticky')?.offsetHeight || 0) - 12;
+      const top = row.getBoundingClientRect().top + window.scrollY - _rankOccludedTop() - 12;
       window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
     }
     return;
