@@ -5,6 +5,12 @@
 > 前置：Phase 2～4 VERIFIED / CLOSED（Phase 4 baseline `edb065d2`）。Phase 5 的回歸測試是**保護**，不重開舊 Phase。
 > 原則：靜態 PWA、傳統 `<script>`、無 build、無框架；不新增第三方套件、不新增資料來源；文件配合程式，**不改 `calc_signal` 公式**。
 
+## PO Change #2（2026-10-06，CP6 CLOSED 之後）：成交量排行第一屏（CP6b）
+
+- 排程：CP6 CLOSED → **CP6b** → CP7 Theme → CP8 UX closeout → Final regression／Codex Review／PO 真機。詳 §3.8。
+- **排行內搜尋維持「定位」，不是篩選（PO 選 A）**：WHY——使用者在排行找 ETF 要知道的是「我的 ETF 在第幾名、前後是誰」；過濾掉其他 99 支就失去參照（`rank.js` 原註解即此理由，TC-6「只定位不過濾」產品規格不變）。因此文案不使用「篩選」，placeholder 為「在排行中找 ETF」。
+- **RK-1 調整（Gate／PO 核准方案 1）**：原「第一屏完整可見 ≥5 列」經 390×844 實測，在保留 Header、全站警示、44px 排行標題列及既有 109px 排名卡片的條件下無法達成；若強制達成將需要犧牲排行卡片可讀性或超出 CP6b 核准範圍。因此改以「4 列完整＋第 5 列部分可見＋sticky ≤120px」作為 RK-1 驗收標準。
+
 ## PO Change #1（2026-10-05，Rev.4 APPROVED 之後）
 
 - **Tools 改為三張大型功能卡**：成交量排行／配息日曆／主動式 ETF 持股異動（§3 全部改寫）。
@@ -259,6 +265,29 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 
 ---
 
+### 3.8 成交量排行第一屏（CP6b，PO Change #2）
+
+**現況（390×844 實測）**：排行頂部 sticky 約 210px（標題、「依當日成交量排序 · 共 N 支」、警示、排行內搜尋框、訊息、兩行欄位名稱），第一筆排名 y≈395px，底部導覽列前只完整可見 3 列；捲動後 210px 仍黏在頂端。
+
+**核准 UI**：
+
+```
+成交量排行                 [🔍] [ⓘ]     ← 標題列（44px），🔍／ⓘ 各 ≥ 44px，預設收起
+（🔍 展開時）[ 在排行中找 ETF        ✕ ]  ← 既有排行定位搜尋（rankFind）＋訊息
+（ⓘ 展開時）依當日成交量排序 · 共 N 支
+             ⚠ 排名高＝今天很多人在買賣，不代表比較好或比較適合存股
+ #  ETF            現價  狀態            ← 欄位名稱（compact，仍 sticky）
+    配息方式 1年內報酬 年殖利率 近3月績效
+```
+
+- 全站 ETF 搜尋（Header）不變。
+- 🔍：預設收起；展開既有 `rankFind`（placeholder「在排行中找 ETF」），**行為仍是定位不過濾**（完整排行保留、捲動定位、目標列標亮、顯示原始名次、榜外提示）。有搜尋內容時不因其他 UI 行為（ⓘ、輪詢重繪、Detail／Flow 往返）自動收起。
+- ⓘ：預設收起；內容為原「依當日成交量排序 · 共 N 支」與原警示文字，**逐字保留**。
+- 🔍／ⓘ 展開狀態只在 `rank.js` 記憶體，不寫 Router／history。
+- sticky 只保留標題列與欄位名稱；收起的搜尋與說明使用 `display:none`（不以空白或隱藏容器佔高度）。
+- 不改：排行資料來源、成交量排序、原始名次、排名卡片版型／字級／兩行結構、Detail 導航、「持股異動 ›」入口、Router、Header、全站警示條。
+- 範圍：`index.html`（排行頁頂部）、`css/pages.css`（排行頂部）、`js/rank.js`（🔍／ⓘ 開關、定位捲動扣除 sticky 高度沿用）、測試。
+
 ## 4. Header YouTube 與舊入口移除（Y1）
 
 - Header 右側新增低調固定 YouTube 入口：小圖示按鈕（▶ 或 YouTube 圖示，≥ 44×44，`aria-label="金流黑盒子 YouTube 頻道"`），與主題切換、↻ 並排；**不做大型宣傳 Banner**。
@@ -426,6 +455,7 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | 4 | T1 Tools 三張功能卡＋G3 source-aware Flow layer | `index.html`（`page-tools` 卡片、`page-div` 標題、`#flowLayer`）、`css/pages.css`、`js/router.js`（`openFlow` intent、`sameLayer`、`apply()` 協調；`TOOL_PAGE` 刪 `yt` 可與順序 5 合併）、`js/flow.js`（`flowLayerShow／Hide`、`flowSelect` 寫入目標）、`js/category.js`（`onFlowData`／`isFlowVisible` 涵蓋 Flow 層）；`js/detail.js` 不改（`detailGoFlow` 本來就不關 Detail，只 `gsClear()` 後 `openFlow`） |
 | 5 | Y1 Header YouTube、舊入口與 `page-yt` 退役 | `index.html`、`css/base.css`、`js/router.js`（`TOOL_PAGE`） |
 | 6 | F1 持股異動直向切換分類＋F2 橫向 ETF 選擇器 | `js/category.js`、`css/category.css`、`js/flow.js`（僅代碼列 markup／捲入可見區）、`css/pages.css`、`index.html`（`#flowSelName`） |
+| 6b | PO Change #2 成交量排行第一屏（§3.8） | `index.html`、`css/pages.css`、`js/rank.js`、tests |
 | 7 | V1～V2 主題切換與 token 化（含 Active Flow 色值） | `index.html`、`css/*.css`、`js/format.js`、`js/rank.js`、`js/flow.js`（僅色值） |
 | 8 | V3 UX closeout、文件 | 全站、`CLAUDE.md` |
 | 9 | 全回歸 → Codex Code Review → 真機（§10.3） | |
@@ -487,6 +517,14 @@ TOP100 = ETFS 中 cur_vol > 0 且 price > 0，依 cur_vol 由高到低取前 100
 | FS-4 | 第一屏 | 直向 390×844：treemap 容器頂端比改版前（同 fixture 量測基準）更高，且在第一屏內 |
 | FS-5 | 同一份 Flow DOM | Tools 卡、排行、Detail 入口與分類原生分段顯示的是同一個 flow 內容節點（Flow 層時位於 `#flowLayer`，關閉後回到 `#catFlowHost`）、同一 `renderFlow`；Detail 入口選取項＝該 ETF |
 | FS-6 | 保護功能 | 紅＝加碼、綠＝減碼 computed color（Dark／Light）；有海外資料的 ETF 海外清單仍顯示；FD-1～6、FL-1～7 全 PASS |
+| RK-1 | 第一屏（390×844） | 排行頂部 sticky ≤ 120px；第一屏至少完整可見 4 列、第 5 列至少露出一部分；第一筆 y 相較現況 395px 明顯提前（預期 300～313，記錄實測值）；捲動後 sticky 仍 ≤ 120px；收起的 🔍／ⓘ 內容為 `display:none`、不佔高度 |
+| RK-2 | 🔍 | 預設收起、≥ 44px、`aria-expanded`；展開後輸入框可見並取得焦點、placeholder「在排行中找 ETF」；有搜尋內容時不自動收起 |
+| RK-3 | ⓘ | 預設收起、≥ 44px、`aria-expanded`；展開後原說明與警示逐字存在、筆數正確 |
+| RK-4 | 定位行為不變 | TC-6／TC-7／RF-3／R rank find 0050 先展開 🔍 再操作，原斷言不降：完整 100 列保留、捲動定位、標亮、原始名次 |
+| RK-5 | 不寫 history | 🔍／ⓘ 開關前後 `history.length`、`Router.state()` 不變 |
+| RK-6 | 往返保留 | 🔍 展開＋搜尋內容＋捲動 → Detail／Flow → Back：展開、內容、定位、捲動保留；`renderAll` 輪詢後也保留 |
+| RK-7 | 橫向／鍵盤 | 844×390 與 `gs-ckm` 下無水平溢出、🔍／ⓘ 可操作；排行頂部文字 ≥ 13px |
+| RK-8 | 回歸 | 完整 regression 全數 PASS |
 | TL-8 | 無 YouTube、無計算機 | 工具頁無 YouTube 連結、無 B-1 元素 |
 | YT-1 | Header YouTube | 圖示存在、≥ 44×44、`href`＝頻道、`target="_blank"`、`rel` 含 `noopener`；不改變 `#statusBadge`／↻ 行為 |
 | YT-2 | 舊入口移除 | 首頁、工具頁無 YouTube 連結；`page-yt` 不存在；`switchPage('yt')` 不丟例外 |
