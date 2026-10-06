@@ -7731,7 +7731,7 @@
       "maD": -7.7,
       "ret5d": -7.13,
       "ret1m": -11.9,
-      "ret1y": 30.6,
+      "ret1y": 30.5,
       "ret_months": [
         null,
         null,
@@ -8488,7 +8488,7 @@
       "maD": 4.9,
       "ret5d": 3.31,
       "ret1m": 11.2,
-      "ret1y": 76.2,
+      "ret1y": 76.1,
       "ret_months": [
         27.2,
         33.8,
@@ -8909,7 +8909,7 @@
       "name": "主動群益美國增長",
       "curated": false,
       "otc": false,
-      "price": 12.03,
+      "price": 12.035,
       "ma60": 11.34,
       "ma20": 11.27,
       "low52": 9.97,
@@ -8925,7 +8925,7 @@
       "maD": 5.6,
       "ret5d": 2.39,
       "ret1m": 10.2,
-      "ret1y": 20.3,
+      "ret1y": 20.4,
       "ret_months": [
         null,
         19.5,
@@ -9636,7 +9636,7 @@
       "name": "大華美國MAG7+",
       "curated": false,
       "otc": true,
-      "price": 12.245,
+      "price": 12.25,
       "ma60": 11.5,
       "ma20": 11.72,
       "low52": 8.89,
@@ -9652,7 +9652,7 @@
       "maD": 5.7,
       "ret5d": 1.84,
       "ret1m": 7.0,
-      "ret1y": 22.4,
+      "ret1y": 22.5,
       "ret_months": [
         12.8,
         6.7,
