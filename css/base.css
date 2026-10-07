@@ -1,20 +1,20 @@
 /* base.css — 設計 token、頂欄、頁面容器、底部導覽
    從 index.html 行 13–101 原樣搬出（2026-10-03 拆檔，未改內容）*/
   :root {
-    --bg:    #0d1117;
-    --card:  #161b22;
-    --card2: #1c2128;
-    --border:#30363d;
-    --dim:   #8b949e;
-    --bright:#e6edf3;
+    --bg:    #0F141B;
+    --card:  #171E27;
+    --card2: #202936;
+    --border:#2C3747;
+    --dim:   #98A4B3;
+    --bright:#E8EDF3;
     --mono:  'Consolas','Courier New',monospace;
     --sans:  'Microsoft JhengHei','微軟正黑體',sans-serif;
-    --cheap: #00e5a0;
-    --fair:  #F0B840;
-    --dear:  #ff3f5e;
-    --up:    #ff3f5e;
-    --dn:    #00c87a;
-    --bond:  #58a6ff;   /* 債券型標示。刻意避開紅漲綠跌與四態四色，
+    --cheap: #4FC59A;
+    --fair:  #D6A84B;
+    --dear:  #F06A6A;
+    --up:    #F06A6A;
+    --dn:    #4FC59A;
+    --bond:  #4C8DFF;   /* 債券型標示。刻意避開紅漲綠跌與四態四色，
                           讀起來是「分類」不是「買賣判斷」；灰色在深色底太弱，
                           債券和股票是兩種商品，要讓人一眼看出來 */
     --sea:   #164c80;   /* 海外持股標示（藍底白字）。深色底的大色塊不能用亮藍，
@@ -22,92 +22,107 @@
                           比原本的 4.63:1 還好讀。不沿用 --bond #58a6ff：
                           那是當文字色用的淺藍，鋪底配白字只有約 2:1 會糊。
                           兩個藍分屬排行頁與主動頁，不會同框出現。 */
-  --gold:  #ffd700;
+  --gold:  #D6A84B;
     --nav-h: 62px;
-    /* ── Phase 5 V2：全站 visual tokens（PHASE5_PLAN §7.2）。dark 值＝改版前實際色，換主題只換這裡 ── */
-    --hot:   #ff7070;   /* 過熱（標籤為 12% 淡底＋--card2，實際 rendered 對比需 ≥ 4.5；#ef4444 僅 4.27） */
-    --warn:  #fb923c;   /* 偏貴（橘）、現價 */
-    --brand: #ff9500;   /* 品牌橘：面板標題、配息方式 */
-    --link:  #58a6ff;   /* ETF 名稱、連結、中性藍強調（選取框） */
-    --silver:#c0c0c0;
-    --bronze:#cd7f32;
-    --violet:#c4b5fd;   /* 排行欄位名稱 */
-    --mood-cta:#e8607a;
-    --src-official:#7ec8e3;
-    --err-text:#ff6b7f;
-    --err-soft:#ffb3bd;
+    /* ── Phase 5 V2：全站 visual tokens（PHASE5_PLAN §7.2）。CP7 Visual Gate：dark／light 依 PO 核准 palette（AI_HANDOFF 記錄），換主題只換這裡 ── */
+    --hot:   #FB8A8A;   /* 過熱（標籤為 12% 淡底＋--card2，實際 rendered 對比需 ≥ 4.5；#ef4444 僅 4.27） */
+    --warn:  #F59E0B;   /* 偏貴（橘）、現價 */
+    --brand: #4C8DFF;   /* 品牌橘：面板標題、配息方式 */
+    --link:  #4C8DFF;   /* ETF 名稱、連結、中性藍強調（選取框） */
+    --silver:#C0C8D2;
+    --bronze:#D08A4E;
+    --violet:#A78BFA;   /* 排行欄位名稱 */
+    --mood-cta:#4C8DFF;
+    --src-official:#67C3E0;
+    --err-text:#F87171;
+    --err-soft:#FECACA;
     --on-strong:#ffffff;   /* 深色色塊（--sea）上的文字 */
-    --fair-dim:#a8913f;    /* 殖利率未核實（原 #8b7020 對比 3.4～4.0:1，TH-6 調亮至 ≥ 5.2:1） */
-    --hdr-bg: rgba(13,17,23,.92);
-    --nav-bg: rgba(22,27,34,.96);
-    --tm-border: rgba(13,17,23,.85);
+    --fair-dim:#A8913F;    /* 殖利率未核實（原 #8b7020 對比 3.4～4.0:1，TH-6 調亮至 ≥ 5.2:1） */
+    --hdr-bg: rgba(15,20,27,.92);
+    --nav-bg: rgba(23,30,39,.96);
+    --tm-border: rgba(15,20,27,.85);
     --shadow-pop:  0 10px 28px rgba(0,0,0,.45);
     --shadow-menu: 0 6px 18px rgba(0,0,0,.45);
     --shadow-lift: 0 10px 26px rgba(0,0,0,.6);
     --shadow-band: 0 -3px 8px rgba(0,0,0,.28);
     /* RGB 三元組：給 rgba(var(--rgb-x), α) 的淡底／框線／treemap 透明度使用 */
-    --rgb-cheap: 0,229,160;
-    --rgb-fair:  240,184,64;
-    --rgb-up:    255,63,94;
-    --rgb-dn:    0,200,122;
-    --rgb-warn:  251,146,60;
-    --rgb-hot:   255,112,112;
-    --rgb-link:  88,166,255;
-    --rgb-gold:  255,215,0;
-    --rgb-violet:196,181,253;
-    --rgb-neutral:139,148,158;
+    --rgb-cheap: 79,197,154;
+    --rgb-fair:  214,168,75;
+    --rgb-up:    240,106,106;
+    --rgb-dn:    79,197,154;
+    --rgb-warn:  245,158,11;
+    --rgb-hot:   251,138,138;
+    --rgb-link:  76,141,255;
+    --rgb-gold:  214,168,75;
+    --rgb-violet:139,92,246;
+    --rgb-neutral:152,164,179;
     --rgb-veil:  255,255,255;   /* 深底上的白色薄紗；light 換成黑色薄紗 */
+    --tech:  #A78BFA;   /* 科技類視覺語言（紫） */
+    --active:#F59E0B;   /* 主動式視覺語言（橘） */
+    --rgb-tech:  139,92,246;
+    --rgb-active:245,158,11;
     color-scheme: dark;
   }
   /* Light（PHASE5_PLAN §7.1／§7.2）：台股漲紅跌綠、紅＝加碼／綠＝減碼語意不變，只換成淺底可讀的加深版。
      對比以 theme_test TH-6 量測（正文 ≥ 4.5:1、大字與圖形 ≥ 3:1） */
   :root[data-theme="light"] {
-    --bg:    #f6f8fa;
-    --card:  #ffffff;
-    --card2: #eef1f4;
-    --border:#d0d7de;
-    --dim:   #57606a;
-    --bright:#1f2328;
-    --cheap: #11643f;
-    --fair:  #7a4f00;
-    --dear:  #c4333a;
-    --up:    #c4333a;
-    --dn:    #1a7a57;
-    --bond:  #0858b9;
+    --bg:    #F7F9FC;
+    --card:  #FFFFFF;
+    --card2: #EEF2F8;
+    --border:#DDE3EC;
+    --dim:   #64748B;
+    --bright:#1F2937;
+    --cheap: #065F46;
+    --fair:  #A14A07;
+    --dear:  #B91C1C;
+    --up:    #DC2626;
+    --dn:    #047857;
+    --bond:  #1D4ED8;
     --sea:   #164c80;
-    --gold:  #7a4f00;
-    --hot:   #b31d28;
-    --warn:  #9a3c00;
-    --brand: #9a3c00;
-    --link:  #0969da;
-    --silver:#5f6874;
-    --bronze:#9c5a2b;
-    --violet:#6639ba;
-    --mood-cta:#c4333a;
-    --src-official:#0a6680;
-    --err-text:#c4333a;
-    --err-soft:#82071e;
-    --fair-dim:#7a6a3a;
-    --hdr-bg: rgba(246,248,250,.94);
+    --gold:  #A14A07;
+    --hot:   #B91C1C;
+    --warn:  #9A3412;
+    --brand: #2563EB;
+    --link:  #2563EB;
+    --silver:#536176;
+    --bronze:#9A5B2E;
+    --violet:#7C3AED;
+    --mood-cta:#2563EB;
+    --src-official:#0E7490;
+    --err-text:#B91C1C;
+    --err-soft:#7F1D1D;
+    --fair-dim:#8A6A2B;
+    --hdr-bg: rgba(247,249,252,.94);
     --nav-bg: rgba(255,255,255,.96);
     --tm-border: rgba(255,255,255,.9);
     --shadow-pop:  0 10px 28px rgba(31,35,40,.16);
     --shadow-menu: 0 6px 18px rgba(31,35,40,.16);
     --shadow-lift: 0 10px 26px rgba(31,35,40,.24);
     --shadow-band: 0 -3px 8px rgba(31,35,40,.10);
-    --rgb-cheap: 17,100,63;
-    --rgb-fair:  122,79,0;
-    --rgb-up:    196,51,58;
-    --rgb-dn:    26,122,87;
-    --rgb-warn:  154,60,0;
-    --rgb-hot:   179,29,40;
-    --rgb-link:  9,105,218;
-    --rgb-gold:  154,103,0;
-    --rgb-violet:102,57,186;
-    --rgb-neutral:87,96,106;
-    --rgb-veil:  0,0,0;
+    --rgb-cheap: 5,150,105;
+    --rgb-fair:  217,119,6;
+    --rgb-up:    220,38,38;
+    --rgb-dn:    5,150,105;
+    --rgb-warn:  194,65,12;
+    --rgb-hot:   185,28,28;
+    --rgb-link:  37,99,235;
+    --rgb-gold:  217,119,6;
+    --rgb-violet:124,58,237;
+    --rgb-neutral:100,116,139;
+    --rgb-veil:  15,23,42;
+    --tech:  #7C3AED;
+    --active:#B45309;
+    --rgb-tech:  124,58,237;
+    --rgb-active:245,158,11;
     color-scheme: light;
   }
+  /* CP7 Visual Gate 元件層最小處理（不改整體 palette）：
+     ① 核准次要文字 #64748B 在柔和藍灰次要 surface（--card2）上只有約 4.2:1 → 只在這些次要 surface 元件內把 --dim 加深
+     ② 文字型語意色（便宜／合理／偏貴／過熱／債券／金色）在 light 用同色相的加深版當字色；淡底、框線、treemap 等填色仍用核准色（--rgb-*）
+     ③ 排行欄位名稱的紫色淡底降到 8%，紫字對比才達 4.5 */
+  :root[data-theme="light"] :is(.gs-more, .cat-band, .cat-strip button, .cat-more, .cat-expand, .cat-more-in, .router-proc,
+    .mood-card, .empty-state, .hot-item, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
+  :root[data-theme="light"] .rank-hdr { background: rgba(var(--rgb-violet), .08); }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 
   html { overflow-x:hidden; }
@@ -150,7 +165,7 @@
     padding:10px 34px 10px 32px; font-size:16px; font-family:var(--sans);
   }
   .gsearch-bar input::placeholder { color:var(--dim); }
-  .gsearch-bar input:focus { outline:none; border-color:var(--cheap); }
+  .gsearch-bar input:focus { outline:none; border-color:var(--link); }
   .gs-clear {
     position:absolute; right:6px; background:none; border:none;
     color:var(--dim); font-size:15px; cursor:pointer; padding:4px 7px; line-height:1;
@@ -281,7 +296,7 @@
     cursor:pointer; border:none; background:none;
     color:var(--dim); transition:color .15s; padding:8px 0;
   }
-  .nav-btn.active { color:var(--cheap); }
+  .nav-btn.active { color:var(--link); }
   .nav-btn svg { width:22px; height:22px; }
   .nav-btn span { font-size:14px; font-weight:500; }
 

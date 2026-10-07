@@ -138,7 +138,7 @@
     color:var(--bright); width:90px; text-align:center; outline:none;
     transition:border-color .15s;
   }
-  .num-input:focus { border-color:var(--cheap); }
+  .num-input:focus { border-color:var(--link); }
   .calc-out {
     background:rgba(var(--rgb-cheap),.06); border:1px solid rgba(var(--rgb-cheap),.18);
     border-radius:9px; padding:13px 14px;
@@ -163,7 +163,7 @@
   .cal-item > :not(.cal-hit) { position:relative; pointer-events:none; }
   .cal-hit  { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0;
               background:none; border:0; border-radius:9px; cursor:pointer; }
-  .cal-hit:focus-visible { outline:2px solid var(--fair); outline-offset:2px; }
+  .cal-hit:focus-visible { outline:2px solid var(--link); outline-offset:2px; }
   .cal-date { text-align:center; width:38px; flex-shrink:0; }
   .cal-day   { font-family:var(--mono); font-size:16px; font-weight:700; display:block; line-height:1; }
   .cal-mon   { font-size:14px; color:var(--bright); }
@@ -205,7 +205,7 @@
   .dt-tabs { display:flex; gap:4px; margin:8px 0 12px; border-bottom:1px solid var(--border); }
   .dt-tab { flex:1 1 0; min-width:0; padding:10px 2px; background:none; border:none;
             border-bottom:2px solid transparent; color:var(--dim); font-size:15px; cursor:pointer; }
-  .dt-tab.on { color:var(--bright); font-weight:700; border-bottom-color:var(--cheap); }
+  .dt-tab.on { color:var(--bright); font-weight:700; border-bottom-color:var(--link); }
   .dt-tab[hidden], .dt-pane[hidden] { display:none; }
   .dt-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
             padding:9px 0; border-bottom:1px solid var(--border); font-size:15px; }
