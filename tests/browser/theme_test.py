@@ -256,6 +256,18 @@ for step in ('light', 'dark'):
 ev("Router.toBase({base:'home'}); true"); wait_ms(200)
 cdp('Emulation.clearDeviceMetricsOverride')
 
+# ── TH-10（CP7 Visual Gate，PO Hard Constraint）：五個狀態色＝CP7 改版前原始色，dark／light 完全相同；對比由底襯處理
+ORIG = {'hot': 'rgb(239, 68, 68)', 'dear': 'rgb(251, 146, 60)', 'fair': 'rgb(240, 184, 64)', 'cheap': 'rgb(0, 229, 160)', 'bond': 'rgb(88, 166, 255)'}
+for mode in ('dark', 'light'):
+    ev("localStorage.removeItem('%s'); true" % THEME_KEY); media(mode); reload_page(); ev(COLOR_JS)
+    got = ev("""(()=>{const o={}; ['hot','dear','fair','cheap','bond'].forEach(k=>{const e=document.createElement('span'); e.className='sig-'+k; e.textContent='x'; document.body.appendChild(e);
+      const cs=getComputedStyle(e); o[k]={c:cs.color, b:cs.borderTopColor, cr:+__cr(cs.color, cs.backgroundColor).toFixed(2)}; e.remove();}); return o})()""")
+    check('TH-10 [%s] .sig-* 文字與框線＝原始五色（過熱 #ef4444、偏貴 #fb923c、合理 #F0B840、便宜 #00e5a0、債券 #58a6ff）' % mode,
+          all(got[k]['c'] == v and got[k]['b'] == v for k, v in ORIG.items()), got)
+    check('TH-10 [%s] 五色在底襯上對比皆 ≥ 4.5' % mode, all(got[k]['cr'] >= 4.5 for k in ORIG), {k: got[k]['cr'] for k in ORIG})
+    ev("switchPage('rank'); true"); wait_ms(400)
+    rk = ev("""(()=>{const o={}; _rankSorted.forEach(e=>{const el=document.querySelector('#rankRows .rank-row[data-code="'+e.code+'"] .rank-sig'); if(el && !o[e.signal]) o[e.signal]=getComputedStyle(el).color;}); return o})()""")
+    check('TH-10 [%s] 排行狀態字＝同一組原始色' % mode, all(rk[k] == ORIG[k] for k in rk if k in ORIG) and len(rk) >= 3, rk)
 ev("localStorage.removeItem('%s'); localStorage.removeItem('etfRadar.watch.v1'); true" % THEME_KEY)
 media('dark')
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']

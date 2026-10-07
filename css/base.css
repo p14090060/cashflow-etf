@@ -61,6 +61,14 @@
     --active:#F59E0B;   /* 主動式視覺語言（橘） */
     --rgb-tech:  139,92,246;
     --rgb-active:245,158,11;
+    /* ── 五個估值／狀態色（PO Hard Constraint，CP7 Visual Gate）：取 CP7 改版前正式版本的原始色，
+          dark 與 light 完全相同、不另做變體，也不為對比改色（對比由 --sig-backing 的深色底襯處理） ── */
+    --sig-hot:   #ef4444;   /* 過熱 */
+    --sig-dear:  #fb923c;   /* 偏貴 */
+    --sig-fair:  #F0B840;   /* 合理 */
+    --sig-cheap: #00e5a0;   /* 便宜 */
+    --sig-bond:  #58a6ff;   /* 債券 */
+    --sig-backing: #0B0F14; /* 狀態標籤底襯：讓五色在任何主題底色上都 ≥ 4.5:1（過熱 5.11） */
     color-scheme: dark;
   }
   /* Light（PHASE5_PLAN §7.1／§7.2）：台股漲紅跌綠、紅＝加碼／綠＝減碼語意不變，只換成淺底可讀的加深版。

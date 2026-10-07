@@ -28,31 +28,32 @@
   .mood-idx.up{ color:var(--up); } .mood-idx.dn{ color:var(--dn); } .mood-idx.flat{ color:var(--dim); }
 
   /* ── 價格狀態標籤（首頁、Detail 等共用） ── */
+  /* 狀態標籤：五色為 PO 鎖定原始色（--sig-*），兩主題相同；底襯 --sig-backing 取代原本 12% 淡底以確保對比 */
   .sig-cheap {
-    background:rgba(var(--rgb-cheap),.12); color:var(--cheap);
-    border:1px solid var(--cheap); border-radius:6px;
+    background:var(--sig-backing); color:var(--sig-cheap);
+    border:1px solid var(--sig-cheap); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-fair {
-    background:rgba(var(--rgb-fair),.12); color:var(--fair);
-    border:1px solid var(--fair); border-radius:6px;
+    background:var(--sig-backing); color:var(--sig-fair);
+    border:1px solid var(--sig-fair); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-dear {
-    background:rgba(var(--rgb-warn),.12); color:var(--warn);
-    border:1px solid var(--warn); border-radius:6px;
+    background:var(--sig-backing); color:var(--sig-dear);
+    border:1px solid var(--sig-dear); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   /* 債券 ETF 不套股價訊號，用中性灰藍——刻意不借用四態任何一色，
      免得被當成買賣判斷。只是在說「這是債券型」。 */
   .sig-bond {
-    background:rgba(var(--rgb-link),.14); color:var(--bond);
-    border:1px solid var(--bond); border-radius:6px;
+    background:var(--sig-backing); color:var(--sig-bond);
+    border:1px solid var(--sig-bond); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .sig-hot {
-    background:rgba(var(--rgb-hot),.12); color:var(--hot);
-    border:1px solid var(--hot); border-radius:6px;
+    background:var(--sig-backing); color:var(--sig-hot);
+    border:1px solid var(--sig-hot); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
   .empty-state {

@@ -18,7 +18,7 @@ function getEtfTag(code, name) {
 
 function renderRank() {
   const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
-  const SIG_COLOR = { cheap:'var(--cheap)', fair:'var(--fair)', hot:'var(--hot)', dear:'var(--warn)', bond:'var(--bond)' };   // V2：與全站價格狀態標籤同一組 token
+  const SIG_COLOR = { cheap:'var(--sig-cheap)', fair:'var(--sig-fair)', hot:'var(--sig-hot)', dear:'var(--sig-dear)', bond:'var(--sig-bond)' };   // V2：與全站價格狀態標籤同一組 token
   const fmtRet = v => (v == null) ? '--' : (v > 0 ? '+' : '') + v.toFixed(1) + '%';
   const retClr = v => (v == null || v === 0) ? 'var(--dim)' : v > 0 ? 'var(--up)' : 'var(--dn)';   // 台股：漲紅跌綠、0 中性（D1）
 
