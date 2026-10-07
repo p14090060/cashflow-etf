@@ -554,6 +554,17 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - Reverse validation：移除 `etf:themechange` 監聽 → TH-9 3 FAIL（dark→light 對比失敗，重現 2.38；light 起點→dark 失敗；分類原生→light 失敗）。
     - 結果（800×600）：theme 50、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝981 PASS／0 FAIL／5 DEFER。
 
+- **CP7 Visual Gate（GPT Gate／PO）**：Codex 技術 PASS 後，PO Visual Gate 判 NEED FIX（palette 不符核准方向；Light「像在聚光燈下、灰灰的、紅綠快分不清」）。PO 指定核准 palette 為 Visual Source of Truth（參考圖本輪 Claude 端未收到圖檔，依文字列出的核准色施工）。
+  - **施工 `d09ac578`**（只改 token 與互動狀態色；DOM、流程、Router 不動）：
+    - Light：`--bg #F7F9FC`、`--card #FFFFFF`、`--card2 #EEF2F8`（柔和藍灰）、`--border #DDE3EC`、`--bright #1F2937`、`--dim #64748B`、`--link/--brand/--mood-cta #2563EB`、`--up #DC2626`、`--rgb-dn 5,150,105`（#059669 填色）、`--rgb-fair/--rgb-gold 217,119,6`（#D97706）、`--violet/--tech #7C3AED`、`--active #B45309`（字）／`--rgb-active 245,158,11`。
+    - Dark：`--bg #0F141B`、`--card #171E27`、`--card2 #202936`、`--border #2C3747`、`--bright #E8EDF3`、`--dim #98A4B3`、`--link/--brand/--bond #4C8DFF`、`--up/--dear #F06A6A`、`--dn/--cheap #4FC59A`、`--fair/--gold #D6A84B`、`--warn/--active #F59E0B`、`--violet #A78BFA`（字）／`--rgb-violet/--rgb-tech 139,92,246`（#8B5CF6）。新增 `--tech`、`--active`、`--rgb-tech`、`--rgb-active`。
+    - 品牌藍＝操作／選取／焦點：`.nav-btn.active`、`.cat-seg button.on`、`.dt-tab.on` 底線、`.gsearch-bar input:focus`、`.num-input:focus`、`.rank-ic.on`、`.rank-find input:focus`、`.rank-hit／.rank-flow／.cal-hit:focus-visible`（原本綠或金）。
+    - **元件層最小處理（核准色在該元件 rendered 對比 < 4.5，未改整體 palette）**：① light 文字型語意色用同色相加深版當字色、填色仍為核准色：`--cheap/--dn #065F46`（便宜、跌字；填色 #059669）、`--fair/--gold #A14A07`（合理、提醒字；填色 #D97706）、`--warn #9A3412`（偏貴）、`--hot/--dear #B91C1C`、`--bond #1D4ED8`、`--silver #536176`；② light 次要 surface 元件（cat-band、cat-strip、cat-more、cat-expand、mood-card、hot-item、home-row、home-empty、empty-state、flow-note、np-mkt、gs-more、wt-go、calc-out、num-input、router-proc）內 `--dim` 加深為 #536176（#64748B 在 #EEF2F8 上僅 4.24）；③ light `.rank-hdr` 紫色淡底 13%→8%（紫字 4.47→5.07）；④ dark `--hot #FB8A8A`（過熱標籤 12% 淡底上 #F87171 僅 4.47）。
+    - 測試：既有色值常數依新 dark palette 更新（watch UP／DN／DIM＝rgb(240,106,106)／rgb(79,197,154)／rgb(152,164,179)、FL-2、tools FS-6），theme TH-1 light 底色 rgb(247,249,252)、TH-2 theme-color #F7F9FC。TH-6 rendered 掃描（兩主題、全部 32 檔 treemap）與 TH-9（Flow 開著時雙向直接切換主題的動態重算）皆 PASS。
+    - 結果（800×600）：theme 50、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝981 PASS／0 FAIL／5 DEFER。
+  - 測試網址：手機（同 Wi-Fi）http://192.168.68.52:8090/index.html；本機 http://127.0.0.1:8090/index.html（8081 被其他程式佔用）。
+  - 下一步：GPT Gate／PO 再次 Visual Gate；Visual PASS 後由 Codex 做本輪 visual-token 變更的技術 regression review。CP7 尚未 CLOSED、CP8 未開始。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
