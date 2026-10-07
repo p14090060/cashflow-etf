@@ -131,6 +131,10 @@
   :root[data-theme="light"] :is(.gs-more, .cat-band, .cat-strip button, .cat-more, .cat-expand, .cat-more-in, .router-proc,
     .mood-card, .empty-state, .hot-item, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
   :root[data-theme="light"] .rank-hdr { background: rgba(var(--rgb-violet), .08); }
+  /* CP7 Visual Gate（PO）：light 狀態標籤只把底色改透明——文字與框線維持 PO-Locked 五色、不降 opacity；dark 維持 --sig-backing */
+  :root[data-theme="light"] :is(.sig-cheap, .sig-fair, .sig-dear, .sig-bond, .sig-hot, .rank-sig) { background: transparent; }
+  /* YouTube 品牌紅（PO-Locked Brand Color）：兩主題都不受文字／灰階 token 影響 */
+  .hdr-btn.hdr-yt { color: #FF0000; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 
   html { overflow-x:hidden; }

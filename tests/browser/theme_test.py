@@ -264,7 +264,13 @@ for mode in ('dark', 'light'):
       const cs=getComputedStyle(e); o[k]={c:cs.color, b:cs.borderTopColor, cr:+__cr(cs.color, cs.backgroundColor).toFixed(2)}; e.remove();}); return o})()""")
     check('TH-10 [%s] .sig-* 文字與框線＝原始五色（過熱 #ef4444、偏貴 #fb923c、合理 #F0B840、便宜 #00e5a0、債券 #58a6ff）' % mode,
           all(got[k]['c'] == v and got[k]['b'] == v for k, v in ORIG.items()), got)
-    check('TH-10 [%s] 五色在底襯上對比皆 ≥ 4.5' % mode, all(got[k]['cr'] >= 4.5 for k in ORIG), {k: got[k]['cr'] for k in ORIG})
+    if mode == 'dark':   # light 底色已依 PO 改為透明，實際對比由 TH-6 rendered 掃描量測（待 GPT Gate／PO 決定）
+        check('TH-10 [dark] 五色在 --sig-backing 底襯上對比皆 ≥ 4.5', all(got[k]['cr'] >= 4.5 for k in ORIG), {k: got[k]['cr'] for k in ORIG})
+    else:
+        bgs = ev("""['hot','dear','fair','cheap','bond'].map(k=>{const e=document.createElement('span'); e.className='sig-'+k; document.body.appendChild(e); const b=getComputedStyle(e).backgroundColor; e.remove(); return b})""")
+        check('TH-10 [light] 五個狀態標籤底色為透明（PO：只透明底色，文字／框線不變）', all(b in ('rgba(0, 0, 0, 0)', 'transparent') for b in bgs), bgs)
+    yt = ev("getComputedStyle(document.getElementById('hdrYt')).color")
+    check('TH-10 [%s] Header YouTube 為品牌紅 #FF0000' % mode, yt == 'rgb(255, 0, 0)', yt)
     ev("switchPage('rank'); true"); wait_ms(400)
     rk = ev("""(()=>{const o={}; _rankSorted.forEach(e=>{const el=document.querySelector('#rankRows .rank-row[data-code="'+e.code+'"] .rank-sig'); if(el && !o[e.signal]) o[e.signal]=getComputedStyle(el).color;}); return o})()""")
     check('TH-10 [%s] 排行狀態字＝同一組原始色' % mode, all(rk[k] == ORIG[k] for k in rk if k in ORIG) and len(rk) >= 3, rk)
