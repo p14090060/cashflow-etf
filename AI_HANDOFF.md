@@ -600,6 +600,10 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - **Known Blocker（TH-6，待 GPT Gate／PO）**：rendered 實測——Dark：首頁 hot-item（--card2 #202936）過熱 3.90；排行 rank-row／我的 ETF（--card #171E27）過熱 4.46；其他四色在 dark 皆 ≥ 4.5。Light：首頁 hot-item（#EEF2F8）便宜 1.47、合理 1.61、偏貴 2.01、過熱 3.35；排行（#FFFFFF）便宜 1.65、合理 1.80、偏貴 2.26、債券 2.53、過熱 3.76；Detail（奶油 #FEF8E2）過熱 3.54；我的 ETF（#FFFFFF）過熱 3.76。依指示不改五色、不加底襯、不降標準。
   - 狀態：CP7 Visual Gate 未 CLOSED、未交 Codex、CP8 未開始、未手動 push。測試網址：本機 http://127.0.0.1:8090/index.html；手機 http://192.168.68.52:8090/index.html。
 
+- **【獨立 Data Pipeline Incident｜00996A 持股抓取失敗｜記錄，先不修】**（2026-10-07，PO 實機 Telegram 監控）
+  - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
+  - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
