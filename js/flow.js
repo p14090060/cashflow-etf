@@ -274,6 +274,39 @@ function _tmEmpty(box, html, cls) {
   box.innerHTML = '<div class="tm-empty' + (cls ? ' ' + cls : '') + '">' + html + '</div>';
 }
 
+// ── treemap 格內字色（CP7）：依「token 色 × 透明度 疊在 treemap 底色上」的實際底色，取黑或白中對比較高者；
+//    中間調格（黑白都 < 4.6）小字加淡底襯（.tm-weak-l／-d）。面積→透明度邏輯不變，只決定字色。
+//    讀的是「當下」主題的 token，所以換主題時要重算（flowRecolor）。
+function _flowInkCtx(box) {
+  const rs = getComputedStyle(document.documentElement);
+  const trip = n => rs.getPropertyValue(n).split(',').map(Number);
+  const base = (getComputedStyle(box).backgroundColor.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
+  const lum = v => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); };
+  const UP = trip('--rgb-up'), DN = trip('--rgb-dn'), Ld = lum([13, 17, 23]);
+  return function (side, a) {
+    const rgb = side === 'buy' ? UP : DN;
+    const L = lum(rgb.map((c, i) => c * a + base[i] * (1 - a)));
+    const w = 1.05 / (L + 0.05), d = (L + 0.05) / (Ld + 0.05);
+    return w >= d ? ['#ffffff', w < 4.6] : ['#0d1117', d < 4.6];
+  };
+}
+function _flowWeakCls(ink, weak) { return weak ? (ink === '#ffffff' ? ' tm-weak tm-weak-l' : ' tm-weak tm-weak-d') : ''; }
+// 換主題時就地重算每格字色與底襯（不重畫 treemap：ETF、選取、搜尋 query、捲動、面積與透明度都不動）
+function flowRecolor() {
+  const box = document.getElementById('treemap');
+  if (!box) return;
+  const cells = box.querySelectorAll('.tm-cell[data-side]');
+  if (!cells.length) return;
+  const inkFor = _flowInkCtx(box);
+  cells.forEach(c => {
+    const [ink, weak] = inkFor(c.dataset.side, +c.dataset.a);
+    c.style.color = ink;
+    c.classList.remove('tm-weak', 'tm-weak-l', 'tm-weak-d');
+    if (weak) c.classList.add(...(_flowWeakCls(ink, weak).trim().split(' ')));
+  });
+}
+document.addEventListener('etf:themechange', flowRecolor);
+
 function renderFlow(code) {
   if (code) _flowSel = code;
   const box = document.getElementById('treemap');
@@ -395,17 +428,8 @@ function renderFlow(code) {
       .concat(squarify(buys .map(s => ({ d: s, value: s.amount })), sellW, 0, W - sellW, H).map(c => (c.side = 'buy', c)));
 
     _flowCells = cells.map(c => c.d);          // 點擊時用索引查回原始資料
-    // CP7 fix：格內文字依「實際看到的底色」（token 色 × 透明度 疊在 treemap 底 --card 上）選黑或白，取對比較高者。
-    // 面積→透明度的邏輯不變；只決定字色，讓兩種主題、深淺格子都讀得到。
-    const _rs = getComputedStyle(document.documentElement);
-    const _trip = n => _rs.getPropertyValue(n).split(',').map(Number);
-    const _base = (getComputedStyle(box).backgroundColor.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
-    const _lum = v => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); };
-    // 回傳 [字色, 是否需要小字底襯]：中間調的格子黑白都到不了 4.5 時，小字（金額／張數）加一層淡底襯（CSS .tm-weak）
-    const _ink = (rgb, a) => { const m = rgb.map((c, i) => c * a + _base[i] * (1 - a)); const L = _lum(m);
-      const w = 1.05 / (L + 0.05), d = (L + 0.05) / (_lum([13, 17, 23]) + 0.05);
-      return w >= d ? ['#ffffff', w < 4.6] : ['#0d1117', d < 4.6]; };
-    const _UP = _trip('--rgb-up'), _DN = _trip('--rgb-dn');
+    // CP7 fix：格內字色依實際底色決定（見 _flowInk）；換主題時由 flowRecolor() 就地重算，不重畫
+    const _inkFor = _flowInkCtx(box);
     box.innerHTML = cells.map((c, idx) => {
       const s = c.d, big = Math.min(c.w, c.h);
       // 台股慣例：紅=加碼(正)、綠=減碼(負)。與 App 其他頁的 --up/--dn、retClr 一致，
@@ -414,11 +438,11 @@ function renderFlow(code) {
       const bg = c.side === 'buy'
         ? 'rgba(var(--rgb-up),' + alpha + ')'   // V2：由 --up／--dn 換算，透明度仍依面積
         : 'rgba(var(--rgb-dn),' + alpha + ')';
-      const [ink, weak] = _ink(c.side === 'buy' ? _UP : _DN, alpha);
+      const [ink, weak] = _inkFor(c.side, alpha);
       const fs   = Math.max(11, Math.min(19, big / 4.0));   // 手機上 9px 太小，下限拉到 11
       const show = c.w > 42 && c.h > 26;
       const sub  = c.w > 58 && c.h > 46;
-      return '<div class="tm-cell' + (weak ? (ink === '#ffffff' ? ' tm-weak tm-weak-l' : ' tm-weak tm-weak-d') : '') + '" style="left:' + c.x.toFixed(1) + 'px;top:' + c.y.toFixed(1) +
+      return '<div class="tm-cell' + _flowWeakCls(ink, weak) + '" data-side="' + c.side + '" data-a="' + alpha + '" style="left:' + c.x.toFixed(1) + 'px;top:' + c.y.toFixed(1) +
         'px;width:' + c.w.toFixed(1) + 'px;height:' + c.h.toFixed(1) + 'px;background:' + bg + ';color:' + ink + '"' +
         ' onclick="flowTap(' + idx + ')">' +
         (show ? '<div class="tm-name" style="font-size:' + fs.toFixed(0) + 'px">' + s.name + '</div>' : '') +

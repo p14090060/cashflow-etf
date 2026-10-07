@@ -202,6 +202,60 @@ for mode in ('dark', 'light'):
     check('TH [%s] 無水平溢出' % mode, ov <= 0, ov)
     ev("Router.toBase({base:'home'}); true"); wait_ms(200)
 
+# ── TH-9（CP7 final fix）：Flow treemap 開著時直接切換主題（不 reload、不 resize），雙向：
+#    字色／底襯依新主題重算、rendered 對比達標；ETF、搜尋 query、選取、捲動、面積／透明度、Router／history 都不變
+ev("localStorage.removeItem('%s'); true" % THEME_KEY)
+media('dark'); reload_page(); ev(COLOR_JS); ev(SCAN_JS)
+cdp('Emulation.setDeviceMetricsOverride', {'width': 390, 'height': 844, 'deviceScaleFactor': 2, 'mobile': True}); wait_ms(300)
+ev("new Promise(r=>{const t=Date.now();const i=setInterval(()=>{if(_flowData||Date.now()-t>15000){clearInterval(i);r(1)}},100)})", True)
+FLOW9 = ev("_flowData.etfs['00981A'] ? '00981A' : Object.keys(_flowData.etfs).find(k=>(_flowData.etfs[k].flow||[]).length>4)")
+ev("switchPage('tools'); true"); wait_ms(250)
+ev("document.getElementById('toolFlow').click(); true"); wait_ms(500)
+ev("flowSelect(%s); true" % json.dumps(FLOW9)); wait_ms(400)
+ev("flowQOpen(); {const i=document.getElementById('flowQ'); i.value='009'; i.dispatchEvent(new Event('input'));} true"); wait_ms(200)
+ev("document.getElementById('flowChips').scrollLeft = 120; document.getElementById('flowLayer').scrollTop = 60; true"); wait_ms(200)
+STATE9 = """(()=>{const cells=[...document.querySelectorAll('#treemap .tm-cell')]; const L=document.getElementById('flowLayer');
+  return {theme:document.documentElement.getAttribute('data-theme'), sel:_flowSel, q:document.getElementById('flowQ').value, qOpen:!document.getElementById('flowQBox').hidden,
+    items:[...document.querySelectorAll('#flowQList .flow-q-item')].map(x=>x.dataset.code).join(),
+    active:(document.querySelector('#flowChips .flow-chip.active')||{}).dataset.code, chipsLeft:Math.round(document.getElementById('flowChips').scrollLeft), layerTop:Math.round(L.scrollTop), winY:Math.round(scrollY),
+    geo:cells.map(c=>[c.style.left,c.style.top,c.style.width,c.style.height,c.dataset.side,c.dataset.a].join('/')).join('|'),
+    alpha:cells.map(c=>(getComputedStyle(c).backgroundColor.match(/[\d.]+\)$/)||[''])[0]).join(), n:cells.length,
+    ink:cells.map(c=>c.style.color).join(), router:JSON.stringify(Router.state()), hlen:history.length, flowOn:flowLayerVisible()}})()"""
+def scan_flow(): return ev("__scan('#treemap')") + ev("__scan('#flowLayer')")
+s0 = ev(STATE9); bad0 = scan_flow()
+check('TH-9 前置（dark）：%s treemap 對比達標、搜尋開著（query 009）' % FLOW9, not bad0 and s0['qOpen'] and s0['q'] == '009' and s0['n'] > 0, bad0)
+seq = []
+for step in ('light', 'dark'):
+    ev("document.getElementById('themeBtn').click(); true"); wait_ms(250)
+    st9 = ev(STATE9); bad = scan_flow()
+    seq.append((step, st9['theme'], len(bad)))
+    check('TH-9 直接切到 %s（不 reload／resize）：treemap 與 Flow 層 rendered 對比全部達標' % step, st9['theme'] == step and not bad, bad[:6])
+    check('TH-9 切到 %s：格子顏色仍為紅（加碼）／綠（減碼）' % step,
+          ev("[...document.querySelectorAll('#treemap .tm-cell')].every(c=>['red','green'].includes(__fam(getComputedStyle(c).backgroundColor)))") is True, st9['ink'][:80])
+    keep = {k: (st9[k], s0[k]) for k in ('sel', 'q', 'qOpen', 'items', 'active', 'chipsLeft', 'layerTop', 'winY', 'geo', 'alpha', 'n', 'router', 'hlen', 'flowOn') if st9[k] != s0[k]}
+    check('TH-9 切到 %s：ETF、搜尋 query 與結果、選取 chip、selector／Flow 層／頁面捲動、格子位置與透明度、Router／history 全部不變' % step, not keep, keep)
+print('   TH-9 sequence:', seq)
+# 反方向起點：在 light 下畫出 treemap，再直接切到 dark
+ev("localStorage.removeItem('%s'); true" % THEME_KEY)
+media('light'); reload_page(); ev(COLOR_JS); ev(SCAN_JS)
+ev("new Promise(r=>{const t=Date.now();const i=setInterval(()=>{if(_flowData||Date.now()-t>15000){clearInterval(i);r(1)}},100)})", True)
+ev("switchPage('tools'); true"); wait_ms(250); ev("document.getElementById('toolFlow').click(); true"); wait_ms(500)
+ev("flowSelect(%s); true" % json.dumps(FLOW9)); wait_ms(400)
+l0 = ev(STATE9)
+ev("document.getElementById('themeBtn').click(); true"); wait_ms(250)
+l1 = ev(STATE9); bad = scan_flow()
+check('TH-9 由 light 畫出後直接切到 dark：rendered 對比全部達標，ETF／格子位置與透明度／Router 不變', l1['theme'] == 'dark' and not bad
+      and all(l1[k] == l0[k] for k in ('sel', 'geo', 'alpha', 'router', 'hlen')), bad[:6])
+# 分類原生持股異動也一樣
+ev("history.back(); true"); wait_ms(400)
+ev("Router.toBase({base:'cat'}); true"); wait_ms(300); ev("Router.openFolder('active'); true"); wait_ms(700); ev("Router.setFolderView('flow'); true"); wait_ms(500)
+for step in ('light', 'dark'):
+    ev("document.getElementById('themeBtn').click(); true"); wait_ms(250)
+    bad = ev("__scan('#catFlowHost')")
+    check('TH-9 分類原生持股異動直接切到 %s：rendered 對比全部達標' % step, theme() == step and not bad, bad[:6])
+ev("Router.toBase({base:'home'}); true"); wait_ms(200)
+cdp('Emulation.clearDeviceMetricsOverride')
+
 ev("localStorage.removeItem('%s'); localStorage.removeItem('etfRadar.watch.v1'); true" % THEME_KEY)
 media('dark')
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']

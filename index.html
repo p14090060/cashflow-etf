@@ -18,6 +18,7 @@
   function apply(t) {
     d.setAttribute('data-theme', t);
     var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'light' ? '#f6f8fa' : '#0d1117');
+    try { document.dispatchEvent(new CustomEvent('etf:themechange', { detail: t })); } catch (e) {}   // 依當下 token 計算的 inline 色（treemap 字色）就地重算
     var b = document.getElementById('themeBtn');
     if (b) { b.textContent = t === 'light' ? '🌙' : '☀'; b.setAttribute('aria-label', t === 'light' ? '切換為深色模式' : '切換為淺色模式'); b.setAttribute('aria-pressed', String(t === 'light')); }
   }
@@ -413,7 +414,7 @@
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
 <script src="js/nav.js?v=20261006e"></script>
-<script src="js/flow.js?v=20261007v"></script>
+<script src="js/flow.js?v=20261008a"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261007t"></script>
 <script src="js/render.js?v=20261007t"></script>
