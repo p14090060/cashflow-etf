@@ -590,6 +590,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 其他 CP7 已完成內容見本段上方各 CP7 條目（V1／V2、rendered contrast、主題鈕首次 paint、TH-5、Flow 開著切主題 recolor、核准 palette）。`_changedWithin()` 仍留 CP8 cleanup。
   - 測試環境備註：瀏覽器測試以 scratchpad `run_tests.py`（http 8766、Chrome 9224、`WS=800,600`）執行；Visual Gate 測試站為 `python -m http.server 8090 --bind 0.0.0.0`（8081 被其他程式佔用）：本機 http://127.0.0.1:8090/index.html、手機 http://192.168.68.52:8090/index.html。
 
+- **CP7 Visual Gate（Homepage Visual Polish）— `8f57809a`**（基準 `4e6bd112` 之上；本機，未手動 push，自動行情排程推送時 SHA 可能被改寫，訊息開頭「style(phase5-CP7): Visual Gate homepage polish」）：
+  - (1) Status Badge Light＋Dark 全部透明底：`--sig-backing: transparent`（移除 light 專用覆寫）；text／border＝PO-Locked 五色，opacity 1。
+  - (2) Light page 底 `--bg #FEF8E2`（PO 奶油 reference 取樣 #FEF8E2）、`--hdr-bg` 同色系、meta theme-color 同步；card 維持白。Dark page 底不動。連帶：light `--dim` #64748B 在奶油底只有 4.47 → 微調 #617187（4.68；白 card 4.98），避免新增非 Status 的 TH-6 FAIL。
+  - (3) 首頁入口卡（`.he-explore`／`.he-owned`，只限這兩張）：依 PO 四張 reference 取樣——dark 藍 #0B1B2E／accent #3B82F6、dark 綠 #0A2724／#34C79A、light 藍 #E6F2FF／#2563EB、light 綠 #E2F7F0／#079A72；新增放大鏡／錢包 icon、左側 4px accent（inset shadow，不佔寬）、arrow 同 accent。尺寸、文案、onclick、Router 不變（卡高 79px 與前相同）。
+  - (4) 加權漲跌幅：`pct>0` 紅（--up）、`<0` 綠（--dn）、`=0` neutral（--bright，無箭頭）；label「加權」維持次要字，數值 `.mi-val` 600、15px（同 TOP10 殖利率字級）。原 ±0.3% 才上色的門檻取消。
+  - (5) Header YouTube：紅 Play Mark（#FF0000 SVG）＋「YouTube」wordmark（dark #FFFFFF／light #0F0F0F），透明底無框；≤380px 縮字。實測 360：YT 153–240、主題 248–292、↻ 300–344，scrollWidth 360、LIVE 徽章單行；390：162–270／278–322／330–374，scrollWidth 390；高 44。YT-1／YT-2 PASS。
+  - 測試：theme 58 中 56 PASS／2 FAIL（TH-6 dark、TH-6 light，**失敗元素全部為 `.sig-*`／`.rank-sig`，無其他元素**）；TH-1／TH-2／TH-10 依 PO 新規格更新期望值（奶油底、theme-color、兩主題透明底、YouTube Logo）。regression 35、home 38、router 64、rank 80、tools 93、flowq 35、search_compact 38、detail_ui 48、detail_history_fix 14、detail_collapse 25、detail_state 42 全 PASS；category 270 PASS／1 DEFER（LR-8 既有）；watch 148 PASS／1 FAIL／4 DEFER——CD-1「卡片不含 52」在基準 `4e6bd112`（stash 後）同樣 FAIL，屬既有資料相依，非本輪 regression。
+  - **Known Blocker（TH-6，待 GPT Gate／PO）**：rendered 實測——Dark：首頁 hot-item（--card2 #202936）過熱 3.90；排行 rank-row／我的 ETF（--card #171E27）過熱 4.46；其他四色在 dark 皆 ≥ 4.5。Light：首頁 hot-item（#EEF2F8）便宜 1.47、合理 1.61、偏貴 2.01、過熱 3.35；排行（#FFFFFF）便宜 1.65、合理 1.80、偏貴 2.26、債券 2.53、過熱 3.76；Detail（奶油 #FEF8E2）過熱 3.54；我的 ETF（#FFFFFF）過熱 3.76。依指示不改五色、不加底襯、不降標準。
+  - 狀態：CP7 Visual Gate 未 CLOSED、未交 Codex、CP8 未開始、未手動 push。測試網址：本機 http://127.0.0.1:8090/index.html；手機 http://192.168.68.52:8090/index.html。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
