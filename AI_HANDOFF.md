@@ -565,6 +565,12 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試網址：手機（同 Wi-Fi）http://192.168.68.52:8090/index.html；本機 http://127.0.0.1:8090/index.html（8081 被其他程式佔用）。
   - 下一步：GPT Gate／PO 再次 Visual Gate；Visual PASS 後由 Codex 做本輪 visual-token 變更的技術 regression review。CP7 尚未 CLOSED、CP8 未開始。
 
+- **CP7 Visual Gate NEED FIX（PO 狀態色規則）— `dc5ea5bb`**：PO 不接受 CP7 對五個估值／狀態色的改動（dark「過熱」#FB8A8A 偏粉紅）。依 Git history（CP7 改版前 commit `components.css` 的 `.sig-*` 與 `base.css` token）恢復原始色：過熱 #ef4444、偏貴 #fb923c、合理 #F0B840（`--fair`）、便宜 #00e5a0（`--cheap`）、債券 #58a6ff（`--bond`）。註：改版前排行頁 `rank.js` 的狀態字曾另用 #4ade80（便宜）／#fde047（合理）兩個淺色變體，本輪依「一組五色」以 `.sig-*` 標籤色為準統一。
+  - 新增 `--sig-hot/--sig-dear/--sig-fair/--sig-cheap/--sig-bond`（只定義在 `:root`，light 不覆寫＝兩主題完全相同）與 `--sig-backing #0B0F14`。dark＝PO Hard Constraint；light 同色為 PO Visual Test，尚未正式鎖定。
+  - 對比處理（不改五色）：`.sig-*` 背景由 12% 淡底改為 `--sig-backing` 深色底襯（文字與框線維持原色）；排行 `.rank-sig` 狀態字加同一底襯（`border-radius:6px; padding:0 6px`）。原色在底襯上：過熱 5.11、偏貴 8.49、合理 10.65、便宜 11.64、債券 7.61。原色直接放在 light 卡片上僅 1.7～3.8，故需要底襯。
+  - theme_test 新增 TH-10 6 項（兩主題 `.sig-*` 文字／框線＝原始五色、對比 ≥ 4.5、排行狀態字同色）；反向：底襯改 transparent → TH-6 兩主題 FAIL。完整 regression：theme 56、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝987 PASS／0 FAIL／5 DEFER。
+  - 測試網址：手機 http://192.168.68.52:8090/index.html；本機 http://127.0.0.1:8090/index.html。下一步：GPT Gate／PO 再次 Visual Gate（CP7 未 CLOSED、未交 Codex、CP8 未開始）。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
