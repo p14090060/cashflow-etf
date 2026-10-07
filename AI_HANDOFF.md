@@ -579,6 +579,17 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試：theme 58 中 57 PASS／1 FAIL（TH-6 [light]，失敗元素僅 `.rank-sig`、`.sig-fair`、`.sig-dear`、`.sig-hot` 等狀態標籤）；TH-10 新增 light 透明底與兩主題 YouTube 紅；其他 regression 照舊 PASS。
   - 測試網址：手機 http://192.168.68.52:8090/index.html；本機 http://127.0.0.1:8090/index.html。等待 GPT Gate／PO Visual Gate 與 D 節決定、入口卡參考圖。
 
+- **【交接快照｜2026-10-07，context 打包，停止施工】**
+  - 最新實作 commit：`4e6bd112`「style(phase5-CP7): light 狀態標籤底色改透明、Header YouTube 兩主題品牌紅（Visual Gate）」——即先前回報的 `d4ecc656`（本機自動排程推送市場資料時 `pull --rebase` 改寫了 SHA，內容相同；之後的 commit 只有 `data/market.json` 與本交接本）。
+  - 狀態：Phase 5 CP1～CP6d CLOSED；**CP7 Engineering／Code Review PASS（Codex final limited re-review PASS）**；**CP7 Visual Gate 尚未 CLOSED**；**CP8 尚未開始**；**全部未 push**。
+  - Global Status 五色（PO-Locked，兩主題相同，token `--sig-*`）：過熱 #ef4444、偏貴 #fb923c、合理 #F0B840、便宜 #00e5a0、債券 #58a6ff；一組五色全站一致（排行頁不用舊 #4ade80／#fde047）。
+  - Dark 狀態標籤：維持 `--sig-backing #0B0F14` 底襯（PO Visual PASS）。Light 狀態標籤（`.sig-*`、`.rank-sig`）：background transparent，文字／框線維持五色、不降 opacity。
+  - **Known Blocker（待 GPT Gate／PO 決定）**：Light 透明底狀態標籤對比 < 4.5，theme_test TH-6 [light] FAIL（其餘全部 PASS）。量測：首頁 home-row #EEF2F8 合理 1.61；首頁 hot-item #EEF2F8 偏貴 2.01、過熱 3.35；排行 rank-row #FFFFFF 便宜 1.65、合理 1.80、偏貴 2.26、債券 2.53、過熱 3.76；Detail #F7F9FC 偏貴 2.15、過熱 3.57；我的 ETF #FFFFFF 偏貴 2.26、過熱 3.76。PO 指示：不改五色、不加回底襯、不做 light 變體、不降 opacity。
+  - Header YouTube：Light／Dark 固定品牌紅 #FF0000（`.hdr-btn.hdr-yt`），CP5 行為不變。
+  - Homepage Entry Cards（「我想看看 ETF」藍／「我已經有 ETF」綠）：**尚未施工**——兩次指令都未實際收到 4 張參考圖，依指示未猜配色。
+  - 其他 CP7 已完成內容見本段上方各 CP7 條目（V1／V2、rendered contrast、主題鈕首次 paint、TH-5、Flow 開著切主題 recolor、核准 palette）。`_changedWithin()` 仍留 CP8 cleanup。
+  - 測試環境備註：瀏覽器測試以 scratchpad `run_tests.py`（http 8766、Chrome 9224、`WS=800,600`）執行；Visual Gate 測試站為 `python -m http.server 8090 --bind 0.0.0.0`（8081 被其他程式佔用）：本機 http://127.0.0.1:8090/index.html、手機 http://192.168.68.52:8090/index.html。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
