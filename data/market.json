@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-07 14:10",
+  "updated": "2026-10-07 14:34",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -9809,7 +9809,7 @@
       "soon": true,
       "days_until": 0,
       "source": "official",
-      "amount_source": "TWSE"
+      "amount_source": "TWSE × FinMind 核實"
     },
     {
       "code": "00936",
