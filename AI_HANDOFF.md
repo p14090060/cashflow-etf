@@ -534,7 +534,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - Mutation：(1) 選取改 `openFlow(code)`（navigation）→ 3 FAIL（FQ-4、分類原生 FQ-5 push、FQ-8）；(2) 不攔 Esc → FQ-7 兩項 FAIL（Flow 被關）；(3) 搜尋範圍改用 ETFS → FQ-3 三項 FAIL（出現非 Flow ETF、0056 不再查無）。
   - 結果（800×600）：flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝931 PASS／0 FAIL／5 DEFER。390px 截圖目視：標題＋🔍 同列，展開後輸入框與結果在 selector 上方。
 
-- **CP7｜V1 Dark／Light＋V2 visual tokens（§7.1、§7.2、§9 順序 7）— `033041ea`，Codex NEED FIX 3 項 → fix `028a31c2`（見本段末），待 Codex CP7 limited re-review。**
+- **CP7｜V1 Dark／Light＋V2 visual tokens（§7.1、§7.2、§9 順序 7）— `033041ea`，Codex NEED FIX 3 項 → fix `028a31c2`；limited re-review：Issue ②③ CLOSED、Issue ① NEED FIX → fix `aab7b3ec`，待 Codex final limited re-review。**
   - V1：`index.html` `<head>` 在 CSS 前的行內 script：`localStorage.etfRadar.theme`（dark／light）優先，否則 `prefers-color-scheme`；未手動時 matchMedia `change` 跟著變，手動後不覆寫；讀寫失敗 try/catch（只在本次頁面生效）；`window.themeToggle()`、`themeApply()`；同步 `meta theme-color`（dark #0d1117／light #f6f8fa）。Header `.hdr-actions` 依序 YouTube（位置不動）→ `#themeBtn`（☀／🌙、44×44、aria-label「切換為淺色／深色模式」、aria-pressed）→ ↻。
   - V2：`css/base.css` `:root`＝dark，值與改版前實際色相同；新增語意 token（`--hot --warn --brand --link --silver --bronze --violet --mood-cta --src-official --err-text --err-soft --on-strong --fair-dim --hdr-bg --nav-bg --tm-border --shadow-pop/-menu/-lift/-band`）與 RGB 三元組（`--rgb-cheap/fair/up/dn/warn/hot/link/gold/violet/neutral/veil`，用法 `rgba(var(--rgb-x),α)`）；`:root[data-theme="light"]` 覆寫整組。CSS（base／components／pages／watch／category）與 JS（format miniBars、rank 標籤／SIG_COLOR／retClr／殖利率／配息方式、render 首頁 TOP 10、flow treemap）寫死色值全部改 token；剩下 pages.css 兩處 `#000` 為 mask 透明度，非顏色。archived-check.js（封存註解）未動。
   - 語意：兩主題 `--up` 紅、`--dn` 綠、0 中性、缺值灰；treemap `rgba(var(--rgb-up|dn), 0.30～0.85)`。light 下 treemap 格內文字隨 `--bright` 變深色。
@@ -549,6 +549,10 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - (3) TH-5：逐格以 `_flowCells[i]` 回查原始 `flow` 的 amount 正負，>0 必須紅、<0 必須綠，聚合格須為紅或綠；另驗加碼／減碼金額色。
     - Mutation：M1a dark `--hot` 退回 #ef4444 → TH-6 dark FAIL；M1b treemap 不依底色設字色 → TH-6 dark＋light FAIL；M2 移除主題鈕即時同步 → TH-8 light FAIL（icon ☀、label「切換為淺色模式」）；M3 dark `--rgb-up`／`--rgb-dn` 互換 → TH-5 dark FAIL。
     - 結果（800×600）：theme 40、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝971 PASS／0 FAIL／5 DEFER。
+  - **CP7 Issue ① fix `aab7b3ec`（Flow 開著時直接切換主題，treemap 字色未重算；00981A Dark→Light 實測 2.38）**：原因＝字色與 `.tm-weak` 底襯是 renderFlow 當下依 token 算的 inline 值。`flow.js` 抽出 `_flowInkCtx(box)`（讀「當下」token 與 treemap 底色）、`_flowWeakCls()`；格子加 `data-side`／`data-a`；新增 `flowRecolor()` 就地重算每格 `color` 與底襯 class，**不重畫**。`index.html` 的 `themeApply()` 每次套用後 dispatch `etf:themechange`，flow.js 監聽後 `flowRecolor()`。面積→透明度、格子位置、ETF、選取、搜尋、捲動、Router 都不動。
+    - theme_test 新增 TH-9 14 項：(a) dark 下開 Tools→Flow（00981A）、開搜尋 query「009」、selector 捲 120px、Flow 層捲 60px，直接按主題鈕 → light → dark：每次 treemap＋Flow 層 rendered 對比 0 失敗、格子仍紅／綠，且 ETF、query 與結果、active chip、selector／Flow 層／頁面捲動、格子位置與 data-a、computed 透明度、Router state、history.length 全部不變；(b) light 起點畫出 → 直接切 dark；(c) 分類原生持股異動 → light → dark。
+    - Reverse validation：移除 `etf:themechange` 監聽 → TH-9 3 FAIL（dark→light 對比失敗，重現 2.38；light 起點→dark 失敗；分類原生→light 失敗）。
+    - 結果（800×600）：theme 50、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝981 PASS／0 FAIL／5 DEFER。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
