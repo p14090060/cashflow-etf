@@ -571,6 +571,14 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - theme_test 新增 TH-10 6 項（兩主題 `.sig-*` 文字／框線＝原始五色、對比 ≥ 4.5、排行狀態字同色）；反向：底襯改 transparent → TH-6 兩主題 FAIL。完整 regression：theme 56、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝987 PASS／0 FAIL／5 DEFER。
   - 測試網址：手機 http://192.168.68.52:8090/index.html；本機 http://127.0.0.1:8090/index.html。下一步：GPT Gate／PO 再次 Visual Gate（CP7 未 CLOSED、未交 Codex、CP8 未開始）。
 
+- **CP7 Visual Gate（Homepage polish＋Light status badge）— `d4ecc656`**：PO 確認五色與 dark 標籤 PASS。本輪：
+  - (C) light 狀態標籤（`.sig-*`、`.rank-sig`）只把底色改 transparent，文字／框線維持 PO-Locked 五色、不降 opacity；dark 維持 `--sig-backing`。
+  - (F) Header YouTube `.hdr-btn.hdr-yt { color:#FF0000 }`，兩主題品牌紅；CP5 行為（位置、44px、URL、新分頁、noopener noreferrer）不變，regression YT-1／YT-2 PASS。
+  - (E) 首頁入口卡**未施工**：本輪訊息沒有附上 4 張參考圖（Claude 端只收到文字），依指示不猜配色。
+  - (D) **light 透明底狀態標籤對比不足（依 PO 指示不改色、不加回底襯，待 GPT Gate／PO 決定）**。實測 390×844：首頁 home-row（#EEF2F8）合理 #F0B840 1.61；首頁 hot-item（#EEF2F8）偏貴 2.01、過熱 3.35；排行 rank-row（#FFFFFF）便宜 #00e5a0 1.65、合理 1.80、偏貴 2.26、債券 #58a6ff 2.53、過熱 3.76；Detail gs-panel（#F7F9FC）偏貴 2.15、過熱 3.57；我的 ETF wc（#FFFFFF）偏貴 2.26、過熱 3.76。理論值：五色對 #FFFFFF／#F7F9FC／#EEF2F8 → 過熱 3.76／3.57／3.35、偏貴 2.26／2.15／2.01、合理 1.80／1.71／1.61、便宜 1.65／1.57／1.47、債券 2.53／2.40／2.25，均低於 4.5（過熱在 #FFFFFF 也未達大字 3 以外的正文門檻）。
+  - 測試：theme 58 中 57 PASS／1 FAIL（TH-6 [light]，失敗元素僅 `.rank-sig`、`.sig-fair`、`.sig-dear`、`.sig-hot` 等狀態標籤）；TH-10 新增 light 透明底與兩主題 YouTube 紅；其他 regression 照舊 PASS。
+  - 測試網址：手機 http://192.168.68.52:8090/index.html；本機 http://127.0.0.1:8090/index.html。等待 GPT Gate／PO Visual Gate 與 D 節決定、入口卡參考圖。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
