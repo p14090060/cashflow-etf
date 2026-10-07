@@ -534,7 +534,7 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - Mutation：(1) 選取改 `openFlow(code)`（navigation）→ 3 FAIL（FQ-4、分類原生 FQ-5 push、FQ-8）；(2) 不攔 Esc → FQ-7 兩項 FAIL（Flow 被關）；(3) 搜尋範圍改用 ETFS → FQ-3 三項 FAIL（出現非 Flow ETF、0056 不再查無）。
   - 結果（800×600）：flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝931 PASS／0 FAIL／5 DEFER。390px 截圖目視：標題＋🔍 同列，展開後輸入框與結果在 selector 上方。
 
-- **CP7｜V1 Dark／Light＋V2 visual tokens（§7.1、§7.2、§9 順序 7）— `033041ea`，待 Codex CP7 Code Review。**
+- **CP7｜V1 Dark／Light＋V2 visual tokens（§7.1、§7.2、§9 順序 7）— `033041ea`，Codex NEED FIX 3 項 → fix `028a31c2`（見本段末），待 Codex CP7 limited re-review。**
   - V1：`index.html` `<head>` 在 CSS 前的行內 script：`localStorage.etfRadar.theme`（dark／light）優先，否則 `prefers-color-scheme`；未手動時 matchMedia `change` 跟著變，手動後不覆寫；讀寫失敗 try/catch（只在本次頁面生效）；`window.themeToggle()`、`themeApply()`；同步 `meta theme-color`（dark #0d1117／light #f6f8fa）。Header `.hdr-actions` 依序 YouTube（位置不動）→ `#themeBtn`（☀／🌙、44×44、aria-label「切換為淺色／深色模式」、aria-pressed）→ ↻。
   - V2：`css/base.css` `:root`＝dark，值與改版前實際色相同；新增語意 token（`--hot --warn --brand --link --silver --bronze --violet --mood-cta --src-official --err-text --err-soft --on-strong --fair-dim --hdr-bg --nav-bg --tm-border --shadow-pop/-menu/-lift/-band`）與 RGB 三元組（`--rgb-cheap/fair/up/dn/warn/hot/link/gold/violet/neutral/veil`，用法 `rgba(var(--rgb-x),α)`）；`:root[data-theme="light"]` 覆寫整組。CSS（base／components／pages／watch／category）與 JS（format miniBars、rank 標籤／SIG_COLOR／retClr／殖利率／配息方式、render 首頁 TOP 10、flow treemap）寫死色值全部改 token；剩下 pages.css 兩處 `#000` 為 mask 透明度，非顏色。archived-check.js（封存註解）未動。
   - 語意：兩主題 `--up` 紅、`--dn` 綠、0 中性、缺值灰；treemap `rgba(var(--rgb-up|dn), 0.30～0.85)`。light 下 treemap 格內文字隨 `--bright` 變深色。
@@ -542,6 +542,13 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試：新增 `tests/browser/theme_test.py` 36 項——TH-1 系統 light／dark 初始、未手動時跟系統變、按鈕順序與 44px；TH-2 切換寫入、手動後系統不覆寫、重新整理維持、theme-color、切換不寫 history／Router；TH-3 Storage 全部丟例外時初始依系統、切換仍生效、無主題相關例外；TH-4（兩主題）miniBars、排行近一年報酬、我的 ETF 今日漲跌紅漲綠跌、0／缺值中性；TH-5（兩主題）treemap 只有紅系與綠系、加碼紅減碼綠、海外清單正紅負綠；TH-6（兩主題）28 組 token 對比全 ≥ 4.5（數值印在 log）、B6 警示條 ≥ 4.5；TH-7 文件夾陰影存在、B6 低調（字級 ≤ 主標、淡底 α<0.2）、無水平溢出。共用 header（detail_ui_test）加 `Emulation.setEmulatedMedia` 固定系統 dark（既有色值斷言以 dark 為基準）。依規格更新：watch D1（miniBars 改 --up／--dn）、tools FS-6（treemap 改讀 computed 色）。
   - Mutation：light 的 `--up` 改成綠 → theme_test 5 FAIL（TH-4 三項、TH-5 兩項）。
   - 結果（800×600）：theme 36、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝967 PASS／0 FAIL／5 DEFER。390px light 截圖目視：首頁、排行、Active Flow、分類、我的 ETF 可讀，紅綠語意正確。
+  - **CP7 fix `028a31c2`**
+    - (1) rendered 對比：Codex 實測「過熱」dark 4.27／light 3.92、00981A treemap light 金額 3.76／張數 3.10（dark 更低）。修正：dark `--hot` #ff7070；light `--hot` #b31d28、`--warn`/`--brand` #9a3c00、`--cheap` #11643f、`--fair`/`--gold` #7a4f00、`--bond` #0858b9（三元組同步）。treemap 格色與面積透明度不變，`flow.js` 依「token 色×α 疊在 treemap 底」算出實際底色，字色取黑（#0d1117）或白對比較高者；移除 `.tm-amt`／`.tm-etf` opacity；中間調格（黑白皆 < 4.6）小字加淡底襯 `.tm-weak-l`（rgba(0,0,0,.28)）／`.tm-weak-d`（rgba(255,255,255,.4)）。紅漲綠跌、紅加碼綠減碼不變。
+    - TH-6 改 rendered 掃描（SCAN_JS 內嵌於 theme_test）：每個有文字的可見元素，前景＝color×祖先 opacity，背景＝由 html 往下逐層混色；正文 ≥ 4.5、大字（≥24px 或 ≥18.66px 粗體）≥ 3；略過純符號。範圍：首頁、排行、工具、持股異動（00981A＋海外＋全部 32 檔 treemap 逐一切換）、分類總覽／清單／原生持股異動、我的 ETF、Detail 四分頁、Header、B6、導覽列，兩主題，全部 0 失敗。
+    - (2) 主題鈕首次 paint：Header `.hdr-actions` 結束後緊接 `<script>themeApply(themeCurrent())</script>`（不在按鈕群內，TH-1 順序不變）。TH-8：`Network.setCacheDisabled`＋`Fetch.enable` 暫停 `js/state.js`，parser 停住（readyState=loading、ETFS 未定義）時驗 icon／aria-label／aria-pressed＝實際主題（light／dark 各一）。
+    - (3) TH-5：逐格以 `_flowCells[i]` 回查原始 `flow` 的 amount 正負，>0 必須紅、<0 必須綠，聚合格須為紅或綠；另驗加碼／減碼金額色。
+    - Mutation：M1a dark `--hot` 退回 #ef4444 → TH-6 dark FAIL；M1b treemap 不依底色設字色 → TH-6 dark＋light FAIL；M2 移除主題鈕即時同步 → TH-8 light FAIL（icon ☀、label「切換為淺色模式」）；M3 dark `--rgb-up`／`--rgb-dn` 互換 → TH-5 dark FAIL。
+    - 結果（800×600）：theme 40、flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER＝971 PASS／0 FAIL／5 DEFER。
 
 ## 1. 協作協定（團隊約定，原文保留）
 
