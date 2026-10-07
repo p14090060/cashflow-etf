@@ -8,6 +8,46 @@ src = open('tests/browser/detail_ui_test.py', encoding='utf-8').read()
 exec(src.split("# ── T2 開啟 0050")[0])   # 載入頁面、helper、T0
 
 THEME_KEY = 'etfRadar.theme'
+# CP7 fix：rendered contrast 掃描——文字色（含祖先 opacity）疊在「由 html 往下逐層混色」後的實際底色上計算對比；
+# 正文 ≥ 4.5、大字（≥24px，或 ≥18.66px 粗體）≥ 3。純裝飾符號（emoji、箭頭、›）略過。
+SCAN_JS = r'''window.__scan = function (rootSel, limit) {
+  const P = c => { const m = String(c).match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/); return m ? [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]] : null; };
+  const over = (top, under) => { const a = top[3]; return [top[0] * a + under[0] * (1 - a), top[1] * a + under[1] * (1 - a), top[2] * a + under[2] * (1 - a), 1]; };
+  const lum = v => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); };
+  const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const EMOJI = /^[\s\p{Extended_Pictographic}←-⇿⌀-⏿■-◿☀-➿›‹··|｜\-–—\/／,，.。:：()（）%+]*$/u;
+  const out = []; const root = document.querySelector(rootSel); if (!root) return [{err: 'no root ' + rootSel}];
+  const els = [root, ...root.querySelectorAll('*')];
+  for (const el of els) {
+    if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') continue;
+    if (el.closest('[aria-hidden="true"],[hidden],template,svg')) continue;
+    if (el.disabled || (el.closest('button') && el.closest('button').disabled)) continue;
+    const txt = [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
+    if (!txt || EMOJI.test(txt)) continue;
+    const r = el.getBoundingClientRect(); if (r.width < 1 || r.height < 1) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden') continue;
+    // 背景：由 html 往下逐層混色
+    const chain = []; let p = el; while (p) { chain.unshift(p); p = p.parentElement; }
+    let bg = [255, 255, 255, 1], op = 1, img = false;
+    for (const a of chain) {
+      const s = getComputedStyle(a);
+      const c = P(s.backgroundColor); if (c && c[3] > 0) bg = over(c, bg);
+      if (s.backgroundImage && s.backgroundImage !== 'none' && !/mask/.test(s.backgroundImage)) img = true;
+      op *= parseFloat(s.opacity);
+    }
+    const fgc = P(cs.color); if (!fgc) continue;
+    const fg = over([fgc[0], fgc[1], fgc[2], fgc[3] * op], bg);
+    const fs = parseFloat(cs.fontSize), bold = parseInt(cs.fontWeight) >= 700;
+    const need = (fs >= 24 || (fs >= 18.66 && bold)) ? 3 : 4.5;
+    const v = cr(fg, bg);
+    if (v < need) out.push({t: txt.slice(0, 18), cls: (el.className && el.className.baseVal === undefined ? el.className : el.tagName) + '', fs, cr: +v.toFixed(2), need, img});
+    if (limit && out.length >= limit) break;
+  }
+  return out;
+};
+true;
+'''
 def media(v): cdp('Emulation.setEmulatedMedia', {'features': [{'name': 'prefers-color-scheme', 'value': v}]})
 def theme(): return ev("document.documentElement.getAttribute('data-theme')")
 def reload_page():
@@ -66,6 +106,22 @@ if sid: cdp('Page.removeScriptToEvaluateOnNewDocument', {'identifier': sid})
 # 只保留與主題無關的例外比對基準（WatchStore 自己的 storage 失敗處理不在本項範圍）
 events[:] = [e for e in events if not (e.get('method') == 'Runtime.exceptionThrown' and 'blocked' in json.dumps(e))]
 
+# ── TH-8（CP7 fix）：首次可見 paint 時主題鈕已與實際主題一致——暫停底部第一支 script（js/state.js），
+#    parser 停在那裡、DOMContentLoaded 尚未觸發，Header 已畫出；此時檢查按鈕 icon／accessible label／aria-pressed
+for mode, icon, label, pressed in (('light', '🌙', '切換為深色模式', 'true'), ('dark', '☀', '切換為淺色模式', 'false')):
+    ev("localStorage.removeItem('%s'); true" % THEME_KEY)
+    media(mode)
+    cdp('Network.enable'); cdp('Network.setCacheDisabled', {'cacheDisabled': True})   # 快取命中的 script 不經 Fetch 攔截
+    cdp('Fetch.enable', {'patterns': [{'urlPattern': '*js/state.js*', 'requestStage': 'Request'}]})
+    cdp('Page.navigate', {'url': BASE}); time.sleep(1.5)
+    fp = ev("""(()=>{const b=document.getElementById('themeBtn'); return {ready:document.readyState, theme:document.documentElement.getAttribute('data-theme'),
+      icon:b&&b.textContent, label:b&&b.getAttribute('aria-label'), pressed:b&&b.getAttribute('aria-pressed'), vis:!!(b&&b.getBoundingClientRect().width),
+      stateJs: typeof ETFS !== 'undefined'}})()""")
+    cdp('Fetch.disable'); time.sleep(1.5)
+    check('TH-8 [%s] 底部 script 暫停（readyState=loading、state.js 未執行）時主題鈕已同步：%s、「%s」、aria-pressed=%s' % (mode, icon, label, pressed),
+          isinstance(fp, dict) and fp['ready'] == 'loading' and not fp['stateJs'] and fp['vis'] and fp['theme'] == mode and fp['icon'] == icon and fp['label'] == label and fp['pressed'] == pressed, fp)
+media('dark'); reload_page()
+
 # ── TH-4／TH-5／TH-6／TH-7：兩種主題逐一驗
 for mode in ('dark', 'light'):
     ev("localStorage.removeItem('%s'); true" % THEME_KEY)
@@ -89,26 +145,50 @@ for mode in ('dark', 'light'):
     ev("new Promise(r=>{const t=Date.now();const i=setInterval(()=>{if(_flowData||Date.now()-t>15000){clearInterval(i);r(1)}},100)})", True)
     fc = ev("Object.keys(_flowData.etfs).find(k=>(_flowData.etfs[k].flow||[]).some(x=>x.amount>0) && (_flowData.etfs[k].flow||[]).some(x=>x.amount<0))")
     ev("openFlow(%s); true" % json.dumps(fc)); wait_ms(500)
-    tm = ev("""(()=>{const fams=[...document.querySelectorAll('#treemap .tm-cell')].map(c=>({f:__fam(getComputedStyle(c).backgroundColor)}));
-      return {n:fams.length, red:fams.filter(x=>x.f==='red').length, green:fams.filter(x=>x.f==='green').length,
+    # CP7 fix：逐格以「原始資料 amount 的正負」核對實際 rendered 顏色（amount > 0 → 紅／加碼、< 0 → 綠／減碼）。
+    # _flowCells[i] 是第 i 格的資料；減碼格的 amount 在畫圖時取了絕對值，所以用代碼回查原始 flow 的正負。
+    tm = ev("""(()=>{const e=_flowData.etfs[_flowSel]; const orig={}; (e.flow||[]).forEach(x=>{orig[x.code+'|'+x.name]=x.amount});
+      const cells=[...document.querySelectorAll('#treemap .tm-cell')]; const rows=cells.map((c,i)=>{const d=_flowCells[i]||{}; const a=orig[d.code+'|'+d.name];
+        return {code:d.code, agg:!!d._agg, amount:a, fam:__fam(getComputedStyle(c).backgroundColor)}});
+      const checked=rows.filter(x=>!x.agg && typeof x.amount==='number' && x.amount!==0);
+      const bad=checked.filter(x=>(x.amount>0 && x.fam!=='red') || (x.amount<0 && x.fam!=='green'));
+      return {n:cells.length, checked:checked.length, pos:checked.filter(x=>x.amount>0).length, neg:checked.filter(x=>x.amount<0).length, bad:bad.slice(0,5),
+              aggOk: rows.filter(x=>x.agg).every(x=>x.fam==='red'||x.fam==='green'),
               buy:__fam(getComputedStyle(document.getElementById('flowBuy')).color), sell:__fam(getComputedStyle(document.getElementById('flowSell')).color)}})()""")
-    check('TH-5 [%s] treemap 加碼格紅系、減碼格綠系，且無其他色；加碼金額紅、減碼金額綠（%s）' % (mode, fc),
-          tm['n'] > 0 and tm['red'] + tm['green'] == tm['n'] and tm['red'] > 0 and tm['green'] > 0 and tm['buy'] == 'red' and tm['sell'] == 'green', tm)
+    check('TH-5 [%s] treemap 逐格：原始 amount > 0 的格為紅、< 0 的格為綠（%s，%d 格中核對 %d 格：正 %d／負 %d）' % (mode, fc, tm['n'], tm['checked'], tm['pos'], tm['neg']),
+          tm['checked'] >= 4 and tm['pos'] > 0 and tm['neg'] > 0 and not tm['bad'] and tm['aggOk'], tm)
+    check('TH-5 [%s] 加碼金額紅、減碼金額綠' % mode, tm['buy'] == 'red' and tm['sell'] == 'green', tm)
     np = ev("""(()=>{const d=document.createElement('div'); d.innerHTML=_npList([{code:'AAA US',name:'x',delta_shares:100},{code:'BBB US',name:'y',delta_shares:-50},{code:'CCC',name:'z',delta_shares:null}]);
       document.getElementById('flowForeign').appendChild(d); const r=[...d.querySelectorAll('.np-d')].map(x=>__fam(getComputedStyle(x).color)); d.remove(); return r})()""")
     check('TH-5 [%s] 海外清單：正值紅、負值綠、缺值中性' % mode, np == ['red', 'green', 'neutral'], np)
     ev("history.back(); true"); wait_ms(400)
-    # TH-6 可讀性：token 對 --bg／--card 的對比（正文 ≥ 4.5、大字／圖形 ≥ 3）
-    pairs = [('--bright', '--bg', 4.5), ('--bright', '--card', 4.5), ('--dim', '--bg', 4.5), ('--dim', '--card', 4.5), ('--dim', '--card2', 4.5),
-             ('--up', '--card', 4.5), ('--dn', '--card', 4.5), ('--up', '--bg', 4.5), ('--dn', '--bg', 4.5),
-             ('--cheap', '--card', 4.5), ('--fair', '--card', 4.5), ('--hot', '--card', 4.5), ('--warn', '--card', 4.5), ('--bond', '--card', 4.5),
-             ('--cheap', '--card2', 4.5), ('--fair', '--card2', 4.5), ('--hot', '--card2', 4.5), ('--warn', '--card2', 4.5),
-             ('--link', '--card', 4.5), ('--link', '--bg', 4.5), ('--gold', '--bg', 4.5), ('--brand', '--card', 4.5), ('--violet', '--card', 4.5),
-             ('--silver', '--card', 4.5), ('--bronze', '--card', 4.5), ('--fair-dim', '--card', 4.5), ('--on-strong', '--sea', 4.5), ('--fair', '--bg', 4.5)]
-    res = ev("%s.map(([a,b,m])=>[a,b,m,+__cr(__tok(a),__tok(b)).toFixed(2)])" % json.dumps(pairs))
-    low = [x for x in res if x[3] < x[2]]
-    print('   TH-6 [%s] contrast:' % mode, {('%s/%s' % (x[0], x[1])): x[3] for x in res})
-    check('TH-6 [%s] 主文字、次要文字、價格狀態、漲跌、連結等 %d 組對比全部達標' % (mode, len(res)), not low, low)
+    # TH-6 可讀性（CP7 fix）：以使用者實際看到的 rendered 組件為準——淡色底混色、透明度、文字 opacity 都算進去
+    ev(SCAN_JS)
+    scr = {}
+    ev("Router.toBase({base:'home'}); window.scrollTo(0,0); true"); wait_ms(300); scr['首頁'] = ev("__scan('#page-today')")
+    ev("switchPage('rank'); true"); wait_ms(400); scr['排行'] = ev("__scan('#page-rank')")
+    ev("switchPage('tools'); true"); wait_ms(250); scr['工具'] = ev("__scan('#page-tools')")
+    ev("openFlow(%s); true" % json.dumps(fc)); wait_ms(500); scr['持股異動 %s' % fc] = ev("__scan('#flowLayer')")
+    npc = ev("Object.keys(_flowData.etfs).find(k=>(_flowData.etfs[k].no_price||[]).length>0)")
+    if npc:
+        ev("flowSelect(%s); true" % json.dumps(npc)); wait_ms(400); scr['持股異動海外 %s' % npc] = ev("__scan('#flowLayer')")
+    for c in ev("Object.keys(_flowData.etfs)"):
+        ev("flowSelect(%s); true" % json.dumps(c)); wait_ms(60)
+        bad = ev("__scan('#treemap')")
+        if bad: scr['treemap %s' % c] = bad
+    ev("history.back(); true"); wait_ms(400)
+    ev("Router.toBase({base:'cat'}); true"); wait_ms(300); scr['分類'] = ev("__scan('#page-cat')")
+    ev("Router.openFolder('active'); true"); wait_ms(700); scr['分類清單'] = ev("__scan('#page-cat')")
+    ev("Router.setFolderView('flow'); true"); wait_ms(500); scr['分類持股異動'] = ev("__scan('#page-cat')")
+    ev("localStorage.setItem('etfRadar.watch.v1', JSON.stringify({v:1,codes:['0050','0056',%s]})); WatchStore._reload(); Watch.render(); Router.toBase({base:'watch'}); true" % json.dumps(fc)); wait_ms(400)
+    scr['我的 ETF'] = ev("__scan('#page-watch')")
+    for tab in ('overview', 'dividend', 'perf', 'holdings'):
+        ev("openDetail(%s); detailTab('%s'); true" % (json.dumps(fc), tab)); wait_ms(350); scr['Detail %s' % tab] = ev("__scan('#gsPanel')")
+    ev("closeDetail(); true"); wait_ms(300)
+    scr['Header'] = ev("__scan('.app-hdr')"); scr['B6'] = ev("__scan('.disclaimer')"); scr['導覽列'] = ev("__scan('.bottom-nav')")
+    worst = {k: v for k, v in scr.items() if v}
+    print('   TH-6 [%s] rendered contrast fails:' % mode, json.dumps(worst, ensure_ascii=False)[:600])
+    check('TH-6 [%s] rendered 對比：%d 個畫面（含全部 %d 檔 treemap）文字皆達標（正文 ≥ 4.5、大字 ≥ 3）' % (mode, len(scr), ev("Object.keys(_flowData.etfs).length")), not worst, worst)
     b6 = ev("""(()=>{const d=document.querySelector('.disclaimer'); const cs=getComputedStyle(d); return {fs:parseFloat(cs.fontSize), cr:__cr(cs.color, getComputedStyle(document.body).backgroundColor)}})()""")
     check('TH-6 [%s] B6 警示條文字對比 ≥ 4.5（%.2f）' % (mode, b6['cr']), b6['cr'] >= 4.5, b6)
     # TH-7 資訊層級

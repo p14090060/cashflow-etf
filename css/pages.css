@@ -203,8 +203,13 @@
                  display:flex; flex-direction:column; align-items:center; justify-content:center;
                  text-align:center; padding:2px; cursor:pointer; }
   .tm-name     { font-weight:700; line-height:1.15; word-break:break-all; }
-  .tm-amt      { font-family:var(--mono); line-height:1.2; opacity:.95; }
-  .tm-etf      { font-family:var(--mono); opacity:.8; line-height:1.2; }
+  /* CP7 fix：格內文字色由 flow.js 依實際混色背景選黑／白（對比 ≥ 4.5），不再用 opacity 淡化 */
+  .tm-amt      { font-family:var(--mono); line-height:1.2; }
+  .tm-etf      { font-family:var(--mono); line-height:1.2; }
+  /* 中間調格子：黑白字都不足 4.5 時，小字加淡底襯補足對比（格子本身的顏色與透明度不變） */
+  .tm-weak .tm-amt, .tm-weak .tm-etf { padding:0 3px; border-radius:3px; }
+  .tm-weak-l .tm-amt, .tm-weak-l .tm-etf { background:rgba(0,0,0,.28); }
+  .tm-weak-d .tm-amt, .tm-weak-d .tm-etf { background:rgba(255,255,255,.4); }
   /* 畫不出 treemap 時框框縮成文字高度——520px 的空框裡浮一行字很難看，
      而且會把下方的海外持股清單整個推出畫面外 */
   .treemap.tm-slim { height:auto; }

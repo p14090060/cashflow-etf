@@ -25,7 +25,7 @@
   --gold:  #ffd700;
     --nav-h: 62px;
     /* ── Phase 5 V2：全站 visual tokens（PHASE5_PLAN §7.2）。dark 值＝改版前實際色，換主題只換這裡 ── */
-    --hot:   #f25a5a;   /* 過熱（原 #ef4444 在 --card2 上 4.3:1，TH-6 調亮至 ≥ 4.9:1） */
+    --hot:   #ff7070;   /* 過熱（標籤為 12% 淡底＋--card2，實際 rendered 對比需 ≥ 4.5；#ef4444 僅 4.27） */
     --warn:  #fb923c;   /* 偏貴（橘）、現價 */
     --brand: #ff9500;   /* 品牌橘：面板標題、配息方式 */
     --link:  #58a6ff;   /* ETF 名稱、連結、中性藍強調（選取框） */
@@ -51,7 +51,7 @@
     --rgb-up:    255,63,94;
     --rgb-dn:    0,200,122;
     --rgb-warn:  251,146,60;
-    --rgb-hot:   242,90,90;
+    --rgb-hot:   255,112,112;
     --rgb-link:  88,166,255;
     --rgb-gold:  255,215,0;
     --rgb-violet:196,181,253;
@@ -68,17 +68,17 @@
     --border:#d0d7de;
     --dim:   #57606a;
     --bright:#1f2328;
-    --cheap: #157350;
-    --fair:  #8a5a00;
+    --cheap: #11643f;
+    --fair:  #7a4f00;
     --dear:  #c4333a;
     --up:    #c4333a;
     --dn:    #1a7a57;
-    --bond:  #0969da;
+    --bond:  #0858b9;
     --sea:   #164c80;
-    --gold:  #8a5a00;
-    --hot:   #cf222e;
-    --warn:  #b54700;
-    --brand: #b54700;
+    --gold:  #7a4f00;
+    --hot:   #b31d28;
+    --warn:  #9a3c00;
+    --brand: #9a3c00;
     --link:  #0969da;
     --silver:#5f6874;
     --bronze:#9c5a2b;
@@ -95,12 +95,12 @@
     --shadow-menu: 0 6px 18px rgba(31,35,40,.16);
     --shadow-lift: 0 10px 26px rgba(31,35,40,.24);
     --shadow-band: 0 -3px 8px rgba(31,35,40,.10);
-    --rgb-cheap: 21,115,80;
-    --rgb-fair:  154,103,0;
+    --rgb-cheap: 17,100,63;
+    --rgb-fair:  122,79,0;
     --rgb-up:    196,51,58;
     --rgb-dn:    26,122,87;
-    --rgb-warn:  181,71,0;
-    --rgb-hot:   207,34,46;
+    --rgb-warn:  154,60,0;
+    --rgb-hot:   179,29,40;
     --rgb-link:  9,105,218;
     --rgb-gold:  154,103,0;
     --rgb-violet:102,57,186;

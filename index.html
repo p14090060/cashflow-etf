@@ -38,9 +38,9 @@
 })();
 </script>
 <title>ETF 存股雷達 v2</title>
-<link rel="stylesheet" href="css/base.css?v=20261007t">
+<link rel="stylesheet" href="css/base.css?v=20261007u">
 <link rel="stylesheet" href="css/components.css?v=20261007t">
-<link rel="stylesheet" href="css/pages.css?v=20261007t">
+<link rel="stylesheet" href="css/pages.css?v=20261007v">
 <link rel="stylesheet" href="css/category.css?v=20261007t">
 <link rel="stylesheet" href="css/watch.css?v=20261007t">
 </head>
@@ -60,6 +60,7 @@
       <button class="hdr-btn hdr-theme" id="themeBtn" type="button" aria-label="切換為淺色模式" aria-pressed="false" onclick="themeToggle()">☀</button>
       <button class="hdr-btn refresh-btn" id="refreshBtn" onclick="reloadData()" aria-label="重新載入資料">↻</button>
     </div>
+    <script>themeApply(themeCurrent());   /* CP7 fix：主題鈕一出現就與 <head> 已決定的主題同步（首次 paint 即正確），不等 DOMContentLoaded */</script>
   </div>
 
   <div class="gsearch-bar">
@@ -412,7 +413,7 @@
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
 <script src="js/nav.js?v=20261006e"></script>
-<script src="js/flow.js?v=20261007t"></script>
+<script src="js/flow.js?v=20261007v"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261007t"></script>
 <script src="js/render.js?v=20261007t"></script>
