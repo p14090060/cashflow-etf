@@ -600,6 +600,13 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - **Known Blocker（TH-6，待 GPT Gate／PO）**：rendered 實測——Dark：首頁 hot-item（--card2 #202936）過熱 3.90；排行 rank-row／我的 ETF（--card #171E27）過熱 4.46；其他四色在 dark 皆 ≥ 4.5。Light：首頁 hot-item（#EEF2F8）便宜 1.47、合理 1.61、偏貴 2.01、過熱 3.35；排行（#FFFFFF）便宜 1.65、合理 1.80、偏貴 2.26、債券 2.53、過熱 3.76；Detail（奶油 #FEF8E2）過熱 3.54；我的 ETF（#FFFFFF）過熱 3.76。依指示不改五色、不加底襯、不降標準。
   - 狀態：CP7 Visual Gate 未 CLOSED、未交 Codex、CP8 未開始、未手動 push。測試網址：本機 http://127.0.0.1:8090/index.html；手機 http://192.168.68.52:8090/index.html。
 
+- **CP7 Visual Gate（Typography Alignment）— `9defbd6c`**（本機，未手動 push）：
+  - (1) 首頁「價格合理區」「今日成交量 TOP 10」標題 16 → 19px（`#pzTitle, #tvTitle`），位置／間距／row 不變。
+  - (2) 全站 ETF 代碼／名稱：Source of Truth＝首頁條列 `.wait-code`／`.wait-name`。`base.css` token `--etf-code-*`／`--etf-name-*`＋共用規則：代碼 Microsoft JhengHei 16px 700 `--bright`；名稱 16px 400 `--link`（兩主題同邏輯，色走主題 token）。套用：Detail 標題（`.gs-panel-hd .t b`／新增 `.etf-name`）、分類清單 `.cr-code`／`.cr-name`（原 mono 14px／名稱 --dim）、100 排行 `.rank-code`／`.rank-name`（原 mono 20px／18px）。各頁原本的字型／字級／顏色宣告已移除，只留 layout 屬性。
+  - 實測 360／390 × Light／Dark：首頁、分類、排行、Detail 的 code／name computed style 完全一致；代碼無截斷；首頁、分類、Detail 無水平 overflow。
+  - 測試：home 38、detail_ui 48、detail_state 42、detail_history_fix 14、detail_collapse 25、router 64、regression 35、watch 149（4 DEFER）、search_compact 38、tools 93、flowq 35 全 PASS；category 270 PASS／1 DEFER（LR-8）；theme 56／2 FAIL（僅 TH-6 Status Known Blocker）；rank 79／1 FAIL——RK-1「捲動後 sticky 黏在 Header 下方」在前一個 commit（stash 後）同樣 FAIL（`--hdr-h` 138 vs Header 實際 122，盤後狀態相依；11:2x 盤中時 PASS），非本輪 regression。
+  - **Observation（既有，本輪 scope lock 未修）**：360px 排行頁「持股異動 ›」（`.rank-flow`）右緣到 388px，頁面水平 overflow 28px；前一個 commit 同樣存在。另 RK-1 `--hdr-h` 未隨 Header 高度變化重新同步（見上）。兩項待 Gate 決定是否另開修正。
+
 - **【獨立 Data Pipeline Incident｜00996A 持股抓取失敗｜記錄，先不修】**（2026-10-07，PO 實機 Telegram 監控）
   - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
   - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
