@@ -8,6 +8,8 @@
   }
   .section-hdr.buy  { color:var(--bright); border-color:rgba(var(--rgb-cheap),.2); }
   .section-hdr.wait { color:var(--bright); }
+  /* CP7 Visual Gate：首頁兩個區塊標題（價格合理區／今日成交量 TOP 10）字級 16 → 19，只動 typography */
+  #pzTitle, #tvTitle { font-size:19px; }
   .badge-count {
     font-family:var(--sans); font-size:16px; font-weight:700;
     background:rgba(var(--rgb-veil),.07); border-radius:10px; padding:2px 10px;
@@ -131,8 +133,8 @@
     background:rgba(var(--rgb-veil),.03); border:1px solid var(--border);
     border-radius:8px; padding:10px 12px; margin-bottom:7px;
   }
-  .wait-code  { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); width:68px; flex-shrink:0; }
-  .wait-name  { font-size:16px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--link); }
+  .wait-code  { width:68px; flex-shrink:0; }   /* 字型／字級／字重／顏色：base.css 全站 ETF typography */
+  .wait-name  { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .wait-sig   { border-radius:6px; padding:4px 12px; font-size:16px; font-weight:700; flex-shrink:0; white-space:nowrap; }
   .wait-sig.dear { background:rgba(var(--rgb-up),.1); color:var(--dear); border:1px solid rgba(var(--rgb-up),.3); }
   .wait-sig.fair { background:rgba(var(--rgb-fair),.1); color:var(--fair); border:1px solid rgba(var(--rgb-fair),.3); }

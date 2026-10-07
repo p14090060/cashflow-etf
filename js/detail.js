@@ -303,7 +303,7 @@ function detailPatch() {
   if (!_detailOpen || !_dtSkeleton) return;
   _dtSyncFav();                                   // 在 !e 的 early return 之前
   const e = _dtEtf();
-  _dtEl('gsPanelTitle').innerHTML = '<b>' + _dtEsc(_curEtfCode) + '</b>' + (e ? '　' + _dtEsc(e.name) : '');
+  _dtEl('gsPanelTitle').innerHTML = '<b>' + _dtEsc(_curEtfCode) + '</b>' + (e ? '　<span class="etf-name">' + _dtEsc(e.name) + '</span>' : '');
   if (!e) {
     const msg = '<div class="dt-note">' + (ETFS.length ? '這檔目前不在清單中' : '資料暫時無法取得，請稍後按右上角 ↻') + '</div>';
     _dtSlot('head', '');

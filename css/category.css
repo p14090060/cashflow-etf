@@ -72,8 +72,8 @@
   background: none; color: var(--bright); border: none; font: inherit; text-align: left; cursor: pointer;
 }
 .cat-row:last-child { border-bottom: none; }
-.cr-code { font-family: var(--mono); font-size: 14px; font-weight: 700; flex: 0 0 64px; }
-.cr-name { flex: 1 1 auto; min-width: 0; font-size: 14px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cr-code { flex: 0 0 64px; }   /* typography：base.css 全站 ETF 代碼／名稱 */
+.cr-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cat-more {
   width: 100%; min-height: 44px; margin-top: 6px;
   background: var(--card2); color: var(--dim); border: 1px solid var(--border); border-radius: 10px;

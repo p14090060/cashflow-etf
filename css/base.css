@@ -24,6 +24,9 @@
                           兩個藍分屬排行頁與主動頁，不會同框出現。 */
   --gold:  #D6A84B;
     --nav-h: 62px;
+    /* CP7 Visual Gate：全站 ETF 代碼／名稱 typography（Source of Truth＝首頁條列 .wait-code／.wait-name）；兩主題同邏輯，色彩走主題 token */
+    --etf-code-font: var(--sans); --etf-code-size: 16px; --etf-code-weight: 700;
+    --etf-name-size: 16px; --etf-name-weight: 400;
     /* ── Phase 5 V2：全站 visual tokens（PHASE5_PLAN §7.2）。CP7 Visual Gate：dark／light 依 PO 核准 palette（AI_HANDOFF 記錄），換主題只換這裡 ── */
     --hot:   #FB8A8A;   /* 過熱（標籤為 12% 淡底＋--card2，實際 rendered 對比需 ≥ 4.5；#ef4444 僅 4.27） */
     --warn:  #F59E0B;   /* 偏貴（橘）、現價 */
@@ -248,7 +251,11 @@
   }
   .gs-panel-hd .t { font-size:15px; min-width:0; overflow:hidden;
                     text-overflow:ellipsis; white-space:nowrap; }
-  .gs-panel-hd .t b { font-family:var(--mono); font-size:16px; }
+  /* 全站 ETF 代碼／名稱：首頁、Detail 標題、分類清單、100 排行共用同一組 typography（只改字型／字級／字重／顏色，不動 layout） */
+  .wait-code, .cr-code, .rank-code, .gs-panel-hd .t b {
+    font-family:var(--etf-code-font); font-size:var(--etf-code-size); font-weight:var(--etf-code-weight); color:var(--bright); }
+  .wait-name, .cr-name, .rank-name, .gs-panel-hd .t .etf-name {
+    font-family:var(--sans); font-size:var(--etf-name-size); font-weight:var(--etf-name-weight); color:var(--link); }
   .gs-panel-hd button {
     background:none; border:1px solid var(--border); border-radius:8px;
     color:var(--dim); font-size:15px; cursor:pointer; padding:4px 10px; line-height:1.2;
