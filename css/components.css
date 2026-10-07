@@ -24,8 +24,10 @@
   .mood-main  { font-size:16px; font-weight:700; }
   .mood-sub   { font-size:14px; color:var(--bright); margin-top:3px; line-height:1.5; }
   .mood-cta   { font-size:16px; color:var(--mood-cta); margin-top:5px; font-weight:600; }
-  .mood-idx   { font-family:var(--mono); font-size:14px; margin-top:4px; }
-  .mood-idx.up{ color:var(--up); } .mood-idx.dn{ color:var(--dn); } .mood-idx.flat{ color:var(--dim); }
+  .mood-idx   { font-family:var(--mono); font-size:15px; margin-top:4px; color:var(--dim); }
+  /* CP7 Visual Gate：加權漲跌幅＝方向性資料，台股紅漲綠跌（>0 紅、<0 綠、=0 neutral）；label 維持次要字，數值加粗 */
+  .mood-idx .mi-val { font-weight:600; }
+  .mood-idx.up .mi-val{ color:var(--up); } .mood-idx.dn .mi-val{ color:var(--dn); } .mood-idx.flat .mi-val{ color:var(--bright); }
 
   /* ── 價格狀態標籤（首頁、Detail 等共用） ── */
   /* 狀態標籤：五色為 PO 鎖定原始色（--sig-*），兩主題相同；底襯 --sig-backing 取代原本 12% 淡底以確保對比 */
@@ -87,6 +89,18 @@
   .he-text b { font-size:18px; }
   .he-text span { font-size:15px; color:var(--dim); line-height:1.4; }
   .he-arrow { font-size:26px; color:var(--dim); line-height:1; flex-shrink:0; }
+  /* CP7 Visual Gate：Homepage Entry Card Identity（PO 四張 reference；藍＝探索、綠＝已持有）。
+     只用在這兩張入口卡，不擴散成全站 card palette；尺寸／結構不變，左側 accent 用 inset shadow 不佔寬 */
+  .he-ico { display:inline-flex; flex-shrink:0; color:var(--he-accent); }
+  .home-entry.he-explore, .home-entry.he-owned {
+    background:var(--he-surface); border-color:var(--he-border); box-shadow:inset 4px 0 0 var(--he-accent);
+  }
+  .home-entry.he-explore:active, .home-entry.he-owned:active { background:var(--he-press); }
+  .home-entry.he-explore .he-arrow, .home-entry.he-owned .he-arrow { color:var(--he-accent); }
+  .he-explore { --he-surface:#0B1B2E; --he-press:#102640; --he-border:rgba(47,123,245,.45); --he-accent:#3B82F6; }
+  .he-owned   { --he-surface:#0A2724; --he-press:#0E3530; --he-border:rgba(51,186,145,.45); --he-accent:#34C79A; }
+  :root[data-theme="light"] .he-explore { --he-surface:#E6F2FF; --he-press:#D6E8FD; --he-border:#BED8F8; --he-accent:#2563EB; }
+  :root[data-theme="light"] .he-owned   { --he-surface:#E2F7F0; --he-press:#CFF0E4; --he-border:#B5E6D3; --he-accent:#079A72; }
   .home-sub  { font-size:16px; color:var(--bright); margin:-2px 0 6px 2px; }
   .home-note { font-size:14px; color:var(--dim); line-height:1.6; margin:0 0 10px 2px; }
   .home-row {

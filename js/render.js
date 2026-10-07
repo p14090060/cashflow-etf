@@ -23,13 +23,17 @@ function renderMood(market) {
   document.getElementById('moodCta').textContent   = m.cta;
 
   const sign  = pt >= 0 ? '▲' : '▼';
-  const cls   = pct >= 0.3 ? 'up' : pct <= -0.3 ? 'dn' : 'flat';
+  const cls   = pct > 0 ? 'up' : pct < 0 ? 'dn' : 'flat';   // CP7 Visual Gate：紅漲綠跌只看正負，0 為 neutral
   const arrow = pt >= 0 ? '+' : '';
   const idxEl = document.getElementById('moodIdx');
   idxEl.className = `mood-idx ${cls}`;
-  idxEl.textContent = pr > 0
-    ? `加權 ${sign} ${arrow}${pt.toFixed(1)} (${arrow}${pct.toFixed(2)}%)`
-    : '';
+  idxEl.textContent = '';
+  if (pr > 0) {
+    const val = document.createElement('span');
+    val.className = 'mi-val';
+    val.textContent = `${pct === 0 ? '' : sign + ' '}${arrow}${pt.toFixed(1)} (${arrow}${pct.toFixed(2)}%)`;
+    idxEl.append('加權 ', val);
+  }
 }
 
 // ── 配息日曆列 → Detail（CP6c，PHASE5_PLAN §3.5）：覆蓋整列的 .cal-hit 按鈕；delegated，renderAll 重畫後仍有效 ──

@@ -62,23 +62,23 @@
     --rgb-tech:  139,92,246;
     --rgb-active:245,158,11;
     /* ── 五個估值／狀態色（PO Hard Constraint，CP7 Visual Gate）：取 CP7 改版前正式版本的原始色，
-          dark 與 light 完全相同、不另做變體，也不為對比改色（對比由 --sig-backing 的深色底襯處理） ── */
+          dark 與 light 完全相同、不另做變體，也不為對比改色（Status 標籤兩主題皆透明底：text／border＝原色、底透出所在 surface） ── */
     --sig-hot:   #ef4444;   /* 過熱 */
     --sig-dear:  #fb923c;   /* 偏貴 */
     --sig-fair:  #F0B840;   /* 合理 */
     --sig-cheap: #00e5a0;   /* 便宜 */
     --sig-bond:  #58a6ff;   /* 債券 */
-    --sig-backing: #0B0F14; /* 狀態標籤底襯：讓五色在任何主題底色上都 ≥ 4.5:1（過熱 5.11） */
+    --sig-backing: transparent; /* CP7 Visual Gate（PO）：Light＋Dark 狀態標籤都取消底襯，直接透出 card／row／panel 的 surface（對比 Known Blocker 見 AI_HANDOFF） */
     color-scheme: dark;
   }
   /* Light（PHASE5_PLAN §7.1／§7.2）：台股漲紅跌綠、紅＝加碼／綠＝減碼語意不變，只換成淺底可讀的加深版。
      對比以 theme_test TH-6 量測（正文 ≥ 4.5:1、大字與圖形 ≥ 3:1） */
   :root[data-theme="light"] {
-    --bg:    #F7F9FC;
+    --bg:    #FEF8E2;   /* CP7 Visual Gate（PO reference）：淡奶油／象牙 page 底；card 維持白，形成 暖 page → 白 card → 功能色 surface */
     --card:  #FFFFFF;
     --card2: #EEF2F8;
     --border:#DDE3EC;
-    --dim:   #64748B;
+    --dim:   #617187;   /* CP7：奶油 page 底 #FEF8E2 上 #64748B 只有 4.47，微調到 4.68（白 card 4.98） */
     --bright:#1F2937;
     --cheap: #065F46;
     --fair:  #A14A07;
@@ -100,7 +100,7 @@
     --err-text:#B91C1C;
     --err-soft:#7F1D1D;
     --fair-dim:#8A6A2B;
-    --hdr-bg: rgba(247,249,252,.94);
+    --hdr-bg: rgba(254,248,226,.94);
     --nav-bg: rgba(255,255,255,.96);
     --tm-border: rgba(255,255,255,.9);
     --shadow-pop:  0 10px 28px rgba(31,35,40,.16);
@@ -129,12 +129,20 @@
      ② 文字型語意色（便宜／合理／偏貴／過熱／債券／金色）在 light 用同色相的加深版當字色；淡底、框線、treemap 等填色仍用核准色（--rgb-*）
      ③ 排行欄位名稱的紫色淡底降到 8%，紫字對比才達 4.5 */
   :root[data-theme="light"] :is(.gs-more, .cat-band, .cat-strip button, .cat-more, .cat-expand, .cat-more-in, .router-proc,
-    .mood-card, .empty-state, .hot-item, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
+    .mood-card, .home-entry, .empty-state, .hot-item, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
   :root[data-theme="light"] .rank-hdr { background: rgba(var(--rgb-violet), .08); }
-  /* CP7 Visual Gate（PO）：light 狀態標籤只把底色改透明——文字與框線維持 PO-Locked 五色、不降 opacity；dark 維持 --sig-backing */
-  :root[data-theme="light"] :is(.sig-cheap, .sig-fair, .sig-dear, .sig-bond, .sig-hot, .rank-sig) { background: transparent; }
-  /* YouTube 品牌紅（PO-Locked Brand Color）：兩主題都不受文字／灰階 token 影響 */
-  .hdr-btn.hdr-yt { color: #FF0000; }
+  /* YouTube 橫向品牌 Logo（PO-Locked Brand Styling）：紅色 Play Mark＋wordmark（dark 白、light 近黑），不受 --dim 灰階影響；
+     不是紅底按鈕。點擊區高 44px，寬度隨 wordmark */
+  .hdr-btn.hdr-yt { width:auto; gap:4px; padding:0 6px; border-color:transparent; color:#FFFFFF; }
+  :root[data-theme="light"] .hdr-btn.hdr-yt { color:#0F0F0F; }
+  .hdr-yt .yt-play { flex-shrink:0; }
+  .hdr-yt .yt-word { font-family:Arial,'Helvetica Neue',sans-serif; font-weight:700; font-size:16px; letter-spacing:-.6px; line-height:1; }
+  /* 窄螢幕（360 portrait）：縮 wordmark 與內距，讓左側 LIVE 狀態徽章不被擠成兩行；點擊區高度仍 44 */
+  @media (max-width:380px) {
+    .hdr-btn.hdr-yt { gap:3px; padding:0 2px; }
+    .hdr-yt .yt-play { width:24px; height:17px; }
+    .hdr-yt .yt-word { font-size:14px; letter-spacing:-.5px; }
+  }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 
   html { overflow-x:hidden; }

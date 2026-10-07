@@ -66,7 +66,7 @@ ev("localStorage.removeItem('%s'); true" % THEME_KEY)
 media('light'); reload_page()
 check('TH-1 無儲存值＋系統 light → data-theme=light、按鈕 🌙／「切換為深色模式」', theme() == 'light' and ev("document.getElementById('themeBtn').textContent") == '🌙'
       and ev("document.getElementById('themeBtn').getAttribute('aria-label')") == '切換為深色模式', theme())
-check('TH-1 light 下 body 背景＝淺色 token', ev("getComputedStyle(document.body).backgroundColor") == 'rgb(247, 249, 252)', ev("getComputedStyle(document.body).backgroundColor"))
+check('TH-1 light 下 body 背景＝淺色 token（CP7 奶油 page 底 #FEF8E2）', ev("getComputedStyle(document.body).backgroundColor") == 'rgb(254, 248, 226)', ev("getComputedStyle(document.body).backgroundColor"))
 media('dark'); wait_ms(300)
 check('TH-1 未手動選擇時系統改為 dark → 跟著變 dark', theme() == 'dark', theme())
 media('light'); wait_ms(300)
@@ -85,7 +85,7 @@ media('dark'); wait_ms(300)
 check('TH-2 手動選擇後，系統主題改變不覆寫（仍 light）', theme() == 'light', theme())
 reload_page()
 check('TH-2 重新整理後維持 light（系統為 dark）', theme() == 'light', theme())
-check('TH-2 meta theme-color 跟著主題', ev("document.querySelector('meta[name=theme-color]').content") == '#F7F9FC')
+check('TH-2 meta theme-color 跟著主題（light＝奶油 page 底 #FEF8E2）', ev("document.querySelector('meta[name=theme-color]').content") == '#FEF8E2')
 h0 = ev("history.length"); s0 = ev("JSON.stringify(Router.state())")
 ev("document.getElementById('themeBtn').click(); true"); wait_ms(150)
 check('TH-2 再按 → dark、寫入 dark；切換不寫 history、不改 Router', theme() == 'dark' and ev("localStorage.getItem('%s')" % THEME_KEY) == 'dark'
@@ -264,13 +264,15 @@ for mode in ('dark', 'light'):
       const cs=getComputedStyle(e); o[k]={c:cs.color, b:cs.borderTopColor, cr:+__cr(cs.color, cs.backgroundColor).toFixed(2)}; e.remove();}); return o})()""")
     check('TH-10 [%s] .sig-* 文字與框線＝原始五色（過熱 #ef4444、偏貴 #fb923c、合理 #F0B840、便宜 #00e5a0、債券 #58a6ff）' % mode,
           all(got[k]['c'] == v and got[k]['b'] == v for k, v in ORIG.items()), got)
-    if mode == 'dark':   # light 底色已依 PO 改為透明，實際對比由 TH-6 rendered 掃描量測（待 GPT Gate／PO 決定）
-        check('TH-10 [dark] 五色在 --sig-backing 底襯上對比皆 ≥ 4.5', all(got[k]['cr'] >= 4.5 for k in ORIG), {k: got[k]['cr'] for k in ORIG})
-    else:
-        bgs = ev("""['hot','dear','fair','cheap','bond'].map(k=>{const e=document.createElement('span'); e.className='sig-'+k; document.body.appendChild(e); const b=getComputedStyle(e).backgroundColor; e.remove(); return b})""")
-        check('TH-10 [light] 五個狀態標籤底色為透明（PO：只透明底色，文字／框線不變）', all(b in ('rgba(0, 0, 0, 0)', 'transparent') for b in bgs), bgs)
-    yt = ev("getComputedStyle(document.getElementById('hdrYt')).color")
-    check('TH-10 [%s] Header YouTube 為品牌紅 #FF0000' % mode, yt == 'rgb(255, 0, 0)', yt)
+    # CP7 Visual Gate（PO）：Light＋Dark 狀態標籤都取消底襯，透出所在 surface；實際對比由 TH-6 rendered 掃描量測（Known Blocker 待 GPT Gate／PO）
+    bgs = ev("""['hot','dear','fair','cheap','bond'].map(k=>{const e=document.createElement('span'); e.className='sig-'+k; document.body.appendChild(e); const b=getComputedStyle(e).backgroundColor; e.remove(); return b})""")
+    check('TH-10 [%s] 五個狀態標籤底色為透明（文字／框線不變、不降 opacity）' % mode, all(b in ('rgba(0, 0, 0, 0)', 'transparent') for b in bgs)
+          and ev("[...document.querySelectorAll('.sig-cheap,.sig-fair,.sig-dear,.sig-bond,.sig-hot,.rank-sig')].every(e=>getComputedStyle(e).opacity==='1')") is True, bgs)
+    yt = ev("""(()=>{const a=document.getElementById('hdrYt'); const w=a.querySelector('.yt-word'); const p=a.querySelector('.yt-play rect');
+      const r=a.getBoundingClientRect(); return {word:w&&w.textContent, wc:w&&getComputedStyle(w).color, play:p&&p.getAttribute('fill'), bg:getComputedStyle(a).backgroundColor, h:r.height}})()""")
+    want_word = 'rgb(255, 255, 255)' if mode == 'dark' else 'rgb(15, 15, 15)'
+    check('TH-10 [%s] Header YouTube 橫向 Logo：紅 Play Mark＋wordmark（dark 白／light 近黑）、非紅底按鈕、高 ≥ 44' % mode,
+          yt['word'] == 'YouTube' and yt['play'] == '#FF0000' and yt['wc'] == want_word and yt['bg'] in ('rgba(0, 0, 0, 0)', 'transparent') and yt['h'] >= 44, yt)
     ev("switchPage('rank'); true"); wait_ms(400)
     rk = ev("""(()=>{const o={}; _rankSorted.forEach(e=>{const el=document.querySelector('#rankRows .rank-row[data-code="'+e.code+'"] .rank-sig'); if(el && !o[e.signal]) o[e.signal]=getComputedStyle(el).color;}); return o})()""")
     check('TH-10 [%s] 排行狀態字＝同一組原始色' % mode, all(rk[k] == ORIG[k] for k in rk if k in ORIG) and len(rk) >= 3, rk)

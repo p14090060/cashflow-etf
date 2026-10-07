@@ -17,7 +17,7 @@
   var manual = stored();
   function apply(t) {
     d.setAttribute('data-theme', t);
-    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'light' ? '#F7F9FC' : '#0F141B');
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'light' ? '#FEF8E2' : '#0F141B');
     try { document.dispatchEvent(new CustomEvent('etf:themechange', { detail: t })); } catch (e) {}   // 依當下 token 計算的 inline 色（treemap 字色）就地重算
     var b = document.getElementById('themeBtn');
     if (b) { b.textContent = t === 'light' ? '🌙' : '☀'; b.setAttribute('aria-label', t === 'light' ? '切換為深色模式' : '切換為淺色模式'); b.setAttribute('aria-pressed', String(t === 'light')); }
@@ -57,7 +57,7 @@
     <!-- Y1（PHASE5_PLAN §4）：右側按鈕群。YouTube 為低調固定的外部連結（新分頁、不經 Router） -->
     <div class="hdr-actions">
       <a class="hdr-btn hdr-yt" id="hdrYt" href="https://www.youtube.com/@CashFlowDataRecorder" target="_blank" rel="noopener noreferrer"
-         aria-label="金流黑盒子 YouTube 頻道" title="金流黑盒子 YouTube 頻道"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3z"/></svg></a>
+         aria-label="金流黑盒子 YouTube 頻道" title="金流黑盒子 YouTube 頻道"><svg class="yt-play" viewBox="0 0 28 20" width="28" height="20" aria-hidden="true" focusable="false"><rect width="28" height="20" rx="5" fill="#FF0000"/><path d="M11 5.5v9l8-4.5z" fill="#FFFFFF"/></svg><span class="yt-word" aria-hidden="true">YouTube</span></a>
       <button class="hdr-btn hdr-theme" id="themeBtn" type="button" aria-label="切換為淺色模式" aria-pressed="false" onclick="themeToggle()">☀</button>
       <button class="hdr-btn refresh-btn" id="refreshBtn" onclick="reloadData()" aria-label="重新載入資料">↻</button>
     </div>
@@ -116,10 +116,12 @@
 
     <!-- H3 兩大入口：與底部導覽同一個 switchPage()（PHASE5_PLAN §2.3） -->
     <div class="home-entries">
-      <button class="home-entry" type="button" id="homeGoCat" onclick="switchPage('cat')">
+      <button class="home-entry he-explore" type="button" id="homeGoCat" onclick="switchPage('cat')">
+        <span class="he-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" focusable="false"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M15.4 15.4 21 21" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></span>
         <span class="he-text"><b>我想看看 ETF</b><span>不知道從哪開始？從分類逛起</span></span><span class="he-arrow" aria-hidden="true">›</span>
       </button>
-      <button class="home-entry" type="button" id="homeGoWatch" onclick="switchPage('watch')">
+      <button class="home-entry he-owned" type="button" id="homeGoWatch" onclick="switchPage('watch')">
+        <span class="he-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" focusable="false"><path fill="currentColor" d="M5 4h12a2 2 0 0 1 2 2v1H6a1 1 0 0 0 0 2h14a1 1 0 0 1 1 1v8a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/><circle cx="16.5" cy="14" r="1.6" fill="var(--he-surface)"/></svg></span>
         <span class="he-text"><b>我已經有 ETF</b><span>看我的 ETF、查配息</span></span><span class="he-arrow" aria-hidden="true">›</span>
       </button>
     </div>
