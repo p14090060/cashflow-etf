@@ -632,6 +632,11 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 仍未由參考圖覆蓋（沿用上一輪）：Light 便宜 #059669、排行持股異動／配息頻率／殖利率／配息金額 light #D97706（PO 第 6 項指定）、dark 鮮黃 #FACC15、鮮明紅綠組。
   - 測試：theme 54／4（TH-6 兩主題＋TH-5 資料相依，同上一輪）、home 38、rank 80、tools 93、regression 35 PASS。
 
+- **CP7 Visual Gate 實機複測補充（treemap 氧化／排行前三名）— `c2319bea`**（本機，未 push）：
+  - A｜Active Flow treemap：原「rgba(token, 0.30～0.85) 疊在卡片底」在低透明度時混入灰／黑底 → 磚紅、灰綠。改 `_flowFill(side, a)`：同一色相、高飽和，只用明度分層——light 紅 H0 S84% L62→44%（#EF4D4D→#CE1212）、綠 H142 S72% L50→30%（#24DB67→#15843E）；dark 紅 H0 S74% L34→52%（#971717→#DF2A2A）、綠 H142 S70% L24→40%（#126832→#1FAD53）。`data-a`（面積層級 0.30～0.85）語意、geometry 不變；`_flowInkCtx` 改依實際填色算黑／白字；`flowRecolor()` 換主題時同時重算底色與字色（不重建 DOM）；弱格羽化底襯保留。實測 00981A（3 格）與 00993A（28 格）兩主題截圖：紅綠乾淨、無溢出；TH-6 全部 32 檔 treemap 文字對比兩主題皆 PASS；TH-9 雙向切換 PASS。
+  - B｜排行 TOP100 名次 1～3：`.rank-no.gold/.silver/.bronze` 28px 底牌（margin 0 4px，欄寬仍 36），共用新 token `--rank1/2/3-bg/fg`（#D49A06＋白、#CAD8EC＋#0A42A4、#D07540＋白，兩主題相同）；首頁 TOP10 light 改讀同一組 token。4～100 不變。360／390／1280 × 兩主題水平 overflow 0。
+  - 測試：flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail 四支、regression 35、watch 149、category 270／1 DEFER 全 PASS；theme 54／4：TH-6 兩主題（Known Blocker；本輪新增排行第 1／3 名白字 on 金 2.49、on 銅 3.33，兩主題）、TH-5 資料相依（同前）。期望值調整：tools FS-6、watch FL-2 改為色相家族判斷（底色已非固定 rgba）；TH-9 層級比對改讀 data-a（行為斷言不變）。
+
 - **【獨立 Data Pipeline Incident｜00996A 持股抓取失敗｜記錄，先不修】**（2026-10-07，PO 實機 Telegram 監控）
   - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
   - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
