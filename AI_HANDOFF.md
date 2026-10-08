@@ -655,6 +655,18 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
   - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
 
+- **【00996A Incident Phase 2A｜2026-10-08】結果：CASE 2 — `MEGA_REMOTE_SOURCE_BLOCKED`（Incident 未 CLOSED）**
+  - Phase 1 診斷：FIRST DIVERGENCE＝Download（Actions 上 trade_pcf HTTP 403，CDN「Access Denied … Reference #18」）；次因＝fetch_mega 例外時 `continue`，商品頁備援從未執行。
+  - 修正（program commit `cd9faa4c`，本機 main，未 push）：PCF 例外或解析不到 → 皆走既有 `_mega_product()`；兩者都失敗才回空 → 既有 KEEP＋監控。PCF 解析原樣搬入 `_mega_parse_pcf`；日期／驗證／Compare／Write／其他 adapter／specific=True 行為未改。
+  - 本機 regression（模擬 403）：R1 PCF 正常 → 用 PCF（2026-10-08，53 檔）；R2 PCF 403 → 商品頁（2026-10-08，53 檔）；R3 兩者 403 → 回空（交 KEEP）；R4 specific=True＋PCF 403 → 不走商品頁、回空。
+  - **Actions probe**（分支 `probe/mega-996a`，workflow `mega-probe.yml` 只在該分支 push 觸發、不 commit／不 push／不發 TG；run 37763570699、job 113265623286）：
+    - PCF：HTTP 403 Forbidden（Access Denied）。
+    - 修正後確實進入備援：`[兆豐] 商品頁失敗: HTTPError: HTTP Error 403: Forbidden`。
+    - 結果：`[KEEP] 00996A …沿用上次資料（資料日 2026-09-24）`；reload from disk：data_date 2026-09-24、fetched False、52 檔。
+    - 同一輪其他投信全部正常更新（多數 2026-10-08），不受影響。
+  - 本機同時：PCF 200、商品頁 200，皆 2026-10-08、53 檔。
+  - 依指示停止：未改 header／cookie／UA／retry／代理，未建本機排程。**下一步：PO／GPT 決定正式架構（官方替代來源 或 受控 local／self-hosted fetch）。** CP8 仍暫停。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
