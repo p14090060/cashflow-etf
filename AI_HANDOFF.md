@@ -699,6 +699,13 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 瀏覽器 regression：flowq 35、tools 93 PASS。`tests/test_pool.py` 53/54（EX-7b 既有資料相依）。
   - Incident 未 CLOSED；等 Codex 複審 `ed0c4676`。
 
+- **【00407A Incident｜Fix＋Safe Recovery】**（2026-10-08；未 CLOSED，等 Codex fixed-SHA review）
+  - Fix `3146467a`：fetch_kgi 資料日＝括號日期（全一致才採用，否則 None）；build_flow 同資料日＋持股不同 → anomaly、不算 Flow（全投信，僅增加偵測）；`scripts/recover_kgi_history.py`；證據 `docs/incidents/00407A/raw/`（凱基官方 9 頁：latest 公告 10/12→資料 10/08；q0929→9/24 … q1008→10/07）。
+  - Recovery data `503e7bb0`（本機 `--apply` 寫入，寫回前比對正式檔未變動、寫後 reload 一致；僅 active_flow.json 的 00407A 變動，_active_snapshot.json 無變動——原快照已是真正 10/08 持股、逐筆相同）：逐日重放 production main()：9/24→9/29 0、9/29→9/30 3、9/30→10/1 3、10/1→10/2 0、10/2→10/5 46、10/5→10/6 0、10/6→10/7 3、10/7→10/8 0 → 證實 9/30、10/1、10/5、10/7 四次漏記。結果：snapshot 10/08（50 檔）；最新 Flow **2026-10-06 → 2026-10-07**（3 檔：力旺 −30,000、信驊 −5,000、緯穎 −30,000；減 2.46 億），last_change_date 10/07；10/07→10/08 無異動（同正常每日運作的呈現）。報告 `docs/incidents/00407A/report.json`；`--raw docs/incidents/00407A/raw` 可離線重播。
+  - Tests：`tests/test_kgi_incident.py` 10/10、`tests/test_mega_feed.py` 61/61、`tests/test_pool.py` 53/54（EX-7b 既有）；瀏覽器 flowq 35、tools 93、rank 79/80（RK-1 盤後既有）。
+  - Telegram：測試 TelegramPath 端到端（build_flow anomaly → main 寫入 → `daily_check.check_active_flow` 回「• 🐛 00407A … 同一資料日 …」→ main 併入「📉 主動式 ETF 持股資料異常」）。正式資料目前 check_active_flow 回 []。注意：統一 00981A／00403A／00411A／00988A 若再發生同日不同內容，現在會發 anomaly TG（不在本輪處理）。
+  - 備註：本次回補由本機寫入正式檔（凱基在 Actions 可正常取得，但回補需逐日重放；選在排程空檔、具並行改動檢查）。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
