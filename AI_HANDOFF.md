@@ -637,6 +637,12 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - B｜排行 TOP100 名次 1～3：`.rank-no.gold/.silver/.bronze` 28px 底牌（margin 0 4px，欄寬仍 36），共用新 token `--rank1/2/3-bg/fg`（#D49A06＋白、#CAD8EC＋#0A42A4、#D07540＋白，兩主題相同）；首頁 TOP10 light 改讀同一組 token。4～100 不變。360／390／1280 × 兩主題水平 overflow 0。
   - 測試：flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail 四支、regression 35、watch 149、category 270／1 DEFER 全 PASS；theme 54／4：TH-6 兩主題（Known Blocker；本輪新增排行第 1／3 名白字 on 金 2.49、on 銅 3.33，兩主題）、TH-5 資料相依（同前）。期望值調整：tools FS-6、watch FL-2 改為色相家族判斷（底色已非固定 rgba）；TH-9 層級比對改讀 data-a（行為斷言不變）。
 
+- **CP7 Visual Gate：treemap 文字 halo 移除 — `c5d4cfd8`**（本機，未 push）：
+  - 來源：`css/pages.css` `.tm-weak-l/.tm-weak-d .tm-amt/.tm-etf` 的 `box-shadow:0 0 6px 3px rgba(...)`（`1e010a44` 為去「貼紙感」加的羽化），由 `_flowWeakCls` 在黑白字皆 < 4.6 的中間調格加上。
+  - 處理：`_flowFill` 新增對比保護——若該格黑白字都 < 4.6，同色相、同飽和度往暗調明度（每步 1%）直到白字 ≥ 4.6；`_flowInkCtx` 用同一個填色選黑／白字。結果弱格數為 0：全部 32 檔、158 格，dark → light → dark 逐檔掃描 weak=0。box-shadow 移除；`.tm-weak` 底襯 CSS 保留為保險（無陰影、無羽化、圓角 4px）。
+  - Contrast：TH-6 兩主題「全部 32 檔 treemap」無任何失敗元素；TH-9 雙向切換 PASS。TH-6 失敗仍只在狀態標籤／排行與首頁 PO 指定色（同上一輪清單）。
+  - 測試：theme 54／4（TH-6×2 Known Blocker、TH-5×2 資料相依），其餘 13 支全 PASS（category 1 DEFER、watch 4 DEFER）。
+
 - **【獨立 Data Pipeline Incident｜00996A 持股抓取失敗｜記錄，先不修】**（2026-10-07，PO 實機 Telegram 監控）
   - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
   - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
