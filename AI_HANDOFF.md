@@ -607,6 +607,25 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試：home 38、detail_ui 48、detail_state 42、detail_history_fix 14、detail_collapse 25、router 64、regression 35、watch 149（4 DEFER）、search_compact 38、tools 93、flowq 35 全 PASS；category 270 PASS／1 DEFER（LR-8）；theme 56／2 FAIL（僅 TH-6 Status Known Blocker）；rank 79／1 FAIL——RK-1「捲動後 sticky 黏在 Header 下方」在前一個 commit（stash 後）同樣 FAIL（`--hdr-h` 138 vs Header 實際 122，盤後狀態相依；11:2x 盤中時 PASS），非本輪 regression。
   - **Observation（既有，本輪 scope lock 未修）**：360px 排行頁「持股異動 ›」（`.rank-flow`）右緣到 388px，頁面水平 overflow 28px；前一個 commit 同樣存在。另 RK-1 `--hdr-h` 未隨 Header 高度變化重新同步（見上）。兩項待 Gate 決定是否另開修正。
 
+- **CP7 Visual Gate（Visual Polish Round，10 項）— `1e010a44`**（本機，未 push）：
+  - 新增 token（base.css）：`--vivid-up/--vivid-dn`（字：dark #F25555／#22C55E，light #DC2626／#15803D）、`--vivid-*-fill`（dark #EF4444／#22C55E，light #EF4444／#16A34A）、`--rgb-vivid-*`、`--num-accent`（dark #FACC15 鮮黃／light #D97706 橘）、`--badge-gold`（dark #F0B840／light #D97706）。既有 `--up/--dn` 未動（自選、加權等不在本輪範圍）。
+  - (1) Light 便宜：light 覆寫 `--sig-cheap #059669`（文字＋框、透明底）；dark 仍 #00e5a0。
+  - (2) 數字字型：`--mono` → Microsoft JhengHei（token 名沿用；所有 font-size 未改）。副作用：自選卡數字行高變大 +4px → `.wc-px/.wc-chg line-height:1.17` 鎖回原高（否則 DR-17／DR-18／BD-5 觸控座標落到底部導覽列）。
+  - (3) 首頁 TOP10 **LIGHT ONLY**（全部 `:root[data-theme="light"]` 選擇器）：1 金底 #D97706＋白、2 銀底 #E2E8F0＋藍 --link、3 銅底 --bronze #9A5B2E＋白；現價（字＋數字）#D97706；「年殖利率」字 --dim；「新上市」包 `.hr-new` 紫 --violet #7C3AED（無框無底）。Dark 截圖確認未變。
+  - (4) Detail 中文：dt-lbl 15→16、dt-tab 15→16、dt-sec 15→16、dt-note／dt-sub 13→14、dt-tag／dt-foot 12→13；`.dt-val` 數值維持 15。中文字型本來就是 --sans（與首頁同）。
+  - (5) 排行漲跌柱：`.rank-sub .mb[data-k]` 改 `--vivid-*-fill`（只限排行；長度／排序不變）。
+  - (6) 「持股異動 ›」→「持股異動」；light 字 #D97706、dark 不變；觸控 44px／openFlow 不變。≤380px 第二行欄寬收窄（freq 56／num 70／yld 68 nowrap／flow 內距 1px）→ 360／390／1280 × 兩主題：首頁、排行、Flow、分類、Detail 水平 overflow 全為 0（原 360 排行 overflow 28px 已解）。
+  - (7) 排行配息頻率、殖利率數字 → `--num-accent`（含未核實「~」值，原 --fair-dim 氧化色移除）；「未滿1歲」--dim；報酬率 retClr → `--vivid-up/--vivid-dn`。
+  - (8) 排行 `合理✓` → `合理`（label 只改顯示）；light 便宜與首頁同 token。
+  - (9) 「快配息囉」：透明底＋`--badge-gold` 文字與 1px 框；配息金額 `--num-accent`。
+  - (10) Active Flow：treemap 填色與 `_flowInkCtx` 改讀 `--rgb-vivid-*`（透明度＝面積語意不變、不重建 DOM、flowRecolor／etf:themechange 保留）；flow-tot 與海外清單加減碼字 → `--vivid-*`；弱格底襯保留（對比保護），改 border-radius 8px＋同色 box-shadow 羽化，去除「小貼紙」硬邊。
+  - 測試（800×600）：flowq 35、rank 80、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、watch 149（4 DEFER）全 PASS；category 270／1 DEFER（LR-8）；theme 54／4 FAIL：TH-6 dark、TH-6 light（見下）、TH-5 dark／light——TH-5 為「今日 00981A 只有 3 格 < 需 ≥ 4 格」資料相依，stash 回前一版同樣 FAIL，顏色核對 bad=[]，非 regression。TH-9（Flow 開著雙向切主題）PASS。期望值依 PO 新色更新：tools FS-6、watch FL-2／FL-3（新增 FUP／FDN 常數，CL／BR 其他 --up/--dn 斷言不動）、theme TH-10（light 便宜 #059669）。
+  - **TH-6 Known Blocker 重新量測**：
+    - Dark（只剩過熱 #ef4444）：首頁 hot-item 3.90、排行／我的 ETF 4.46。其他無失敗。
+    - Light 狀態標籤：首頁 便宜 3.35／合理 1.61／偏貴 2.01／過熱 3.35；排行 便宜 3.77／合理 1.80／偏貴 2.26／債券 2.53／過熱 3.76；Detail 過熱 3.54；我的 ETF 偏貴 2.26／過熱 3.76。
+    - **本輪新增（PO 指定色本身 < 4.5，依指示不換色）**：light #D97706 —— 排行持股異動／配息頻率／殖利率數字 3.19（白卡）、首頁 TOP10 現價 2.84（#EEF2F8）、TOP10 第 1 名白字 on #D97706 3.19；第 2 名藍字 on 銀 #E2E8F0 4.19。
+  - **無法從 repo 精準還原的 PO reference（本輪訊息未附 A／B／C 參考圖）**：Light 便宜綠（用核准 palette #059669）、方案 B 金／銀／銅底（用 #D97706／#E2E8F0／#9A5B2E）、方案 C 琥珀橘（用 PO 第 6 項指定的 #D97706）、方案 C 灰（用 --dim）、方案 A 紫（用 --violet #7C3AED）、方案 C 金黃 badge（用 dark #F0B840／light #D97706）、dark 鮮黃 #FACC15、鮮明紅綠全組。皆待 PO 實機確認或提供 HEX。
+
 - **【獨立 Data Pipeline Incident｜00996A 持股抓取失敗｜記錄，先不修】**（2026-10-07，PO 實機 Telegram 監控）
   - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
   - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
