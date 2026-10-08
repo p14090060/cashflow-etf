@@ -672,6 +672,16 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - B 歷史恢復（本機 trade_pcf qdt，逐日 qdt 掃 9/24～10/9）：TWSE FMTQIK 確認 9/25（中秋）、9/28（教師節）休市。交易日 9/24、9/29、9/30、10/1、10/2、10/5、10/6、10/7 皆可由官方 qdt 取回（qdt＝下一營業日）；10/8 只能由「最新」（無 qdt）取得，qdt=10/9 尚未公告。逐日：9/24 52 檔 5,225,386 股（＝現存快照，逐筆相同）、9/29 52／5,182,386、9/30 52／5,182,386（0 檔異動）、10/1 52／5,187,386、10/2 52／5,488,386（與 CLAUDE.md 10/02 實測一致）、10/5 52／5,520,881、10/6 53／5,530,881、10/7 53／5,742,881、10/8 53／5,928,881。股數皆 > 0、代碼完整。**可 100% 逐日補齊，無缺口。** 注意：現行 adapter 的 `qdt = D+1` 在 D+1 為休市日時會回空（例：D=9/24、10/2），回補需改用「下一營業日」。
   - C 建議架構（未實作）：見 Claude 回報；本機只產出 00996A 驗證過的 PCF 快照檔（含官方資料日、來源、sha256），以 PR／專用分支或 artifact 交給雲端；雲端 fetch_active_etf.py 為唯一寫入 active_flow.json 者，讀到交接檔才採用。
 
+- **【00996A Incident Phase 2C｜feed contract＋recovery dry-run，未啟用、未回補】**（program `8e1ba877`，本機，未 push）
+  - Handoff schema v1：`mega_00996A_<official_data_date>.json` = {schema_version, etf_code, etf_name, issuer, official_data_date, query_date, fetched_at(+08:00), source{id∈mega_trade_pcf|mega_product, url}, holdings[{code,name,shares,raw}], row_count, sha256}。sha256 只做傳輸完整性。
+  - 雲端驗證（`mega_feed.validate_record`）：schema=1、etf_code=00996A、日期 YYYY-MM-DD 且非週末、**嚴格新於目前快照資料日**、來源網域 megafunds、20～300 列、row_count 相符、代碼 `\d{4,6}[A-Z]?`、股數正整數、名稱非空、無重複、sha256 相符；檔名日期須＝內容日期；`.tmp` 不讀。
+  - fetch_mega：PCF 成功 → PCF；PCF 例外／空 → 商品頁；兩者失敗 → `MEGA_FEED_DIR` 的最新合法 feed；仍無 → 回空交既有 KEEP＋stale alert。`specific=True` 不讀 feed。Actions 目前未設 `MEGA_FEED_DIR` → 行為與現況相同（feed 未啟用）。
+  - 歷史 qdt：`date+1 天` → `mega_feed.next_trading_day`（TWSE FMTQIK）；FMTQIK 失敗時例外會被 bootstrap 既有 try 接住（回補失敗 WARN），不影響其他 adapter。
+  - 資料模型：`_active_snapshot.json` 每檔只存最新一份持股；`active_flow.json` 每檔只存最近一次 flow（flow_from→flow_to）＋last_change_date；**無逐日歷史欄位**（逐日只在 git 歷史）。回補正式結果＝快照 10/08（53 檔）＋flow 10/07→10/08；中間日僅在 dry-run 報告。
+  - Recovery dry-run（collector → scratch feed → `mega_recovery_dryrun.py`；production 兩檔 md5 前後不變）：起點快照 9/24（feed 9/24 與快照逐筆一致）→ 9/29 異動 3（減 0.37 億）→ 9/30 異動 0 → 10/1 異動 7（+0.35／−0.60）→ 10/2 異動 6（+0.98／−0.46）→ 10/5 異動 5（+0.42／−0.19）→ 10/6 異動 4（+0.37／−0.61）→ 10/7 異動 14（+1.39）→ 10/8 異動 10（+1.11）。每步只和前一交易日比、價格日＝該資料日。無缺口。
+  - 測試：`python tests/test_mega_feed.py` 37/37 PASS（離線）。`tests/test_pool.py` 53/54（EX-7b 資料相依，改動前同樣 FAIL）。
+  - 待 PO／GPT 批准：真正回補、feed/mega 分支與 workflow 讀取（設定 `MEGA_FEED_DIR`）、本機排程（需 Gavin 確認兆豐授權）。`probe/mega-996a` 保留。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
