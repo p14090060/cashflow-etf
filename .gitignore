@@ -9,3 +9,4 @@ _*.py
 data/verify_run.log
 data/dividend_audit_report.txt
 data/yld_verify_report.json
+_mega_feed/

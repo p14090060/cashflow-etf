@@ -37,8 +37,20 @@ jobs:
 
       # 主動式 ETF 持股（各投信 PCF）。投信官網可能擋 Actions IP 或改版，
       # 失敗不要讓整條 pipeline 掛掉——腳本自己會保留既有檔案不覆蓋。
+      # 00996A incident：兆豐官網擋 Actions（PCF 與商品頁皆 403）。本機人工取得、驗證過的官方 PCF
+      # 交接檔放在 feed/mega 分支；只在兆豐兩條官方路徑都失敗時才讀，且由 fetch_active_etf.py 再驗證一次。
+      # 分支不存在／checkout 失敗 → MEGA_FEED_DIR 指向空目錄 → 照舊 KEEP＋警報，不影響其他投信。
+      - name: Checkout Mega feed (feed/mega)
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: feed/mega
+          path: _mega_feed
+
       - name: Fetch active ETF holdings (PCF)
         continue-on-error: true
+        env:
+          MEGA_FEED_DIR: ${{ github.workspace }}/_mega_feed
         run: python scripts/fetch_active_etf.py
 
       - name: Daily check & auto-fix avg

@@ -121,6 +121,24 @@ def closes_on(day, max_lookback=6):
     return _CLOSES_CACHE[day]
 
 
+def _is_trading_day(d):
+    """d 是否為交易日（重用 closes_on：當日有 TWSE 行情才算）。無法確認回 None。"""
+    try:
+        ds, closes = closes_on(d)
+    except Exception:
+        return None
+    if not ds or not closes:
+        return None
+    return ds == d.strftime("%Y%m%d")
+
+
+mega_feed.set_calendar(_is_trading_day)
+
+# fetch_mega 採用 feed 時記下該檔的比對基準（見 mega_feed.latest_valid）：
+#   dict＝改用 feed 的上一交易日快照當 prev；False＝找不到，main() 不得算 Flow
+MEGA_FEED_BASIS = {}
+
+
 def fetch_tpex_closes(date_str):
     """櫃買中心當日收盤行情。date_str 為 YYYYMMDD，回傳 {代碼: 收盤價}。"""
     try:
@@ -1150,9 +1168,11 @@ def fetch_mega(date_obj, specific=False):
         # 只採用驗證通過、且比目前快照新的資料；沒有就回空，交給既有 KEEP＋監控。
         if ticker not in out and not specific:
             cur = ((load_json(SNAPSHOT) or {}).get("etfs", {}).get(ticker) or {}).get("data_date")
-            rec = mega_feed.latest_valid(os.environ.get("MEGA_FEED_DIR", ""), ticker, cur,
-                                         log=lambda m: print(f"[兆豐] {m}"))
+            rec, basis = mega_feed.latest_valid(os.environ.get("MEGA_FEED_DIR", ""), ticker, cur,
+                                                log=lambda m: print(f"[兆豐] {m}"))
             if rec:
+                if basis is not None:
+                    MEGA_FEED_BASIS[ticker] = (mega_feed.record_to_adapter(basis) if basis else False)
                 v = mega_feed.record_to_adapter(rec)
                 hold = _Holdings()
                 hold.update(v["holdings"])
@@ -1716,7 +1736,22 @@ def main():
     # 只看「這次抓到、但快照裡沒有」的——新接一家投信時它們同樣要回補，
     # 之前寫成 `if not prev` 只涵蓋全空的情況，每加一家就會空白一天。
     prev_etfs = (prev or {}).get("etfs") or {}
-    need = [c for c in etfs if c not in prev_etfs]
+
+    # 00996A feed（00996A incident）：feed 資料日與快照之間隔了不只一個交易日時，
+    # 改用 feed 裡「上一交易日」那份當基準，絕不拿舊快照直接相減出跨多日的假單日 Flow；
+    # 找不到上一交易日基準就不給基準（no_basis），只更新持股。
+    for code, basis in MEGA_FEED_BASIS.items():
+        if code not in etfs:
+            continue
+        prev = {"fetched": (prev or {}).get("fetched", "(feed)"), "etfs": dict(prev_etfs)}
+        if basis:
+            prev["etfs"][code] = basis
+            print(f"[FEED] {code} 比對基準改用 feed 上一交易日 {basis['data_date']}")
+        else:
+            prev["etfs"].pop(code, None)
+            print(f"[FEED] {code} 缺上一交易日基準，本次不算 Flow")
+        prev_etfs = prev["etfs"]
+    need = [c for c in etfs if c not in prev_etfs and MEGA_FEED_BASIS.get(c) is not False]
     if need:
         # 回補「前一份」PCF。各投信、甚至同投信不同基金的公告延遲都不一樣
         # （實測 00403A 落後 2 天、00981A 落後 1 天），所以不能用固定天數，

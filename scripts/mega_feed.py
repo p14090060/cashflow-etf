@@ -19,7 +19,7 @@ Actions 仍是 data/active_flow.json 唯一寫入者。本模組不寫任何正�
   "sha256": "<holdings 正規化 JSON 的 sha256>"   # 只做傳輸完整性，不代表資料真實
 }
 """
-import datetime, hashlib, json, os, re, urllib.request
+import datetime, hashlib, json, os, re
 
 SCHEMA_VERSION = 1
 SOURCES = {"mega_trade_pcf", "mega_product"}
@@ -117,19 +117,35 @@ def write_atomic(path, rec):
     os.replace(tmp, path)
 
 
-def latest_valid(feed_dir, expected_code, current_date=None, log=print):
-    """在 feed_dir 找最新、驗證通過、且比 current_date 新的交接檔。回傳 record 或 None。"""
+def _load(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def latest_valid(feed_dir, expected_code, current_date=None, log=print, is_trading=None):
+    """選出要採用的 feed。回傳 (record, basis)：
+      record：最新、驗證通過、比 current_date 新、且 official_data_date 確認為交易日的交接檔；沒有則 (None, None)。
+      basis ：它的「上一交易日」比對基準——
+              None  ＝ current_date 本身就是上一交易日（沿用正式快照）
+              dict  ＝ feed 內上一交易日的合法交接檔（改用它當基準，避免跨多日的假單日 Flow）
+              False ＝ 找不到上一交易日基準（呼叫端不得算 Flow，只能當 no_basis）
+    交易日曆無法確認時 fail closed（不採用該檔）。"""
     if not feed_dir or not os.path.isdir(feed_dir):
         log(f"[FEED] 沒有 feed 目錄（{feed_dir}）")
-        return None
+        return None, None
+    try:
+        f = _cal(is_trading)
+    except RuntimeError as e:
+        log(f"[FEED] {e}，不採用 feed")
+        return None, None
     pat = re.compile(rf"mega_{re.escape(expected_code)}_(\d{{4}}-\d{{2}}-\d{{2}})\.json")
     names = sorted((n for n in os.listdir(feed_dir) if pat.fullmatch(n)), reverse=True)
     if not names:
         log("[FEED] feed 目錄內沒有交接檔")
+    by_date = {pat.fullmatch(n).group(1): n for n in names}
     for n in names:
         try:
-            with open(os.path.join(feed_dir, n), encoding="utf-8") as f:
-                rec = json.load(f)
+            rec = _load(os.path.join(feed_dir, n))
         except Exception as e:
             log(f"[FEED] {n} 讀取失敗：{type(e).__name__}")
             continue
@@ -137,47 +153,85 @@ def latest_valid(feed_dir, expected_code, current_date=None, log=print):
         if ok and pat.fullmatch(n).group(1) != rec["official_data_date"]:
             ok, why = False, "filename_date_mismatch"
         if ok:
-            return rec
-        log(f"[FEED] {n} 不採用：{why}")
-        if why.startswith("not_newer"):
-            break          # 依檔名新到舊，後面只會更舊
-    return None
+            d = datetime.date.fromisoformat(rec["official_data_date"])
+            t = f(d)
+            if t is None:
+                log(f"[FEED] {n} 無法確認 {d} 是否為交易日，fail closed 不採用")
+                return None, None
+            if not t:
+                ok, why = False, f"not_trading_day {d}"
+        if not ok:
+            log(f"[FEED] {n} 不採用：{why}")
+            if why.startswith("not_newer"):
+                break          # 依檔名新到舊，後面只會更舊
+            continue
+        pd = prev_trading_day(d, f)
+        if pd is None:
+            log(f"[FEED] 無法確認 {d} 的上一交易日，fail closed 不採用")
+            return None, None
+        if current_date == pd.isoformat():
+            return rec, None
+        bn = by_date.get(pd.isoformat())
+        basis = False
+        if bn:
+            try:
+                b = _load(os.path.join(feed_dir, bn))
+                bok, bwhy = validate_record(b, expected_code)
+                if bok and b["official_data_date"] == pd.isoformat():
+                    basis = b
+                else:
+                    log(f"[FEED] 基準 {bn} 不合法：{bwhy}")
+            except Exception as e:
+                log(f"[FEED] 基準 {bn} 讀取失敗：{type(e).__name__}")
+        if basis is False:
+            log(f"[FEED] {d} 缺上一交易日 {pd} 的基準 → 只更新持股、不算 Flow（no_basis）")
+        return rec, basis
+    return None, None
 
 
-# ── 交易日（證交所 FMTQIK 每月成交資訊：有列出的日期才是交易日）──
-_TD_CACHE = {}
+# ── 交易日：重用 fetch_active_etf 既有的行情日曆（closes_on：TWSE MI_INDEX 往回找有行情的那天）──
+#   由 fetch_active_etf 在 import 時注入（set_calendar），不另建第二套日期規則。
+#   is_trading(d) 回 True／False；無法確認（網路失敗等）回 None。
+_IS_TRADING = None
 
 
-def _fmtqik_days(year, month):
-    key = (year, month)
-    if key not in _TD_CACHE:
-        url = ("https://www.twse.com.tw/exchangeReport/FMTQIK?response=json"
-               f"&date={year}{month:02d}01")
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=20) as r:
-            j = json.loads(r.read().decode("utf-8"))
-        days = set()
-        for row in j.get("data") or []:
-            y, m, d = row[0].split("/")
-            days.add(datetime.date(int(y) + 1911, int(m), int(d)))
-        _TD_CACHE[key] = days
-    return _TD_CACHE[key]
+def set_calendar(is_trading):
+    global _IS_TRADING
+    _IS_TRADING = is_trading
+
+
+def _cal(is_trading):
+    f = is_trading or _IS_TRADING
+    if f is None:
+        raise RuntimeError("交易日曆未設定")
+    return f
 
 
 def next_trading_day(d, is_trading=None, max_days=15):
-    """d 之後的下一個交易日（不含 d）。is_trading 可注入（測試用）。
-
-    未來日期 FMTQIK 尚無資料時，退回「下一個非週末日」——只用於查詢參數，
-    不會被當成官方資料日（官方資料日一律以頁面標示為準）。
-    """
-    if is_trading is None:
-        def is_trading(x):
-            if x > datetime.date.today():
-                return x.weekday() < 5
-            return x in _fmtqik_days(x.year, x.month)
+    """d 之後的下一個交易日（不含 d）。今天以後的日期尚無行情，退回「非週末」——
+    只用於查詢參數 qdt，不會被當成官方資料日。日曆無法確認時拋例外（呼叫端既有 try 會接住）。"""
+    f = _cal(is_trading)
+    today = datetime.date.today()
     x = d
     for _ in range(max_days):
         x += datetime.timedelta(days=1)
-        if is_trading(x):
+        ok = (x.weekday() < 5) if x >= today else f(x)
+        if ok is None:
+            raise RuntimeError(f"無法確認 {x} 是否為交易日")
+        if ok:
             return x
     raise ValueError(f"{d} 之後 {max_days} 天內找不到交易日")
+
+
+def prev_trading_day(d, is_trading=None, max_days=15):
+    """d 之前的上一個交易日；無法確認回 None（fail closed）。"""
+    f = _cal(is_trading)
+    x = d
+    for _ in range(max_days):
+        x -= datetime.timedelta(days=1)
+        ok = f(x)
+        if ok is None:
+            return None
+        if ok:
+            return x
+    return None

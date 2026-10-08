@@ -20,6 +20,9 @@ TRADING = {D(2026, 9, d) for d in (21, 22, 23, 24, 29, 30)} | \
           {D(2026, 10, d) for d in (1, 2, 5, 6, 7, 8, 9, 12, 13)}
 
 
+M.set_calendar(lambda d: d in TRADING)     # 測試一律用固定交易日曆（離線）
+
+
 def holdings(n=52, start=1101):
     return {str(start + i): {"name": f"股{i}", "shares": 1000 + i} for i in range(n)}
 
@@ -53,13 +56,8 @@ class NextTradingDay(unittest.TestCase):
 
     def test_fetch_mega_sends_next_trading_day(self):
         sent = []
-        orig_ntd = M.next_trading_day
-        M.next_trading_day = lambda d: orig_ntd(d, is_trading=lambda x: x in TRADING)
-        try:
-            with fake_net(pcf=True, capture=sent), quiet():
-                F.fetch_mega(D(2026, 9, 24), specific=True)
-        finally:
-            M.next_trading_day = orig_ntd
+        with fake_net(pcf=True, capture=sent), quiet():
+            F.fetch_mega(D(2026, 9, 24), specific=True)
         self.assertTrue(any(s.endswith("qdt=2026/09/29") for s in sent), sent)
 
 
@@ -113,13 +111,17 @@ class FeedDir(unittest.TestCase):
     def put(self, r, name=None):
         M.write_atomic(os.path.join(self.dir, name or f"mega_{CODE}_{r['official_data_date']}.json"), r)
 
-    def latest(self, cur="2026-10-07"):
+    def latest(self, cur="2026-10-07", **kw):
+        with quiet():
+            return M.latest_valid(self.dir, CODE, cur, **kw)[0]
+
+    def pair(self, cur):
         with quiet():
             return M.latest_valid(self.dir, CODE, cur)
 
     def test_missing_dir(self):
         with quiet():
-            self.assertIsNone(M.latest_valid(os.path.join(self.dir, "nope"), CODE, "2026-10-07"))
+            self.assertEqual(M.latest_valid(os.path.join(self.dir, "nope"), CODE, "2026-10-07"), (None, None))
 
     def test_empty_dir(self):
         self.assertIsNone(self.latest())
@@ -148,6 +150,34 @@ class FeedDir(unittest.TestCase):
     def test_wrong_etf_file(self):
         self.put(rec("2026-10-08", etf_code="00981A"), name=f"mega_{CODE}_2026-10-08.json")
         self.assertIsNone(self.latest())
+
+    def test_weekday_holiday_rejected(self):
+        self.put(rec("2026-09-25"))                       # 中秋，週五但休市
+        self.assertIsNone(self.latest(cur="2026-09-24"))
+
+    def test_calendar_unknown_fail_closed(self):
+        self.put(rec("2026-10-08"))
+        self.assertIsNone(self.latest(is_trading=lambda d: None))
+
+    def test_basis_snapshot_is_prev_trading_day(self):
+        self.put(rec("2026-10-08"))
+        r, b = self.pair("2026-10-07")
+        self.assertEqual((r["official_data_date"], b), ("2026-10-08", None))
+
+    def test_basis_from_feed_when_gap(self):
+        self.put(rec("2026-10-07", n=53)); self.put(rec("2026-10-08"))
+        r, b = self.pair("2026-09-24")
+        self.assertEqual((r["official_data_date"], b["official_data_date"]), ("2026-10-08", "2026-10-07"))
+
+    def test_basis_across_holidays(self):
+        self.put(rec("2026-09-24")); self.put(rec("2026-09-29"))
+        r, b = self.pair("2026-09-23")
+        self.assertEqual(b["official_data_date"], "2026-09-24")
+
+    def test_no_basis_marked_false(self):
+        self.put(rec("2026-10-08"))
+        r, b = self.pair("2026-09-24")
+        self.assertIs(b, False)
 
     def test_atomic_write_no_tmp_left(self):
         self.put(rec("2026-10-08"))
@@ -199,6 +229,7 @@ class FetchMegaFeed(unittest.TestCase):
         json.dump({"etfs": {CODE: {"data_date": "2026-09-24", "holdings": {}}}}, open(self.snap, "w"))
         self.saved = (F.SNAPSHOT, os.environ.get("MEGA_FEED_DIR"))
         F.SNAPSHOT = self.snap; os.environ["MEGA_FEED_DIR"] = self.feed
+        F.MEGA_FEED_BASIS.clear()
 
     def tearDown(self):
         F.SNAPSHOT = self.saved[0]
@@ -239,19 +270,90 @@ class FetchMegaFeed(unittest.TestCase):
 
     def test_specific_never_reads_feed(self):
         self.put(rec("2026-10-08"))
-        orig = M.next_trading_day
-        M.next_trading_day = lambda d: orig(d, is_trading=lambda x: x in TRADING)
-        try:
-            self.assertEqual(self.run_mega(specific=True, pcf=False), {})
-        finally:
-            M.next_trading_day = orig
+        self.assertEqual(self.run_mega(specific=True, pcf=False), {})
 
     def test_feed_code_scoped_to_mega_adapter(self):
         src = (ROOT / "scripts" / "fetch_active_etf.py").read_text(encoding="utf-8")
-        uses = [i for i, l in enumerate(src.splitlines()) if "mega_feed." in l and "next_trading_day" not in l]
+        uses = [i for i, l in enumerate(src.splitlines())
+                if "mega_feed." in l and "next_trading_day" not in l and "set_calendar" not in l and not l.lstrip().startswith("#")]
         start = src.splitlines().index(next(l for l in src.splitlines() if l.startswith("def fetch_mega(")))
         end = src.splitlines().index(next(l for l in src.splitlines() if l.startswith("def _mega_parse_pcf(")))
         self.assertTrue(uses and all(start < i < end for i in uses), uses)
+
+
+class MainRecovery(unittest.TestCase):
+    """main() 端到端（網路全 mock）：快照停在 9/24、feed 有 10/07＋10/08 → Flow 只能是 10/07→10/08。"""
+
+    def setUp(self):
+        self.td = tempfile.TemporaryDirectory(); t = self.td.name
+        self.feed = os.path.join(t, "feed"); os.makedirs(self.feed)
+        self.snap, self.out = os.path.join(t, "snap.json"), os.path.join(t, "flow.json")
+        json.dump({"fetched": "x", "etfs": {
+            CODE: {"name": "主動兆豐台灣豐收", "issuer": "兆豐", "data_date": "2026-09-24", "holdings": holdings(52)},
+            "00981A": {"name": "統一", "issuer": "統一", "data_date": "2026-10-07", "holdings": holdings(30, 2001)}}},
+            open(self.snap, "w", encoding="utf-8"))
+        json.dump({"etfs": {
+            CODE: {"name": "主動兆豐台灣豐收", "data_date": "2026-09-24", "fetched": False, "flow_from": "2026-09-23",
+                   "flow_to": "2026-09-24", "flow": [], "first_seen": "2026-09-23",
+                   "advanced": True, "changed": 4, "buy": 0, "sell": 0},
+            "00981A": {"name": "統一", "data_date": "2026-10-07", "fetched": True, "flow": [],
+                       "advanced": False, "changed": 0, "buy": 0, "sell": 0, "reason": "not_updated"}}},
+            open(self.out, "w", encoding="utf-8"))
+        r8 = rec("2026-10-08")
+        for i in range(10):                                   # 10/08 相對 10/07 改 10 檔
+            r8["holdings"][i]["shares"] += 1000
+        resign(r8)
+        for r in (rec("2026-09-29"), rec("2026-10-07"), r8):
+            M.write_atomic(os.path.join(self.feed, f"mega_{CODE}_{r['official_data_date']}.json"), r)
+        self.saved = (F.SNAPSHOT, F.OUT, F.ADAPTERS, F.closes_on, os.environ.get("MEGA_FEED_DIR"))
+        F.SNAPSHOT, F.OUT = Path(self.snap), Path(self.out)
+        F.closes_on = lambda d, max_lookback=6: ("20261008", {c: 10.0 for c in holdings(52)})
+        os.environ["MEGA_FEED_DIR"] = self.feed
+        F.MEGA_FEED_BASIS.clear()
+
+    def tearDown(self):
+        F.SNAPSHOT, F.OUT, F.ADAPTERS, F.closes_on, d = self.saved
+        if d is None:
+            os.environ.pop("MEGA_FEED_DIR", None)
+        else:
+            os.environ["MEGA_FEED_DIR"] = d
+        F.MEGA_FEED_BASIS.clear(); self.td.cleanup()
+
+    def run_main(self):
+        F.ADAPTERS = [F.fetch_mega]
+        with fake_net(pcf=False), quiet():
+            return F.main()
+
+    def load(self, p):
+        return json.load(open(p, encoding="utf-8"))["etfs"]      # reload from disk
+
+    def test_recovery_flow_is_single_day(self):
+        self.assertEqual(self.run_main(), 0)
+        flow, snap = self.load(self.out)[CODE], self.load(self.snap)[CODE]
+        self.assertEqual((snap["data_date"], len(snap["holdings"])), ("2026-10-08", 52))
+        self.assertEqual((flow["flow_from"], flow["flow_to"], flow["changed"]), ("2026-10-07", "2026-10-08", 10))
+        self.assertTrue(flow["fetched"])
+
+    def test_other_etf_untouched(self):
+        self.run_main()
+        o = self.load(self.out)["00981A"]
+        self.assertEqual((o["data_date"], o["fetched"]), ("2026-10-07", False))   # 沒跑它的 adapter → 既有 KEEP
+        self.assertEqual(self.load(self.snap)["00981A"]["data_date"], "2026-10-07")
+
+    def test_no_basis_never_spans_days(self):
+        os.remove(os.path.join(self.feed, f"mega_{CODE}_2026-10-07.json"))
+        self.run_main()
+        flow = self.load(self.out)[CODE]
+        self.assertEqual(flow["data_date"], "2026-10-08")
+        self.assertFalse(flow["advanced"])
+        self.assertNotEqual(flow.get("flow_to"), "2026-10-08")
+
+    def test_feed_broken_keeps_old(self):
+        for n in os.listdir(self.feed):
+            open(os.path.join(self.feed, n), "w").write("{broken")
+        self.run_main()
+        flow = self.load(self.out)[CODE]
+        self.assertEqual((flow["data_date"], flow["fetched"]), ("2026-09-24", False))
 
 
 if __name__ == "__main__":
