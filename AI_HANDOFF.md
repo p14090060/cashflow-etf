@@ -713,6 +713,17 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - Production 未改寫證明：HEAD 與 `503e7bb0` 的 00407A（active_flow 與 _active_snapshot）逐欄相同；`503e7bb0..HEAD` 期間資料檔唯一 commit 為 Actions `e278fd19`（例行排程），本輪無任何資料 commit。
   - Incident 未 CLOSED；等 Codex 複審 `180050de`。
 
+- **【Phase 5 CP8｜V3 UX closeout＋文件】Engineering 完成 — `fbb434d8`（已在 origin/main；等 Codex fixed-SHA review → PO 視覺確認 → CP8 CLOSED → Final）**
+  - 觸控目標（390 實測全頁掃描）：Detail「✕ 關閉」28px、搜尋清除 26×23 → 透明 `::after` 擴到 ≥ 44（外觀不變，elementFromPoint 四向 ±21px 皆命中）；搜尋結果列 40 → min-height 44（`gs-ckm` 緊湊模式維持原設計）。
+    未改（列 Observation）：`#gsearch` 輸入框 43px（輸入欄位，改高會連動 Header 高度）；分類排序鈕 `#catSortBtn` 36px（Phase 3 元件，tight3／ckm 緊湊模式刻意更小，擴點擊區可能壓到清單列）；頁尾文字連結 16px（行內文字連結）。
+  - 「合理✓」：`detail.js _DT_SIG`（Detail＋我的 ETF）→「合理」；首頁、排行 CP7 已完成。僅 `archived-check.js`（封存健診頁、未顯示）保留原樣，依 CLAUDE.md 封存原則不動。
+  - 空狀態：價格合理區「目前沒有 ETF 符合價格條件」（PO 決策 #12）、我的 ETF「還沒有收藏 ETF＋前往分類」、搜尋「找不到「…」＋建議」三者既有文案維持；修正搜尋查無把輸入未轉義插入 innerHTML（實測 `<img onerror>` 不再執行）。
+  - 死碼：`flow.js _changedWithin()` 移除（唯一引用在 rank_test NV-2，改測試內計算、斷言不變）。§6 其餘項目（calc.js／lookup.js／config.js／selETF／renderSignalCard／lookupCustom／lookupToday／LAZY_WATCHLIST 前端／`.buy-card`／`.etf-chip`／`.custom-*`／page-yt）grep 皆無程式引用（只剩註解或封存檔）；`.calc-*` 為 Detail 試算使用，保留。
+  - reduced-motion：分類動畫（category.css）與拖曳（watch.css／watch.js）既已處理；新增排行搜尋定位 smooth scroll 在 reduce 時改 `auto`（實測 behavior=auto）。
+  - **RK-1：修。** 原因：`--hdr-h` 只在 resize／focus／Detail 開關時量，資料載入後 Header 由 138 變 122（狀態徽章文字變化）仍停在 138，排行 sticky 與 Header 間留 16px 空隙、可見到下方內容（盤後必現）。修正：`.app-hdr` ResizeObserver → `_syncHdrH()`。RK-1 由 FAIL 轉 PASS（盤後時段）。
+  - CLAUDE.md：頁面區塊代號（首頁／分類／自選／工具＋Header）、訊號標籤與色 token（合理、cheap light #059669、bond #58a6ff）、資料池篩選鏈 5 段、主題與 visual tokens、rank-flow 現況、排行殖利率色。**文件發現待 PO 決定**：`EXCLUDE_KW` 含「債」，與「一般債券 ETF 保留」字面不一致（未改程式）。
+  - 測試（800×600，乾淨 Chrome）：rank 80/80（RK-1 PASS）、flowq 35、tools 93、home 38、router 64、search_compact 38、detail_ui 48、detail_history_fix 14、regression 35、detail_collapse 25、detail_state 42、category 270＋1 DEFER、watch 149＋4 DEFER；theme 54/4（TH-6×2 Known Blocker；TH-5×2 資料相依，今日 00992A 只有 2 格）。TH-6 light 另見 `status-badge status-closed` 4.15（盤後徽章，baseline 同樣 FAIL，CP7 奶油底相關，非 CP8 造成，列 Observation）。360／390／1280 × 兩主題水平 overflow 0。無未捕捉例外（各 suite 例外檢查 PASS）。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
