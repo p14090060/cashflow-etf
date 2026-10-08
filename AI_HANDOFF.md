@@ -682,6 +682,15 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - 測試：`python tests/test_mega_feed.py` 37/37 PASS（離線）。`tests/test_pool.py` 53/54（EX-7b 資料相依，改動前同樣 FAIL）。
   - 待 PO／GPT 批准：真正回補、feed/mega 分支與 workflow 讀取（設定 `MEGA_FEED_DIR`）、本機排程（需 Gavin 確認兆豐授權）。`probe/mega-996a` 保留。
 
+- **【00996A Incident Phase 2D｜Production Recovery 完成＋feed 正式接入】**（2026-10-08）
+  - Program `f433832d`（已 push main）：fetch.yml checkout `feed/mega`→`_mega_feed`＋`MEGA_FEED_DIR`；交易日改重用 `closes_on`（`_is_trading_day`，set_calendar 注入；移除 FMTQIK）；feed 資料日須為交易日、日曆不明 fail closed；`latest_valid`→(record, basis)，快照非上一交易日時用 feed 上一交易日檔當基準，找不到則 no_basis（main 只對 `MEGA_FEED_BASIS` 內代碼調整 prev）。tests 47/47。
+  - `feed/mega`（orphan 分支 `0b8535ef`）：README＋9 份官方交接檔 9/24、9/29、9/30、10/1、10/2、10/5、10/6、10/7、10/8（本機人工 `mega_collect.py`；10/08 另與商品頁逐筆一致；sha 與 Phase 2C 相同）。不含任何正式輸出檔。
+  - Production 執行：fetch.yml run 37783049343（workflow_dispatch，main `f433832d`）→ PCF 403、商品頁 403 → `改用 feed 交接檔 53 檔，資料日 2026-10-08` → `[FEED] 比對基準改用 feed 上一交易日 2026-10-07` → `[OK] 00996A 2026-10-07 → 2026-10-08，異動 10 檔、加碼 1.1 億`；Actions commit `90c9e0fd`。
+  - Reload from disk（pull 後）：snapshot 00996A＝2026-10-08、53 檔，代碼／名稱／股數與 feed 10/08 逐筆相同；active_flow：fetched true、advanced true、flow 2026-10-07→2026-10-08、changed 10（8021 +24000、6683 +9000、3533 +6000、2472 +46000、6830 +21000、6278 +44000、2327 +17000、3189 +10000、3037 +8000、3443 +1000）、buy 110,901,000、sell 0、price_date 20261008——與 Phase 2C dry-run 一致，非 9/24→10/8。
+  - Monitor：同一輪 daily_check「所有監控 ETF 資料正常」，00996A 不再發 stale。其他投信照常（同輪 00982A 群益逾時 → 既有 KEEP，與本案無關）。
+  - UI：00996A treemap 兩主題 10 格、weak 0；flowq 35、tools 93、watch 149 PASS；rank 79／1（RK-1 盤後 Observation，既有）。
+  - 未做：本機自動排程（待 Gavin 確認兆豐授權）。之後每個交易日須人工跑 `python scripts/mega_collect.py --out <feed/mega worktree> --latest` 並 push feed/mega，否則 00996A 會回到 KEEP＋4 交易日後 stale alert（預期行為）。`probe/mega-996a` 待 Incident CLOSED 後清理。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
