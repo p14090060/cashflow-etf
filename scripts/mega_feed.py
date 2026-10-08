@@ -122,6 +122,19 @@ def _load(path):
         return json.load(f)
 
 
+def load_valid_for_date(feed_dir, expected_code, date):
+    """feed 裡指定資料日、驗證通過的交接檔；沒有回 None。"""
+    if not feed_dir or not os.path.isdir(feed_dir):
+        return None
+    path = os.path.join(feed_dir, f"mega_{expected_code}_{date}.json")
+    try:
+        rec = _load(path)
+    except Exception:
+        return None
+    ok, _ = validate_record(rec, expected_code)
+    return rec if ok and rec.get("official_data_date") == date else None
+
+
 def latest_valid(feed_dir, expected_code, current_date=None, log=print, is_trading=None):
     """選出要採用的 feed。回傳 (record, basis)：
       record：最新、驗證通過、比 current_date 新、且 official_data_date 確認為交易日的交接檔；沒有則 (None, None)。

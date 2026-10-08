@@ -2,7 +2,7 @@
 
 執行：python tests/test_mega_feed.py
 """
-import contextlib, copy, datetime, io, json, os, sys, tempfile, unittest, urllib.error
+import contextlib, copy, datetime, io, json, os, sys, tempfile, unittest, urllib.error, urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -229,7 +229,6 @@ class FetchMegaFeed(unittest.TestCase):
         json.dump({"etfs": {CODE: {"data_date": "2026-09-24", "holdings": {}}}}, open(self.snap, "w"))
         self.saved = (F.SNAPSHOT, os.environ.get("MEGA_FEED_DIR"))
         F.SNAPSHOT = self.snap; os.environ["MEGA_FEED_DIR"] = self.feed
-        F.MEGA_FEED_BASIS.clear()
 
     def tearDown(self):
         F.SNAPSHOT = self.saved[0]
@@ -273,87 +272,183 @@ class FetchMegaFeed(unittest.TestCase):
         self.assertEqual(self.run_mega(specific=True, pcf=False), {})
 
     def test_feed_code_scoped_to_mega_adapter(self):
-        src = (ROOT / "scripts" / "fetch_active_etf.py").read_text(encoding="utf-8")
-        uses = [i for i, l in enumerate(src.splitlines())
-                if "mega_feed." in l and "next_trading_day" not in l and "set_calendar" not in l and not l.lstrip().startswith("#")]
-        start = src.splitlines().index(next(l for l in src.splitlines() if l.startswith("def fetch_mega(")))
-        end = src.splitlines().index(next(l for l in src.splitlines() if l.startswith("def _mega_parse_pcf(")))
-        self.assertTrue(uses and all(start < i < end for i in uses), uses)
+        """feed／日期保護只出現在兆豐 adapter 與兆豐專用的 _mega_baseline／_mega_date_guard，其他投信不受影響。"""
+        lines = (ROOT / "scripts" / "fetch_active_etf.py").read_text(encoding="utf-8").splitlines()
+        idx = lambda pre: next(i for i, l in enumerate(lines) if l.startswith(pre))
+        ok = [(idx("def fetch_mega("), idx("def _mega_parse_pcf(")), (idx("def _mega_baseline("), idx("def main("))]
+        uses = [i for i, l in enumerate(lines)
+                if "mega_feed." in l and "set_calendar" not in l and not l.lstrip().startswith("#")]
+        self.assertTrue(uses and all(any(a < i < b for a, b in ok) for i in uses), uses)
+        guard = "\n".join(lines[idx("def _mega_date_guard("):idx("def main(")])
+        self.assertIn("for code in MEGA_FUNDS:", guard)
 
 
-class MainRecovery(unittest.TestCase):
-    """main() 端到端（網路全 mock）：快照停在 9/24、feed 有 10/07＋10/08 → Flow 只能是 10/07→10/08。"""
+class DateGuard(unittest.TestCase):
+    """main() 端到端：兆豐三種來源（PCF／商品頁／feed）共用同一道日期保護（Codex Phase 2D BLOCKER）。
+
+    網路全 mock：trade_pcf 最新一份、trade_pcf 歷史（依 qdt）、商品頁各自可開關。"""
+
+    SNAP_HOLD = None
+
+    @staticmethod
+    def hold(date):
+        """每個資料日一份可辨識的持股：與前一交易日比，前 10 檔股數各 +1000×序號。"""
+        order = ["2026-09-24", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02",
+                 "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08"]
+        k = order.index(date)
+        return {str(1101 + i): {"name": f"股{i}", "shares": 1000 + i + (k * 1000 if i < 10 else 0)}
+                for i in range(52)}
+
+    @staticmethod
+    def pcf_html(date):
+        y, m, d = date.split("-")
+        rows = "".join(f"<tr><td>{c}</td><td>{v['name']}</td><td>{v['shares']:,}</td><td>1%</td></tr>"
+                       for c, v in DateGuard.hold(date).items())
+        return (f'<div id="div_prev_unit_total" class="ann-item"><div>{y}/{m}/{d} 預估發行受益權單位數</div></div>'
+                f"<table>{rows}</table>主動兆豐台灣豐收")
+
+    @staticmethod
+    def product_html(date):
+        y, m, d = date.split("-")
+        blk = "".join(f'<div class="fund-info"><div class="fund-content">{c}</div><div class="fund-content">{v["name"]}</div>'
+                      f'<div class="fund-content">{v["shares"]:,}</div><div class="fund-content">1%</div></div>'
+                      for c, v in DateGuard.hold(date).items())
+        return f"<p>持股比重 資料來源：兆豐投信，{y}/{m}/{d}</p>{blk}"
 
     def setUp(self):
         self.td = tempfile.TemporaryDirectory(); t = self.td.name
         self.feed = os.path.join(t, "feed"); os.makedirs(self.feed)
         self.snap, self.out = os.path.join(t, "snap.json"), os.path.join(t, "flow.json")
-        json.dump({"fetched": "x", "etfs": {
-            CODE: {"name": "主動兆豐台灣豐收", "issuer": "兆豐", "data_date": "2026-09-24", "holdings": holdings(52)},
-            "00981A": {"name": "統一", "issuer": "統一", "data_date": "2026-10-07", "holdings": holdings(30, 2001)}}},
-            open(self.snap, "w", encoding="utf-8"))
-        json.dump({"etfs": {
-            CODE: {"name": "主動兆豐台灣豐收", "data_date": "2026-09-24", "fetched": False, "flow_from": "2026-09-23",
-                   "flow_to": "2026-09-24", "flow": [], "first_seen": "2026-09-23",
-                   "advanced": True, "changed": 4, "buy": 0, "sell": 0},
-            "00981A": {"name": "統一", "data_date": "2026-10-07", "fetched": True, "flow": [],
-                       "advanced": False, "changed": 0, "buy": 0, "sell": 0, "reason": "not_updated"}}},
-            open(self.out, "w", encoding="utf-8"))
-        r8 = rec("2026-10-08")
-        for i in range(10):                                   # 10/08 相對 10/07 改 10 檔
-            r8["holdings"][i]["shares"] += 1000
-        resign(r8)
-        for r in (rec("2026-09-29"), rec("2026-10-07"), r8):
-            M.write_atomic(os.path.join(self.feed, f"mega_{CODE}_{r['official_data_date']}.json"), r)
-        self.saved = (F.SNAPSHOT, F.OUT, F.ADAPTERS, F.closes_on, os.environ.get("MEGA_FEED_DIR"))
-        F.SNAPSHOT, F.OUT = Path(self.snap), Path(self.out)
-        F.closes_on = lambda d, max_lookback=6: ("20261008", {c: 10.0 for c in holdings(52)})
+        self.saved = (F.SNAPSHOT, F.OUT, F.ADAPTERS, F.closes_on, F._opener, F.time.sleep, os.environ.get("MEGA_FEED_DIR"))
+        F.SNAPSHOT, F.OUT, F.ADAPTERS = Path(self.snap), Path(self.out), [F.fetch_mega]
+        F.closes_on = lambda d, max_lookback=6: (d.strftime("%Y%m%d"), {str(1101 + i): 10.0 for i in range(52)})
+        F.time.sleep = lambda s: None
         os.environ["MEGA_FEED_DIR"] = self.feed
-        F.MEGA_FEED_BASIS.clear()
 
     def tearDown(self):
-        F.SNAPSHOT, F.OUT, F.ADAPTERS, F.closes_on, d = self.saved
+        F.SNAPSHOT, F.OUT, F.ADAPTERS, F.closes_on, F._opener, F.time.sleep, d = self.saved
         if d is None:
             os.environ.pop("MEGA_FEED_DIR", None)
         else:
             os.environ["MEGA_FEED_DIR"] = d
-        F.MEGA_FEED_BASIS.clear(); self.td.cleanup()
+        self.td.cleanup()
+
+    def state(self, cur):
+        with open(self.snap, "w", encoding="utf-8") as f:
+            json.dump({"fetched": "x", "etfs": {CODE: {"name": "主動兆豐台灣豐收", "issuer": "兆豐", "data_date": cur,
+                                                        "holdings": self.hold(cur)}}}, f)
+        with open(self.out, "w", encoding="utf-8") as f:
+            json.dump({"etfs": {CODE: {"name": "主動兆豐台灣豐收", "data_date": cur, "fetched": True, "advanced": True,
+                                       "changed": 0, "buy": 0, "sell": 0, "flow": [], "flow_from": "old", "flow_to": cur,
+                                       "first_seen": "2026-09-23", "last_change_date": cur}}}, f)
+
+    def feed_put(self, date):
+        r = M.build_record(CODE, "主動兆豐台灣豐收", "兆豐", date, self.hold(date), "mega_trade_pcf", F.MEGA_URL)
+        M.write_atomic(os.path.join(self.feed, f"mega_{CODE}_{date}.json"), r)
+
+    def net(self, latest=None, source="pcf", hist=()):
+        """latest：最新一份的資料日；source：pcf／product／feed（pcf 403 的層級）；hist：trade_pcf 歷史查得到的資料日。"""
+        deny = lambda u: urllib.error.HTTPError(u, 403, "Forbidden", {}, io.BytesIO(b"Access Denied"))
+        nxt = {d: M.next_trading_day(datetime.date.fromisoformat(d)).strftime("%Y/%m/%d") for d in hist}
+        by_qdt = {q: d for d, q in nxt.items()}
+
+        class Resp:
+            def __init__(s, t): s.t = t
+            def read(s): return s.t.encode("utf-8")
+
+        def opener():
+            class Op:
+                addheaders = []
+                def open(s, req, timeout=None):
+                    url = req if isinstance(req, str) else req.full_url
+                    if "trade_pcf" in url:
+                        if isinstance(req, str):
+                            return Resp(FORM_HTML)
+                        form = urllib.parse.parse_qs(req.data.decode())
+                        qdt = (form.get("ctl00$ContentPlaceHolder1$qdt") or [""])[0]
+                        if qdt:
+                            return Resp(self.pcf_html(by_qdt[qdt]) if qdt in by_qdt else "<p>查無資料</p>")
+                        if source == "pcf" and latest:
+                            return Resp(self.pcf_html(latest))
+                        raise deny(url)
+                    if "etf_product" in url:
+                        if source == "product" and latest:
+                            return Resp(self.product_html(latest))
+                        raise deny(url)
+                    raise AssertionError(url)
+            return Op()
+        F._opener = opener
 
     def run_main(self):
-        F.ADAPTERS = [F.fetch_mega]
-        with fake_net(pcf=False), quiet():
-            return F.main()
+        with quiet():
+            F.main()
+        load = lambda p: json.load(open(p, encoding="utf-8"))["etfs"][CODE]
+        return load(self.snap), load(self.out)
 
-    def load(self, p):
-        return json.load(open(p, encoding="utf-8"))["etfs"]      # reload from disk
+    # ── 1. current=9/24、incoming=10/07、缺 10/06 基準 → 不得出現 9/24→10/07 ──
+    def case_gap_no_baseline(self, source):
+        self.state("2026-09-24")
+        if source == "feed":
+            self.feed_put("2026-10-07")
+        self.net(latest="2026-10-07", source=source)
+        snap, flow = self.run_main()
+        self.assertEqual(snap["data_date"], "2026-10-07")                       # 最新快照可更新
+        self.assertFalse(flow["advanced"])                                      # 但不算 Flow
+        self.assertNotEqual((flow.get("flow_from"), flow.get("flow_to")), ("2026-09-24", "2026-10-07"))
 
-    def test_recovery_flow_is_single_day(self):
-        self.assertEqual(self.run_main(), 0)
-        flow, snap = self.load(self.out)[CODE], self.load(self.snap)[CODE]
-        self.assertEqual((snap["data_date"], len(snap["holdings"])), ("2026-10-08", 52))
-        self.assertEqual((flow["flow_from"], flow["flow_to"], flow["changed"]), ("2026-10-07", "2026-10-08", 10))
-        self.assertTrue(flow["fetched"])
-
-    def test_other_etf_untouched(self):
-        self.run_main()
-        o = self.load(self.out)["00981A"]
-        self.assertEqual((o["data_date"], o["fetched"]), ("2026-10-07", False))   # 沒跑它的 adapter → 既有 KEEP
-        self.assertEqual(self.load(self.snap)["00981A"]["data_date"], "2026-10-07")
-
-    def test_no_basis_never_spans_days(self):
-        os.remove(os.path.join(self.feed, f"mega_{CODE}_2026-10-07.json"))
-        self.run_main()
-        flow = self.load(self.out)[CODE]
+    # ── 2. current=10/08、incoming=10/07 → 快照不倒退、不算 Flow ──
+    def case_rollback(self, source):
+        self.state("2026-10-08")
+        if source == "feed":
+            self.feed_put("2026-10-07")
+        self.net(latest="2026-10-07", source=source)
+        snap, flow = self.run_main()
+        self.assertEqual(snap["data_date"], "2026-10-08")
+        self.assertEqual(snap["holdings"], self.hold("2026-10-08"))
         self.assertEqual(flow["data_date"], "2026-10-08")
-        self.assertFalse(flow["advanced"])
-        self.assertNotEqual(flow.get("flow_to"), "2026-10-08")
+        self.assertNotEqual(flow.get("flow_to"), "2026-10-07")
 
-    def test_feed_broken_keeps_old(self):
-        for n in os.listdir(self.feed):
-            open(os.path.join(self.feed, n), "w").write("{broken")
-        self.run_main()
-        flow = self.load(self.out)[CODE]
-        self.assertEqual((flow["data_date"], flow["fetched"]), ("2026-09-24", False))
+    # ── 3. current=10/07、incoming=10/08 → 正常 10/07→10/08 ──
+    def case_adjacent(self, source):
+        self.state("2026-10-07")
+        if source == "feed":
+            self.feed_put("2026-10-08")
+        self.net(latest="2026-10-08", source=source)
+        snap, flow = self.run_main()
+        self.assertEqual(snap["data_date"], "2026-10-08")
+        self.assertEqual((flow["flow_from"], flow["flow_to"], flow["changed"]), ("2026-10-07", "2026-10-08", 10))
+
+    # ── 4. current=9/24、incoming=10/08、有合法 10/07 基準 → 只能 10/07→10/08 ──
+    def case_gap_with_baseline(self, source, baseline_from):
+        self.state("2026-09-24")
+        if source == "feed":
+            self.feed_put("2026-10-08")
+        if baseline_from == "feed":
+            self.feed_put("2026-10-07")
+        self.net(latest="2026-10-08", source=source, hist=("2026-10-07",) if baseline_from == "pcf_hist" else ())
+        snap, flow = self.run_main()
+        self.assertEqual(snap["data_date"], "2026-10-08")
+        self.assertEqual((flow["flow_from"], flow["flow_to"], flow["changed"]), ("2026-10-07", "2026-10-08", 10))
+
+    # ── 同一資料日：冪等，不產生新 Flow ──
+    def case_same_date(self, source):
+        self.state("2026-10-08")
+        if source == "feed":
+            self.feed_put("2026-10-08")
+        self.net(latest="2026-10-08", source=source)
+        snap, flow = self.run_main()
+        self.assertEqual(snap["data_date"], "2026-10-08")
+        self.assertEqual((flow["flow_from"], flow["flow_to"]), ("old", "2026-10-08"))    # 沿用上一筆，不是新 Flow
+
+
+for _src in ("pcf", "product", "feed"):
+    for _name in ("gap_no_baseline", "rollback", "adjacent", "same_date"):
+        setattr(DateGuard, f"test_{_name}_{_src}",
+                (lambda n, s: lambda self: getattr(self, f"case_{n}")(s))(_name, _src))
+    for _b in ("feed", "pcf_hist"):
+        setattr(DateGuard, f"test_gap_with_baseline_{_src}_from_{_b}",
+                (lambda s, b: lambda self: self.case_gap_with_baseline(s, b))(_src, _b))
+
 
 
 if __name__ == "__main__":

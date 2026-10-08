@@ -134,9 +134,6 @@ def _is_trading_day(d):
 
 mega_feed.set_calendar(_is_trading_day)
 
-# fetch_mega 採用 feed 時記下該檔的比對基準（見 mega_feed.latest_valid）：
-#   dict＝改用 feed 的上一交易日快照當 prev；False＝找不到，main() 不得算 Flow
-MEGA_FEED_BASIS = {}
 
 
 def fetch_tpex_closes(date_str):
@@ -1171,8 +1168,6 @@ def fetch_mega(date_obj, specific=False):
             rec, basis = mega_feed.latest_valid(os.environ.get("MEGA_FEED_DIR", ""), ticker, cur,
                                                 log=lambda m: print(f"[兆豐] {m}"))
             if rec:
-                if basis is not None:
-                    MEGA_FEED_BASIS[ticker] = (mega_feed.record_to_adapter(basis) if basis else False)
                 v = mega_feed.record_to_adapter(rec)
                 hold = _Holdings()
                 hold.update(v["holdings"])
@@ -1694,6 +1689,64 @@ def build_flow(prev, cur):
     return out
 
 
+def _mega_baseline(code, day):
+    """day（上一有效交易日）的兆豐官方持股：先找 feed 的已驗證交接檔，再試官方歷史查詢。
+    資料日必須剛好等於 day；拿不到回 None。"""
+    rec = mega_feed.load_valid_for_date(os.environ.get("MEGA_FEED_DIR", ""), code, day.isoformat())
+    if rec:
+        return mega_feed.record_to_adapter(rec), "feed"
+    try:
+        got = fetch_mega(day, specific=True).get(code)
+    except Exception as e:
+        print(f"[兆豐] {code} 歷史查詢 {day} 失敗：{type(e).__name__}")
+        got = None
+    if got and got.get("data_date") == day.isoformat():
+        return got, "trade_pcf"
+    return None, None
+
+
+def _mega_date_guard(etfs, prev):
+    """兆豐 ETF 寫入快照／算 Flow 前的日期保護（PCF、商品頁、feed 一律走這裡）。
+
+    以快照裡的資料日 cur 對照這次的 inc：
+      inc < cur：日期倒退 → 本次捨棄（不更新快照、不算 Flow，交既有 KEEP）
+      inc == cur：同一份 → 照常（build_flow 判為 not_updated，冪等）
+      inc 是 cur 的下一交易日：照常比較
+      inc 跨越一個以上交易日：找 inc 上一交易日的官方快照當基準；找不到就不給基準（只更新持股、不算 Flow）
+    回傳 (調整後的 prev, 不得算 Flow 的代碼集合)。"""
+    no_basis = set()
+    prev_etfs = dict((prev or {}).get("etfs") or {})
+    changed = False
+    for code in MEGA_FUNDS:
+        if code not in etfs:
+            continue
+        inc = etfs[code].get("data_date")
+        cur = (prev_etfs.get(code) or {}).get("data_date")
+        if not (inc and cur):
+            continue                          # 沒有可比的快照：交既有 bootstrap
+        if inc < cur:
+            print(f"[兆豐] {code} 資料日 {inc} 早於快照 {cur}，日期倒退 → 本次不採用")
+            etfs.pop(code)
+            continue
+        if inc == cur:
+            continue
+        pd = mega_feed.prev_trading_day(datetime.date.fromisoformat(inc))
+        if pd and pd.isoformat() == cur:
+            continue                          # 相鄰交易日，正常比較
+        base, src = _mega_baseline(code, pd) if pd else (None, None)
+        changed = True
+        if base:
+            prev_etfs[code] = base
+            print(f"[兆豐] {code} 快照 {cur} 與 {inc} 跨多個交易日 → 基準改用 {pd}（{src}）")
+        else:
+            prev_etfs.pop(code, None)
+            no_basis.add(code)
+            print(f"[兆豐] {code} 快照 {cur} 與 {inc} 跨多個交易日且無 {pd or '上一交易日'} 基準 → 只更新持股、不算 Flow")
+    if changed:
+        prev = {"fetched": (prev or {}).get("fetched", "(mega)"), "etfs": prev_etfs}
+    return prev, no_basis
+
+
 def main():
     now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
     today  = now_tw.date()
@@ -1737,21 +1790,10 @@ def main():
     # 之前寫成 `if not prev` 只涵蓋全空的情況，每加一家就會空白一天。
     prev_etfs = (prev or {}).get("etfs") or {}
 
-    # 00996A feed（00996A incident）：feed 資料日與快照之間隔了不只一個交易日時，
-    # 改用 feed 裡「上一交易日」那份當基準，絕不拿舊快照直接相減出跨多日的假單日 Flow；
-    # 找不到上一交易日基準就不給基準（no_basis），只更新持股。
-    for code, basis in MEGA_FEED_BASIS.items():
-        if code not in etfs:
-            continue
-        prev = {"fetched": (prev or {}).get("fetched", "(feed)"), "etfs": dict(prev_etfs)}
-        if basis:
-            prev["etfs"][code] = basis
-            print(f"[FEED] {code} 比對基準改用 feed 上一交易日 {basis['data_date']}")
-        else:
-            prev["etfs"].pop(code, None)
-            print(f"[FEED] {code} 缺上一交易日基準，本次不算 Flow")
-        prev_etfs = prev["etfs"]
-    need = [c for c in etfs if c not in prev_etfs and MEGA_FEED_BASIS.get(c) is not False]
+    # 兆豐（00996A incident）：PCF／商品頁／feed 三種來源共用同一道日期保護，見 _mega_date_guard
+    prev, no_basis = _mega_date_guard(etfs, prev)
+    prev_etfs = (prev or {}).get("etfs") or {}
+    need = [c for c in etfs if c not in prev_etfs and c not in no_basis]
     if need:
         # 回補「前一份」PCF。各投信、甚至同投信不同基金的公告延遲都不一樣
         # （實測 00403A 落後 2 天、00981A 落後 1 天），所以不能用固定天數，
