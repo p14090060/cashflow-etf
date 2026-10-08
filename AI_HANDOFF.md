@@ -691,6 +691,14 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - UI：00996A treemap 兩主題 10 格、weak 0；flowq 35、tools 93、watch 149 PASS；rank 79／1（RK-1 盤後 Observation，既有）。
   - 未做：本機自動排程（待 Gavin 確認兆豐授權）。之後每個交易日須人工跑 `python scripts/mega_collect.py --out <feed/mega worktree> --latest` 並 push feed/mega，否則 00996A 會回到 KEEP＋4 交易日後 stale alert（預期行為）。`probe/mega-996a` 待 Incident CLOSED 後清理。
 
+- **【00996A Phase 2D BLOCKER Fix｜統一日期保護】fix `ed0c4676`（已 push，固定 SHA 供 Codex 複審）**
+  - Codex（固定 `f433832d`）重現：① PCF 成功時 9/24→10/07 假單日 Flow；② 快照 10/08、PCF 10/07 → 10/08→10/07 反向 Flow。原因：跨日保護只在 feed 路徑（MEGA_FEED_BASIS）。
+  - 修正：`_mega_date_guard`（main 內、寫快照與 build_flow 之前；僅 `MEGA_FUNDS`），PCF／商品頁／feed 一律經過：倒退 → 捨棄本次（快照與 Flow 不動，交既有 KEEP）；同日 → not_updated 冪等；相鄰交易日 → 正常；跨多日 → `_mega_baseline` 依序找 feed 已驗證檔（`mega_feed.load_valid_for_date`）、trade_pcf 歷史查詢，資料日須剛好＝上一交易日；找不到 → 更新快照、不算 Flow（排除 bootstrap）。日曆不明（prev_trading_day=None）→ 視為無基準。移除 MEGA_FEED_BASIS。
+  - 測試：`tests/test_mega_feed.py` 61/61 PASS；其中 DateGuard 18 項＝{PCF, 商品頁, feed} × {倒退, 同日, 相鄰, 跨日無基準, 跨日有基準〔feed 基準、PCF 歷史基準〕}，逐項單獨執行亦全 PASS（排除測試間狀態洩漏）。同一組測試套到 `f433832d`：單獨執行時 test_gap_no_baseline_pcf／product、test_rollback_pcf／product、5 項 gap_with_baseline 皆 FAIL → **Codex 兩個 reproduction 已封死**。
+  - 現況驗證（本機暫存副本、真實網路、PCF 未擋）：快照 10/08＋PCF 10/08 → not_updated，flow 仍 10/07→10/08（10 檔），冪等。production 資料未重做。
+  - 瀏覽器 regression：flowq 35、tools 93 PASS。`tests/test_pool.py` 53/54（EX-7b 既有資料相依）。
+  - Incident 未 CLOSED；等 Codex 複審 `ed0c4676`。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
