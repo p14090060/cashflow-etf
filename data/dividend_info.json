@@ -22,7 +22,7 @@
         10
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 1.35,
+      "avg_dividend_per_share": 1.72,
       "_todo": false
     },
     "00878": {
@@ -1813,16 +1813,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-10-08",
-      "mon": "10月",
-      "day": "8",
-      "code": "00940",
-      "name": "元大台灣價值高息",
-      "amt": 0.06,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-10-17",
       "mon": "10月",
       "day": "17",
@@ -1840,6 +1830,16 @@
       "name": "元大高股息",
       "amt": 1.35,
       "soon": true,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-11-07",
+      "mon": "11月",
+      "day": "7",
+      "code": "00940",
+      "name": "元大台灣價值高息",
+      "amt": 0.06,
+      "soon": false,
       "source": "yfinance"
     },
     {
