@@ -409,9 +409,9 @@ in_host = ev("document.getElementById('catFlowHost').contains(window.__fnode) &&
 check('FS-5 Tools／排行／Detail／原生共用同一個 flow 節點（Flow 層時在 #flowLayer，關閉後回 #catFlowHost）', in_layer is True and in_host is True, (in_layer, in_host))
 # FS-6 保護功能：紅＝加碼、綠＝減碼；海外清單
 ev("openFlow(%s); true" % json.dumps(A)); wait_ms(400)
-col = ev("""(()=>{const c=[...document.querySelectorAll('#treemap .tm-cell')].map(x=>getComputedStyle(x).backgroundColor); return {buy:c.filter(b=>b.startsWith('rgba(240, 106, 106')).length, sell:c.filter(b=>b.startsWith('rgba(79, 197, 154')).length,
+col = ev("""(()=>{const c=[...document.querySelectorAll('#treemap .tm-cell')].map(x=>getComputedStyle(x).backgroundColor); return {buy:c.filter(b=>b.startsWith('rgba(239, 68, 68')).length, sell:c.filter(b=>b.startsWith('rgba(34, 197, 94')).length,
   bt:getComputedStyle(document.getElementById('flowBuy')).color, stc:getComputedStyle(document.getElementById('flowSell')).color}})()""")
-check('FS-6 treemap 紅＝加碼、綠＝減碼；加碼金額紅、減碼金額綠', col['buy'] + col['sell'] > 0 and col['bt'] == 'rgb(240, 106, 106)' and col['stc'] == 'rgb(79, 197, 154)', col)
+check('FS-6 treemap 紅＝加碼、綠＝減碼；加碼金額紅、減碼金額綠', col['buy'] + col['sell'] > 0 and col['bt'] == 'rgb(242, 85, 85)' and col['stc'] == 'rgb(34, 197, 94)', col)
 npc = ev("Object.keys(_flowData.etfs).find(k=>(_flowData.etfs[k].no_price||[]).length>0)")
 if npc:
     ev("document.querySelector('#flowChips .flow-chip[data-code=%s]').click(); true" % json.dumps(npc)); wait_ms(300)

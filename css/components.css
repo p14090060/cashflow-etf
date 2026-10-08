@@ -74,6 +74,16 @@
   .hot-rank.gold { color:var(--gold); }
   .hot-rank.silver { color:var(--silver); }
   .hot-rank.bronze { color:var(--bronze); }
+  /* CP7 Visual Gate（PO 方案 B／C／A）——LIGHT ONLY：TOP10 前三名底色牌、現價琥珀橘、年殖利率字灰、新上市紫字；dark 不套用 */
+  :root[data-theme="light"] .hot-rank.gold,
+  :root[data-theme="light"] .hot-rank.silver,
+  :root[data-theme="light"] .hot-rank.bronze { width:24px; height:24px; line-height:24px; text-align:center; border-radius:6px; }
+  :root[data-theme="light"] .hot-rank.gold   { background:#D97706; color:#FFFFFF; }
+  :root[data-theme="light"] .hot-rank.silver { background:#E2E8F0; color:var(--link); }
+  :root[data-theme="light"] .hot-rank.bronze { background:var(--bronze); color:#FFFFFF; }
+  :root[data-theme="light"] .hr-px  { color:#D97706 !important; }
+  :root[data-theme="light"] .hr-ylbl { color:var(--dim) !important; }
+  :root[data-theme="light"] .hr-new { color:var(--violet); }
   .range-track { height:5px; background:rgba(var(--rgb-veil),.08); border-radius:3px; position:relative; margin-bottom:4px; }
   .range-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,rgba(var(--rgb-link),.15),rgba(var(--rgb-link),.6)); }
   .range-dot   { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:var(--link); border:2px solid var(--bg); }
@@ -189,10 +199,10 @@
   .cal-code2 { font-family:var(--sans); font-size:16px; font-weight:700; color:var(--bright); }
   .cal-name2 { font-size:16px; color:var(--link); margin-top:2px; }
   .cal-r     { text-align:right; }
-  .cal-amt   { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--gold); }
+  .cal-amt   { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--num-accent); }
   .cal-ulbl  { font-size:14px; color:var(--bright); }
   .soon-pill {
-    display:inline-block; background:rgba(var(--rgb-gold),.15); color:var(--gold);
+    display:inline-block; background:transparent; color:var(--badge-gold); border:1px solid var(--badge-gold);   /* CP7 Visual Gate（PO 方案 C 金黃 badge） */
     border-radius:4px; padding:1px 6px; font-size:16px; font-family:var(--mono);
     margin-top:3px;
   }
@@ -221,21 +231,21 @@
   .dt-px { font-family:var(--mono); font-size:26px; font-weight:700; color:var(--bright); }
   .dt-tabs { display:flex; gap:4px; margin:8px 0 12px; border-bottom:1px solid var(--border); }
   .dt-tab { flex:1 1 0; min-width:0; padding:10px 2px; background:none; border:none;
-            border-bottom:2px solid transparent; color:var(--dim); font-size:15px; cursor:pointer; }
+            border-bottom:2px solid transparent; color:var(--dim); font-size:16px; cursor:pointer; }
   .dt-tab.on { color:var(--bright); font-weight:700; border-bottom-color:var(--link); }
   .dt-tab[hidden], .dt-pane[hidden] { display:none; }
   .dt-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
             padding:9px 0; border-bottom:1px solid var(--border); font-size:15px; }
-  .dt-lbl { color:var(--dim); flex:0 0 auto; }
+  .dt-lbl { color:var(--dim); flex:0 0 auto; font-size:16px; }   /* CP7 Visual Gate：Detail 中文標籤 15 → 16（數值 .dt-val 維持 15） */
   .dt-val { text-align:right; color:var(--bright); font-family:var(--mono); min-width:0; overflow-wrap:anywhere; }
-  .dt-sub { font-family:var(--sans); font-size:13px; color:var(--dim); margin-top:2px; }
-  .dt-tag { display:inline-block; font-family:var(--sans); font-size:12px; color:var(--dim);
+  .dt-sub { font-family:var(--sans); font-size:14px; color:var(--dim); margin-top:2px; }
+  .dt-tag { display:inline-block; font-family:var(--sans); font-size:13px; color:var(--dim);
             border:1px solid var(--border); border-radius:6px; padding:1px 6px; margin-left:4px; }
-  .dt-note { font-size:13px; color:var(--dim); line-height:1.6; margin:10px 0; }
-  .dt-sec  { font-size:15px; color:var(--bright); font-weight:700; margin:16px 0 6px; }
+  .dt-note { font-size:14px; color:var(--dim); line-height:1.6; margin:10px 0; }
+  .dt-sec  { font-size:16px; color:var(--bright); font-weight:700; margin:16px 0 6px; }
   .dt-up { color:var(--up); }
   .dt-dn { color:var(--dn); }
   .dt-calc { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
   .dt-bars { padding-left:0; }
-  .dt-foot { font-size:12px; color:var(--dim); line-height:1.6; margin-top:16px; }
+  .dt-foot { font-size:13px; color:var(--dim); line-height:1.6; margin-top:16px; }
 

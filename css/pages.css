@@ -116,6 +116,7 @@
   .rank-flow     { position:relative; z-index:1; pointer-events:auto; min-height:44px; margin:-14px 0 -14px 8px; padding:0 6px;
                    background:none; border:0; font:inherit; font-size:11px; font-weight:700; color:var(--fair);
                    white-space:nowrap; flex-shrink:0; cursor:pointer; }
+  :root[data-theme="light"] .rank-flow { color:#D97706; }   /* CP7 Visual Gate（PO）：light 持股異動字色；dark 不變 */
   .rank-flow:focus-visible { outline:2px solid var(--link); outline-offset:-2px; border-radius:6px; }
   .rank-main     { display:flex; align-items:center; }
   .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
@@ -131,6 +132,9 @@
   .rank-freq     { width:68px; font-size:18px; color:var(--dim); flex-shrink:0; }
   .rank-num      { width:82px; font-size:18px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
   .rank-yld      { width:72px; font-size:18px; font-family:var(--mono); font-weight:700; flex-shrink:0; text-align:right; }
+  /* CP7 Visual Gate（PO）：排行漲跌柱用鮮明紅綠（只限排行頁；長度／排序／資料不變） */
+  .rank-sub .mb[data-k="up"] .mb-bar { background:var(--vivid-up-fill) !important; }
+  .rank-sub .mb[data-k="dn"] .mb-bar { background:var(--vivid-dn-fill) !important; }
   .mini-bars     { display:flex; align-items:center; gap:2px; height:26px; padding-left:6px; flex-shrink:0; }
   .rank-tag      { font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; border:1px solid; white-space:nowrap; margin-left:8px; flex-shrink:0; letter-spacing:.02em; }
 
@@ -164,8 +168,8 @@
                  padding:8px 10px; display:flex; align-items:baseline; justify-content:space-between; }
   .flow-tot span { font-size:15px; color:var(--dim); }
   .flow-tot b    { font-size:20px; font-family:var(--mono); font-weight:700; }
-  .flow-tot b.buy  { color:var(--up); }   /* 加碼＝紅（台股慣例） */
-  .flow-tot b.sell { color:var(--dn); }   /* 減碼＝綠 */
+  .flow-tot b.buy  { color:var(--vivid-up); }   /* 加碼＝紅（台股慣例） */
+  .flow-tot b.sell { color:var(--vivid-dn); }   /* 減碼＝綠 */
   /* F2（PHASE5_PLAN §8.3）：單列橫向捲動選擇器，取代 4 欄多列換行，讓紅綠方塊早點進第一屏。
      選取色刻意用中性藍：本頁紅＝加碼、綠＝減碼，選取狀態不能借用這兩色。 */
   .flow-chips  { position:relative; display:flex; flex-wrap:nowrap; gap:8px; overflow-x:auto; overflow-y:hidden;
@@ -207,9 +211,10 @@
   .tm-amt      { font-family:var(--mono); line-height:1.2; }
   .tm-etf      { font-family:var(--mono); line-height:1.2; }
   /* 中間調格子：黑白字都不足 4.5 時，小字加淡底襯補足對比（格子本身的顏色與透明度不變） */
-  .tm-weak .tm-amt, .tm-weak .tm-etf { padding:0 3px; border-radius:3px; }
-  .tm-weak-l .tm-amt, .tm-weak-l .tm-etf { background:rgba(0,0,0,.28); }
-  .tm-weak-d .tm-amt, .tm-weak-d .tm-etf { background:rgba(255,255,255,.4); }
+  /* CP7 Visual Gate（PO：不要貼紙感）：底襯保留（對比保護不變），邊緣以同色 box-shadow 羽化融進格子，不再是硬邊小方框 */
+  .tm-weak .tm-amt, .tm-weak .tm-etf { padding:0 4px; border-radius:8px; }
+  .tm-weak-l .tm-amt, .tm-weak-l .tm-etf { background:rgba(0,0,0,.28); box-shadow:0 0 6px 3px rgba(0,0,0,.28); }
+  .tm-weak-d .tm-amt, .tm-weak-d .tm-etf { background:rgba(255,255,255,.4); box-shadow:0 0 6px 3px rgba(255,255,255,.4); }
   /* 畫不出 treemap 時框框縮成文字高度——520px 的空框裡浮一行字很難看，
      而且會把下方的海外持股清單整個推出畫面外 */
   .treemap.tm-slim { height:auto; }
@@ -247,3 +252,11 @@
   .np-name  { flex:1 1 auto; min-width:0; color:var(--dim); font-size:13px;
               overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .np-d     { flex:0 0 auto; font-family:var(--mono); font-size:13px; text-align:right; }
+  /* CP7 Visual Gate（PO）：360px 排行第二行（頻率／報酬／殖利率／柱／持股異動）原本超出畫面右緣；
+     只在窄螢幕收窄欄寬與按鈕內距，觸控高度 44px 與功能不變 */
+  @media (max-width:380px) {
+    .rank-freq { width:56px; }
+    .rank-num  { width:70px; }
+    .rank-yld  { width:68px; white-space:nowrap; }
+    .rank-flow { margin-left:2px; padding:0 1px; }
+  }

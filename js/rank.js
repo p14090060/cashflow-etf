@@ -17,10 +17,10 @@ function getEtfTag(code, name) {
 }
 
 function renderRank() {
-  const SIG_LABEL = { cheap:'便宜', fair:'合理✓', hot:'過熱', dear:'偏貴', bond:'債券型' };
+  const SIG_LABEL = { cheap:'便宜', fair:'合理', hot:'過熱', dear:'偏貴', bond:'債券型' };
   const SIG_COLOR = { cheap:'var(--sig-cheap)', fair:'var(--sig-fair)', hot:'var(--sig-hot)', dear:'var(--sig-dear)', bond:'var(--sig-bond)' };   // V2：與全站價格狀態標籤同一組 token
   const fmtRet = v => (v == null) ? '--' : (v > 0 ? '+' : '') + v.toFixed(1) + '%';
-  const retClr = v => (v == null || v === 0) ? 'var(--dim)' : v > 0 ? 'var(--up)' : 'var(--dn)';   // 台股：漲紅跌綠、0 中性（D1）
+  const retClr = v => (v == null || v === 0) ? 'var(--dim)' : v > 0 ? 'var(--vivid-up)' : 'var(--vivid-dn)';   // CP7：與漲跌柱同一組鮮明紅綠   // 台股：漲紅跌綠、0 中性（D1）
 
   // 開盤初期多數 ETF 當日成交量還是 0，只靠 cur_vol 過濾會只剩 20 幾支。
   // 有量的不足 100 支時放寬條件補滿，並以 avg_vol 當次要排序（未成交者依平時量排）。
@@ -48,7 +48,7 @@ function renderRank() {
                  : e.yld > 0                      ? '~' + e.yld.toFixed(1) + '%'
                  : '--';
     const yldClr = (e.yld > 0 && !noDiv)
-                   ? (e.yld_verified ? 'var(--fair)' : 'var(--fair-dim)')
+                   ? 'var(--num-accent)'   // CP7 Visual Gate（PO）：殖利率數字 dark 黃／light 橘（不分已核實與否，~ 前綴仍標示未核實）
                    : 'var(--dim)';
     const ret1y = fmtRet(e.ret1y);
     const y1C   = retClr(e.ret1y);
@@ -61,7 +61,7 @@ function renderRank() {
     const hasFlow  = !!fe;
     const code     = _rankEsc(e.code), name = _rankEsc(e.name);
     const flowHtml = hasFlow
-                   ? `<button type="button" class="rank-flow" aria-label="查看 ${code} 持股異動">持股異動 ›</button>` : '';
+                   ? `<button type="button" class="rank-flow" aria-label="查看 ${code} 持股異動">持股異動</button>` : '';
     return `<div class="rank-row${hasFlow ? ' has-flow' : ''}" data-code="${code}" data-rank="${rank}">
       <button type="button" class="rank-hit" aria-label="第 ${rank} 名 ${code} ${name}，查看詳細資料"></button>
       <div class="rank-main">
@@ -74,7 +74,7 @@ function renderRank() {
         <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
       </div>
       <div class="rank-sub">
-        <div class="rank-freq" style="${noDiv ? '' : 'color:var(--brand)'}">${freq}</div>
+        <div class="rank-freq" style="${noDiv ? '' : 'color:var(--num-accent)'}">${freq}</div>
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>

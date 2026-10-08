@@ -7,7 +7,7 @@
     --border:#2C3747;
     --dim:   #98A4B3;
     --bright:#E8EDF3;
-    --mono:  'Consolas','Courier New',monospace;
+    --mono:  'Microsoft JhengHei','微軟正黑體',sans-serif;   /* CP7 Visual Gate（PO）：全站數字字型統一為微軟正黑體；只換字型，各處 font-size 不變（token 名稱沿用） */
     --sans:  'Microsoft JhengHei','微軟正黑體',sans-serif;
     --cheap: #4FC59A;
     --fair:  #D6A84B;
@@ -72,6 +72,12 @@
     --sig-cheap: #00e5a0;   /* 便宜 */
     --sig-bond:  #58a6ff;   /* 債券 */
     --sig-backing: transparent; /* CP7 Visual Gate（PO）：Light＋Dark 狀態標籤都取消底襯，直接透出 card／row／panel 的 surface（對比 Known Blocker 見 AI_HANDOFF） */
+    /* CP7 Visual Gate（PO：DO NOT OXIDIZE）：鮮明台股紅綠——排行報酬率／漲跌柱、Active Flow 加減碼與 treemap 共用同一組 */
+    --vivid-up: #F25555;  --vivid-dn: #22C55E;           /* 文字 */
+    --vivid-up-fill: #EF4444; --vivid-dn-fill: #22C55E;  /* 柱狀／填色 */
+    --rgb-vivid-up: 239,68,68; --rgb-vivid-dn: 34,197,94;
+    --num-accent: #FACC15;   /* 配息頻率、殖利率、配息金額：dark 鮮黃 */
+    --badge-gold: #F0B840;   /* 「快配息囉」金黃 badge（文字＋框） */
     color-scheme: dark;
   }
   /* Light（PHASE5_PLAN §7.1／§7.2）：台股漲紅跌綠、紅＝加碼／綠＝減碼語意不變，只換成淺底可讀的加深版。
@@ -125,6 +131,13 @@
     --active:#B45309;
     --rgb-tech:  124,58,237;
     --rgb-active:245,158,11;
+    --vivid-up: #DC2626;  --vivid-dn: #15803D;
+    --vivid-up-fill: #EF4444; --vivid-dn-fill: #16A34A;
+    --rgb-vivid-up: 239,68,68; --rgb-vivid-dn: 22,163,74;
+    --num-accent: #D97706;   /* light 橘（PO 指定琥珀 #D97706） */
+    --badge-gold: #D97706;
+    --cheap-light: #059669;  /* light「便宜」綠（首頁與排行共用；PO reference 未入 repo，沿用核准 palette 便宜填色） */
+    --sig-cheap: #059669;    /* CP7 Visual Gate（PO）：只有 Light 的「便宜」改綠（文字＋框、透明底）；Dark 維持 #00e5a0 */
     color-scheme: light;
   }
   /* CP7 Visual Gate 元件層最小處理（不改整體 palette）：

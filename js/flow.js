@@ -251,7 +251,7 @@ function _npList(rows) {
     const tick = sp.join(' ');
     const d = r.delta_shares;
     // 台股慣例：紅=加碼、綠=減碼，與 treemap 同一套語言
-    const clr = (d == null) ? 'var(--dim)' : (d > 0 ? 'var(--up)' : 'var(--dn)');
+    const clr = (d == null) ? 'var(--dim)' : (d > 0 ? 'var(--vivid-up)' : 'var(--vivid-dn)');
     // 只靠 +/- 和顏色太弱：字小、又跟金額的呈現方式不一樣。直接寫出來。
     const txt = (d == null) ? '有異動'
               : (d > 0 ? '加碼 +' : '減碼 -') + Math.abs(d).toLocaleString() + ' 股';
@@ -282,7 +282,7 @@ function _flowInkCtx(box) {
   const trip = n => rs.getPropertyValue(n).split(',').map(Number);
   const base = (getComputedStyle(box).backgroundColor.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
   const lum = v => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); };
-  const UP = trip('--rgb-up'), DN = trip('--rgb-dn'), Ld = lum([13, 17, 23]);
+  const UP = trip('--rgb-vivid-up'), DN = trip('--rgb-vivid-dn'), Ld = lum([13, 17, 23]);
   return function (side, a) {
     const rgb = side === 'buy' ? UP : DN;
     const L = lum(rgb.map((c, i) => c * a + base[i] * (1 - a)));
@@ -436,8 +436,8 @@ function renderFlow(code) {
       // 不要改成歐美的綠漲紅跌，同一個 App 用兩套相反的顏色語言會讓人讀反。
       const alpha = +(0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2);
       const bg = c.side === 'buy'
-        ? 'rgba(var(--rgb-up),' + alpha + ')'   // V2：由 --up／--dn 換算，透明度仍依面積
-        : 'rgba(var(--rgb-dn),' + alpha + ')';
+        ? 'rgba(var(--rgb-vivid-up),' + alpha + ')'   // V2：由 --up／--dn 換算，透明度仍依面積
+        : 'rgba(var(--rgb-vivid-dn),' + alpha + ')';   // CP7 Visual Gate：鮮明紅綠（不氧化），透明度語意不變
       const [ink, weak] = _inkFor(c.side, alpha);
       const fs   = Math.max(11, Math.min(19, big / 4.0));   // 手機上 9px 太小，下限拉到 11
       const show = c.w > 42 && c.h > 26;

@@ -262,8 +262,10 @@ for mode in ('dark', 'light'):
     ev("localStorage.removeItem('%s'); true" % THEME_KEY); media(mode); reload_page(); ev(COLOR_JS)
     got = ev("""(()=>{const o={}; ['hot','dear','fair','cheap','bond'].forEach(k=>{const e=document.createElement('span'); e.className='sig-'+k; e.textContent='x'; document.body.appendChild(e);
       const cs=getComputedStyle(e); o[k]={c:cs.color, b:cs.borderTopColor, cr:+__cr(cs.color, cs.backgroundColor).toFixed(2)}; e.remove();}); return o})()""")
-    check('TH-10 [%s] .sig-* 文字與框線＝原始五色（過熱 #ef4444、偏貴 #fb923c、合理 #F0B840、便宜 #00e5a0、債券 #58a6ff）' % mode,
-          all(got[k]['c'] == v and got[k]['b'] == v for k, v in ORIG.items()), got)
+    # CP7 Visual Gate（PO）：Light 的「便宜」改為綠 #059669（首頁與排行同一個 token）；其他四色與 dark 五色仍為原始色
+    WANT = dict(ORIG, cheap='rgb(5, 150, 105)') if mode == 'light' else ORIG
+    check('TH-10 [%s] .sig-* 文字與框線＝PO 五色（過熱 #ef4444、偏貴 #fb923c、合理 #F0B840、便宜 dark #00e5a0／light #059669、債券 #58a6ff）' % mode,
+          all(got[k]['c'] == v and got[k]['b'] == v for k, v in WANT.items()), got)
     # CP7 Visual Gate（PO）：Light＋Dark 狀態標籤都取消底襯，透出所在 surface；實際對比由 TH-6 rendered 掃描量測（Known Blocker 待 GPT Gate／PO）
     bgs = ev("""['hot','dear','fair','cheap','bond'].map(k=>{const e=document.createElement('span'); e.className='sig-'+k; document.body.appendChild(e); const b=getComputedStyle(e).backgroundColor; e.remove(); return b})""")
     check('TH-10 [%s] 五個狀態標籤底色為透明（文字／框線不變、不降 opacity）' % mode, all(b in ('rgba(0, 0, 0, 0)', 'transparent') for b in bgs)
@@ -275,7 +277,7 @@ for mode in ('dark', 'light'):
           yt['word'] == 'YouTube' and yt['play'] == '#FF0000' and yt['wc'] == want_word and yt['bg'] in ('rgba(0, 0, 0, 0)', 'transparent') and yt['h'] >= 44, yt)
     ev("switchPage('rank'); true"); wait_ms(400)
     rk = ev("""(()=>{const o={}; _rankSorted.forEach(e=>{const el=document.querySelector('#rankRows .rank-row[data-code="'+e.code+'"] .rank-sig'); if(el && !o[e.signal]) o[e.signal]=getComputedStyle(el).color;}); return o})()""")
-    check('TH-10 [%s] 排行狀態字＝同一組原始色' % mode, all(rk[k] == ORIG[k] for k in rk if k in ORIG) and len(rk) >= 3, rk)
+    check('TH-10 [%s] 排行狀態字＝與首頁同一組色' % mode, all(rk[k] == WANT[k] for k in rk if k in WANT) and len(rk) >= 3, rk)
 ev("localStorage.removeItem('%s'); localStorage.removeItem('etfRadar.watch.v1'); true" % THEME_KEY)
 media('dark')
 exc = [e for e in events if e.get('method') == 'Runtime.exceptionThrown']

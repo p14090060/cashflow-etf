@@ -58,6 +58,8 @@ body.wt-dragging .drag-handle { cursor: grabbing; }
 .wc-px { font-family: var(--mono); font-size: 20px; font-weight: 700; }
 .wc-chgs { display: inline-flex; gap: 10px; }
 .wc-chg { font-family: var(--mono); font-size: 14px; }
+/* CP7：數字字型改微軟正黑體後行高變大，自選卡高度 +4px；鎖回原 Consolas 行高，卡片 layout 不變 */
+.wc-px, .wc-chg { line-height: 1.17; }
 .wc-chg.up { color: var(--up); }
 .wc-chg.dn { color: var(--dn); }
 .wc-chg.flat, .wc-chg.na { color: var(--dim); }

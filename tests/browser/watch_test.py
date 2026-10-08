@@ -8,6 +8,7 @@ cdp('Network.setCacheDisabled', {'cacheDisabled': True})
 
 KEY = 'etfRadar.watch.v1'
 UP, DN, DIM = 'rgb(240, 106, 106)', 'rgb(79, 197, 154)', 'rgb(152, 164, 179)'   # CP7 Visual Gate 核准 dark palette
+FUP, FDN = 'rgb(242, 85, 85)', 'rgb(34, 197, 94)'   # Active Flow 加減碼：CP7 Visual Gate（PO）鮮明紅綠 --vivid-up／--vivid-dn（dark）
 
 def set_view(w, h, orient='portraitPrimary'):
     cdp('Emulation.setDeviceMetricsOverride', {'width': w, 'height': h, 'deviceScaleFactor': 1, 'mobile': True,
@@ -674,10 +675,10 @@ fake = {'name': '測試主動', 'issuer': '測試', 'holdings': 5, 'data_date': 
 ev("_flowData.etfs['ZZ01A']=%s; flowSelect('ZZ01A'); true" % json.dumps(fake, ensure_ascii=False)); wait_ms(250)
 cells = ev("[...document.querySelectorAll('#treemap .tm-cell')].map(c=>({n:c.innerText.split('\\n')[0], bg:getComputedStyle(c).backgroundColor}))")
 buy = [x for x in cells if x['n'] == '台積電']; sell = [x for x in cells if x['n'] == '鴻海']
-check('FL-2 treemap：加碼格紅系（240,106,106）、減碼格綠系（79,197,154）', buy and sell and buy[0]['bg'].startswith('rgba(240, 106, 106') and sell[0]['bg'].startswith('rgba(79, 197, 154'), cells)
-check('FL-2 反向守衛：加碼不是綠、減碼不是紅', buy and sell and not buy[0]['bg'].startswith('rgba(79, 197') and not sell[0]['bg'].startswith('rgba(240, 106'))
+check('FL-2 treemap：加碼格鮮紅系（239,68,68）、減碼格鮮綠系（34,197,94）（CP7 Visual Gate PO：不氧化）', buy and sell and buy[0]['bg'].startswith('rgba(239, 68, 68') and sell[0]['bg'].startswith('rgba(34, 197, 94'), cells)
+check('FL-2 反向守衛：加碼不是綠、減碼不是紅', buy and sell and not buy[0]['bg'].startswith('rgba(34, 197') and not sell[0]['bg'].startswith('rgba(239, 68'))
 np = ev("[...document.querySelectorAll('#flowForeign .np-d')].map(d=>({t:d.textContent, c:getComputedStyle(d).color}))")
-check('FL-3 海外無報價：正值紅「加碼 +」、負值綠「減碼 -」、缺值中性', len(np) == 3 and np[0]['c'] == UP and np[0]['t'].startswith('加碼 +') and np[1]['c'] == DN and np[1]['t'].startswith('減碼 -') and np[2]['c'] == DIM, np)
+check('FL-3 海外無報價：正值紅「加碼 +」、負值綠「減碼 -」、缺值中性', len(np) == 3 and np[0]['c'] == FUP and np[0]['t'].startswith('加碼 +') and np[1]['c'] == FDN and np[1]['t'].startswith('減碼 -') and np[2]['c'] == DIM, np)
 for (patch, want) in [({'fetched': False}, '本次未能取得新資料'), ({'fetched': True, 'data_date': '2026-10-03'}, '持股無異動'), ({'fetched': True, 'data_date': '2026-10-01', 'flow_to': '2026-10-01', 'advanced': False, 'reason': 'not_updated'}, '尚未有新的 PCF')]:
     ev("Object.assign(_flowData.etfs['ZZ01A'], %s); renderFlow(); true" % json.dumps(patch)); wait_ms(150)
     check('FL-5 狀態語意：%s' % want, want in ev("document.getElementById('flowTip').textContent"), ev("document.getElementById('flowTip').textContent"))
