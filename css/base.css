@@ -147,7 +147,7 @@
      ② 文字型語意色（便宜／合理／偏貴／過熱／債券／金色）在 light 用同色相的加深版當字色；淡底、框線、treemap 等填色仍用核准色（--rgb-*）
      ③ 排行欄位名稱的紫色淡底降到 8%，紫字對比才達 4.5 */
   :root[data-theme="light"] :is(.gs-more, .cat-band, .cat-strip button, .cat-more, .cat-expand, .cat-more-in, .router-proc,
-    .mood-card, .home-entry, .empty-state, .hot-item, .rank-row, .cal-item, .flow-tot, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
+    .mood-card, .home-entry, .empty-state, .hot-item, .rank-row, .cal-item, .flow-tot, .cat-list, .tool-card, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
   :root[data-theme="light"] .rank-hdr { background: rgba(var(--rgb-violet), .08); }
   /* YouTube 橫向品牌 Logo（PO-Locked Brand Styling）：紅色 Play Mark＋wordmark（dark 白、light 近黑），不受 --dim 灰階影響；
      不是紅底按鈕。點擊區高 44px，寬度隨 wordmark */

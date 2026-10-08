@@ -83,7 +83,7 @@
 .cat-hint { font-size: 13px; color: var(--fair); padding: 4px 2px; }
 .cat-list {
   overflow-y: auto; -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--border); border-radius: 10px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 10px; background: var(--card2);   /* PO Visual Polish 2：清單底＝首頁價格合理區 .home-row 底色（--card2） */
 }
 /* 列＝容器＋主區按鈕（開 Detail）＋ ♡（PHASE4_PLAN §3.1）；高度與原本單一按鈕相同（≥ 44px） */
 .cat-row {
@@ -212,6 +212,14 @@ body.gs-ckm .cat-foot { display: none; }
   font: inherit; text-align: left; cursor: pointer;
 }
 .tool-card:active { background: var(--card2); }
+/* PO Visual Polish 2：三張入口卡識別色（Light＝PO 指定；Dark＝PO 深色三卡參考圖取樣）。版型與功能不變 */
+#toolRank { background: #1F262F; border-color: #363C46; }
+#toolDiv  { background: #2D2409; border-color: #77653E; }
+#toolFlow { background: #1C2821; border-color: #586E63; }
+:root[data-theme="light"] #toolRank { background: #EAF2FF; border-color: #C9DDFB; }
+:root[data-theme="light"] #toolDiv  { background: #FFF0CF; border-color: #EED9A6; }
+:root[data-theme="light"] #toolFlow { background: #E5F5EB; border-color: #BFE3CC; }
+#toolRank:active, #toolDiv:active, #toolFlow:active { filter: brightness(.96); }
 .tool-card .tc-ic { font-size: 28px; line-height: 1; flex-shrink: 0; width: 34px; text-align: center; }
 .tool-card .tc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .tool-card .tc-text b { font-size: 18px; }

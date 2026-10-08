@@ -18,7 +18,7 @@ function getEtfTag(code, name) {
 
 function renderRank() {
   const SIG_LABEL = { cheap:'便宜', fair:'合理', hot:'過熱', dear:'偏貴', bond:'債券型' };
-  const SIG_COLOR = { cheap:'var(--sig-cheap)', fair:'var(--sig-fair)', hot:'var(--sig-hot)', dear:'var(--sig-dear)', bond:'var(--sig-bond)' };   // V2：與全站價格狀態標籤同一組 token
+  const SIG_CLS   = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' };   // PO Visual Polish 2：與首頁 TOP10 同一組方框標籤
   const fmtRet = v => (v == null) ? '--' : (v > 0 ? '+' : '') + v.toFixed(1) + '%';
   const retClr = v => (v == null || v === 0) ? 'var(--dim)' : v > 0 ? 'var(--vivid-up)' : 'var(--vivid-dn)';   // CP7：與漲跌柱同一組鮮明紅綠   // 台股：漲紅跌綠、0 中性（D1）
 
@@ -38,7 +38,6 @@ function renderRank() {
   document.getElementById('rankRows').innerHTML = sorted.map((e, i) => {
     const rank  = i + 1;
     const cls   = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
-    const sigC  = SIG_COLOR[e.signal] || 'var(--dim)';
     const freq   = e.div_freq || e.div_frequency || '?';
     const noDiv  = freq === '不配息';
     const yldTxt = noDiv                          ? '不適用'
@@ -71,7 +70,7 @@ function renderRank() {
           <div class="rank-name">${e.name}</div>
         </div>
         <div class="rank-price">${e.price}</div>
-        <div class="rank-sig" style="color:${sigC}">${SIG_LABEL[e.signal]||'--'}</div>
+        <div class="rank-sig ${SIG_CLS[e.signal] || ''}">${SIG_LABEL[e.signal]||'--'}</div>
       </div>
       <div class="rank-sub">
         <div class="rank-freq" style="${noDiv ? '' : 'color:var(--num-accent)'}">${freq}</div>
