@@ -20,6 +20,7 @@ fetch_active_etf.py
 
 import datetime
 import json
+import os
 import re
 import ssl
 import sys
@@ -28,6 +29,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mega_feed   # 00996A 交接檔 contract／驗證／交易日（只讀，不寫正式資料）
 
 # Windows cp950 主控台印 emoji 會 UnicodeEncodeError，比照其他腳本加防呆
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -1087,8 +1091,10 @@ def _mega_product(fund_id):
 
 
 def fetch_mega(date_obj, specific=False):
-    # qdt 是公告日、給 D 會回 D 前一營業日，所以往後推一天才是要的資料日
-    qdt = ((date_obj + datetime.timedelta(days=1)).strftime("%Y/%m/%d")
+    # qdt 是公告日、給 D 會回 D 前一營業日，所以要送「D 的下一個交易日」。
+    # ⚠ 不能單純 +1 天：D+1 是週末或休市（2026-09-25 中秋、09-28 教師節）時官方回空，
+    #   例如要 09/24 得送 09/29、要 10/02 得送 10/05（00996A incident Phase 2C 實測）。
+    qdt = (mega_feed.next_trading_day(date_obj).strftime("%Y/%m/%d")
            if specific else "")
     out = {}
     for ticker, (fund_id, name) in MEGA_FUNDS.items():
@@ -1140,6 +1146,19 @@ def fetch_mega(date_obj, specific=False):
                                "data_date": pd_date, "holdings": pd_hold}
                 print(f"[兆豐] {ticker} {name}：改用商品頁 {len(pd_hold)} 檔，"
                       f"資料日 {pd_date}")
+        # PCF 與商品頁都拿不到（Actions 上兩者皆 403）→ 讀本機 collector 交接的 feed。
+        # 只採用驗證通過、且比目前快照新的資料；沒有就回空，交給既有 KEEP＋監控。
+        if ticker not in out and not specific:
+            cur = ((load_json(SNAPSHOT) or {}).get("etfs", {}).get(ticker) or {}).get("data_date")
+            rec = mega_feed.latest_valid(os.environ.get("MEGA_FEED_DIR", ""), ticker, cur,
+                                         log=lambda m: print(f"[兆豐] {m}"))
+            if rec:
+                v = mega_feed.record_to_adapter(rec)
+                hold = _Holdings()
+                hold.update(v["holdings"])
+                out[ticker] = dict(v, holdings=hold)
+                print(f"[兆豐] {ticker} {name}：改用 feed 交接檔 {len(hold)} 檔，"
+                      f"資料日 {v['data_date']}（{rec['source']['id']}，抓取 {rec['fetched_at']}）")
         time.sleep(1)
     return out
 
