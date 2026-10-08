@@ -394,7 +394,11 @@ def fetch_kgi(date_obj, specific=False):
                  re.findall(r"\((\d{4})/(\d{2})/(\d{2})\)", page)}
         data_date = paren.pop() if len(paren) == 1 else None
         if data_date is None:
-            print(f"[凱基] {ticker} 讀不到唯一的資料日（括號日期 {sorted(paren) or '無'}）")
+            # fail closed：沒有唯一可信的資料日就整檔不交出去 → main() 走既有 KEEP，
+            # 快照與 Flow 都不會被碰到，也不會寫入 null 日期
+            print(f"[凱基] {ticker} 讀不到唯一的資料日（括號日期 {sorted(paren) or '無'}），本次不採用")
+            time.sleep(1)
+            continue
 
         tag = re.compile(r"<[^>]+>")
         holdings = _Holdings()
@@ -1933,18 +1937,20 @@ def main():
                   f, ensure_ascii=False, indent=2)
 
     print("")
+    # 摘要只是 log：沿用的舊列可能缺欄位（KEEP 的舊格式），一律用 .get，不能讓 log 本身讓排程 crash
     for code, r in sorted(out_etfs.items()):
-        if r["advanced"] and r["changed"]:
-            print(f"[OK] {code} {r['name']}：{r['flow_from']} → {r['flow_to']}，"
-                  f"異動 {r['changed']} 檔、加碼 {r['buy']/1e8:.1f} 億／減碼 {r['sell']/1e8:.1f} 億")
-        elif r["advanced"]:
+        nm = r.get("name", "")
+        if r.get("advanced") and r.get("changed"):
+            print(f"[OK] {code} {nm}：{r.get('flow_from')} → {r.get('flow_to')}，"
+                  f"異動 {r.get('changed')} 檔、加碼 {(r.get('buy') or 0)/1e8:.1f} 億／減碼 {(r.get('sell') or 0)/1e8:.1f} 億")
+        elif r.get("advanced"):
             # PCF 有出新的、但持股一模一樣＝經理人今天真的沒動。這時 flow_from/to
             # 是 null（那兩欄只在有異動時才填），照舊格式印會變成「None → None」，
             # 看起來像壞掉，所以獨立一行講清楚。
-            print(f"[==] {code} {r['name']}：{r['data_date']} 有新 PCF，但持股與前一份相同")
+            print(f"[==] {code} {nm}：{r.get('data_date')} 有新 PCF，但持股與前一份相同")
         else:
-            why = {"not_updated": "PCF 尚未更新", "no_basis": "尚無前一份可比對"}.get(r["reason"], r["reason"])
-            print(f"[--] {code} {r['name']}：{why}（資料日 {r['data_date'] or '?'}）")
+            why = {"not_updated": "PCF 尚未更新", "no_basis": "尚無前一份可比對"}.get(r.get("reason"), r.get("reason"))
+            print(f"[--] {code} {nm}：{why}（資料日 {r.get('data_date') or '?'}）")
     return 0
 
 
