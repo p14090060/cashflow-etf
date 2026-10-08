@@ -288,10 +288,16 @@ function _flowFill(side, a) {
   const t = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
   const [h, sat, l0, l1] = _TM_HSL[t][side === 'buy' ? 'buy' : 'sell'];
   const k = Math.max(0, Math.min(1, (a - 0.30) / 0.55));
-  const L = (l0 + (l1 - l0) * k) / 100, S = sat / 100;
-  const f = n => { const kk = (n + h / 30) % 12, c = S * Math.min(L, 1 - L); return Math.round(255 * (L - c * Math.max(-1, Math.min(kk - 3, 9 - kk, 1)))); };
-  return [f(0), f(8), f(4)];
+  const S = sat / 100;
+  const rgb = L => { const f = n => { const kk = (n + h / 30) % 12, c = S * Math.min(L, 1 - L); return Math.round(255 * (L - c * Math.max(-1, Math.min(kk - 3, 9 - kk, 1)))); }; return [f(0), f(8), f(4)]; };
+  // 對比保護（CP7 Visual Gate：取代文字後的羽化底襯）：中間調格黑白字都 < 4.6 時，同色相往暗調整明度直到白字 ≥ 4.6，
+  // 讓每一格都能直接用乾淨的黑／白字，不再需要文字底襯。色相與飽和度不變，只是少數中間調格稍深。
+  let L = (l0 + (l1 - l0) * k) / 100, c = rgb(L);
+  while (L > 0.05 && _tmWeak(c)) { L -= 0.01; c = rgb(L); }
+  return c;
 }
+function _tmLum(v) { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); }
+function _tmWeak(v) { const L = _tmLum(v); return 1.05 / (L + 0.05) < 4.6 && (L + 0.05) / (_tmLum([13, 17, 23]) + 0.05) < 4.6; }
 function _flowInkCtx() {
   const lum = v => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); };
   const Ld = lum([13, 17, 23]);

@@ -213,10 +213,11 @@
   .tm-amt      { font-family:var(--mono); line-height:1.2; }
   .tm-etf      { font-family:var(--mono); line-height:1.2; }
   /* 中間調格子：黑白字都不足 4.5 時，小字加淡底襯補足對比（格子本身的顏色與透明度不變） */
-  /* CP7 Visual Gate（PO：不要貼紙感）：底襯保留（對比保護不變），邊緣以同色 box-shadow 羽化融進格子，不再是硬邊小方框 */
-  .tm-weak .tm-amt, .tm-weak .tm-etf { padding:0 4px; border-radius:8px; }
-  .tm-weak-l .tm-amt, .tm-weak-l .tm-etf { background:rgba(0,0,0,.28); box-shadow:0 0 6px 3px rgba(0,0,0,.28); }
-  .tm-weak-d .tm-amt, .tm-weak-d .tm-etf { background:rgba(255,255,255,.4); box-shadow:0 0 6px 3px rgba(255,255,255,.4); }
+  /* CP7 Visual Gate（PO：不要羽化光暈）：對比改由 flow.js _flowFill 調整格子明度保證（黑／白字 ≥ 4.6），正常不會出現弱格；
+     以下只是保險，萬一出現也只是無陰影、無羽化的淡底 */
+  .tm-weak .tm-amt, .tm-weak .tm-etf { padding:0 3px; border-radius:4px; }
+  .tm-weak-l .tm-amt, .tm-weak-l .tm-etf { background:rgba(0,0,0,.28); }
+  .tm-weak-d .tm-amt, .tm-weak-d .tm-etf { background:rgba(255,255,255,.4); }
   /* 畫不出 treemap 時框框縮成文字高度——520px 的空框裡浮一行字很難看，
      而且會把下方的海外持股清單整個推出畫面外 */
   .treemap.tm-slim { height:auto; }
