@@ -1,0 +1,329 @@
+{
+ "schema_version": 1,
+ "etf_code": "00996A",
+ "etf_name": "主動兆豐台灣豐收",
+ "issuer": "兆豐",
+ "official_data_date": "2026-10-02",
+ "query_date": "2026-10-05",
+ "fetched_at": "2026-10-08T21:15:05+08:00",
+ "source": {
+  "id": "mega_trade_pcf",
+  "url": "https://www.megafunds.com.tw/MEGA/etf/trade_pcf.aspx"
+ },
+ "holdings": [
+  {
+   "code": "1303",
+   "name": "南亞塑膠",
+   "shares": 34000,
+   "raw": {}
+  },
+  {
+   "code": "1802",
+   "name": "台玻",
+   "shares": 90000,
+   "raw": {}
+  },
+  {
+   "code": "2303",
+   "name": "聯電",
+   "shares": 684000,
+   "raw": {}
+  },
+  {
+   "code": "2308",
+   "name": "台達電",
+   "shares": 115000,
+   "raw": {}
+  },
+  {
+   "code": "2317",
+   "name": "鴻海",
+   "shares": 9000,
+   "raw": {}
+  },
+  {
+   "code": "2327",
+   "name": "國巨",
+   "shares": 352000,
+   "raw": {}
+  },
+  {
+   "code": "2330",
+   "name": "台積電",
+   "shares": 147000,
+   "raw": {}
+  },
+  {
+   "code": "2344",
+   "name": "華邦電",
+   "shares": 228000,
+   "raw": {}
+  },
+  {
+   "code": "2360",
+   "name": "致茂電子",
+   "shares": 6000,
+   "raw": {}
+  },
+  {
+   "code": "2368",
+   "name": "金像電",
+   "shares": 14000,
+   "raw": {}
+  },
+  {
+   "code": "2382",
+   "name": "廣達",
+   "shares": 6000,
+   "raw": {}
+  },
+  {
+   "code": "2383",
+   "name": "台光電子",
+   "shares": 32000,
+   "raw": {}
+  },
+  {
+   "code": "2408",
+   "name": "南科",
+   "shares": 63000,
+   "raw": {}
+  },
+  {
+   "code": "2449",
+   "name": "京元電",
+   "shares": 6300,
+   "raw": {}
+  },
+  {
+   "code": "2454",
+   "name": "聯發科",
+   "shares": 56000,
+   "raw": {}
+  },
+  {
+   "code": "2467",
+   "name": "志聖工業",
+   "shares": 25000,
+   "raw": {}
+  },
+  {
+   "code": "2472",
+   "name": "立隆電子",
+   "shares": 425000,
+   "raw": {}
+  },
+  {
+   "code": "2881",
+   "name": "富邦金",
+   "shares": 20000,
+   "raw": {}
+  },
+  {
+   "code": "2882",
+   "name": "國泰金",
+   "shares": 25000,
+   "raw": {}
+  },
+  {
+   "code": "3017",
+   "name": "奇鋐科技",
+   "shares": 29000,
+   "raw": {}
+  },
+  {
+   "code": "3037",
+   "name": "欣興電子",
+   "shares": 76000,
+   "raw": {}
+  },
+  {
+   "code": "3042",
+   "name": "晶技",
+   "shares": 163000,
+   "raw": {}
+  },
+  {
+   "code": "3131",
+   "name": "弘塑科技",
+   "shares": 5000,
+   "raw": {}
+  },
+  {
+   "code": "3189",
+   "name": "景碩科技",
+   "shares": 106000,
+   "raw": {}
+  },
+  {
+   "code": "3363",
+   "name": "上詮",
+   "shares": 103000,
+   "raw": {}
+  },
+  {
+   "code": "3443",
+   "name": "創意電子",
+   "shares": 22000,
+   "raw": {}
+  },
+  {
+   "code": "3533",
+   "name": "嘉澤端子",
+   "shares": 4000,
+   "raw": {}
+  },
+  {
+   "code": "3653",
+   "name": "健策",
+   "shares": 20000,
+   "raw": {}
+  },
+  {
+   "code": "3665",
+   "name": "貿聯-KY",
+   "shares": 3000,
+   "raw": {}
+  },
+  {
+   "code": "3693",
+   "name": "營邦",
+   "shares": 62000,
+   "raw": {}
+  },
+  {
+   "code": "3711",
+   "name": "日月光投控",
+   "shares": 5000,
+   "raw": {}
+  },
+  {
+   "code": "4749",
+   "name": "新應材",
+   "shares": 5086,
+   "raw": {}
+  },
+  {
+   "code": "4958",
+   "name": "臻鼎-KY",
+   "shares": 462000,
+   "raw": {}
+  },
+  {
+   "code": "5269",
+   "name": "祥碩科技",
+   "shares": 22000,
+   "raw": {}
+  },
+  {
+   "code": "6213",
+   "name": "聯茂",
+   "shares": 6000,
+   "raw": {}
+  },
+  {
+   "code": "6223",
+   "name": "旺矽",
+   "shares": 19000,
+   "raw": {}
+  },
+  {
+   "code": "6239",
+   "name": "力成",
+   "shares": 24000,
+   "raw": {}
+  },
+  {
+   "code": "6274",
+   "name": "台燿",
+   "shares": 37000,
+   "raw": {}
+  },
+  {
+   "code": "6278",
+   "name": "台表科",
+   "shares": 665000,
+   "raw": {}
+  },
+  {
+   "code": "6415",
+   "name": "矽力-KY",
+   "shares": 38000,
+   "raw": {}
+  },
+  {
+   "code": "6510",
+   "name": "精測",
+   "shares": 60000,
+   "raw": {}
+  },
+  {
+   "code": "6526",
+   "name": "達發",
+   "shares": 12000,
+   "raw": {}
+  },
+  {
+   "code": "6531",
+   "name": "愛普科技",
+   "shares": 5000,
+   "raw": {}
+  },
+  {
+   "code": "6683",
+   "name": "雍智科技",
+   "shares": 88000,
+   "raw": {}
+  },
+  {
+   "code": "6770",
+   "name": "力積電",
+   "shares": 373000,
+   "raw": {}
+  },
+  {
+   "code": "6830",
+   "name": "汎銓",
+   "shares": 79000,
+   "raw": {}
+  },
+  {
+   "code": "6831",
+   "name": "邁科",
+   "shares": 171000,
+   "raw": {}
+  },
+  {
+   "code": "7751",
+   "name": "竑騰",
+   "shares": 60000,
+   "raw": {}
+  },
+  {
+   "code": "8021",
+   "name": "尖點",
+   "shares": 253000,
+   "raw": {}
+  },
+  {
+   "code": "8046",
+   "name": "南電",
+   "shares": 54000,
+   "raw": {}
+  },
+  {
+   "code": "8210",
+   "name": "勤誠興業",
+   "shares": 65000,
+   "raw": {}
+  },
+  {
+   "code": "8996",
+   "name": "高力",
+   "shares": 55000,
+   "raw": {}
+  }
+ ],
+ "row_count": 52,
+ "sha256": "cd31d845857f218febfe9635132802de25096e35268fb98a9d7c63167e38bcb8"
+}
