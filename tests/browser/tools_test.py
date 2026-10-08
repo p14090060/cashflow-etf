@@ -411,7 +411,7 @@ check('FS-5 Tools／排行／Detail／原生共用同一個 flow 節點（Flow �
 ev("openFlow(%s); true" % json.dumps(A)); wait_ms(400)
 col = ev("""(()=>{const c=[...document.querySelectorAll('#treemap .tm-cell')].map(x=>getComputedStyle(x).backgroundColor); return {buy:c.filter(b=>{const v=b.match(/\d+/g).map(Number); return v[0]>v[1]+80 && v[0]>v[2]+80}).length, sell:c.filter(b=>{const v=b.match(/\d+/g).map(Number); return v[1]>v[0]+80 && v[1]>v[2]+40}).length,
   bt:getComputedStyle(document.getElementById('flowBuy')).color, stc:getComputedStyle(document.getElementById('flowSell')).color}})()""")
-check('FS-6 treemap 紅＝加碼、綠＝減碼；加碼金額紅、減碼金額綠', col['buy'] + col['sell'] > 0 and col['bt'] == 'rgb(242, 85, 85)' and col['stc'] == 'rgb(34, 197, 94)', col)
+check('FS-6 treemap 紅＝加碼、綠＝減碼；加碼金額紅、減碼金額綠', col['buy'] + col['sell'] > 0 and col['bt'] == 'rgb(244, 97, 97)' and col['stc'] == 'rgb(34, 197, 94)', col)
 npc = ev("Object.keys(_flowData.etfs).find(k=>(_flowData.etfs[k].no_price||[]).length>0)")
 if npc:
     ev("document.querySelector('#flowChips .flow-chip[data-code=%s]').click(); true" % json.dumps(npc)); wait_ms(300)

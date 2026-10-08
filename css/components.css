@@ -180,7 +180,7 @@
   .cal-item {
     display:flex; align-items:center; gap:11px;
     border-radius:9px; padding:10px 12px; margin-bottom:8px;
-    background:rgba(var(--rgb-veil),.03); border:1px solid var(--border);
+    background:var(--card2); border:1px solid var(--border);   /* PO Visual Polish：一般卡＝首頁 TOP10 .hot-item 底牌；.soon（快配息囉）與 .today 維持原特殊底 */
   }
   .cal-item.soon  { background:rgba(var(--rgb-gold),.05); border-color:rgba(var(--rgb-gold),.25); }
   .cal-item.today { background:rgba(var(--rgb-cheap),.06); border-color:rgba(var(--rgb-cheap),.35); }

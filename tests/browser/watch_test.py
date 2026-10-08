@@ -8,7 +8,7 @@ cdp('Network.setCacheDisabled', {'cacheDisabled': True})
 
 KEY = 'etfRadar.watch.v1'
 UP, DN, DIM = 'rgb(240, 106, 106)', 'rgb(79, 197, 154)', 'rgb(152, 164, 179)'   # CP7 Visual Gate 核准 dark palette
-FUP, FDN = 'rgb(242, 85, 85)', 'rgb(34, 197, 94)'   # Active Flow 加減碼：CP7 Visual Gate（PO）鮮明紅綠 --vivid-up／--vivid-dn（dark）
+FUP, FDN = 'rgb(244, 97, 97)', 'rgb(34, 197, 94)'   # Active Flow 加減碼：--vivid-up／--vivid-dn（dark；PO Visual Polish 為 --card2 對比微調 #F25555→#F46161）
 
 def set_view(w, h, orient='portraitPrimary'):
     cdp('Emulation.setDeviceMetricsOverride', {'width': w, 'height': h, 'deviceScaleFactor': 1, 'mobile': True,

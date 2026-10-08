@@ -98,7 +98,7 @@
      4% 白的底線分隔，在深色底幾乎看不見，兩行會跟下一名黏成一團。
      卡片把兩行綁成一組，比單純加分隔線有效。圓角 10px 沿用 .rank-hdr 的語彙。 */
   .rank-row      { padding:12px 10px; margin-bottom:8px;
-                   background:var(--card); border:1px solid var(--border);
+                   background:var(--card2); border:1px solid var(--border);   /* PO Visual Polish：與首頁 TOP10 .hot-item 同一套底牌（--card2＋--border） */
                    border-radius:10px; }
   /* CP6c：.rank-hit 覆蓋整列（→ Detail）；列內容不攔截點擊；「持股異動 ›」是疊在上面的獨立按鈕 */
   .rank-row      { position:relative; }
@@ -169,6 +169,11 @@
   .flow-tot    { background:var(--card); border:1px solid var(--border); border-radius:8px;
                  padding:8px 10px; display:flex; align-items:baseline; justify-content:space-between; }
   .flow-tot span { font-size:15px; color:var(--dim); }
+  /* PO Visual Polish：加碼／減碼底框＝紅／綠淡 tint（與 treemap、加減碼數字同一組 --rgb-vivid-*）；數值與內容不變 */
+  .flow-tot.ft-buy  { background:rgba(var(--rgb-vivid-up),.14); border-color:rgba(var(--rgb-vivid-up),.40); }
+  .flow-tot.ft-sell { background:rgba(var(--rgb-vivid-dn),.14); border-color:rgba(var(--rgb-vivid-dn),.40); }
+  :root[data-theme="light"] .flow-tot.ft-buy  { background:#FFECEE; border-color:#FBC6CB; }
+  :root[data-theme="light"] .flow-tot.ft-sell { background:#E6F8EE; border-color:#B7E8CB; }
   .flow-tot b    { font-size:20px; font-family:var(--mono); font-weight:700; }
   .flow-tot b.buy  { color:var(--vivid-up); }   /* 加碼＝紅（台股慣例） */
   .flow-tot b.sell { color:var(--vivid-dn); }   /* 減碼＝綠 */

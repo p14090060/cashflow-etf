@@ -77,7 +77,7 @@
     --sig-bond:  #58a6ff;   /* 債券 */
     --sig-backing: transparent; /* CP7 Visual Gate（PO）：Light＋Dark 狀態標籤都取消底襯，直接透出 card／row／panel 的 surface（對比 Known Blocker 見 AI_HANDOFF） */
     /* CP7 Visual Gate（PO：DO NOT OXIDIZE）：鮮明台股紅綠——排行報酬率／漲跌柱、Active Flow 加減碼與 treemap 共用同一組 */
-    --vivid-up: #F25555;  --vivid-dn: #22C55E;           /* 文字 */
+    --vivid-up: #F46161;  --vivid-dn: #22C55E;           /* 文字（PO Visual Polish：排行改 --card2 底後 #F25555 只剩 4.33，微調到 4.7） */
     --vivid-up-fill: #EF4444; --vivid-dn-fill: #22C55E;  /* 柱狀／填色 */
     --rgb-vivid-up: 239,68,68; --rgb-vivid-dn: 34,197,94;
     --num-accent: #FACC15;   /* 配息頻率、殖利率、配息金額：dark 鮮黃 */
@@ -134,7 +134,7 @@
     --active:#B45309;
     --rgb-tech:  124,58,237;
     --rgb-active:245,158,11;
-    --vivid-up: #DC2626;  --vivid-dn: #15803D;
+    --vivid-up: #D02020;  --vivid-dn: #147A3A;   /* 同上：在 --card2 #EEF2F8 上 ≥ 4.5 */
     --vivid-up-fill: #EF4444; --vivid-dn-fill: #16A34A;
     --rgb-vivid-up: 239,68,68; --rgb-vivid-dn: 22,163,74;
     --num-accent: #D97706;   /* light 橘（PO 指定琥珀 #D97706） */
@@ -147,7 +147,7 @@
      ② 文字型語意色（便宜／合理／偏貴／過熱／債券／金色）在 light 用同色相的加深版當字色；淡底、框線、treemap 等填色仍用核准色（--rgb-*）
      ③ 排行欄位名稱的紫色淡底降到 8%，紫字對比才達 4.5 */
   :root[data-theme="light"] :is(.gs-more, .cat-band, .cat-strip button, .cat-more, .cat-expand, .cat-more-in, .router-proc,
-    .mood-card, .home-entry, .empty-state, .hot-item, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
+    .mood-card, .home-entry, .empty-state, .hot-item, .rank-row, .cal-item, .flow-tot, .home-row, .home-empty, .flow-note, .np-mkt, .wt-go, .calc-out, .num-input) { --dim: #536176; }
   :root[data-theme="light"] .rank-hdr { background: rgba(var(--rgb-violet), .08); }
   /* YouTube 橫向品牌 Logo（PO-Locked Brand Styling）：紅色 Play Mark＋wordmark（dark 白、light 近黑），不受 --dim 灰階影響；
      不是紅底按鈕。點擊區高 44px，寬度隨 wordmark */
