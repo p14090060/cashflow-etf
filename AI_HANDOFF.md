@@ -643,6 +643,14 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - Contrast：TH-6 兩主題「全部 32 檔 treemap」無任何失敗元素；TH-9 雙向切換 PASS。TH-6 失敗仍只在狀態標籤／排行與首頁 PO 指定色（同上一輪清單）。
   - 測試：theme 54／4（TH-6×2 Known Blocker、TH-5×2 資料相依），其餘 13 支全 PASS（category 1 DEFER、watch 4 DEFER）。
 
+- **【CP7 CLOSED｜2026-10-09】Engineering PASS（Codex final limited re-review）＋ PO 手機實機 Visual Gate PASS（Light／Dark）。** 最終實作 commit：`c5d4cfd8`（treemap halo 移除；行情排程推送時 SHA 可能被改寫，以 commit 訊息為準）。
+  - 保留的已知測試狀態（未為 CLOSED 改色或弱化測試）：
+    - theme_test TH-6 [dark]／[light] FAIL——Known Blocker，PO 接受為設計取捨：狀態標籤透明底五色（dark 過熱 3.90／4.46；light 便宜 3.35～3.77、合理 1.61～1.80、偏貴 2.01～2.26、債券 2.53、過熱 3.35～3.76）、PO 指定色（light #D97706 持股異動／配息頻率／殖利率 3.19；TOP10 現價 #F05B02 3.01；新上市 #8B55EE 4.04；第 1 名白字 on 金 #D49A06 2.49、第 3 名 on 銅 #D07540 3.33，排行兩主題同）。treemap 全部 32 檔兩主題 PASS。
+    - theme_test TH-5 [dark]／[light] FAIL——資料相依：測試要求 00981A treemap ≥ 4 格，今日只有 3 格；顏色核對 bad=[]，前版同樣 FAIL。
+    - category LR-8 DEFER（真機已補驗）、watch 4 DEFER（真機條件）——既有。
+    - rank RK-1「捲動後 sticky 黏在 Header 下方」曾在盤後時段 FAIL（`--hdr-h` 未隨 Header 高度重新同步），盤中 PASS；列為 Observation 交 CP8 評估。
+  - 下一步：CP8 尚未開始；先處理獨立 Data Pipeline Incident（00996A）。未 push。
+
 - **【獨立 Data Pipeline Incident｜00996A 持股抓取失敗｜記錄，先不修】**（2026-10-07，PO 實機 Telegram 監控）
   - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
   - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
