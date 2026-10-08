@@ -626,6 +626,12 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
     - **本輪新增（PO 指定色本身 < 4.5，依指示不換色）**：light #D97706 —— 排行持股異動／配息頻率／殖利率數字 3.19（白卡）、首頁 TOP10 現價 2.84（#EEF2F8）、TOP10 第 1 名白字 on #D97706 3.19；第 2 名藍字 on 銀 #E2E8F0 4.19。
   - **無法從 repo 精準還原的 PO reference（本輪訊息未附 A／B／C 參考圖）**：Light 便宜綠（用核准 palette #059669）、方案 B 金／銀／銅底（用 #D97706／#E2E8F0／#9A5B2E）、方案 C 琥珀橘（用 PO 第 6 項指定的 #D97706）、方案 C 灰（用 --dim）、方案 A 紫（用 --violet #7C3AED）、方案 C 金黃 badge（用 dark #F0B840／light #D97706）、dark 鮮黃 #FACC15、鮮明紅綠全組。皆待 PO 實機確認或提供 HEX。
 
+- **CP7 Visual Gate（PO 方案 A／B／C 參考圖補到）— `e1511f87`**：TOP10 與「快配息囉」改用參考圖像素取樣色，取代上一輪近似值。
+  - TOP10（LIGHT ONLY）：1 金 #D49A06＋白（2.49）、2 銀 #CAD8EC＋藍 #0A42A4、3 銅 #D07540＋白（3.33）——方案 B（參考圖為漸層，取中段實色）；現價 #F05B02（方案 C 琥珀橘，on #EEF2F8 3.01）；「年殖利率」#54657F（方案 C 灰）；「新上市」字 #8B55EE（方案 A 紫，取 badge 色當文字色，4.04）。
+  - 「快配息囉」：方案 C 金黃 badge，底＋框 #FCDF7A、字 #542B0A，兩主題相同（`--badge-gold` token 移除）。
+  - 仍未由參考圖覆蓋（沿用上一輪）：Light 便宜 #059669、排行持股異動／配息頻率／殖利率／配息金額 light #D97706（PO 第 6 項指定）、dark 鮮黃 #FACC15、鮮明紅綠組。
+  - 測試：theme 54／4（TH-6 兩主題＋TH-5 資料相依，同上一輪）、home 38、rank 80、tools 93、regression 35 PASS。
+
 - **【獨立 Data Pipeline Incident｜00996A 持股抓取失敗｜記錄，先不修】**（2026-10-07，PO 實機 Telegram 監控）
   - 現象：00996A 持續抓取失敗，資料停在 **2026-09-24**；15:10 該輪「未抓到清單」明確包含 00996A，15:28 仍未恢復。
   - 處理順序：**不併入 CP7**，CP7 Visual Gate 期間不改 pipeline／PCF adapter／data schema。Visual Gate 完成後另開單獨追查，依序判定 Download → Parse → Compare → Write 哪一段失敗，再提修正方案交 Gate。
