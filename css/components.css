@@ -74,16 +74,16 @@
   .hot-rank.gold { color:var(--gold); }
   .hot-rank.silver { color:var(--silver); }
   .hot-rank.bronze { color:var(--bronze); }
-  /* CP7 Visual Gate（PO 方案 B／C／A）——LIGHT ONLY：TOP10 前三名底色牌、現價琥珀橘、年殖利率字灰、新上市紫字；dark 不套用 */
+  /* CP7 Visual Gate（PO 方案 B／C／A 參考圖取樣）——LIGHT ONLY：TOP10 前三名底色牌、現價琥珀橘、年殖利率字灰、新上市紫字；dark 不套用 */
   :root[data-theme="light"] .hot-rank.gold,
   :root[data-theme="light"] .hot-rank.silver,
   :root[data-theme="light"] .hot-rank.bronze { width:24px; height:24px; line-height:24px; text-align:center; border-radius:6px; }
-  :root[data-theme="light"] .hot-rank.gold   { background:#D97706; color:#FFFFFF; }
-  :root[data-theme="light"] .hot-rank.silver { background:#E2E8F0; color:var(--link); }
-  :root[data-theme="light"] .hot-rank.bronze { background:var(--bronze); color:#FFFFFF; }
-  :root[data-theme="light"] .hr-px  { color:#D97706 !important; }
-  :root[data-theme="light"] .hr-ylbl { color:var(--dim) !important; }
-  :root[data-theme="light"] .hr-new { color:var(--violet); }
+  :root[data-theme="light"] .hot-rank.gold   { background:#D49A06; color:#FFFFFF; }
+  :root[data-theme="light"] .hot-rank.silver { background:#CAD8EC; color:#0A42A4; }
+  :root[data-theme="light"] .hot-rank.bronze { background:#D07540; color:#FFFFFF; }
+  :root[data-theme="light"] .hr-px  { color:#F05B02 !important; }
+  :root[data-theme="light"] .hr-ylbl { color:#54657F !important; }
+  :root[data-theme="light"] .hr-new { color:#8B55EE; }
   .range-track { height:5px; background:rgba(var(--rgb-veil),.08); border-radius:3px; position:relative; margin-bottom:4px; }
   .range-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,rgba(var(--rgb-link),.15),rgba(var(--rgb-link),.6)); }
   .range-dot   { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:var(--link); border:2px solid var(--bg); }
@@ -202,7 +202,7 @@
   .cal-amt   { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--num-accent); }
   .cal-ulbl  { font-size:14px; color:var(--bright); }
   .soon-pill {
-    display:inline-block; background:transparent; color:var(--badge-gold); border:1px solid var(--badge-gold);   /* CP7 Visual Gate（PO 方案 C 金黃 badge） */
+    display:inline-block; background:#FCDF7A; color:#542B0A; border:1px solid #FCDF7A;   /* CP7 Visual Gate（PO 方案 C「新上市」金黃 badge 取樣，兩主題相同） */
     border-radius:4px; padding:1px 6px; font-size:16px; font-family:var(--mono);
     margin-top:3px;
   }
