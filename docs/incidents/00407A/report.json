@@ -1,0 +1,179 @@
+{
+ "etf": "00407A",
+ "start": "2026-09-24",
+ "official_days": [
+  "2026-09-24",
+  "2026-09-29",
+  "2026-09-30",
+  "2026-10-01",
+  "2026-10-02",
+  "2026-10-05",
+  "2026-10-06",
+  "2026-10-07",
+  "2026-10-08"
+ ],
+ "before": {
+  "snapshot_date": "2026-10-08",
+  "flow": {
+   "flow_from": "2026-09-23",
+   "flow_to": "2026-09-24",
+   "changed": 49,
+   "last_change_date": "2026-09-24",
+   "data_date": "2026-10-08"
+  }
+ },
+ "steps": [
+  {
+   "data_date": "2026-09-29",
+   "holdings": 50,
+   "total_shares": 17160838,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-09-23",
+   "flow_to": "2026-09-24",
+   "changed": 49,
+   "buy": 0,
+   "sell": -830800000.0,
+   "last_change_date": "2026-09-24",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-09-23 → 2026-09-24，異動 49 檔、加碼 0.0 億／減碼 -8.3 億"
+   ]
+  },
+  {
+   "data_date": "2026-09-30",
+   "holdings": 50,
+   "total_shares": 17147838,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-09-29",
+   "flow_to": "2026-09-30",
+   "changed": 3,
+   "buy": 168675000.0,
+   "sell": -274250000.0,
+   "last_change_date": "2026-09-30",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-09-29 → 2026-09-30，異動 3 檔、加碼 1.7 億／減碼 -2.7 億"
+   ]
+  },
+  {
+   "data_date": "2026-10-01",
+   "holdings": 50,
+   "total_shares": 17127838,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-09-30",
+   "flow_to": "2026-10-01",
+   "changed": 3,
+   "buy": 213000000.0,
+   "sell": -381500000.0,
+   "last_change_date": "2026-10-01",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-09-30 → 2026-10-01，異動 3 檔、加碼 2.1 億／減碼 -3.8 億"
+   ]
+  },
+  {
+   "data_date": "2026-10-02",
+   "holdings": 50,
+   "total_shares": 17127838,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-09-30",
+   "flow_to": "2026-10-01",
+   "changed": 3,
+   "buy": 213000000.0,
+   "sell": -381500000.0,
+   "last_change_date": "2026-10-01",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-09-30 → 2026-10-01，異動 3 檔、加碼 2.1 億／減碼 -3.8 億"
+   ]
+  },
+  {
+   "data_date": "2026-10-05",
+   "holdings": 50,
+   "total_shares": 16391666,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-10-02",
+   "flow_to": "2026-10-05",
+   "changed": 46,
+   "buy": 312984.0,
+   "sell": -977014000.0,
+   "last_change_date": "2026-10-05",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-10-02 → 2026-10-05，異動 46 檔、加碼 0.0 億／減碼 -9.8 億"
+   ]
+  },
+  {
+   "data_date": "2026-10-06",
+   "holdings": 50,
+   "total_shares": 16391666,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-10-02",
+   "flow_to": "2026-10-05",
+   "changed": 46,
+   "buy": 312984.0,
+   "sell": -977014000.0,
+   "last_change_date": "2026-10-05",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-10-02 → 2026-10-05，異動 46 檔、加碼 0.0 億／減碼 -9.8 億"
+   ]
+  },
+  {
+   "data_date": "2026-10-07",
+   "holdings": 50,
+   "total_shares": 16326666,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-10-06",
+   "flow_to": "2026-10-07",
+   "changed": 3,
+   "buy": 0,
+   "sell": -246400000.0,
+   "last_change_date": "2026-10-07",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-10-06 → 2026-10-07，異動 3 檔、加碼 0.0 億／減碼 -2.5 億"
+   ]
+  },
+  {
+   "data_date": "2026-10-08",
+   "holdings": 50,
+   "total_shares": 16326666,
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-10-06",
+   "flow_to": "2026-10-07",
+   "changed": 3,
+   "buy": 0,
+   "sell": -246400000.0,
+   "last_change_date": "2026-10-07",
+   "anomaly": null,
+   "log": [
+    "[OK] 00407A 主動凱基台灣：2026-10-06 → 2026-10-07，異動 3 檔、加碼 0.0 億／減碼 -2.5 億"
+   ]
+  }
+ ],
+ "after": {
+  "snapshot_date": "2026-10-08",
+  "holdings": 50,
+  "flow": {
+   "data_date": "2026-10-08",
+   "advanced": true,
+   "reason": "ok",
+   "flow_from": "2026-10-06",
+   "flow_to": "2026-10-07",
+   "changed": 3,
+   "buy": 0,
+   "sell": -246400000.0,
+   "last_change_date": "2026-10-07"
+  }
+ },
+ "applied": false
+}

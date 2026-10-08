@@ -356,7 +356,9 @@ def fetch_sinopac(date_obj, specific=False):
 # Adapter：凱基投信（www.kgifund.com.tw）
 #   POST /Fund/RedemptionVC  fundID=<內部代碼>&queryDate=<YYYY/MM/DD 或空>
 #   回傳 HTML 片段，表格欄位 [代碼, 名稱, 股數, 權重]，名稱是 HTML 實體編碼
-#   資料日在 <input id="DataDate" value="2026/09/24">，實測**沒有延遲**
+#   ⚠ <input id="DataDate"> 是**公告日**（交割生效日），不是資料日：queryDate=D 回的是 D 公告、
+#     內容為「D 的前一交易日」持股；不帶 queryDate 時 DataDate 甚至是未來日（2026-10-08 晚上查得 10/12）。
+#     真正的資料日是淨值／現金差額那幾行括號裡的日期「(YYYY/MM/DD)」（00407A incident，2026-10-08）
 #   fundID 同樣是投信內部代碼（00407A → J024），不是股票代號
 # ══════════════════════════════════════════════════════════════
 KGI_FUNDS = {"00407A": ("J024", "主動凱基台灣")}
@@ -383,15 +385,16 @@ def fetch_kgi(date_obj, specific=False):
             print(f"[凱基] {ticker} 失敗: {e}")
             continue
 
-        # 別用 <input id="DataDate">，那是「現金申購買回清單公告日」，是未來的
-        # 交割生效日（實測 2026/09/24 的資料顯示 2026/09/29）。真正的資料日跟在
-        # 淨值等數字後面，取頁面上所有「不超過今天」的日期中最新的那個。
-        cands = sorted({f"{a}-{b}-{c}" for a, b, c in
-                        re.findall(r"(\d{4})/(\d{2})/(\d{2})", page)})
-        today_s = datetime.datetime.now(
-            datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%d")
-        past = [x for x in cands if x <= today_s]
-        data_date = past[-1] if past else None
+        # 資料日＝淨值／現金差額那幾行括號裡的日期。
+        # ⚠ 以前取「頁面上所有不超過今天的日期中最新的那個」：早上那輪公告日剛好＝今天會被誤取，
+        #   內容卻是前一交易日持股；收盤後同一個日期又對到新持股 → 同資料日不同內容，
+        #   build_flow 判 not_updated，換股整個被吃掉（00407A 9/30、10/1、10/5、10/7 四次）。
+        #   括號日期全部一致才採用，不一致或沒有就不給資料日（寧可沒有，也不要錯日期）。
+        paren = {f"{a}-{b}-{c}" for a, b, c in
+                 re.findall(r"\((\d{4})/(\d{2})/(\d{2})\)", page)}
+        data_date = paren.pop() if len(paren) == 1 else None
+        if data_date is None:
+            print(f"[凱基] {ticker} 讀不到唯一的資料日（括號日期 {sorted(paren) or '無'}）")
 
         tag = re.compile(r"<[^>]+>")
         holdings = _Holdings()
@@ -1592,6 +1595,15 @@ def build_flow(prev, cur):
             out[etf] = {"advanced": False, "reason": "not_updated",
                         "data_date": d_new, "basis_date": d_old,
                         "buy": 0, "sell": 0, "changed": 0, "flow": []}
+            # 同資料日、內容卻不同：不是「PCF 尚未更新」，是資料日標錯或投信同日改版。
+            # 不算 Flow（不知道真正的前後日期），但一定要留下 anomaly 讓 daily_check 發 TG——
+            # 00407A 就是在這裡被靜默吃掉四次換股（2026-09-30～10-07）。
+            if same_date and _shares(before) != _shares(after):
+                diff = sum(1 for c in set(before) | set(after)
+                           if (before.get(c) or {}).get("shares") != (after.get(c) or {}).get("shares"))
+                out[etf]["anomaly"] = (f"{etf} 同一資料日 {d_new} 持股內容不同（{diff} 檔），"
+                                       f"未計入 Flow；可能是資料日判斷錯誤或投信同日更新")
+                print(f"[ANOMALY] {out[etf]['anomaly']}")
             continue
 
         # 金額用「該 ETF 資料日」的收盤價換算，不是最新收盤——PCF 落後 1~2 天且各家不同
