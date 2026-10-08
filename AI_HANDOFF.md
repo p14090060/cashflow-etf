@@ -706,6 +706,13 @@ PO 真機 Observation：往下拖曳卡片時可以越過清單底部，穿過�
   - Telegram：測試 TelegramPath 端到端（build_flow anomaly → main 寫入 → `daily_check.check_active_flow` 回「• 🐛 00407A … 同一資料日 …」→ main 併入「📉 主動式 ETF 持股資料異常」）。正式資料目前 check_active_flow 回 []。注意：統一 00981A／00403A／00411A／00988A 若再發生同日不同內容，現在會發 anomaly TG（不在本輪處理）。
   - 備註：本次回補由本機寫入正式檔（凱基在 Actions 可正常取得，但回補需逐日重放；選在排程空檔、具並行改動檢查）。
 
+- **【00407A BLOCKER Fix Round 2】fix `180050de`（已 push；production 資料未改寫）**
+  - BLOCKER 1：`fetch_kgi` 括號資料日缺失／矛盾 → 整檔不交出（fail closed 發生在 main 的任何 mutation 前）→ 既有 KEEP；main 摘要 log 改 `.get` 防 KeyError('reason')。E2E（KgiFailClosedE2E，經 production main()）：快照逐欄保留、Flow 欄位保留、無 null 日期、不 advanced、無新 Flow、不 crash。
+  - BLOCKER 2：`recover_kgi_history --apply` 改以遠端 main 為正式資料：fetch 當下 commit＝基準（全程只讀該版本）；基準快照≠回補結果 → 拒絕；相同 → 不寫快照；Flow 已相同 → 不寫；否則暫存 worktree 內 atomic 寫 active_flow.json → 單一 commit（parent＝基準）→ 非 force push（遠端被任何 writer 推進＝非 fast-forward → 拒絕、中止）→ 遠端讀回驗證。正式資料只在 push 成功時改變，無 partial state。仍為 incident 人工工具，未進任何 workflow。
+  - Tests：`tests/test_kgi_incident.py` 19/19（新增 KgiFailClosedE2E 2、RecoveryApplyGit 7：成功且只動 active_flow、冪等、快照不同拒絕、check→write 間並行、write→push 間並行〔他人更新保留、00407A 未被覆蓋〕、寫檔失敗、push 失敗〔遠端 HEAD 不變、worktree 清除〕）；同一組測試在 `3146467a` 上 FAIL（E2E 2 項 fail、apply 7 項 error）→ Codex 兩個 BLOCKER reproduction 已封死。`test_mega_feed` 61/61、`test_pool` 53/54（EX-7b 既有）、flowq 35、tools 93；same-date anomaly 測試（BuildFlowGuard、TelegramPath）仍 PASS。
+  - Production 未改寫證明：HEAD 與 `503e7bb0` 的 00407A（active_flow 與 _active_snapshot）逐欄相同；`503e7bb0..HEAD` 期間資料檔唯一 commit 為 Actions `e278fd19`（例行排程），本輪無任何資料 commit。
+  - Incident 未 CLOSED；等 Codex 複審 `180050de`。
+
 ## 1. 協作協定（團隊約定，原文保留）
 
 - **Claude**：主要 Developer。
