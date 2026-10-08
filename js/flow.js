@@ -5,14 +5,6 @@
 let _flowData = null, _flowCells = [], _flowSel = null;
 let _rankSorted = [];   // 排行頁當前榜單，搜尋定位用
 
-// 最後一次真的換檔是不是在 days 天內（排行頁標籤的有效期）
-function _changedWithin(dateStr, days) {
-  if (!dateStr) return false;
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d)) return false;
-  return (Date.now() - d.getTime()) / 86400000 <= days;
-}
-
 // loading / ok / failed：成分 Tab 只在 ok 時出現，loading 與 failed 都不顯示
 let _flowStatus = 'loading';
 

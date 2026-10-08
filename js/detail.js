@@ -9,7 +9,8 @@ let _dtSkeleton = false;     // 骨架只在一次開啟中建一次，股數輸
 let _dtLayerId = null;       // 面板目前代表的 Router detail 層 id（CP4 fix：[detail, flow, detail] 共用同一個面板）
 
 const _DT_TABS = [['overview', '總覽'], ['dividend', '配息'], ['perf', '績效'], ['holdings', '成分']];
-const _DT_SIG = { cheap: '便宜', fair: '合理✓', hot: '過熱', dear: '偏貴', bond: '債券型' };
+const _DT_SIG = { cheap: '便宜', fair: '合理',   // V3（CP8）：全站統一「合理」（Detail、我的 ETF 共用）
+                  hot: '過熱', dear: '偏貴', bond: '債券型' };
 const _DT_SIG_CLS = { cheap: 'sig-cheap', fair: 'sig-fair', hot: 'sig-hot', dear: 'sig-dear', bond: 'sig-bond' };
 
 // ── 小工具 ───────────────────────────────────────────────

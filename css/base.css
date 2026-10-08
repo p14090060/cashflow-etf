@@ -223,6 +223,8 @@
     padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border);
   }
   .gs-row:last-child { border-bottom:none; }
+  .gs-row { min-height:44px; }                       /* V3：搜尋結果列觸控目標 ≥ 44px */
+  body.gs-ckm .gs-row { min-height:0; }              /* 橫向＋鍵盤的緊湊模式維持原設計 */
   .gs-row:hover, .gs-row.on { background:var(--card2); }
   .gs-code { font-family:var(--mono); font-size:14px; font-weight:700; flex:0 0 62px; }
   .gs-name { flex:1 1 auto; min-width:0; font-size:14px; color:var(--dim);
@@ -271,6 +273,10 @@
     font-family:var(--etf-code-font); font-size:var(--etf-code-size); font-weight:var(--etf-code-weight); color:var(--bright); }
   .wait-name, .cr-name, .rank-name, .gs-panel-hd .t .etf-name {
     font-family:var(--sans); font-size:var(--etf-name-size); font-weight:var(--etf-name-weight); color:var(--link); }
+  /* V3：Detail「✕ 關閉」與搜尋清除鈕外觀不變，用透明 ::after 把可點範圍擴到 ≥ 44px */
+  #dtClose { position:relative; }                    /* .gs-clear 本身已是 position:absolute */
+  #dtClose::after { content:''; position:absolute; inset:-9px -5px; }   /* 28px 高（含框線）→ 可點約 46px */
+  .gs-clear::after { content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
   .gs-panel-hd button {
     background:none; border:1px solid var(--border); border-radius:8px;
     color:var(--dim); font-size:15px; cursor:pointer; padding:4px 10px; line-height:1.2;

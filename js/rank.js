@@ -193,7 +193,8 @@ function applyRankFind(scroll) {
     const row = document.querySelector(`#rankRows .rank-row[data-code="${h.e.code}"]`);
     if (row && scroll) {
       const top = row.getBoundingClientRect().top + window.scrollY - _rankOccludedTop() - 12;
-      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });   // V3：reduced-motion 不做平滑捲動
     }
     return;
   }

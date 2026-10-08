@@ -52,29 +52,41 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 
 ## 頁面區塊代號（溝通用，不顯示在 APP）
 
-### 今日頁（Tab 1）
+> Phase 5（2026-10，CP8 文件 closeout）後的實際結構：底部導覽 **首頁／分類／自選／工具** 四個分頁，
+> 加上全站共用的 Header（標題＋資料狀態、YouTube 品牌 Logo、☀／🌙 主題鈕、↻）、Header 全站搜尋與 ETF Detail 面板。
+> 代號沿用舊編號（舊 Tab 編號已不對應畫面位置），退役者保留刪除線備查。
+
+### 首頁（底部導覽「首頁」，`page-today`）
 | 代號 | 說明 |
 |---|---|
-| A-1 | 大盤現況（mood-card：大盤漲跌 + 情緒） |
-| A-E | 兩大入口：「我想看看 ETF」→ 分類、「我已經有 ETF」→ 我的 ETF（Phase 5） |
-| A-2 | 價格合理區（成交量前 100 中 cheap／fair 且配息型；cheap 先、同狀態依成交量；>10 檔可展開；0 檔不補位；不用 LAZY_WATCHLIST） |
+| A-1 | 大盤現況（mood-card：大盤漲跌＋情緒；加權漲跌幅紅漲綠跌） |
+| A-E | 兩大入口：「我想看看 ETF」→ 分類、「我已經有 ETF」→ 我的 ETF（Phase 5；藍＝探索、綠＝已持有） |
+| A-2 | 價格合理區（成交量前 100 中 cheap／fair 且配息型；cheap 先、同狀態依成交量；>10 檔可展開；0 檔不補位、顯示「目前沒有 ETF 符合價格條件」；不用 LAZY_WATCHLIST） |
 | A-3 | 今日成交量 TOP 10（`cur_vol` 排序，非推薦清單；整列開 Detail） |
 | ~~A-4~~ | ~~查詢其他 ETF~~（Phase 5 退役，改用 Header 全站搜尋） |
 
-### 配息頁（Tab 2）
+### 分類（底部導覽「分類」，`page-cat`）
 | 代號 | 說明 |
 |---|---|
+| — | 分類總覽（8 份文件夾）→ 進入分類清單（排序、查看更多、整列開 Detail、♡ 收藏）；主動式分類另有「持股異動」分段（D-1 原生入口） |
+
+### 自選（底部導覽「自選」，`page-watch`）
+| 代號 | 說明 |
+|---|---|
+| — | 我的 ETF：♡ 收藏的自選大卡（近半年 6 柱、台股漲紅跌綠）、⠿ 拖曳／移動選單排序、取消後可復原；空狀態引導去分類；只存 localStorage |
+
+### 工具（底部導覽「工具」，`page-tools`）：三張功能卡，各開一個子頁
+| 代號 | 說明 |
+|---|---|
+| E-1 | 成交量排行（`page-rank`，見下方「排行頁」） |
+| B-2 | 配息日曆（`page-div`） |
+| D-1 | 主動式 ETF 持股異動（Flow 層；見下方「主動頁」） |
 | ~~B-1~~ | ~~配息計算機~~（Phase 5 退役；張數試算在 ETF Detail 配息分頁） |
-| B-2 | 配息行事曆 |
-
-### 頻道頁（Tab 3）
-| 代號 | 說明 |
-|---|---|
-| ~~C-1~~ | ~~頻道介紹卡~~（Phase 5 退役：`page-yt` 移除，改為 Header 右上 YouTube 圖示直接開外部頻道） |
+| ~~C-1~~ | ~~頻道介紹卡~~（Phase 5 退役：`page-yt` 移除，改為 Header 右上 YouTube 品牌 Logo 直接開外部頻道） |
 | ~~C-2~~ | ~~最新影片連結~~（同上） |
-| C-3 | 今日股市笑話 |
+| ~~C-3~~ | ~~今日股市笑話~~（隨頻道頁移除，前端已無此區塊） |
 
-### 主動頁（Tab 4）
+### 主動頁（D-1；入口：工具卡、排行「持股異動」、Detail、分類主動式）
 | 代號 | 說明 |
 |---|---|
 | D-1 | **單檔**主動式 ETF 的當日持股異動 treemap（面積＝金額、**紅加碼綠減碼**＝台股慣例、格內顯示張數） |
@@ -87,7 +99,7 @@ GitHub Actions 內建 cron 有 5～30 分鐘隨機延遲，改用 cron-job.org �
 只要還有投信接不到就等於騙人（同 2026-05 砍掉「月月都有錢領」的毛病）。
 單檔版在任何涵蓋率下都誠實：接得到就顯示，接不到就不出現在 chips 裡。
 
-- 排行頁只有**抓得到 PCF 的那幾檔**可點（`.rank-row.tappable` + 「持股異動 ›」）
+- 排行頁只有**有 Active Flow 資料的那幾檔**出現「持股異動」按鈕（`.rank-row.has-flow` + `.rank-flow`；整列其他位置開 Detail）
 - `advanced:false` 代表這檔 PCF 這次沒出新的，和「有出新的但持股沒動」是兩種狀態，
   前端必須分開顯示，不要混為一談
 - **這是兩份公開快照相減的推估值，不等於基金實際成交**，前端已標註，不要拿掉那段警語
@@ -284,7 +296,7 @@ TSLA 7392）。它以前會變（08-18 總和 516,919 → 09-18 405,335），
 > HTML 存在 `<template id="archived-check">`、JS 在 `/* 健診頁邏輯 */` 註解區塊裡，
 > 兩邊都原樣保留，要恢復把 template 標籤拿掉並解開註解即可。
 
-### 排行頁（Tab 5）
+### 排行頁（E-1，工具 → 成交量排行）
 | 代號 | 說明 |
 |---|---|
 | E-1 | 依成交量排行 TOP 100，每列顯示：配息頻率 / 1年內報酬 / 年殖利率 / 近3月績效柱狀圖 |
@@ -317,13 +329,17 @@ TSLA 7392）。它以前會變（08-18 總和 516,919 → 09-18 405,335），
 
 ## 訊號顏色規範（四態 + 債券）
 
-| 訊號 | 標籤 | 顏色 |
+| 訊號 | 標籤 | 顏色（token） |
 |---|---|---|
-| `cheap` | 便宜 | 綠色 #00e5a0 |
-| `fair` | 合理✓ | 金黃 #F0B840 |
-| `hot` | 過熱 | 紅色 #ef4444 |
-| `dear` | 偏貴 | 橘色 #fb923c |
-| `bond` | 債券 | 中性灰 var(--dim) #8b949e |
+| `cheap` | 便宜 | `--sig-cheap`：dark #00e5a0／light #059669 |
+| `fair` | 合理 | `--sig-fair` #F0B840 |
+| `hot` | 過熱 | `--sig-hot` #ef4444 |
+| `dear` | 偏貴 | `--sig-dear` #fb923c |
+| `bond` | 債券型 | `--sig-bond` #58a6ff |
+
+全站（首頁、排行、Detail、我的 ETF）同一組標籤與色：文字＋框線＝上表色、底色透明（CP7 PO-Locked）。
+標籤一律「合理」（V3／CP8 起不再有「合理✓」；只剩已下架健診頁的封存程式 `archived-check.js` 保留原樣）。
+Light／Dark 的透明底對比低於 4.5 是 PO 已接受的設計取捨（theme_test TH-6 Known Blocker），不要為了測試改色。
 
 禁止在「過熱」加閃電符號 ⚡。
 
@@ -339,7 +355,8 @@ TSLA 7392）。它以前會變（08-18 總和 516,919 → 09-18 405,335），
 低於 60MA > 2%）會被利率緩跌機械性踩中。實測榜上 3 檔債券型 **3/3 全是 cheap**，
 但全池只有 8%（15/185）是 cheap。那不是划算，是模型量錯東西。
 
-灰色是刻意的：**不借用四態任何一色**，免得被讀成買賣判斷，它只是在說「這是債券型」。
+債券色刻意**不借用四態任何一色**，免得被讀成買賣判斷，它只是在說「這是債券型」。
+（最初是中性灰；CP7 Visual Gate 起改為 PO 鎖定的 #58a6ff 藍，仍是「分類」語意，不是買賣判斷。）
 
 ⚠ 改訊號邏輯時 `calc_signal` 有**兩份**要同步：`fetch_etf.py`（回
 `(signal, maD)` 兩元組）和 `scripts/mis_fetcher.py`（只回字串）。
@@ -348,6 +365,20 @@ mis_fetcher 還有**三處**會重算並覆蓋 signal（含寫檔後的自驗）
 
 副作用（都是想要的）：`daily_check.py` 與 `intraday_notify.py` 只推
 `signal == "cheap"`，債券改成 `bond` 之後就不會再推「00984D 便宜」了。
+
+## 主題（Dark／Light）與 visual tokens（Phase 5 CP7）
+
+- **切換**：Header ☀／🌙 鈕；`<html data-theme="dark|light">`。初值：localStorage `etfRadar.theme` → 沒有就跟 `prefers-color-scheme`；
+  手動選過以選擇為準。`<head>` 行內 script 在 CSS 前決定主題（不閃錯色）；meta theme-color 同步（dark #0F141B／light #FEF8E2）。
+- **token 都在 `css/base.css`**：`:root` 是 dark，`:root[data-theme="light"]` 覆寫。**換主題只換 token**，元件不得寫死色值。
+  - 環境：`--bg`（light 為奶油底 #FEF8E2）、`--card`、`--card2`、`--border`、`--dim`、`--bright`、`--link／--brand`。
+  - 狀態五色：`--sig-cheap／fair／dear／hot／bond`＋`--sig-backing`（transparent）。
+  - 漲跌：`--up／--dn`（一般漲跌字）；`--vivid-up／--vivid-dn`＋`--vivid-*-fill`＋`--rgb-vivid-*`（排行報酬率／漲跌柱、Active Flow 加減碼與 treemap 共用的鮮明紅綠）。
+  - 其他：`--num-accent`（配息頻率、殖利率、配息金額：dark 鮮黃／light 橘）、`--rank1／2／3-bg／fg`（首頁 TOP10 light 與排行前三名的金銀銅）、
+    `--etf-code-*`／`--etf-name-*`（全站 ETF 代碼／名稱字型）、`--mono`（數字字型＝微軟正黑體，名稱沿用）。
+- **Active Flow treemap** 不用 token 透明度：`flow.js` `_flowFill` 依主題以「同色相、明度分層」算實色，並保證黑／白字對比；
+  換主題由 `flowRecolor()`（`etf:themechange`）就地重算，不重建 DOM。
+- 主題相關回歸：`tests/browser/theme_test.py`（TH-1～TH-10）。
 
 ## 篩選邏輯（四態訊號 + 債券短路）
 
@@ -378,10 +409,18 @@ mis_fetcher 還有**三處**會重算並覆蓋 signal（含寫檔後的自驗）
   這是資料池層級的產品規則，前台不需要額外大量說明。
 - **原因**：ETF 存股雷達主要面向 ETF 新手。PO 實際遇過新手詢問「槓桿 ETF 能不能買」；
   這類 ETF 需要額外理解產品機制，不適合主動提供給新手。
-- **現況與已知漏洞**：目前靠 `EXCLUDE_KW`（2026-05-12 `e15e9af3` 起）名稱關鍵字過濾，有漏網：
-  `02001L 富邦蘋果正二N`（寫「正二」不是「正2」）；商品期貨 ETF 名稱多以「期」開頭而非「期貨」
-  （如 00682U、00693U、00763U）。修補時**不要加過寬的「期」字**，以免誤排正常 ETF，
-  應採較可靠的產品辨識方式。
+- **現況：篩選鏈（`fetch_etf.py`，Phase 5 P1 起；測試 `tests/test_pool.py` EX-1～EX-11）**
+  1. **ISIN 區段**：上市 strMode=2＋上櫃 strMode=4，只取 `ETF`、`ETN` 兩個區段（`isin_sections`），
+     列的 CFI 須符合區段前綴（ETF＝`CE…`、ETN＝`CM…`，`parse_isin_rows`），不再整頁解析。
+  2. **代號型態**（`pool_excluded`）：必須 `0` 開頭（擋 TDR 9xxx 等）、不得 `T` 結尾（受益憑證）。
+  3. **代號字尾** `EXCLUDE_SUFFIX = L／R／U`：槓桿／反向／期貨商品。名稱關鍵字擋不住簡稱
+     （`02001L 富邦蘋果正二N`、`00682U／00693U／00763U`），所以用代號擋；2026-10-05 實測 ISIN ETF 區段字尾與名稱 0 例外。
+  4. **名稱關鍵字** `EXCLUDE_KW`（債、期貨、槓桿、反向、貨幣、正2／反1、REITs、黃金、原油…）。
+  5. **cache fallback 防線**：ISIN 抓不到改讀 `etf_pool_cache.json` 時，代號須符合 ETF（00…）／ETN（02…）格式（`cache_product_ok`），
+     擋掉舊快取誤收的 01111S～01114S。`CURATED` 精選清單同樣走 `pool_excluded`。
+  - ⚠ 文件與程式待對齊（CP8 盤點時發現，未改）：`EXCLUDE_KW` 含「債／公債／公司債」，名稱帶「債」的債券 ETF 會被濾掉，
+    與上面「一般債券 ETF 保留」的決策字面不一致；目前榜上的債券 ETF 是名稱沒有「債」字者（見 `bond` 一節）。是否調整由 PO 決定。
+  - 修補時**不要加過寬的「期」字**，以免誤排正常 ETF。
 
 ### cheap 門檻 40%／2% 是刻意放寬，不是誤改
 
@@ -463,7 +502,7 @@ mis_fetcher 還有**三處**會重算並覆蓋 signal（含寫檔後的自驗）
 
 | 狀況 | 顯示 |
 |---|---|
-| 有殖利率數字 | 金黃粗體 % |
+| 有殖利率數字 | `--num-accent` 粗體 %（dark 鮮黃／light 橘） |
 | 不配息 ETF | 不適用（灰色） |
 | 新上市且 yld=0 | 未滿1歲（灰色） |
 | 其他查無 | --（灰色） |

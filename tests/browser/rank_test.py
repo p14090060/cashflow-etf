@@ -179,7 +179,9 @@ ev("clearRankFind(); document.getElementById('rankFindBtn').click(); true"); wai
 # NV-2 「持股異動 ›」→ Flow（不開 Detail）
 nflow = ev("Object.keys(_flowData.etfs).filter(k=>_rankSorted.some(e=>e.code===k)).length")
 nbtn = ev("document.querySelectorAll('#rankRows .rank-flow').length")
-stale = ev("Object.keys(_flowData.etfs).filter(k=>_rankSorted.some(e=>e.code===k) && !_changedWithin(_flowData.etfs[k].last_change_date, 7))")
+# _changedWithin()（flow.js）已在 CP8 隨死碼清理移除；測試自己算「7 天內沒換股」，斷言不變
+stale = ev("Object.keys(_flowData.etfs).filter(k=>{const d=_flowData.etfs[k].last_change_date; const t=d?new Date(d+'T00:00:00').getTime():NaN;"
+           " return _rankSorted.some(e=>e.code===k) && !(t && (Date.now()-t)/86400000<=7)})")
 check('NV-2 有 Active Flow 資料的排行 ETF 都有「持股異動 ›」（%d 檔；含 7 天內無換股者 %d 檔）' % (nflow, len(stale)),
       nbtn == nflow and nflow > 0 and all(ev("!!document.querySelector('#rankRows .rank-row[data-code=\"%s\"] .rank-flow')" % c) for c in stale), (nbtn, nflow, stale))
 check('NV-2 無 Flow 資料的列沒有此按鈕', ev("document.querySelectorAll('#rankRows .rank-row:not(.has-flow) .rank-flow').length") == 0)

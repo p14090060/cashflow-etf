@@ -122,7 +122,8 @@ function gsSearch() {
   _gsRows = hits.slice(0, 8).map(x => x.e);
 
   if (!_gsRows.length) {
-    list.innerHTML = '<div class="gs-empty">找不到「' + input.value.trim() + '」'
+    const q = input.value.trim().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    list.innerHTML = '<div class="gs-empty">找不到「' + q + '」'
                    + '<br><span>可以試試代碼（0050）、名稱（元大）或類型（高股息）</span></div>';
     list.hidden = false;
     return;
@@ -238,6 +239,12 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', _gsSyncAll);
 }
 _gsSyncAll();
+// V3（CP8，RK-1）：Header 高度會在資料載入後改變（狀態徽章文字、主題、字型），以前只在 resize／focus 時重量，
+// --hdr-h 會停在舊值，排行頁 sticky 與 Detail 面板就跟 Header 之間差一截。高度一變就重量。
+if (window.ResizeObserver) {
+  const _hdrEl = document.querySelector('.app-hdr');
+  if (_hdrEl) new ResizeObserver(() => _syncHdrH()).observe(_hdrEl);
+}
 
 // 焦點變化時重新判斷；離開時等鍵盤收起的動畫結束再判斷
 const _gsInput = document.getElementById('gsearch');
