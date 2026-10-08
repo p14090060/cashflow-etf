@@ -1,0 +1,29 @@
+# 00996A incident Phase 2A：在 Actions runner 上驗證兆豐 PCF／商品頁（只讀驗證，不 commit、不 push、不發 TG）
+name: mega-probe
+on:
+  push:
+    branches: [probe/mega-996a]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install yfinance requests
+      - name: Before (repo artifact)
+        run: python -c "import json;e=json.load(open('data/active_flow.json',encoding='utf-8'))['etfs']['00996A'];print('BEFORE',e['data_date'],e['fetched'],e['holdings'])"
+      - name: Production fetch_active_etf.py (writes only to runner disk)
+        continue-on-error: true
+        run: python scripts/fetch_active_etf.py 2>&1 | tee fetch.log
+      - name: Reload from disk and verify
+        run: |
+          grep -E "\[兆豐\]|00996A" fetch.log || true
+          python - <<'PY'
+          import json
+          d=json.load(open('data/active_flow.json',encoding='utf-8'))
+          e=d['etfs']['00996A']
+          print('AFTER 00996A', {k:e.get(k) for k in ('data_date','fetched','holdings','flow_from','flow_to','reason')})
+          print('ALL', {k:(v.get('data_date'),v.get('fetched')) for k,v in sorted(d['etfs'].items())})
+          PY
