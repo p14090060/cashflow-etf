@@ -121,9 +121,11 @@
   .rank-main     { display:flex; align-items:center; }
   .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
   .rank-no       { width:36px; text-align:center; font-size:18px; font-weight:700; color:var(--dim); flex-shrink:0; }
-  .rank-no.gold  { color:var(--gold); }
-  .rank-no.silver{ color:var(--silver); }
-  .rank-no.bronze{ color:var(--bronze); }
+  /* CP7 Visual Gate（PO）：TOP100 前三名與首頁 TOP10 同一組金／銀／銅底牌（兩主題相同）；4～100 維持一般名次字 */
+  .rank-no.gold, .rank-no.silver, .rank-no.bronze { width:28px; height:28px; line-height:28px; margin:0 4px; border-radius:7px; }
+  .rank-no.gold  { background:var(--rank1-bg); color:var(--rank1-fg); }
+  .rank-no.silver{ background:var(--rank2-bg); color:var(--rank2-fg); }
+  .rank-no.bronze{ background:var(--rank3-bg); color:var(--rank3-fg); }
   .rank-etf      { flex:1; min-width:0; padding-right:6px; }
   .rank-name     { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rank-price    { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); flex-shrink:0; text-align:right; margin-right:8px; min-width:44px; }

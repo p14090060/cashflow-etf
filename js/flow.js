@@ -277,15 +277,26 @@ function _tmEmpty(box, html, cls) {
 // ── treemap 格內字色（CP7）：依「token 色 × 透明度 疊在 treemap 底色上」的實際底色，取黑或白中對比較高者；
 //    中間調格（黑白都 < 4.6）小字加淡底襯（.tm-weak-l／-d）。面積→透明度邏輯不變，只決定字色。
 //    讀的是「當下」主題的 token，所以換主題時要重算（flowRecolor）。
-function _flowInkCtx(box) {
-  const rs = getComputedStyle(document.documentElement);
-  const trip = n => rs.getPropertyValue(n).split(',').map(Number);
-  const base = (getComputedStyle(box).backgroundColor.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
+// CP7 Visual Gate（PO：treemap 紅綠不可氧化）：格子底色不再用「token 色 × 透明度」疊在卡片底上（低透明度會混進灰／黑底而變磚紅、灰綠），
+//   改為同一色相、高飽和度，只用「明度」表現深淺；data-a（面積→層級）語意不變，仍是 0.30～0.85。
+//   [色相, 飽和度%, 最小格明度%, 最大格明度%]——light 小格淺、大格深；dark 小格深、大格亮。
+const _TM_HSL = {
+  light: { buy: [0, 84, 62, 44], sell: [142, 72, 50, 30] },
+  dark:  { buy: [0, 74, 34, 52], sell: [142, 70, 24, 40] },
+};
+function _flowFill(side, a) {
+  const t = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const [h, sat, l0, l1] = _TM_HSL[t][side === 'buy' ? 'buy' : 'sell'];
+  const k = Math.max(0, Math.min(1, (a - 0.30) / 0.55));
+  const L = (l0 + (l1 - l0) * k) / 100, S = sat / 100;
+  const f = n => { const kk = (n + h / 30) % 12, c = S * Math.min(L, 1 - L); return Math.round(255 * (L - c * Math.max(-1, Math.min(kk - 3, 9 - kk, 1)))); };
+  return [f(0), f(8), f(4)];
+}
+function _flowInkCtx() {
   const lum = v => { const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]); };
-  const UP = trip('--rgb-vivid-up'), DN = trip('--rgb-vivid-dn'), Ld = lum([13, 17, 23]);
+  const Ld = lum([13, 17, 23]);
   return function (side, a) {
-    const rgb = side === 'buy' ? UP : DN;
-    const L = lum(rgb.map((c, i) => c * a + base[i] * (1 - a)));
+    const L = lum(_flowFill(side, a));
     const w = 1.05 / (L + 0.05), d = (L + 0.05) / (Ld + 0.05);
     return w >= d ? ['#ffffff', w < 4.6] : ['#0d1117', d < 4.6];
   };
@@ -300,6 +311,7 @@ function flowRecolor() {
   const inkFor = _flowInkCtx(box);
   cells.forEach(c => {
     const [ink, weak] = inkFor(c.dataset.side, +c.dataset.a);
+    c.style.background = 'rgb(' + _flowFill(c.dataset.side, +c.dataset.a).join(',') + ')';   // 底色也依主題重算（只換色，面積與層級不動）
     c.style.color = ink;
     c.classList.remove('tm-weak', 'tm-weak-l', 'tm-weak-d');
     if (weak) c.classList.add(...(_flowWeakCls(ink, weak).trim().split(' ')));
@@ -435,9 +447,7 @@ function renderFlow(code) {
       // 台股慣例：紅=加碼(正)、綠=減碼(負)。與 App 其他頁的 --up/--dn、retClr 一致，
       // 不要改成歐美的綠漲紅跌，同一個 App 用兩套相反的顏色語言會讓人讀反。
       const alpha = +(0.30 + Math.min(0.55, c.w * c.h / (W * H) * 3)).toFixed(2);
-      const bg = c.side === 'buy'
-        ? 'rgba(var(--rgb-vivid-up),' + alpha + ')'   // V2：由 --up／--dn 換算，透明度仍依面積
-        : 'rgba(var(--rgb-vivid-dn),' + alpha + ')';   // CP7 Visual Gate：鮮明紅綠（不氧化），透明度語意不變
+      const bg = 'rgb(' + _flowFill(c.side, alpha).join(',') + ')';   // CP7 Visual Gate：乾淨紅綠，層級＝明度（見 _flowFill）
       const [ink, weak] = _inkFor(c.side, alpha);
       const fs   = Math.max(11, Math.min(19, big / 4.0));   // 手機上 9px 太小，下限拉到 11
       const show = c.w > 42 && c.h > 26;

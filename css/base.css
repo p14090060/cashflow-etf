@@ -24,6 +24,10 @@
                           兩個藍分屬排行頁與主動頁，不會同框出現。 */
   --gold:  #D6A84B;
     --nav-h: 62px;
+    /* CP7 Visual Gate（PO 方案 B）：排名 1～3 金／銀／銅識別——首頁 TOP10（light）與排行 TOP100（兩主題）共用同一組色 */
+    --rank1-bg:#D49A06; --rank1-fg:#FFFFFF;
+    --rank2-bg:#CAD8EC; --rank2-fg:#0A42A4;
+    --rank3-bg:#D07540; --rank3-fg:#FFFFFF;
     /* CP7 Visual Gate：全站 ETF 代碼／名稱 typography（Source of Truth＝首頁條列 .wait-code／.wait-name）；兩主題同邏輯，色彩走主題 token */
     --etf-code-font: var(--sans); --etf-code-size: 16px; --etf-code-weight: 700;
     --etf-name-size: 16px; --etf-name-weight: 400;

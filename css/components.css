@@ -78,9 +78,9 @@
   :root[data-theme="light"] .hot-rank.gold,
   :root[data-theme="light"] .hot-rank.silver,
   :root[data-theme="light"] .hot-rank.bronze { width:24px; height:24px; line-height:24px; text-align:center; border-radius:6px; }
-  :root[data-theme="light"] .hot-rank.gold   { background:#D49A06; color:#FFFFFF; }
-  :root[data-theme="light"] .hot-rank.silver { background:#CAD8EC; color:#0A42A4; }
-  :root[data-theme="light"] .hot-rank.bronze { background:#D07540; color:#FFFFFF; }
+  :root[data-theme="light"] .hot-rank.gold   { background:var(--rank1-bg); color:var(--rank1-fg); }
+  :root[data-theme="light"] .hot-rank.silver { background:var(--rank2-bg); color:var(--rank2-fg); }
+  :root[data-theme="light"] .hot-rank.bronze { background:var(--rank3-bg); color:var(--rank3-fg); }
   :root[data-theme="light"] .hr-px  { color:#F05B02 !important; }
   :root[data-theme="light"] .hr-ylbl { color:#54657F !important; }
   :root[data-theme="light"] .hr-new { color:#8B55EE; }

@@ -219,7 +219,7 @@ STATE9 = """(()=>{const cells=[...document.querySelectorAll('#treemap .tm-cell')
     items:[...document.querySelectorAll('#flowQList .flow-q-item')].map(x=>x.dataset.code).join(),
     active:(document.querySelector('#flowChips .flow-chip.active')||{}).dataset.code, chipsLeft:Math.round(document.getElementById('flowChips').scrollLeft), layerTop:Math.round(L.scrollTop), winY:Math.round(scrollY),
     geo:cells.map(c=>[c.style.left,c.style.top,c.style.width,c.style.height,c.dataset.side,c.dataset.a].join('/')).join('|'),
-    alpha:cells.map(c=>(getComputedStyle(c).backgroundColor.match(/[\d.]+\)$/)||[''])[0]).join(), n:cells.length,
+    alpha:cells.map(c=>c.dataset.a).join(),   /* CP7 Visual Gate（PO）：底色改不透明、層級＝明度，面積層級語意在 data-a */ n:cells.length,
     ink:cells.map(c=>c.style.color).join(), router:JSON.stringify(Router.state()), hlen:history.length, flowOn:flowLayerVisible()}})()"""
 def scan_flow(): return ev("__scan('#treemap')") + ev("__scan('#flowLayer')")
 s0 = ev(STATE9); bad0 = scan_flow()
