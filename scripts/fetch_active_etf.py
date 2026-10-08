@@ -1110,6 +1110,7 @@ def fetch_mega(date_obj, specific=False):
                 data=urllib.parse.urlencode(form, encoding="utf-8").encode(),
                 headers={"Content-Type": "application/x-www-form-urlencoded"})
             h = op.open(req, timeout=30).read().decode("utf-8", "replace")
+            pcf_ok = True
         except Exception as e:
             # 2026-09-28~10-02：本機抓得到（52 檔、資料日當天），GitHub Actions
             # 上卻連續 18 次排程回空。原因無從判斷，因為這裡只印了例外字串。
@@ -1122,7 +1123,29 @@ def fetch_mega(date_obj, specific=False):
                           f"{_plain(body().decode('utf-8', 'replace'))[:200]}")
                 except Exception:
                     pass
-            continue
+            # 2026-10-08 incident：這裡原本直接 continue，商品頁備援永遠跑不到——
+            # Actions 上 trade_pcf 是 HTTP 403（CDN Access Denied），正好就是需要備援的情況。
+            # 改成標記 PCF 失敗、往下走到同一段備援。
+            pcf_ok = False
+            h0 = h = ""
+        if pcf_ok:
+            _mega_parse_pcf(ticker, name, qdt, h0, h, form, out)
+
+        # trade_pcf 沒拿到（例外或解析不到）就改走商品頁。只有最新一份，所以歷史查詢不適用
+        # （bootstrap 回補前一份仍然得靠 qdt）。
+        if ticker not in out and not specific:
+            pd_date, pd_hold = _mega_product(fund_id)
+            if pd_date and pd_hold:
+                out[ticker] = {"name": name, "issuer": "兆豐",
+                               "data_date": pd_date, "holdings": pd_hold}
+                print(f"[兆豐] {ticker} {name}：改用商品頁 {len(pd_hold)} 檔，"
+                      f"資料日 {pd_date}")
+        time.sleep(1)
+    return out
+
+
+def _mega_parse_pcf(ticker, name, qdt, h0, h, form, out):
+        """trade_pcf 的回應解析（原 fetch_mega 內聯程式，邏輯未改）。"""
         # 第一次 GET 就被擋的話，h0 會是一張不含表單的頁面，往下一定解析不出東西
         print(f"[兆豐] {ticker} 取得頁面 {len(h0)}/{len(h)} 字元，"
               f"hidden 欄位 {len(form)} 個")
@@ -1158,18 +1181,6 @@ def fetch_mega(date_obj, specific=False):
                   f"（<tr> {rows_n} 列、資料日{'有' if data_date else '沒讀到'}、"
                   f"頁面{'有' if name in h else '沒有'}基金名稱）")
             print(f"[兆豐] 頁面文字前 300 字：{_plain(h)[:300]}")
-
-        # trade_pcf 沒拿到就改走商品頁。只有最新一份，所以歷史查詢不適用
-        # （bootstrap 回補前一份仍然得靠 qdt）。
-        if ticker not in out and not specific:
-            pd_date, pd_hold = _mega_product(fund_id)
-            if pd_date and pd_hold:
-                out[ticker] = {"name": name, "issuer": "兆豐",
-                               "data_date": pd_date, "holdings": pd_hold}
-                print(f"[兆豐] {ticker} {name}：改用商品頁 {len(pd_hold)} 檔，"
-                      f"資料日 {pd_date}")
-        time.sleep(1)
-    return out
 
 # ══════════════════════════════════════════════════════════════
 # Adapter：元大投信（www.yuantaetfs.com）
