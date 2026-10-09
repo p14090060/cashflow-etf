@@ -144,7 +144,10 @@ for mode in ('dark', 'light'):
     ev("switchPage('tools'); true"); wait_ms(200)
     ev("new Promise(r=>{const t=Date.now();const i=setInterval(()=>{if(_flowData||Date.now()-t>15000){clearInterval(i);r(1)}},100)})", True)
     fc = ev("Object.keys(_flowData.etfs).find(k=>(_flowData.etfs[k].flow||[]).some(x=>x.amount>0) && (_flowData.etfs[k].flow||[]).some(x=>x.amount<0))")
-    ev("openFlow(%s); true" % json.dumps(fc)); wait_ms(500)
+    # TH-5 樣本：第一檔「有加有減」的格數隨每日資料變動（曾抽到 2～3 格），改挑有加有減且非零 Flow ≥ 4 筆的 ETF；
+    # 當天沒有符合的樣本就明確 SKIP，不誤判成前端 FAIL。fc 仍供 TH-6 掃描使用，不變。
+    fc5 = ev("Object.keys(_flowData.etfs).find(k=>{const f=(_flowData.etfs[k].flow||[]).filter(x=>typeof x.amount==='number' && x.amount!==0); return f.length>=4 && f.some(x=>x.amount>0) && f.some(x=>x.amount<0)})")
+    ev("openFlow(%s); true" % json.dumps(fc5 or fc)); wait_ms(500)
     # CP7 fix：逐格以「原始資料 amount 的正負」核對實際 rendered 顏色（amount > 0 → 紅／加碼、< 0 → 綠／減碼）。
     # _flowCells[i] 是第 i 格的資料；減碼格的 amount 在畫圖時取了絕對值，所以用代碼回查原始 flow 的正負。
     tm = ev("""(()=>{const e=_flowData.etfs[_flowSel]; const orig={}; (e.flow||[]).forEach(x=>{orig[x.code+'|'+x.name]=x.amount});
@@ -155,9 +158,12 @@ for mode in ('dark', 'light'):
       return {n:cells.length, checked:checked.length, pos:checked.filter(x=>x.amount>0).length, neg:checked.filter(x=>x.amount<0).length, bad:bad.slice(0,5),
               aggOk: rows.filter(x=>x.agg).every(x=>x.fam==='red'||x.fam==='green'),
               buy:__fam(getComputedStyle(document.getElementById('flowBuy')).color), sell:__fam(getComputedStyle(document.getElementById('flowSell')).color)}})()""")
-    check('TH-5 [%s] treemap 逐格：原始 amount > 0 的格為紅、< 0 的格為綠（%s，%d 格中核對 %d 格：正 %d／負 %d）' % (mode, fc, tm['n'], tm['checked'], tm['pos'], tm['neg']),
-          tm['checked'] >= 4 and tm['pos'] > 0 and tm['neg'] > 0 and not tm['bad'] and tm['aggOk'], tm)
-    check('TH-5 [%s] 加碼金額紅、減碼金額綠' % mode, tm['buy'] == 'red' and tm['sell'] == 'green', tm)
+    if fc5:
+        check('TH-5 [%s] treemap 逐格：原始 amount > 0 的格為紅、< 0 的格為綠（%s，%d 格中核對 %d 格：正 %d／負 %d）' % (mode, fc5, tm['n'], tm['checked'], tm['pos'], tm['neg']),
+              tm['checked'] >= 4 and tm['pos'] > 0 and tm['neg'] > 0 and not tm['bad'] and tm['aggOk'], tm)
+        check('TH-5 [%s] 加碼金額紅、減碼金額綠' % mode, tm['buy'] == 'red' and tm['sell'] == 'green', tm)
+    else:
+        print('SKIP TH-5 [%s] treemap 逐格／加減碼金額：當天沒有「有加有減且非零 Flow ≥ 4 筆」的 ETF 樣本' % mode)
     np = ev("""(()=>{const d=document.createElement('div'); d.innerHTML=_npList([{code:'AAA US',name:'x',delta_shares:100},{code:'BBB US',name:'y',delta_shares:-50},{code:'CCC',name:'z',delta_shares:null}]);
       document.getElementById('flowForeign').appendChild(d); const r=[...d.querySelectorAll('.np-d')].map(x=>__fam(getComputedStyle(x).color)); d.remove(); return r})()""")
     check('TH-5 [%s] 海外清單：正值紅、負值綠、缺值中性' % mode, np == ['red', 'green', 'neutral'], np)

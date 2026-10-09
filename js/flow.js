@@ -57,6 +57,8 @@ function squarify(items, x, y, w, h) {
 }
 
 const _oku = v => (Math.abs(v) / 1e8).toFixed(1) + '億';
+// price_date 原始值是 YYYYMMDD（20261008），畫面上和 data_date 一樣用 YYYY-MM-DD；其他格式原樣顯示
+const _flowYmd = s => /^\d{8}$/.test(String(s)) ? String(s).replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3') : String(s);
 
 // 取前 keep 檔，其餘併成「其他 N 檔」
 function _trim(list, keep) {
@@ -354,7 +356,7 @@ function renderFlow(code) {
     // 各投信 PCF 公告有 1~2 天落差且各檔不同，資料日一定要標出來
     document.getElementById('flowCover').textContent =
       '資料來源：' + e.issuer + '投信官網公告 PCF（申購買回清單）　最新資料日 ' + (e.data_date || '-') +
-      (e.price_date ? '　金額以 ' + e.price_date + ' 收盤價換算' : '') +
+      (e.price_date ? '　金額以 ' + _flowYmd(e.price_date) + ' 收盤價換算' : '') +
       '　PCF 公告通常落後行情 1~2 天';
     const npRows = _npRows(e), np = npRows.length;
     const tips = [];
@@ -365,9 +367,18 @@ function renderFlow(code) {
     // 自己打自己臉。Gavin 2026-10-02 截圖問「這是真的嗎」就是看到這個。
     const hasPrev = !!((e.flow && e.flow.length) || np);
     const andBelow = hasPrev ? '，以下為最近一次調整' : '';
+    // fetched:false 只代表「這次自動抓取沒拿到這檔、沿用上次輸出」，欄位裡看不出原因，
+    // 也分不出上次那份是自動抓的還是人工 feed（00996A 兆豐擋 Actions 403）。
+    // 只講得到證實的事：本次沒抓到、沿用的資料日是哪天；停更時資料日不動，使用者看得出來。
+    // flow_to 晚於 data_date（統一投信同一天查兩次日期不同，程式保留較早的資料日）：
+    // 不能再說「最新 PCF 持股無異動」——下面的異動就是比資料日更新的那份，照原始日期並列。
+    const toAhead = !!(e.flow_to && e.data_date && e.flow_to > e.data_date);
     if (e.fetched === false)
-      tips.push('⚠ 本次未能取得新資料（投信網站異常）'
-                + (hasPrev ? '，以下為先前結果' : ''));
+      tips.push('⚠ 本次自動抓取未取得新資料，以下沿用先前保存的資料（資料日 ' + (e.data_date || '-') + '）');
+    if (toAhead)
+      tips.push('⚠ 投信公告的資料日（' + e.data_date + '）早於異動比較區間（'
+                + e.flow_from + ' → ' + e.flow_to + '），兩者日期不一致，以下依原始資料呈現');
+    else if (e.fetched === false) { /* 已在上面說明，不再疊加 PCF 狀態推論 */ }
     else if (e.flow_to && e.data_date && e.flow_to !== e.data_date)
       // 最新 PCF 沒有調整，畫面保留最近一次真的換檔的內容，日期要講明白
       tips.push('⏳ 最新 PCF（' + e.data_date + '）持股無異動' + andBelow);

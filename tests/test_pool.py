@@ -171,9 +171,12 @@ for m in (2, 4):
     real |= {c for t in ('ETF', 'ETN') for c in re.findall(r'<td[^>]*>([0-9A-Z]{4,6})　', secs[t])}
 check('EX-7b fixture ETF／ETN 全部代號通過產品類型防線', real and all(F['cache_product_ok'](c) for c in real),
       [c for c in real if not F['cache_product_ok'](c)])
+# 現行快取只檢查「沒有誤擋」：被擋的只能是已知的 01111S～01114S。不要求它們一定還在快取裡——
+# 10/06 起 ISIN 抓取已從源頭排除，快取不再含這四檔（固定舊快取的排除驗證見上方 EX-7b）。
 cache_live = json.load(open(ROOT / 'data' / 'etf_pool_cache.json', encoding='utf-8'))
 miss = [r[0] for r in cache_live if not F['cache_product_ok'](r[0])]
-check('EX-7b 現行 etf_pool_cache.json 只擋掉 01111S～01114S', sorted(miss) == ['01111S', '01112S', '01113S', '01114S'], miss)
+check('EX-7b 現行 etf_pool_cache.json 沒有誤擋：被擋代號只能屬於 01111S～01114S',
+      set(miss) <= {'01111S', '01112S', '01113S', '01114S'}, miss)
 
 # EX-8 CURATED 防禦性
 F['CURATED'] = F['CURATED'] + [('00631L', '元大台灣50正2')]
