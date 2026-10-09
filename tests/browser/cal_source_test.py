@@ -24,13 +24,21 @@ def amt_text(c):
     elif a == 'FinMind（估算）': t = '金額：FinMind 估算'
     else: t = '金額來源：' + a
     return t + ('（保留前值，可能是前次金額）' if kept else '')
-def expect(c):
+def is_estimate(c):
     a = c.get('amount_source') or ''
-    if c.get('source') == 'manual' and a in ('', 'manual'): return '人工提供資料'
+    return (c.get('source') == 'estimate' and not a) or a.replace('（保留前值）', '') == 'FinMind（估算）'
+def expect(c):
+    """日曆標籤預期：估算照講估算；其餘一律明示「參考金額」（Detail 用 amt_text，外層另有「參考金額（…）」）"""
+    a = c.get('amount_source') or ''
+    if c.get('source') == 'manual' and a in ('', 'manual'): return '人工提供資料（參考金額）'
     if c.get('source') == 'estimate' and not a: return '歷史平均估算'
-    return ('官方除息日｜' if c.get('source') == 'official' else '') + amt_text(c)
+    t = amt_text(c)
+    if not is_estimate(c):
+        t = re.sub(r'^金額來源未標示', '參考金額，來源未標示', t); t = re.sub(r'^金額來源：', '參考金額來源：', t)
+    return ('官方除息日｜' if c.get('source') == 'official' else '') + t
 def label_ok(lbl, c):
-    return expect(c) in lbl and not any(b in lbl for b in BANNED)
+    # 負向：非估算的標籤少了「參考金額」、或出現公告金額／核實／官方公告 → FAIL
+    return expect(c) in lbl and not any(b in lbl for b in BANNED) and (is_estimate(c) or '參考金額' in lbl)
 
 # ── 正式 calendar：逐筆比對 rendered 標籤
 ev("Router.toBase({base:'home'}); true"); wait_ms(300)
@@ -51,7 +59,7 @@ for code in ('00936', '00929', '0056'):
     if not row or not c: print('   SKIP %s：正式日曆已無此筆' % code); continue
     print('   %s %s ｜ %s' % (code, row[0]['lbl'], row[0]['amt']))
     if c[0].get('amount_source') == 'MoneyDJ' and c[0].get('source') == 'official':
-        check('%s：官方除息日｜金額來源：MoneyDJ' % code, '官方除息日｜金額來源：MoneyDJ' in row[0]['lbl'] and not any(b in row[0]['lbl'] for b in BANNED), row[0])
+        check('%s：官方除息日｜參考金額來源：MoneyDJ' % code, '官方除息日｜參考金額來源：MoneyDJ' in row[0]['lbl'] and not any(b in row[0]['lbl'] for b in BANNED), row[0])
 est = [l for c, l in zip(cal, lbls) if c.get('source') == 'estimate']
 check('估算 %d 筆全部「歷史平均估算」、無官方字樣' % len(est), all('歷史平均估算' in l['lbl'] and not any(b in l['lbl'] for b in BANNED) for l in est), est[:3])
 
@@ -83,7 +91,8 @@ check('差異比例照實保留：「TWSE（FinMind 差異 12%）」', '差異 1
 ev("window.__cal0 = CALENDAR.slice(); CALENDAR.unshift({code:'0050', name:'x', iso_date:'2099-01-02', day:'2', mon:'1月', amt:1.0, source:'official', amount_source:'TWSE × FinMind 核實（保留前值）'}); true")
 ev("renderAll(ETFS, CALENDAR, '2026-10-09 22:20', {price:1,change_pt:0,change_pct:0}, true, false); true"); wait_ms(150)
 h = ev("(()=>{const x=[...document.querySelectorAll('#calList .cal-item')].find(i=>i.dataset.code==='0050'); const l=x&&x.querySelector('.src-lbl'); return l?l.textContent:null})()")
-check('舊金額沿用到新除息日：「保留前值，可能是前次金額」、無核實／公告金額', h and '保留前值，可能是前次金額' in h and not any(b in h for b in BANNED), h)
+check('舊金額沿用到新除息日：參考金額＋「保留前值，可能是前次金額」、無核實／公告金額', h and '參考金額來源：TWSE，與 FinMind 最近一筆相差 ≤ 5%' in h
+      and '保留前值，可能是前次金額' in h and not any(b in h for b in BANNED), h)
 # 未知來源要被跳脫，不得變成 HTML
 ev("CALENDAR[0].amount_source = '某新來源<b>x</b><img src=x onerror=window.__xss=1>'; renderAll(ETFS, CALENDAR, '2026-10-09 22:20', {price:1,change_pt:0,change_pct:0}, true, false); true"); wait_ms(200)
 h = ev("(()=>{const x=[...document.querySelectorAll('#calList .cal-item')].find(i=>i.dataset.code==='0050'); const l=x&&x.querySelector('.src-lbl'); return l?{t:l.textContent, el:l.querySelectorAll('b,img').length, xss:!!window.__xss}:null})()")

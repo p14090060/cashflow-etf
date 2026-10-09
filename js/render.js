@@ -104,12 +104,16 @@ function calAmtSrcText(c) {
   else t = '金額來源：' + as;           // TWSE、TWSE（FinMind 差異 N%）、MoneyDJ、未知來源：原文
   return t + (kept ? '（保留前值，可能是前次金額）' : '');
 }
+// 日曆標籤：估算照講估算；其餘證明不了本次官方公告的金額一律明示「參考金額」
+// （calAmtSrcText 的字串 Detail 也在用，Detail 外層已包「參考金額（…）」，所以只在這裡改寫，不動共用函式）
 function calSrcLabel(c) {
   const pre = c.source === 'official' ? '官方除息日｜' : '';
   const as = String(c.amount_source || '');
-  if (c.source === 'manual' && (!as || as === 'manual')) return { cls: 'src-estimate', text: '✍ 人工提供資料' };
+  if (c.source === 'manual' && (!as || as === 'manual')) return { cls: 'src-estimate', text: '✍ 人工提供資料（參考金額）' };
   if (c.source === 'estimate' && !as) return { cls: 'src-estimate', text: '📊 歷史平均估算' };
-  return { cls: 'src-estimate', text: (as === 'FinMind（估算）' ? '🔍 ' : 'ℹ ') + pre + calAmtSrcText(c) };
+  if (as === 'FinMind（估算）') return { cls: 'src-estimate', text: '🔍 ' + pre + calAmtSrcText(c) };
+  const t = calAmtSrcText(c).replace(/^金額來源未標示/, '參考金額，來源未標示').replace(/^金額來源：/, '參考金額來源：');
+  return { cls: 'src-estimate', text: 'ℹ ' + pre + t };
 }
 
 // ── renderAll：用資料渲染整頁 ──
