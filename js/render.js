@@ -12,8 +12,8 @@ function renderMood(market) {
     { min:  1.0, emoji:'🚀', main:'大盤狂奔中',     sub:'追的人開心、沒上車的焦慮',     cta:'⚠️ 越漲越要冷靜，看看你想買的還合理嗎 ▼' },
     { min:  0.3, emoji:'😊', main:'大盤微微暖',     sub:'存股族笑笑看，跟風族先別急',   cta:'🔥 熱門排行更新囉 ▼' },
     { min: -0.3, emoji:'😐', main:'大盤裝睡中',     sub:'不漲不跌，適合慢慢挑',         cta:'🎯 來看看哪些 ETF 處於甜蜜點 ▼' },
-    { min: -1.0, emoji:'🍂', main:'大盤小休息',     sub:'存股族的撿便宜時機到了？',     cta:'💧 今日合理價清單 ▼' },
-    { min: -999, emoji:'🌧️', main:'大盤下雨天',     sub:'新聞會嚇人，但便宜貨可能來了', cta:'💎 跌出機會了嗎？來看今日合理價 ▼' },
+    { min: -1.0, emoji:'🍂', main:'大盤小休息',     sub:'存股族的撿便宜時機到了？',     cta:'💧 合理價清單 ▼' },
+    { min: -999, emoji:'🌧️', main:'大盤下雨天',     sub:'新聞會嚇人，但便宜貨可能來了', cta:'💎 跌出機會了嗎？來看合理價 ▼' },
   ];
 
   const m = MOODS.find(x => pct >= x.min) || MOODS[MOODS.length-1];
@@ -159,7 +159,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
     .sort((a, b) => (a.signal === b.signal ? 0 : a.signal === 'cheap' ? -1 : 1) || (b.cur_vol || 0) - (a.cur_vol || 0));
   renderPriceZone();
 
-  // ── H5 今日成交量 TOP 10：與排行頁相同，取成交量前 10；整列開 Detail ──
+  // ── H5 成交量 TOP 10（不稱今日：沒有逐檔交易日）：與排行頁相同，取成交量前 10；整列開 Detail ──
   const top10 = TOP100.slice(0, 10);
   const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
   document.getElementById('waitItems').innerHTML = top10.map((e,i) => `
@@ -168,7 +168,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
       <span class="hr-main">
         <span class="hr-line"><span class="wait-code">${_homeEsc(e.code)}</span><span class="wait-name">${_homeEsc(e.name)}</span></span>
         <span class="hr-sub">
-          <span class="hr-px" style="color:var(--warn)">現價 ${(+e.price).toFixed(2)}</span>
+          <span class="hr-px" style="color:var(--warn)">參考價格 ${(+e.price).toFixed(2)}</span>
           <span class="hr-ylbl" style="color:var(--dim)"> · 年殖利率 </span><span style="color:var(--fair)">${(e.new_listing && !e.yld) ? '0%<span class="hr-new">新上市</span>' : fmtYld(e)}</span>
         </span>
       </span>

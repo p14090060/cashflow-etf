@@ -203,7 +203,7 @@ function applyRankFind(scroll) {
                   .sort((a, b) => _matchEtf(b, q) - _matchEtf(a, q));
   msg.className = 'rank-find-msg miss';
   msg.textContent = off.length
-    ? `${off[0].code} ${off[0].name} — 不在今日 TOP ${_rankSorted.length}（成交量未進榜，不代表不好）`
+    ? `${off[0].code} ${off[0].name} — 不在目前 TOP ${_rankSorted.length}（成交量未進榜，不代表不好）`
     : `找不到「${_rankFind}」，試試代碼或名稱關鍵字`;
 }
 

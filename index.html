@@ -133,8 +133,9 @@
     <div class="home-list" id="pzList"></div>
     <button class="home-more" type="button" id="pzMore" hidden onclick="homeTogglePz()"></button>
 
-    <!-- H5 今日成交量 TOP 10（cur_vol，不用 heat） -->
-    <div class="section-hdr wait" id="tvTitle" style="margin-top:22px">今日成交量 TOP 10</div>
+    <!-- H5 成交量 TOP 10（cur_vol，不用 heat）；D5／D6：沒有逐檔交易日，不稱今日、不推算日期 -->
+    <div class="section-hdr wait" id="tvTitle" style="margin-top:22px">成交量 TOP 10</div>
+    <div class="home-note" id="tvNote">非即時資料；休市日可能顯示先前保存或更新的成交量，實際交易日期尚未確認。</div>
     <div class="home-list" id="waitItems"></div>
 
   </div>
@@ -308,7 +309,7 @@
     <div class="tool-list">
       <!-- PO Change #1：三張大型功能卡（PHASE5_PLAN §3）。整張卡是一個 button -->
       <button class="tool-card" type="button" id="toolRank" onclick="switchPage('rank')">
-        <span class="tc-ic" aria-hidden="true">📊</span><span class="tc-text"><b>成交量排行</b><span>看今天哪些 ETF 成交最活躍</span></span><span class="tc-arrow" aria-hidden="true">›</span>
+        <span class="tc-ic" aria-hidden="true">📊</span><span class="tc-text"><b>成交量排行</b><span>查看 ETF 成交量排行</span></span><span class="tc-arrow" aria-hidden="true">›</span>
       </button>
       <button class="tool-card" type="button" id="toolDiv" onclick="switchPage('div')">
         <span class="tc-ic" aria-hidden="true">📅</span><span class="tc-text"><b>配息日曆</b><span>查看近期 ETF 除息與配息日期</span></span><span class="tc-arrow" aria-hidden="true">›</span>
@@ -349,14 +350,15 @@
         <div class="rank-find-msg" id="rankFindMsg"></div>
       </div>
       <div class="rank-info" id="rankInfo" hidden>
-        <div class="rank-info-total">依當日成交量排序 · 共 <span id="rankTotal">-</span> 支</div>
-        <div class="rank-caveat">⚠ 排名高＝今天很多人在買賣，<b>不代表比較好或比較適合存股</b></div>
+        <div class="rank-info-total">依現有成交量資料排序 · 共 <span id="rankTotal">-</span> 支</div>
+        <div class="rank-info-total" id="rankNote">非即時資料；休市日可能顯示先前保存或更新的成交量，實際交易日期尚未確認。</div>
+        <div class="rank-caveat">⚠ 排名高＝成交量大，<b>不代表比較好或比較適合存股</b></div>
       </div>
       <div class="rank-hdr">
         <div class="rank-hdr-main">
           <div style="width:34px">#</div>
           <div style="flex:1">ETF</div>
-          <div style="font-family:var(--mono);min-width:44px;text-align:right;margin-right:8px">現價</div>
+          <div style="font-family:var(--mono);min-width:44px;text-align:right;margin-right:8px">參考價格</div>
           <div>狀態</div>
         </div>
         <div class="rank-hdr-sub">
