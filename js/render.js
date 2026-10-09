@@ -87,20 +87,29 @@ function homeTogglePz() {
 }
 
 // ── 配息日曆來源標籤（D4）：除息日來源（source）與金額來源（amount_source）分開講 ──
-// source=official 只證明「除息日」是 TWSE 公告；金額只有 amount_source 以 TWSE 開頭才算官方。
-// amount_source 缺值時 mis_fetcher 會回填成 source（'official'／'manual'），那代表金額來源未標示，不能當官方。
-// 認不得的來源原樣顯示，不推定可信度；「（保留前值）」之類的註記一律保留。
-function calSrcLabel(c) {
+// source=official 只證明「除息日」是 TWSE 公告。金額目前沒有任何欄位能證明是「本次」官方公告金額：
+// amount_source='TWSE' 可能來自 TWSE 逐檔查詢（不綁除息日，可能是前次金額）；「TWSE × FinMind 核實」
+// 只代表與 FinMind 最近一筆相差 ≤ 5%，不是同次公告核實；「（保留前值）」是舊金額沿用到新除息日。
+// 所以一律講「金額來源」，不講公告金額或核實；來源資訊（差異比例、保留前值）照實改寫保留。
+// amount_source 缺值時 mis_fetcher 會回填成 source（'official'／'manual'），那代表金額來源未標示。
+function calAmtSrcText(c) {
   const raw = String(c.amount_source || '');
-  const keep = raw.match(/（保留前值）/) ? '（保留前值）' : '';
-  const as = raw.replace(/（保留前值）/g, '');
+  const kept = /（保留前值）/.test(raw);
+  let as = raw.replace(/（保留前值）/g, '');
+  if (!as || as === c.source) as = '';
+  let t;
+  if (!as) t = '金額來源未標示';
+  else if (as === 'TWSE × FinMind 核實') t = '金額來源：TWSE，與 FinMind 最近一筆相差 ≤ 5%';
+  else if (as === 'FinMind（估算）') t = '金額：FinMind 估算';
+  else t = '金額來源：' + as;           // TWSE、TWSE（FinMind 差異 N%）、MoneyDJ、未知來源：原文
+  return t + (kept ? '（保留前值，可能是前次金額）' : '');
+}
+function calSrcLabel(c) {
   const pre = c.source === 'official' ? '官方除息日｜' : '';
-  if (/^TWSE/.test(as))              return { cls: 'src-official', text: '🏛 ' + pre + '金額來源：' + as + keep };
-  if (as === 'FinMind（估算）')       return { cls: 'src-estimate', text: '🔍 ' + pre + '金額：FinMind 估算' + keep };
-  if (c.source === 'manual' && (!as || as === 'manual')) return { cls: 'src-estimate', text: '✍ 人工提供資料' + keep };
+  const as = String(c.amount_source || '');
+  if (c.source === 'manual' && (!as || as === 'manual')) return { cls: 'src-estimate', text: '✍ 人工提供資料' };
   if (c.source === 'estimate' && !as) return { cls: 'src-estimate', text: '📊 歷史平均估算' };
-  if (!as || as === c.source)        return { cls: 'src-estimate', text: 'ℹ ' + pre + '金額來源未標示' + keep };
-  return { cls: 'src-estimate', text: 'ℹ ' + pre + '金額來源：' + as + keep };
+  return { cls: 'src-estimate', text: (as === 'FinMind（估算）' ? '🔍 ' : 'ℹ ') + pre + calAmtSrcText(c) };
 }
 
 // ── renderAll：用資料渲染整頁 ──
