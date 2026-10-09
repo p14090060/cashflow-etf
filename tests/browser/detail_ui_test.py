@@ -88,7 +88,8 @@ FX939 = """window.__fx939 = function (today) {
     calBak.filter(c => c.code !== '00939').forEach(c => CALENDAR.push(c));
     CALENDAR.push({ code: '00939', name: e.name, iso_date: '2026-10-05', day: '05', mon: '10月', source: 'official', amt: 0.12, amount_source: 'TWSE' });
     gsPick('00939'); detailTab('dividend');
-    return JSON.stringify({ today: _dtToday(), dv: document.querySelector('[data-pane=dividend]').innerText, out: document.getElementById('dtCalcOut').innerText });
+    return JSON.stringify({ today: _dtToday(), dv: document.querySelector('[data-pane=dividend]').innerText, out: document.getElementById('dtCalcOut').innerText,
+                            n: parseInt(document.getElementById('dtSharesIn').value, 10) || 0 });
   } finally {
     Date.now = realNow;
     e.div_next = nextBak;
@@ -104,7 +105,11 @@ dv = r4['dv']
 check('T4 controlled date is 2026-10-03 (Taipei)', r4['today'] == '2026-10-03', r4['today'])
 check('T4 00939 official date 2026-10-05', '2026-10-05' in dv and '官方公告' in dv, dv[:120].replace('\n', ' | '))
 check('T4 00939 date not from div_next 11-01', '2026-11-01' not in dv)
-check('T4 00939 official future: countdown（2 天後）, calc enabled with announced amount', '（2 天後）' in dv and '單次可領' in r4['out'] and '依公告金額試算' in r4['out'], (dv[:160].replace('\n', ' | '), r4['out'][:60]))
+# D4：除息日官方、金額來源 TWSE 仍無法證明是本次公告金額 → 文案「依參考金額試算」；舊的「依公告金額試算」不得復活
+_t4_want = '{:,} 元'.format(round(0.12 * r4['n'] * 1000)) if r4['n'] > 0 else None
+check('T4 00939 official future: countdown（2 天後）, calc enabled with fixture amount 0.12（依參考金額試算）',
+      '（2 天後）' in dv and '單次可領' in r4['out'] and _t4_want is not None and _t4_want in r4['out']
+      and '依參考金額試算' in r4['out'] and '依公告金額試算' not in r4['out'], (dv[:160].replace('\n', ' | '), r4['out'][:80], _t4_want))
 check('T4 fixture fully restored (Date.now real, CALENDAR without fixture row)', ev("Math.abs(Date.now() - new Date().getTime()) < 5000 && !CALENDAR.some(c => c.code === '00939' && c.iso_date === '2026-10-05' && c.amt === 0.12 && c.amount_source === 'TWSE' && c.mon === '10月')") is True)
 wait_ms(300)
 
