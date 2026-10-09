@@ -32,7 +32,8 @@ print('   RK-1 measured (390x844):', {k: t0[k] for k in ('sticky', 'first', 'ful
 check('RK-1 標題「成交量排行」、🔍／ⓘ 預設收起', t0['title'] == '成交量排行' and t0['findBtn']['exp'] == 'false' and t0['infoBtn']['exp'] == 'false', t0)
 check('RK-1 sticky ≤ 120px', t0['sticky'] <= 120, t0['sticky'])
 check('RK-1 第一屏完整可見 ≥ 4 列、第 5 列至少露出一部分', t0['full'] >= 4 and t0['fifthTop'] < t0['nav'], (t0['full'], t0['fifthTop'], t0['nav']))
-check('RK-1 第一筆位置明顯提前（現況 395 → ≤ 313）', t0['first'] <= 313, t0['first'])
+# 2026-10-10 品牌 Header 手機錯位兩列：表頭 +15px（68 → 83），門檻同步 313 → 328（仍比原本 395 明顯提前）
+check('RK-1 第一筆位置明顯提前（現況 395 → ≤ 328）', t0['first'] <= 328, t0['first'])
 check('RK-1 收起的搜尋與說明 display:none、不佔高度', t0['fbDisp'] == 'none' and t0['ibDisp'] == 'none' and t0['fbH'] == 0 and t0['ibH'] == 0, t0)
 ev("window.scrollTo(0, 1500); true"); wait_ms(300)
 t1 = top()

@@ -384,6 +384,8 @@ ev("document.querySelectorAll('#watchList .drag-handle')[2].focus(); true")
 key(' ', 'Space', 32, ' ')
 check('DR-16 Space → 開啟選單（只開一次）、未捲頁', ev("Watch._state().menu") == c[2] and ev("window.scrollY") == 0)
 key('Escape', 'Escape', 27)
+# 2026-10-10 品牌 Header 手機錯位兩列（+15px）：390×844 時第 4 張把手被推到底部導覽列下，改用 390×900 測同一行為
+set_view(390, 900); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(150)
 x, y = handle_xy(3)
 touch('touchStart', x, y); touch('touchEnd', x, y); wait_ms(300)
 check('DR-17 真實 tap → 選單開啟且只觸發一次（未立即關閉）', ev("Watch._state().menu") == c[3] and ev("document.querySelectorAll('.wc-menu').length") == 1)
@@ -591,6 +593,7 @@ for (n, label) in [(4, '4 檔（清單短於一屏）'), (10, '10 檔（需自�
     check('BD-2 %s：清單底已可見後自動捲動停止（不捲進下方空白）' % label, s1 == s2, (s1, s2))
     check('BD-3 %s：放開後成為最後一張並寫入' % label, cards()[-1] == c[0] and store()[-1] == c[0], cards())
     check('BD-4 %s：拖曳卡片在底部導覽列上方（未被遮擋）' % label, lr2['bottom'] <= navt + 1, (lr2, navt))
+set_view(390, 900)   # 同 DR-17：品牌 Header +15px 後第 4 張把手需要較高的視窗才不被底部導覽列蓋住
 store_set(CODES[:4]); go_watch(); ev("window.scrollTo(0,0); true"); wait_ms(150)
 c = cards()
 top0 = ev("document.querySelectorAll('#watchList .wc')[0].getBoundingClientRect().top")

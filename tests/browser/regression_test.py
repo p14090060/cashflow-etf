@@ -34,7 +34,9 @@ cdp('Emulation.setDeviceMetricsOverride', {'width': 390, 'height': 844, 'deviceS
 ev("switchPage('today'); window.scrollTo(0,0); true"); wait_ms(300)
 hd = ev("""(()=>{const t=document.querySelector('.topbar-title'), b=document.getElementById('statusBadge'), a=document.querySelector('.hdr-actions'), g=document.getElementById('gsearch');
   const tr=t.getBoundingClientRect(), br=b.getBoundingClientRect(), ar=a.getBoundingClientRect();
-  return {tTrunc:t.scrollWidth>t.clientWidth, bTrunc:b.scrollWidth>b.clientWidth, overlap: Math.max(tr.right, br.right) > ar.left,
+  // 2026-10-10 品牌 Header：手機為錯位兩列（標題獨占第一列、按鈕群在第二列靠右），重疊改以矩形相交判斷
+  const hit=(p,q)=>p.left<q.right&&q.left<p.right&&p.top<q.bottom&&q.top<p.bottom;
+  return {tTrunc:t.scrollWidth>t.clientWidth, bTrunc:b.scrollWidth>b.clientWidth, overlap: hit(tr, ar) || hit(br, ar),
           gw:g.getBoundingClientRect().width, ov:document.documentElement.scrollWidth-document.documentElement.clientWidth,
           hdrH:document.querySelector('.app-hdr').getBoundingClientRect().height, btnH:[...a.children].map(x=>x.getBoundingClientRect().height)}})()""")
 check('YT-1 390px Header：標題與狀態徽章完整、不與右側按鈕重疊、無水平溢出', not hd['tTrunc'] and not hd['bTrunc'] and not hd['overlap'] and hd['ov'] <= 0, hd)

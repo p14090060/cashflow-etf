@@ -290,11 +290,19 @@
   }
   .gs-flow-btn:hover { background:var(--card2); }
   .gs-note { margin-top:14px; font-size:13px; color:var(--dim); line-height:1.7; }
-  /* 品牌標題「金流黑盒子 ETF存股雷達」：放得下就一行（桌面）；手機右側 YouTube＋兩顆按鈕佔去約 190px，
-     只能在兩段之間的半形空格換行（每段不拆字），不縮字、不截字、不撐出橫向捲動 */
-  .topbar > div:first-child { min-width:0; }
-  .topbar-title { font-size:16px; font-weight:700; letter-spacing:.02em; }
-  .topbar-title .tt-seg { white-space:nowrap; }
+  /* 品牌標題「金流黑盒子 ETF存股雷達」一律單行，不縮字、不截字 */
+  .topbar-title { font-size:16px; font-weight:700; letter-spacing:.02em; white-space:nowrap; }
+  /* 手機（≤ 440px）：右側 YouTube＋主題＋重新整理約 190px，與標題放不進同一列。
+     改成錯位兩列：第一列標題獨占整寬；第二列左邊狀態徽章、右邊按鈕群（靠右、比標題低）。
+     左欄容器 display:contents，標題與徽章直接成為格線項目；按鈕仍是 44×44。 */
+  @media (max-width: 440px) {
+    .topbar { display:grid; grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"title title" "badge act";
+              align-items:center; column-gap:8px; row-gap:0; padding-bottom:6px; }
+    .topbar > div:first-child { display:contents; }
+    .topbar-title { grid-area:title; }
+    .topbar .status-badge { grid-area:badge; justify-self:start; margin-top:0; }
+    .topbar .hdr-actions { grid-area:act; top:0; }   /* 選擇器加 .topbar：須蓋過後面桌面版的 top:8px */
+  }
   .topbar-sub   { font-family:var(--mono); font-size:16px; color:var(--dim); margin-top:1px; }
   .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; border-radius:6px; padding:2px 8px; margin-top:3px; }
   .status-live  { background:rgba(var(--rgb-cheap),.12); color:var(--cheap); border:1px solid rgba(var(--rgb-cheap),.3); }
