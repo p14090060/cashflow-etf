@@ -64,7 +64,8 @@ ev("switchPage('tools'); true"); wait_ms(250)
 cards = ev("""[...document.querySelectorAll('#page-tools .tool-card')].map(b=>({tag:b.tagName, h:b.getBoundingClientRect().height,
   t:b.querySelector('b').textContent, d:b.querySelector('.tc-text > span').textContent, ic:!!b.querySelector('.tc-ic'), ar:(b.querySelector('.tc-arrow')||{}).textContent}))""")
 check('TC-1 恰好 3 張卡、順序與 PO 文案', [c['t'] for c in cards] == ['成交量排行', '配息日曆', '主動式 ETF 持股異動']
-      and [c['d'] for c in cards] == ['看今天哪些 ETF 成交最活躍', '查看近期 ETF 除息與配息日期', '看基金最近加碼、減碼哪些持股'], cards)
+      and [c['d'] for c in cards] == ['查看 ETF 成交量排行', '查看近期 ETF 除息與配息日期', '看基金最近加碼、減碼哪些持股']
+      and not any('看今天' in c['d'] for c in cards), cards)   # D5／D6：舊文案「看今天哪些 ETF 成交最活躍」復活即 FAIL
 check('TC-1 整張卡是 button、icon＋›、高度 ≥ 72px', all(c['tag'] == 'BUTTON' and c['ic'] and c['ar'] == '›' and c['h'] >= 72 for c in cards), cards)
 check('TC-1 無 YouTube／計算機／更多', ev("""(()=>{const t=document.getElementById('page-tools').innerText; return !/YouTube|計算機|更多/.test(t) && document.querySelectorAll('#page-tools button').length===3})()""") is True)
 check('TC-1 底部導覽進工具：history.length 不變、stack []', hlen() == h0 and st()['base'] == 'tools' and st()['stack'] == [])

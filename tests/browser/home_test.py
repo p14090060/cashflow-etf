@@ -148,7 +148,9 @@ specT = {c: {'cur_vol': 900000 - i * 1000, 'heat': 1} for i, c in enumerate(TOPN
 specT[TOPN[50]]['heat'] = 9999          # heat 最高但成交量第 51
 specT[TOPN[2]]['signal'] = 'fair'
 ev("window.__render(window.__mk(%s)); true" % json.dumps(specT)); wait_ms(150)
-check('TV-1 標題「今日成交量 TOP 10」', ev("document.getElementById('tvTitle').textContent.trim()") == '今日成交量 TOP 10')
+# D5／D6：沒有逐檔交易日，標題不稱今日；舊文案復活即 FAIL
+check('TV-1 標題「成交量 TOP 10」（不得為「今日成交量 TOP 10」）', ev("document.getElementById('tvTitle').textContent.trim()") == '成交量 TOP 10'
+      and '今日成交量' not in ev("document.getElementById('page-today').innerText"))
 tv = ev("[...document.querySelectorAll('#waitItems .home-row')].map(b=>b.dataset.code)")
 check('TV-2 cur_vol 前 10（heat 最高者不在內）', tv == TOPN[:10] and TOPN[50] not in tv, tv)
 check('TV-1 價格狀態「合理」（無 ✓）', '合理' in (ev("document.querySelector('#waitItems .home-row:nth-child(3)').innerText") or '')

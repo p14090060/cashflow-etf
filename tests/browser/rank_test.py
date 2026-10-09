@@ -110,8 +110,8 @@ check('RK-2 有搜尋內容時：開關 ⓘ、輪詢重繪後 🔍 仍展開、�
 ev("document.getElementById('rankInfoBtn').click(); true"); wait_ms(150)
 info = ev("""(()=>{const b=document.getElementById('rankInfo'); return {exp:document.getElementById('rankInfoBtn').getAttribute('aria-expanded'), disp:getComputedStyle(b).display, txt:b.innerText,
   total:document.getElementById('rankTotal').textContent, n:document.querySelectorAll('#rankRows .rank-row').length}})()""")
-check('RK-3 按 ⓘ 展開：原說明逐字存在、筆數正確', info['exp'] == 'true' and info['disp'] != 'none' and ('依當日成交量排序 · 共 %s 支' % info['total']) in info['txt'] and info['total'] == str(info['n']), info)
-check('RK-3 原警示逐字存在', '⚠ 排名高＝今天很多人在買賣，不代表比較好或比較適合存股' in info['txt'], info['txt'])
+check('RK-3 按 ⓘ 展開：原說明逐字存在、筆數正確', info['exp'] == 'true' and info['disp'] != 'none' and ('依現有成交量資料排序 · 共 %s 支' % info['total']) in info['txt'] and '當日成交量' not in info['txt'] and info['total'] == str(info['n']), info)
+check('RK-3 警示逐字存在（D5／D6：「排名高＝成交量大」，不得再稱今天）', '⚠ 排名高＝成交量大，不代表比較好或比較適合存股' in info['txt'] and '今天很多人在買賣' not in info['txt'], info['txt'])
 ev("document.getElementById('rankInfoBtn').click(); true"); wait_ms(150)
 check('RK-3 再按 ⓘ 收起', top()['ibDisp'] == 'none')
 
