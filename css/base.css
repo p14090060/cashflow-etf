@@ -290,7 +290,11 @@
   }
   .gs-flow-btn:hover { background:var(--card2); }
   .gs-note { margin-top:14px; font-size:13px; color:var(--dim); line-height:1.7; }
+  /* 品牌標題「金流黑盒子 ETF存股雷達」：放得下就一行（桌面）；手機右側 YouTube＋兩顆按鈕佔去約 190px，
+     只能在兩段之間的半形空格換行（每段不拆字），不縮字、不截字、不撐出橫向捲動 */
+  .topbar > div:first-child { min-width:0; }
   .topbar-title { font-size:16px; font-weight:700; letter-spacing:.02em; }
+  .topbar-title .tt-seg { white-space:nowrap; }
   .topbar-sub   { font-family:var(--mono); font-size:16px; color:var(--dim); margin-top:1px; }
   .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; border-radius:6px; padding:2px 8px; margin-top:3px; }
   .status-live  { background:rgba(var(--rgb-cheap),.12); color:var(--cheap); border:1px solid rgba(var(--rgb-cheap),.3); }
@@ -306,7 +310,8 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   .refresh-btn  { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--dim); font-size:16px; cursor:pointer; line-height:1; }
   /* Header 右側按鈕群（Phase 5 Y1）：YouTube 外部連結＋↻，各 44×44；標題與狀態徽章留在左側不動 */
-  .hdr-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  /* 2026-10-10 品牌 Header：右側按鈕群整排下移 8px（position:relative 不改變表頭高度與標題位置） */
+  .hdr-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; position:relative; top:8px; }
   .hdr-btn { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0;
              background:none; border:1px solid var(--border); border-radius:10px; color:var(--dim);
              font-size:18px; line-height:1; text-decoration:none; cursor:pointer; }
