@@ -1,5 +1,5 @@
 {
-  "fetched": "2026-10-08 22:33",
+  "fetched": "2026-10-09 09:16",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
@@ -211,7 +211,7 @@
     "00403A": {
       "name": "主動統一升級50",
       "issuer": "統一",
-      "data_date": "2026-10-08",
+      "data_date": "2026-10-07",
       "holdings": {
         "2330": {
           "name": "台積電",
@@ -418,7 +418,7 @@
     "00988A": {
       "name": "主動統一全球創新",
       "issuer": "統一",
-      "data_date": "2026-10-07",
+      "data_date": "2026-10-06",
       "holdings": {
         "LITE US": {
           "name": "LUMENTUM HOLDINGS INC",
@@ -577,7 +577,7 @@
     "00411A": {
       "name": "主動統一前沿科技",
       "issuer": "統一",
-      "data_date": "2026-10-07",
+      "data_date": "2026-10-06",
       "holdings": {
         "BE US": {
           "name": "BLOOM ENERGY CORP- A",

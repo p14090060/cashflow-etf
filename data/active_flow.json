@@ -1,41 +1,7 @@
 {
-  "updated": "2026-10-08 22:33",
+  "updated": "2026-10-09 09:16",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
-    "00992A": {
-      "name": "主動群益科技創新",
-      "issuer": "群益",
-      "holdings": 41,
-      "data_date": "2026-10-08",
-      "advanced": true,
-      "reason": "ok",
-      "fetched": false,
-      "first_seen": "2026-09-29",
-      "anomaly": null,
-      "last_change_date": "2026-10-07",
-      "flow_from": "2026-10-06",
-      "flow_to": "2026-10-07",
-      "price_date": "20261007",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 352800000.0,
-      "sell": -559000000.0,
-      "changed": 2,
-      "flow": [
-        {
-          "code": "2455",
-          "name": "全新",
-          "delta_shares": -1000000,
-          "amount": -559000000.0
-        },
-        {
-          "code": "2360",
-          "name": "致茂",
-          "delta_shares": 147000,
-          "amount": 352800000.0
-        }
-      ]
-    },
     "00996A": {
       "name": "主動兆豐台灣豐收",
       "issuer": "兆豐",
@@ -162,9 +128,9 @@
       "name": "主動統一升級50",
       "issuer": "統一",
       "holdings": 50,
-      "data_date": "2026-10-08",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-07",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-28",
       "anomaly": null,
@@ -214,7 +180,7 @@
       "name": "主動統一全球創新",
       "issuer": "統一",
       "holdings": 38,
-      "data_date": "2026-10-07",
+      "data_date": "2026-10-06",
       "advanced": true,
       "reason": "ok",
       "fetched": true,
@@ -294,7 +260,7 @@
       "name": "主動統一前沿科技",
       "issuer": "統一",
       "holdings": 31,
-      "data_date": "2026-10-07",
+      "data_date": "2026-10-06",
       "advanced": true,
       "reason": "ok",
       "fetched": true,
@@ -363,8 +329,8 @@
       "issuer": "凱基",
       "holdings": 50,
       "data_date": "2026-10-08",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-30",
       "anomaly": null,
@@ -689,11 +655,12 @@
       "issuer": "群益",
       "holdings": 56,
       "data_date": "2026-10-08",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
+      "last_change_date": "2026-10-08",
       "flow_from": "2026-10-07",
       "flow_to": "2026-10-08",
       "price_date": "20261008",
@@ -715,8 +682,41 @@
           "delta_shares": 23000,
           "amount": 12765000.0
         }
-      ],
-      "last_change_date": "2026-10-08"
+      ]
+    },
+    "00992A": {
+      "name": "主動群益科技創新",
+      "issuer": "群益",
+      "holdings": 41,
+      "data_date": "2026-10-08",
+      "advanced": false,
+      "reason": "not_updated",
+      "fetched": true,
+      "first_seen": "2026-09-29",
+      "anomaly": null,
+      "last_change_date": "2026-10-07",
+      "flow_from": "2026-10-06",
+      "flow_to": "2026-10-07",
+      "price_date": "20261007",
+      "no_price": [],
+      "scale_pct": null,
+      "buy": 352800000.0,
+      "sell": -559000000.0,
+      "changed": 2,
+      "flow": [
+        {
+          "code": "2455",
+          "name": "全新",
+          "delta_shares": -1000000,
+          "amount": -559000000.0
+        },
+        {
+          "code": "2360",
+          "name": "致茂",
+          "delta_shares": 147000,
+          "amount": 352800000.0
+        }
+      ]
     },
     "00997A": {
       "name": "主動群益美國增長",
