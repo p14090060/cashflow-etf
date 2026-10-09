@@ -86,6 +86,23 @@ function homeTogglePz() {
   renderPriceZone();
 }
 
+// ── 配息日曆來源標籤（D4）：除息日來源（source）與金額來源（amount_source）分開講 ──
+// source=official 只證明「除息日」是 TWSE 公告；金額只有 amount_source 以 TWSE 開頭才算官方。
+// amount_source 缺值時 mis_fetcher 會回填成 source（'official'／'manual'），那代表金額來源未標示，不能當官方。
+// 認不得的來源原樣顯示，不推定可信度；「（保留前值）」之類的註記一律保留。
+function calSrcLabel(c) {
+  const raw = String(c.amount_source || '');
+  const keep = raw.match(/（保留前值）/) ? '（保留前值）' : '';
+  const as = raw.replace(/（保留前值）/g, '');
+  const pre = c.source === 'official' ? '官方除息日｜' : '';
+  if (/^TWSE/.test(as))              return { cls: 'src-official', text: '🏛 ' + pre + '金額來源：' + as + keep };
+  if (as === 'FinMind（估算）')       return { cls: 'src-estimate', text: '🔍 ' + pre + '金額：FinMind 估算' + keep };
+  if (c.source === 'manual' && (!as || as === 'manual')) return { cls: 'src-estimate', text: '✍ 人工提供資料' + keep };
+  if (c.source === 'estimate' && !as) return { cls: 'src-estimate', text: '📊 歷史平均估算' };
+  if (!as || as === c.source)        return { cls: 'src-estimate', text: 'ℹ ' + pre + '金額來源未標示' + keep };
+  return { cls: 'src-estimate', text: 'ℹ ' + pre + '金額來源：' + as + keep };
+}
+
 // ── renderAll：用資料渲染整頁 ──
 function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   ETFS = etfs;
@@ -149,17 +166,8 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   const futureCal = cal.filter(c => !c.iso_date || c.iso_date >= todayStr);
   document.getElementById('calList').innerHTML = futureCal.map(c => {
     const isToday    = c.iso_date === todayStr || c.days_until === 0;
-    const amtSrc = c.amount_source || c.source || '';
-    const srcHtml = c.amt == null ? ''
-      : amtSrc === 'TWSE' || amtSrc === 'official'
-      ? `<div class="src-lbl src-official">🏛 TWSE 官方公告</div>`
-      : amtSrc === 'FinMind（估算）'
-      ? `<div class="src-lbl src-estimate">🔍 FinMind 估算</div>`
-      : amtSrc === 'manual'
-      ? `<div class="src-lbl src-official">✅ 人工核實</div>`
-      : amtSrc === 'estimate'
-      ? `<div class="src-lbl src-estimate">📊 歷史平均估算</div>`
-      : '';
+    const lbl = c.amt == null ? null : calSrcLabel(c);
+    const srcHtml = lbl ? `<div class="src-lbl ${lbl.cls}">${_homeEsc(lbl.text)}</div>` : '';
     const pill = isToday
       ? `<div class="soon-pill today-pill">今日配息</div>`
       : c.soon ? `<div class="soon-pill">快配息囉～</div>` : '';

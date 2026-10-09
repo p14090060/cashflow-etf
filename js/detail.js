@@ -59,9 +59,16 @@ function _dvView(e, c) {
 
   if (offIso && offIso >= today) {
     const amt = c.amt > 0 ? c.amt : null;
+    // D4：source=official 只代表除息日是官方公告；金額只有 amount_source 以 TWSE 開頭才稱「公告金額」，
+    // MoneyDJ 等第三方或未標示來源一律是參考金額（'official'／'manual' 是缺值回填，不算來源）
+    const as = String(c.amount_source || '');
+    const offAmt = /^TWSE/.test(as);
+    const asTxt = as && as !== 'official' && as !== 'manual' ? as : '未標示';
     return { st: 'O1', label: '官方公告', date: offIso, past: false, amount: amt,
-             amtNote: amt != null ? '公告金額（來源：' + (c.amount_source || '未標示') + '）' : '金額待公告',
-             calc: amt != null, calcNote: '依公告金額試算' };
+             amtNote: amt == null ? '金額待公告'
+                    : offAmt ? '公告金額（來源：' + as + '）'
+                    : '參考金額（來源：' + asTxt + '，非官方公告金額）',
+             calc: amt != null, calcNote: offAmt ? '依公告金額試算' : '依參考金額試算' };
   }
   if (offIso) {
     return { st: 'O2', label: '官方公告日已過', date: offIso, past: true, amount: null,
