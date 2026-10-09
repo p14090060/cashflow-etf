@@ -685,9 +685,14 @@ check('FL-2 treemap：加碼格乾淨紅、減碼格乾淨綠（CP7 Visual Gate 
 check('FL-2 反向守衛：加碼不是綠、減碼不是紅', buy and sell and _fam(buy[0]['bg']) != 'green' and _fam(sell[0]['bg']) != 'red')
 np = ev("[...document.querySelectorAll('#flowForeign .np-d')].map(d=>({t:d.textContent, c:getComputedStyle(d).color}))")
 check('FL-3 海外無報價：正值紅「加碼 +」、負值綠「減碼 -」、缺值中性', len(np) == 3 and np[0]['c'] == FUP and np[0]['t'].startswith('加碼 +') and np[1]['c'] == FDN and np[1]['t'].startswith('減碼 -') and np[2]['c'] == DIM, np)
-for (patch, want) in [({'fetched': False}, '本次未能取得新資料'), ({'fetched': True, 'data_date': '2026-10-03'}, '持股無異動'), ({'fetched': True, 'data_date': '2026-10-01', 'flow_to': '2026-10-01', 'advanced': False, 'reason': 'not_updated'}, '尚未有新的 PCF')]:
+# D2：fetched:false 的文案改為「本次自動抓取未取得新資料，以下沿用先前保存的資料（資料日 X）」，不推測原因
+FL5_FAIL = lambda t: '本次自動抓取未取得新資料' in t and '沿用先前保存的資料' in t and '資料日 2026-10-01' in t and '異常' not in t
+for (patch, want, ok) in [({'fetched': False}, '本次自動抓取未取得新資料＋沿用資料日、不推測原因', FL5_FAIL),
+                          ({'fetched': True, 'data_date': '2026-10-03'}, '持股無異動', lambda t: '持股無異動' in t),
+                          ({'fetched': True, 'data_date': '2026-10-01', 'flow_to': '2026-10-01', 'advanced': False, 'reason': 'not_updated'}, '尚未有新的 PCF', lambda t: '尚未有新的 PCF' in t)]:
     ev("Object.assign(_flowData.etfs['ZZ01A'], %s); renderFlow(); true" % json.dumps(patch)); wait_ms(150)
-    check('FL-5 狀態語意：%s' % want, want in ev("document.getElementById('flowTip').textContent"), ev("document.getElementById('flowTip').textContent"))
+    tip = ev("document.getElementById('flowTip').textContent")
+    check('FL-5 狀態語意：%s' % want, ok(tip), tip)
 sel0 = ev("_flowSel")
 ev("watchToggle('0050'); Watch.render(); Watch.refresh(); true"); wait_ms(100)
 check('FL-7 收藏／自選重繪不重設 Flow 選取與分段', ev("_flowSel") == sel0 and ev("Category.isFlowVisible()") is True, ev("_flowSel"))
