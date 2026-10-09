@@ -169,12 +169,20 @@ function _dtHoldingsHtml(fe) {
   const np = _npRows(fe);
   const hasPrev = !!(flow.length || np.length);
   const notes = [];
+  // 與 flow.js 持股異動頁同一套判斷（D1／D2）：fetched:false 只講得到證實的事；
+  // flow_to 晚於 data_date 時不能說「無異動」；其餘條件互斥，避免同一檔疊出互相矛盾的兩則
+  const toAhead = !!(fe.flow_to && fe.data_date && fe.flow_to > fe.data_date);
   if (fe.fetched === false) {
-    notes.push('本次未能取得新資料（投信網站異常）' + (hasPrev ? '，以下為先前結果' : ''));
+    notes.push('本次自動抓取未取得新資料，以下沿用先前保存的資料（資料日 ' + (fe.data_date || '-') + '）');
+  }
+  if (toAhead) {
+    notes.push('投信公告的資料日（' + fe.data_date + '）早於異動比較區間（'
+               + fe.flow_from + ' → ' + fe.flow_to + '），兩者日期不一致，以下依原始資料呈現');
+  } else if (fe.fetched === false) {
+    // 已在上面說明，不再疊加 PCF 狀態推論
   } else if (fe.flow_to && fe.data_date && fe.flow_to !== fe.data_date) {
     notes.push('最新 PCF（資料日 ' + fe.data_date + '）持股無異動，以下為最近一次有持股異動的紀錄');
-  }
-  if (fe.reason === 'not_updated' && fe.advanced === false) {
+  } else if (fe.reason === 'not_updated' && fe.advanced === false) {
     notes.push((fe.data_date || '') + ' 之後尚未有新的 PCF');
   }
   if (fe.scale_pct != null) {
@@ -196,7 +204,8 @@ function _dtHoldingsHtml(fe) {
   const hasAmt = !!(fe.buy || fe.sell);
   let h = _dtRow('投信', _dtEsc(fe.issuer || '--'))
         + _dtRow('資料日', _dtEsc(fe.data_date || '--'))
-        + (fe.price_date ? _dtRow('金額換算日', _dtEsc(fe.price_date)) : '')
+        // _flowYmd 在 flow.js；舊快取的 flow.js 沒有它時退回原值，不讓 Detail 整頁掛掉
+        + (fe.price_date ? _dtRow('金額換算日', _dtEsc(typeof _flowYmd === 'function' ? _flowYmd(fe.price_date) : fe.price_date)) : '')
         + _dtRow('加碼／減碼', hasAmt
             ? '<span class="dt-up">加碼 +' + _oku(fe.buy || 0) + '</span>　<span class="dt-dn">減碼 -' + _oku(fe.sell || 0) + '</span>'
             : '—')
