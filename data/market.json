@@ -9012,7 +9012,7 @@
       "maD": 10.9,
       "ret5d": 3.53,
       "ret1m": 13.5,
-      "ret1y": 11.2,
+      "ret1y": 11.3,
       "ret_months": [
         null,
         null,
@@ -9336,7 +9336,7 @@
       "name": "中信日本商社",
       "curated": false,
       "otc": true,
-      "price": 15.82,
+      "price": 15.825,
       "ma60": 15.63,
       "ma20": 16.19,
       "low52": 11.31,
