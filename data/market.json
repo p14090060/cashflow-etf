@@ -7328,7 +7328,7 @@
       "name": "統一美國50",
       "curated": false,
       "otc": false,
-      "price": 13.84,
+      "price": 13.835,
       "ma60": 13.3,
       "ma20": 13.43,
       "low52": 10.7,
@@ -7716,7 +7716,7 @@
       "maD": 6.8,
       "ret5d": 1.02,
       "ret1m": 7.3,
-      "ret1y": 7.9,
+      "ret1y": 7.8,
       "ret_months": [
         null,
         null,
@@ -8377,7 +8377,7 @@
       "maD": 13.5,
       "ret5d": 3.99,
       "ret1m": 9.1,
-      "ret1y": 77.5,
+      "ret1y": 77.7,
       "ret_months": [
         35.3,
         2.1,
