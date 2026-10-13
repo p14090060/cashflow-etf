@@ -1788,19 +1788,21 @@
     },
     "00995A": {
       "name": "主動中信台灣卓越",
-      "frequency": "不明",
+      "frequency": "季配",
       "months": [],
       "category": "高股息",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "_source": "2026-10-13 雙源查證頻率：中國信託投信簡式公開說明書（Pros_00995A.pdf，刊印 114 年 11 月）收益分配「季配息（收益評價日為每年 3、6、9、12 月最後日曆日）」、MoneyDJ basic0004 配息頻率「季配」。本次配息金額與日期未取得官方公告，未填；months 無歷史不推定，維持 _todo"
     },
     "00996A": {
       "name": "主動兆豐台灣豐收",
-      "frequency": "不明",
+      "frequency": "季配",
       "months": [],
       "category": "高股息",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "_source": "2026-10-12 雙源查證頻率：兆豐投信官網產品頁 etf_product.aspx?id=23 收益分配「季配息」、MoneyDJ basic0004 配息頻率「季配」。首次配息：TWSE 公告（事實發生日 115/10/12）每受益權單位實際配發金額 0.73 元，除息 2026-10-19、發放 11/06（2026-10-13 查證）。months 僅一次除息不足推定，維持 _todo"
     },
     "00851": {
       "name": "台新全球AI",

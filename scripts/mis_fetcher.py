@@ -220,8 +220,10 @@ def calc_yield_with_source(code: str, price: float,
         return 0.0, "none", "無配息紀錄"
 
     # 優先 1：TWSE 官方公告
+    # 官方金額 None／缺鍵＝本次未取得官方金額（例 fetch_dividend_calendar「所有來源查無金額」），不代表官方尚未公告；
+    # 也不是 0：不做官方推算，往下走歷史平均／無資料；不拿 manual 預估代替。
     cal = div_cal_etfs.get(code)
-    if cal:
+    if cal and cal.get("amount") is not None:
         annual = cal["amount"] * multiplier
         yld    = round(annual / price * 100, 2)
         return yld, "official", "TWSE 官方公告推算"

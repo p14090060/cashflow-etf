@@ -26,6 +26,13 @@
       "ex_dividend_date": "2026-10-16",
       "amount": 0.16,
       "amount_source": "MoneyDJ"
+    },
+    "00996A": {
+      "code": "00996A",
+      "name": "主動兆豐台灣豐收",
+      "ex_dividend_date": "2026-10-19",
+      "amount": 0.73,
+      "amount_source": "TWSE（115/10/12 實際配發金額公告）"
     }
   }
 }
