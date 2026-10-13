@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-13 14:10",
+  "updated": "2026-10-13 15:08",
   "is_closed": true,
   "is_holiday": false,
   "last_trading_time": "13:30",
@@ -8806,8 +8806,8 @@
       "yld": 19.0,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 6,
-      "est": 0.73,
+      "days": 90,
+      "est": 0.3,
       "div_next": null,
       "signal": "dear",
       "maD": 7.2,
@@ -9880,8 +9880,8 @@
       "amt": 0.73,
       "soon": true,
       "days_until": 6,
-      "source": "official",
-      "amount_source": "TWSE（115/10/12 實際配發金額公告）"
+      "source": "manual",
+      "amount_source": "manual"
     },
     {
       "code": "00929",
