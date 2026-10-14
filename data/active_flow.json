@@ -1,99 +1,17 @@
 {
-  "updated": "2026-10-14 15:20",
+  "updated": "2026-10-14 20:54",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
-    "00996A": {
-      "name": "主動兆豐台灣豐收",
-      "issuer": "兆豐",
-      "holdings": 53,
-      "data_date": "2026-10-08",
-      "advanced": true,
-      "reason": "ok",
-      "fetched": false,
-      "first_seen": "2026-10-08",
-      "anomaly": null,
-      "flow_from": "2026-10-07",
-      "flow_to": "2026-10-08",
-      "price_date": "20261008",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 110901000.0,
-      "sell": 0,
-      "changed": 10,
-      "flow": [
-        {
-          "code": "8021",
-          "name": "尖點",
-          "delta_shares": 24000,
-          "amount": 13368000.0
-        },
-        {
-          "code": "6683",
-          "name": "雍智科技",
-          "delta_shares": 9000,
-          "amount": 12735000.0
-        },
-        {
-          "code": "3533",
-          "name": "嘉澤端子",
-          "delta_shares": 6000,
-          "amount": 11490000.0
-        },
-        {
-          "code": "2472",
-          "name": "立隆電子",
-          "delta_shares": 46000,
-          "amount": 11201000.0
-        },
-        {
-          "code": "6830",
-          "name": "汎銓",
-          "delta_shares": 21000,
-          "amount": 11130000.0
-        },
-        {
-          "code": "6278",
-          "name": "台表科",
-          "delta_shares": 44000,
-          "amount": 10912000.0
-        },
-        {
-          "code": "2327",
-          "name": "國巨",
-          "delta_shares": 17000,
-          "amount": 10795000.0
-        },
-        {
-          "code": "3189",
-          "name": "景碩科技",
-          "delta_shares": 10000,
-          "amount": 10750000.0
-        },
-        {
-          "code": "3037",
-          "name": "欣興電子",
-          "delta_shares": 8000,
-          "amount": 10160000.0
-        },
-        {
-          "code": "3443",
-          "name": "創意電子",
-          "delta_shares": 1000,
-          "amount": 8360000.0
-        }
-      ],
-      "last_change_date": "2026-10-08"
-    },
     "00981A": {
       "name": "主動統一台股增長",
       "issuer": "統一",
       "holdings": 50,
       "data_date": "2026-10-13",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-28",
-      "anomaly": null,
+      "anomaly": "00981A 同一資料日 2026-10-13 持股內容不同（8 檔），未計入 Flow；可能是資料日判斷錯誤或投信同日更新",
       "last_change_date": "2026-10-11",
       "flow_from": "2026-10-08",
       "flow_to": "2026-10-11",
@@ -145,13 +63,13 @@
     "00403A": {
       "name": "主動統一升級50",
       "issuer": "統一",
-      "holdings": 51,
+      "holdings": 50,
       "data_date": "2026-10-13",
       "advanced": false,
       "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-28",
-      "anomaly": null,
+      "anomaly": "00403A 同一資料日 2026-10-13 持股內容不同（6 檔），未計入 Flow；可能是資料日判斷錯誤或投信同日更新",
       "last_change_date": "2026-10-11",
       "flow_from": "2026-10-08",
       "flow_to": "2026-10-11",
@@ -191,89 +109,95 @@
     "00988A": {
       "name": "主動統一全球創新",
       "issuer": "統一",
-      "holdings": 35,
-      "data_date": "2026-10-11",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 37,
+      "data_date": "2026-10-12",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-23",
       "anomaly": null,
-      "last_change_date": "2026-10-11",
-      "flow_from": "2026-10-07",
-      "flow_to": "2026-10-11",
-      "price_date": "20261008",
+      "flow_from": "2026-10-11",
+      "flow_to": "2026-10-12",
+      "price_date": "20261012",
       "no_price": [
         {
-          "code": "CRWD US",
-          "name": "CROWDSTRIKE HOLDINGS INC - A",
-          "delta_shares": 20000
-        },
-        {
-          "code": "PANW US",
-          "name": "PALO ALTO NETWORKS INC",
-          "delta_shares": 15000
+          "code": "AAPL US",
+          "name": "APPLE INC(蘋果公司)",
+          "delta_shares": 45000
         },
         {
           "code": "MU US",
           "name": "MICRON TECHNOLOGY INC",
-          "delta_shares": -8000
+          "delta_shares": -16000
         }
       ],
       "scale_pct": null,
-      "buy": 196500000.0,
-      "sell": -187600000.0,
-      "changed": 2,
+      "buy": 475750000.0,
+      "sell": -323750000.0,
+      "changed": 3,
       "flow": [
-        {
-          "code": "2308",
-          "name": "台達電",
-          "delta_shares": 100000,
-          "amount": 196500000.0
-        },
         {
           "code": "2454",
           "name": "聯發科",
-          "delta_shares": -40000,
-          "amount": -187600000.0
+          "delta_shares": -70000,
+          "amount": -323750000.0
+        },
+        {
+          "code": "6223",
+          "name": "旺矽",
+          "delta_shares": 50000,
+          "amount": 306500000.0
+        },
+        {
+          "code": "3017",
+          "name": "奇鋐",
+          "delta_shares": 50000,
+          "amount": 169250000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-12"
     },
     "00411A": {
       "name": "主動統一前沿科技",
       "issuer": "統一",
       "holdings": 31,
-      "data_date": "2026-10-11",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-12",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-23",
       "anomaly": null,
-      "last_change_date": "2026-10-11",
-      "flow_from": "2026-10-07",
-      "flow_to": "2026-10-11",
-      "price_date": "20261008",
+      "flow_from": "2026-10-11",
+      "flow_to": "2026-10-12",
+      "price_date": "20261012",
       "no_price": [
         {
-          "code": "ANET US",
-          "name": "ARISTA NETWORKS INC.anet us",
-          "delta_shares": 1931
+          "code": "LITE US",
+          "name": "LUMENTUM HOLDINGS INC",
+          "delta_shares": -2862
         },
         {
-          "code": "SNOW US",
-          "name": "SNOWFLAKE INC-CLASS A(Snowflake公司)",
-          "delta_shares": 1888
+          "code": "SMTC US",
+          "name": "SEMTECH CORP",
+          "delta_shares": -2562
         },
         {
-          "code": "CRWD US",
-          "name": "CROWDSTRIKE HOLDINGS INC - A",
-          "delta_shares": 1522
+          "code": "MSFT US",
+          "name": "MICROSOFT CORP(微軟公司)",
+          "delta_shares": 2547
+        },
+        {
+          "code": "NET US",
+          "name": "CLOUDFLARE INC - CLASS A",
+          "delta_shares": 1966
         }
       ],
       "scale_pct": null,
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": []
+      "flow": [],
+      "last_change_date": "2026-10-12"
     },
     "00410A": {
       "name": "主動永豐科技趨勢",
@@ -313,35 +237,53 @@
       "name": "主動凱基台灣",
       "issuer": "凱基",
       "holdings": 50,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-30",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
-      "buy": 60750000.0,
-      "sell": -100600000.0,
-      "changed": 2,
+      "buy": 259470000.0,
+      "sell": -377504000.0,
+      "changed": 5,
       "flow": [
         {
-          "code": "2059",
-          "name": "川湖",
-          "delta_shares": -10000,
-          "amount": -100600000.0
+          "code": "8996",
+          "name": "高力",
+          "delta_shares": -145000,
+          "amount": -244325000.0
         },
         {
-          "code": "2615",
-          "name": "萬海",
-          "delta_shares": 500000,
-          "amount": 60750000.0
+          "code": "2368",
+          "name": "金像電",
+          "delta_shares": 123000,
+          "amount": 154980000.0
+        },
+        {
+          "code": "3443",
+          "name": "創意電子",
+          "delta_shares": -15000,
+          "amount": -123675000.0
+        },
+        {
+          "code": "3533",
+          "name": "嘉澤",
+          "delta_shares": 54000,
+          "amount": 104490000.0
+        },
+        {
+          "code": "2412",
+          "name": "中華電",
+          "delta_shares": -64000,
+          "amount": -9504000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00986A": {
       "name": "主動台新龍頭成長",
@@ -704,236 +646,75 @@
       "name": "主動群益台灣強棒",
       "issuer": "群益",
       "holdings": 56,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
       "buy": 0,
-      "sell": -262504000.0,
-      "changed": 1,
+      "sell": -603600000.0,
+      "changed": 2,
       "flow": [
+        {
+          "code": "2059",
+          "name": "川湖",
+          "delta_shares": -50000,
+          "amount": -500250000.0
+        },
         {
           "code": "2377",
           "name": "微星",
-          "delta_shares": -1672000,
-          "amount": -262504000.0
+          "delta_shares": -650000,
+          "amount": -103350000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00992A": {
       "name": "主動群益科技創新",
       "issuer": "群益",
       "holdings": 42,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
-      "buy": 2502271000.0,
+      "buy": 445200000.0,
       "sell": 0,
-      "changed": 29,
+      "changed": 1,
       "flow": [
-        {
-          "code": "3711",
-          "name": "日月光投控",
-          "delta_shares": 500000,
-          "amount": 370000000.0
-        },
-        {
-          "code": "3653",
-          "name": "健策",
-          "delta_shares": 35000,
-          "amount": 244650000.0
-        },
-        {
-          "code": "6187",
-          "name": "萬潤",
-          "delta_shares": 144000,
-          "amount": 230400000.0
-        },
-        {
-          "code": "3008",
-          "name": "大立光",
-          "delta_shares": 30000,
-          "amount": 218250000.0
-        },
-        {
-          "code": "3665",
-          "name": "貿聯-KY",
-          "delta_shares": 80000,
-          "amount": 180800000.0
-        },
-        {
-          "code": "1815",
-          "name": "富喬",
-          "delta_shares": 1200000,
-          "amount": 156000000.0
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "delta_shares": 50000,
-          "amount": 124500000.0
-        },
-        {
-          "code": "6223",
-          "name": "旺矽",
-          "delta_shares": 20000,
-          "amount": 118800000.0
-        },
-        {
-          "code": "4958",
-          "name": "臻鼎-KY",
-          "delta_shares": 200000,
-          "amount": 110400000.0
-        },
-        {
-          "code": "3017",
-          "name": "奇鋐",
-          "delta_shares": 27000,
-          "amount": 88560000.0
-        },
-        {
-          "code": "6274",
-          "name": "台燿",
-          "delta_shares": 50000,
-          "amount": 82750000.0
-        },
-        {
-          "code": "3026",
-          "name": "禾伸堂",
-          "delta_shares": 100000,
-          "amount": 80600000.0
-        },
-        {
-          "code": "6213",
-          "name": "聯茂",
-          "delta_shares": 100000,
-          "amount": 79500000.0
-        },
-        {
-          "code": "2059",
-          "name": "川湖",
-          "delta_shares": 7000,
-          "amount": 70420000.0
-        },
-        {
-          "code": "3443",
-          "name": "創意",
-          "delta_shares": 8000,
-          "amount": 64760000.0
-        },
-        {
-          "code": "2345",
-          "name": "智邦",
-          "delta_shares": 28000,
-          "amount": 57120000.0
-        },
-        {
-          "code": "8996",
-          "name": "高力",
-          "delta_shares": 33000,
-          "amount": 56595000.0
-        },
         {
           "code": "3189",
           "name": "景碩",
-          "delta_shares": 50000,
-          "amount": 52000000.0
-        },
-        {
-          "code": "8046",
-          "name": "南電",
-          "delta_shares": 21000,
-          "amount": 30240000.0
-        },
-        {
-          "code": "6515",
-          "name": "穎崴",
-          "delta_shares": 5000,
-          "amount": 28500000.0
-        },
-        {
-          "code": "3081",
-          "name": "聯亞",
-          "delta_shares": 5000,
-          "amount": 13625000.0
-        },
-        {
-          "code": "2404",
-          "name": "漢唐",
-          "delta_shares": 8000,
-          "amount": 9120000.0
-        },
-        {
-          "code": "6139",
-          "name": "亞翔",
-          "delta_shares": 10000,
-          "amount": 7180000.0
-        },
-        {
-          "code": "2376",
-          "name": "技嘉",
-          "delta_shares": 14000,
-          "amount": 4977000.0
-        },
-        {
-          "code": "2301",
-          "name": "光寶科",
-          "delta_shares": 18000,
-          "amount": 4968000.0
-        },
-        {
-          "code": "2357",
-          "name": "華碩",
-          "delta_shares": 5000,
-          "amount": 4830000.0
-        },
-        {
-          "code": "8150",
-          "name": "南茂",
-          "delta_shares": 41000,
-          "amount": 4756000.0
-        },
-        {
-          "code": "2360",
-          "name": "致茂",
-          "delta_shares": 2000,
-          "amount": 4400000.0
-        },
-        {
-          "code": "5289",
-          "name": "宜鼎",
-          "delta_shares": 3000,
-          "amount": 3570000.0
+          "delta_shares": 424000,
+          "amount": 445200000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00997A": {
       "name": "主動群益美國增長",
       "issuer": "群益",
       "holdings": 47,
       "data_date": "2026-10-13",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
+      "last_change_date": "2026-10-13",
       "flow_from": "2026-10-12",
       "flow_to": "2026-10-13",
       "price_date": "20261013",
@@ -998,16 +779,15 @@
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": [],
-      "last_change_date": "2026-10-13"
+      "flow": []
     },
     "00405A": {
       "name": "主動富邦台灣龍耀",
       "issuer": "富邦",
       "holdings": 47,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
@@ -1039,49 +819,49 @@
       "name": "主動野村臺灣高息",
       "issuer": "野村",
       "holdings": 52,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
       "buy": 0,
-      "sell": -36781400.0,
+      "sell": -57449700.0,
       "changed": 3,
       "flow": [
         {
-          "code": "9941",
-          "name": "裕融企業",
-          "delta_shares": -192000,
-          "amount": -14899200.0
-        },
-        {
           "code": "5534",
           "name": "長虹建設",
-          "delta_shares": -174000,
-          "amount": -12267000.0
+          "delta_shares": -348000,
+          "amount": -24464400.0
+        },
+        {
+          "code": "9941",
+          "name": "裕融企業",
+          "delta_shares": -311000,
+          "amount": -24226900.0
         },
         {
           "code": "4746",
           "name": "台耀化學",
-          "delta_shares": -202000,
-          "amount": -9615200.0
+          "delta_shares": -184000,
+          "amount": -8758400.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00980A": {
       "name": "主動野村臺灣優選",
       "issuer": "野村",
       "holdings": 50,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
@@ -1197,273 +977,171 @@
       "name": "主動野村台灣50",
       "issuer": "野村",
       "holdings": 50,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
-      "buy": 4502114900.0,
-      "sell": -546493000.0,
-      "changed": 34,
+      "buy": 1657515550.0,
+      "sell": -740828700.0,
+      "changed": 20,
       "flow": [
         {
-          "code": "2330",
-          "name": "台灣積體電路製造",
-          "delta_shares": 304000,
-          "amount": 756960000.0
+          "code": "1402",
+          "name": "遠東新世紀",
+          "delta_shares": 12326000,
+          "amount": 365465900.0
         },
         {
-          "code": "2383",
-          "name": "台光電子材料",
-          "delta_shares": 57000,
-          "amount": 316065000.0
+          "code": "1605",
+          "name": "華新麗華",
+          "delta_shares": 6556000,
+          "amount": 266829200.0
         },
         {
-          "code": "2377",
-          "name": "微星科技",
-          "delta_shares": 1575000,
-          "amount": 247275000.0
+          "code": "1301",
+          "name": "台灣塑膠工業",
+          "delta_shares": -2943000,
+          "amount": -261632700.0
         },
         {
           "code": "2344",
           "name": "華邦電子",
-          "delta_shares": 1497000,
-          "amount": 241765500.0
+          "delta_shares": -1342000,
+          "amount": -221430000.0
         },
         {
-          "code": "4904",
-          "name": "遠傳電信",
-          "delta_shares": 1892000,
-          "amount": 203390000.0
+          "code": "1101",
+          "name": "臺灣水泥",
+          "delta_shares": 5641000,
+          "amount": 152589050.0
         },
         {
-          "code": "6187",
-          "name": "萬潤科技",
-          "delta_shares": -127000,
-          "amount": -203200000.0
-        },
-        {
-          "code": "2303",
-          "name": "聯華電子",
-          "delta_shares": -1396000,
-          "amount": -197534000.0
-        },
-        {
-          "code": "2881",
-          "name": "富邦金融控股",
-          "delta_shares": 1207000,
-          "amount": 193120000.0
-        },
-        {
-          "code": "2308",
-          "name": "台達電子工業",
-          "delta_shares": 102000,
-          "amount": 181050000.0
-        },
-        {
-          "code": "1216",
-          "name": "統一企業",
-          "delta_shares": 2348000,
-          "amount": 181030800.0
-        },
-        {
-          "code": "2345",
-          "name": "智邦科技",
-          "delta_shares": 77000,
-          "amount": 157080000.0
-        },
-        {
-          "code": "6488",
-          "name": "環球晶圓",
-          "delta_shares": 143000,
-          "amount": 145145000.0
-        },
-        {
-          "code": "2412",
-          "name": "中華電信",
-          "delta_shares": 967000,
-          "amount": 143116000.0
-        },
-        {
-          "code": "2059",
-          "name": "川湖科技",
-          "delta_shares": 14000,
-          "amount": 140840000.0
+          "code": "2327",
+          "name": "國巨",
+          "delta_shares": -193000,
+          "amount": -121011000.0
         },
         {
           "code": "3653",
           "name": "健策精密工業",
-          "delta_shares": 20000,
-          "amount": 139800000.0
-        },
-        {
-          "code": "2454",
-          "name": "聯發科技",
-          "delta_shares": 30000,
-          "amount": 135750000.0
-        },
-        {
-          "code": "2408",
-          "name": "南亞科技",
-          "delta_shares": 256000,
-          "amount": 124928000.0
-        },
-        {
-          "code": "2368",
-          "name": "金像電子（股）公司",
-          "delta_shares": 105000,
-          "amount": 122850000.0
-        },
-        {
-          "code": "3105",
-          "name": "穩懋半導體",
-          "delta_shares": 210000,
-          "amount": 116760000.0
+          "delta_shares": 15000,
+          "amount": 106050000.0
         },
         {
           "code": "3008",
           "name": "大立光電",
           "delta_shares": -15000,
-          "amount": -109125000.0
+          "amount": -103200000.0
         },
         {
-          "code": "2603",
-          "name": "長榮海運",
-          "delta_shares": 406000,
-          "amount": 107184000.0
+          "code": "2454",
+          "name": "聯發科技",
+          "delta_shares": 22000,
+          "amount": 98450000.0
         },
         {
-          "code": "2610",
-          "name": "中華航空",
-          "delta_shares": 4950000,
-          "amount": 101475000.0
+          "code": "2408",
+          "name": "南亞科技",
+          "delta_shares": 204000,
+          "amount": 98022000.0
         },
         {
-          "code": "3081",
-          "name": "聯亞光電工業",
-          "delta_shares": 35000,
-          "amount": 95375000.0
+          "code": "1216",
+          "name": "統一企業",
+          "delta_shares": 1252000,
+          "amount": 97906400.0
         },
         {
-          "code": "2376",
-          "name": "技嘉科技",
-          "delta_shares": 260000,
-          "amount": 92430000.0
-        },
-        {
-          "code": "2609",
-          "name": "陽明海運",
-          "delta_shares": 1402000,
-          "amount": 90429000.0
-        },
-        {
-          "code": "2027",
-          "name": "大成不銹鋼工業",
-          "delta_shares": 1805000,
-          "amount": 88084000.0
-        },
-        {
-          "code": "1301",
-          "name": "台灣塑膠工業",
-          "delta_shares": 1079000,
-          "amount": 87291100.0
-        },
-        {
-          "code": "3491",
-          "name": "昇達科技",
-          "delta_shares": 55000,
-          "amount": 79750000.0
-        },
-        {
-          "code": "3036",
-          "name": "文曄科技",
-          "delta_shares": 309000,
-          "amount": 65353500.0
-        },
-        {
-          "code": "3017",
-          "name": "奇鋐科技",
-          "delta_shares": 19000,
-          "amount": 62320000.0
-        },
-        {
-          "code": "6531",
-          "name": "愛普科技",
-          "delta_shares": 53000,
-          "amount": 49078000.0
-        },
-        {
-          "code": "7769",
-          "name": "鴻勁精密",
-          "delta_shares": 6000,
-          "amount": 36420000.0
+          "code": "2317",
+          "name": "鴻海精密工業",
+          "delta_shares": 356000,
+          "amount": 86508000.0
         },
         {
           "code": "3037",
           "name": "欣興電子",
-          "delta_shares": -28000,
-          "amount": -33040000.0
+          "delta_shares": 73000,
+          "amount": 86505000.0
         },
         {
-          "code": "2327",
-          "name": "國巨",
-          "delta_shares": -6000,
-          "amount": -3594000.0
+          "code": "3711",
+          "name": "日月光投資控股",
+          "delta_shares": 100000,
+          "amount": 74700000.0
+        },
+        {
+          "code": "3081",
+          "name": "聯亞光電工業",
+          "delta_shares": 25000,
+          "amount": 72000000.0
+        },
+        {
+          "code": "2027",
+          "name": "大成不銹鋼工業",
+          "delta_shares": 1359000,
+          "amount": 67950000.0
+        },
+        {
+          "code": "2383",
+          "name": "台光電子材料",
+          "delta_shares": 9000,
+          "amount": 49680000.0
+        },
+        {
+          "code": "2330",
+          "name": "台灣積體電路製造",
+          "delta_shares": 14000,
+          "amount": 34860000.0
+        },
+        {
+          "code": "8996",
+          "name": "高力熱處理工業",
+          "delta_shares": -19000,
+          "amount": -32015000.0
+        },
+        {
+          "code": "6187",
+          "name": "萬潤科技",
+          "delta_shares": -1000,
+          "amount": -1540000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00991A": {
       "name": "主動復華未來50",
       "issuer": "復華",
       "holdings": 50,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
-      "buy": 321000000.0,
-      "sell": -353225000.0,
-      "changed": 4,
+      "buy": 137600000.0,
+      "sell": 0,
+      "changed": 1,
       "flow": [
-        {
-          "code": "2308",
-          "name": "台達電子",
-          "delta_shares": -199000,
-          "amount": -353225000.0
-        },
         {
           "code": "3008",
           "name": "大立光電",
-          "delta_shares": 24000,
-          "amount": 174600000.0
-        },
-        {
-          "code": "3037",
-          "name": "欣興電子",
-          "delta_shares": 70000,
-          "amount": 82600000.0
-        },
-        {
-          "code": "1303",
-          "name": "南亞塑膠",
-          "delta_shares": 200000,
-          "amount": 63800000.0
+          "delta_shares": 20000,
+          "amount": 137600000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00998A": {
       "name": "主動復華金融股息",
@@ -1587,9 +1265,9 @@
       "name": "主動安聯台灣高息",
       "issuer": "安聯",
       "holdings": 80,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
@@ -1951,9 +1629,9 @@
       "name": "主動安聯台灣",
       "issuer": "安聯",
       "holdings": 50,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
@@ -2142,8 +1820,8 @@
       "issuer": "安聯",
       "holdings": 50,
       "data_date": "2026-10-13",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
@@ -2197,159 +1875,236 @@
     "00994A": {
       "name": "主動第一金台股優",
       "issuer": "第一金",
-      "holdings": 40,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 41,
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
-      "buy": 39732000.0,
-      "sell": -112727000.0,
-      "changed": 8,
+      "buy": 96930735.0,
+      "sell": -21885000.0,
+      "changed": 10,
       "flow": [
         {
-          "code": "3037",
-          "name": "欣興",
-          "delta_shares": -23000,
-          "amount": -27140000.0
+          "code": "2368",
+          "name": "金像電",
+          "delta_shares": 17000,
+          "amount": 21420000.0
         },
         {
-          "code": "2327",
-          "name": "國巨*",
-          "delta_shares": -43000,
-          "amount": -25757000.0
+          "code": "3653",
+          "name": "健策",
+          "delta_shares": 3000,
+          "amount": 21210000.0
         },
         {
-          "code": "2408",
-          "name": "南亞科",
-          "delta_shares": -45000,
-          "amount": -21960000.0
+          "code": "2330",
+          "name": "台積電",
+          "delta_shares": 6000,
+          "amount": 14940000.0
         },
         {
-          "code": "2059",
-          "name": "川湖",
-          "delta_shares": -2000,
-          "amount": -20120000.0
+          "code": "3026",
+          "name": "禾伸堂",
+          "delta_shares": 17000,
+          "amount": 14518000.0
+        },
+        {
+          "code": "6526",
+          "name": "達發",
+          "delta_shares": 16000,
+          "amount": 12832000.0
+        },
+        {
+          "code": "3081",
+          "name": "聯亞",
+          "delta_shares": 4000,
+          "amount": 11520000.0
+        },
+        {
+          "code": "3665",
+          "name": "貿聯-KY",
+          "delta_shares": -5000,
+          "amount": -11175000.0
         },
         {
           "code": "2308",
           "name": "台達電",
-          "delta_shares": -10000,
-          "amount": -17750000.0
-        },
-        {
-          "code": "2603",
-          "name": "長榮",
-          "delta_shares": 58000,
-          "amount": 15312000.0
-        },
-        {
-          "code": "3008",
-          "name": "大立光",
-          "delta_shares": 2000,
-          "amount": 14550000.0
+          "delta_shares": -6000,
+          "amount": -10710000.0
         },
         {
           "code": "2880",
           "name": "華南金",
-          "delta_shares": 200000,
-          "amount": 9870000.0
+          "delta_shares": 10000,
+          "amount": 489000.0
+        },
+        {
+          "code": "6274",
+          "name": "台燿",
+          "delta_shares": 1,
+          "amount": 1735.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00408A": {
       "name": "主動第一金優股息",
       "issuer": "第一金",
-      "holdings": 49,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 50,
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
-      "buy": 27039000.0,
-      "sell": -26027000.0,
-      "changed": 9,
+      "buy": 55967000.0,
+      "sell": -6135.0,
+      "changed": 11,
       "flow": [
+        {
+          "code": "3653",
+          "name": "健策",
+          "delta_shares": 2000,
+          "amount": 14140000.0
+        },
+        {
+          "code": "3026",
+          "name": "禾伸堂",
+          "delta_shares": 9000,
+          "amount": 7686000.0
+        },
+        {
+          "code": "2330",
+          "name": "台積電",
+          "delta_shares": 3000,
+          "amount": 7470000.0
+        },
+        {
+          "code": "6274",
+          "name": "台燿",
+          "delta_shares": 4000,
+          "amount": 6940000.0
+        },
+        {
+          "code": "3081",
+          "name": "聯亞",
+          "delta_shares": 2000,
+          "amount": 5760000.0
+        },
         {
           "code": "2880",
           "name": "華南金",
-          "delta_shares": 240000,
-          "amount": 11844000.0
+          "delta_shares": 110000,
+          "amount": 5379000.0
         },
         {
-          "code": "2327",
-          "name": "國巨*",
-          "delta_shares": -14000,
-          "amount": -8386000.0
+          "code": "6526",
+          "name": "達發",
+          "delta_shares": 6000,
+          "amount": 4812000.0
         },
         {
-          "code": "2603",
-          "name": "長榮",
-          "delta_shares": 30000,
-          "amount": 7920000.0
+          "code": "2368",
+          "name": "金像電",
+          "delta_shares": 3000,
+          "amount": 3780000.0
         },
         {
-          "code": "3008",
-          "name": "大立光",
-          "delta_shares": 1000,
-          "amount": 7275000.0
+          "code": "3665",
+          "name": "貿聯-KY",
+          "delta_shares": -1,
+          "amount": -2235.0
         },
         {
-          "code": "3037",
-          "name": "欣興",
-          "delta_shares": -6000,
-          "amount": -7080000.0
-        },
-        {
-          "code": "2408",
-          "name": "南亞科",
-          "delta_shares": -10000,
-          "amount": -4880000.0
-        },
-        {
-          "code": "3491",
-          "name": "昇達科",
-          "delta_shares": -2000,
-          "amount": -2900000.0
+          "code": "6669",
+          "name": "緯穎",
+          "delta_shares": -1,
+          "amount": -2115.0
         },
         {
           "code": "2308",
           "name": "台達電",
-          "delta_shares": -1000,
-          "amount": -1775000.0
+          "delta_shares": -1,
+          "amount": -1785.0
+        }
+      ],
+      "last_change_date": "2026-10-14"
+    },
+    "00996A": {
+      "name": "主動兆豐台灣豐收",
+      "issuer": "兆豐",
+      "holdings": 53,
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
+      "fetched": true,
+      "first_seen": "2026-10-08",
+      "anomaly": null,
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
+      "no_price": [],
+      "scale_pct": null,
+      "buy": 62309000.0,
+      "sell": 0,
+      "changed": 5,
+      "flow": [
+        {
+          "code": "3017",
+          "name": "奇鋐科技",
+          "delta_shares": 7000,
+          "amount": 23205000.0
         },
         {
-          "code": "2059",
-          "name": "川湖",
-          "delta_shares": -100,
-          "amount": -1006000.0
+          "code": "6274",
+          "name": "台燿",
+          "delta_shares": 6000,
+          "amount": 10410000.0
+        },
+        {
+          "code": "7751",
+          "name": "竑騰",
+          "delta_shares": 6000,
+          "amount": 10140000.0
+        },
+        {
+          "code": "6830",
+          "name": "汎銓",
+          "delta_shares": 18000,
+          "amount": 9324000.0
+        },
+        {
+          "code": "2303",
+          "name": "聯電",
+          "delta_shares": 65000,
+          "amount": 9230000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00990A": {
       "name": "主動元大AI新經濟",
       "issuer": "元大",
       "holdings": 42,
       "data_date": "2026-10-13",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
+      "last_change_date": "2026-10-13",
       "flow_from": "2026-10-12",
       "flow_to": "2026-10-13",
       "price_date": "20261013",
@@ -2401,270 +2156,293 @@
           "delta_shares": -213000,
           "amount": -378075000.0
         }
-      ],
-      "last_change_date": "2026-10-13"
+      ]
     },
     "00401A": {
       "name": "主動摩根台灣鑫收",
       "issuer": "摩根",
       "holdings": 56,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
-      "scale_pct": 1.16,
-      "buy": 33841750.0,
+      "scale_pct": 2.22,
+      "buy": 66164800.0,
       "sell": 0,
-      "changed": 40,
+      "changed": 44,
       "flow": [
         {
           "code": "2330",
           "name": "台灣積體電路製造",
-          "delta_shares": 3300,
-          "amount": 8217000.0
+          "delta_shares": 6700,
+          "amount": 16683000.0
         },
         {
           "code": "2454",
           "name": "聯發科技",
-          "delta_shares": 600,
-          "amount": 2715000.0
-        },
-        {
-          "code": "2308",
-          "name": "台達電子工業",
-          "delta_shares": 1000,
-          "amount": 1775000.0
+          "delta_shares": 1100,
+          "amount": 4922500.0
         },
         {
           "code": "3711",
           "name": "日月光",
-          "delta_shares": 2000,
-          "amount": 1480000.0
-        },
-        {
-          "code": "3008",
-          "name": "大立光電",
-          "delta_shares": 146,
-          "amount": 1062150.0
-        },
-        {
-          "code": "2455",
-          "name": "全新光電科技",
-          "delta_shares": 2000,
-          "amount": 1016000.0
-        },
-        {
-          "code": "2303",
-          "name": "聯華電子",
-          "delta_shares": 7000,
-          "amount": 990500.0
-        },
-        {
-          "code": "2382",
-          "name": "廣達電腦",
           "delta_shares": 3000,
-          "amount": 969000.0
-        },
-        {
-          "code": "2357",
-          "name": "華碩電腦",
-          "delta_shares": 1000,
-          "amount": 966000.0
+          "amount": 2241000.0
         },
         {
           "code": "3037",
           "name": "欣興電子",
-          "delta_shares": 800,
-          "amount": 944000.0
+          "delta_shares": 1700,
+          "amount": 2014500.0
+        },
+        {
+          "code": "2303",
+          "name": "聯華電子",
+          "delta_shares": 14000,
+          "amount": 1988000.0
+        },
+        {
+          "code": "2357",
+          "name": "華碩電腦",
+          "delta_shares": 2000,
+          "amount": 1980000.0
         },
         {
           "code": "2881",
           "name": "富邦金融控股",
+          "delta_shares": 11000,
+          "amount": 1765500.0
+        },
+        {
+          "code": "7828",
+          "name": "創新服務",
+          "delta_shares": 1000,
+          "amount": 1710000.0
+        },
+        {
+          "code": "2382",
+          "name": "廣達電腦",
           "delta_shares": 5000,
-          "amount": 800000.0
+          "amount": 1615000.0
         },
         {
           "code": "2884",
           "name": "玉山金融控股",
-          "delta_shares": 17000,
-          "amount": 790500.0
+          "delta_shares": 34000,
+          "amount": 1608200.0
+        },
+        {
+          "code": "2455",
+          "name": "全新光電科技",
+          "delta_shares": 3000,
+          "amount": 1569000.0
+        },
+        {
+          "code": "5274",
+          "name": "信驊科技",
+          "delta_shares": 88,
+          "amount": 1540000.0
+        },
+        {
+          "code": "6669",
+          "name": "緯穎",
+          "delta_shares": 700,
+          "amount": 1480500.0
+        },
+        {
+          "code": "3491",
+          "name": "昇達科技",
+          "delta_shares": 1000,
+          "amount": 1410000.0
+        },
+        {
+          "code": "2883",
+          "name": "凱基金",
+          "delta_shares": 35000,
+          "amount": 1352750.0
+        },
+        {
+          "code": "3231",
+          "name": "緯創",
+          "delta_shares": 7000,
+          "amount": 1309000.0
+        },
+        {
+          "code": "2891",
+          "name": "中國信託金融控股",
+          "delta_shares": 18000,
+          "amount": 1285200.0
+        },
+        {
+          "code": "6285",
+          "name": "啟碁科技",
+          "delta_shares": 5000,
+          "amount": 1265000.0
+        },
+        {
+          "code": "2313",
+          "name": "華通電腦",
+          "delta_shares": 5000,
+          "amount": 1252500.0
+        },
+        {
+          "code": "6147",
+          "name": "頎邦科技",
+          "delta_shares": 5000,
+          "amount": 1160000.0
+        },
+        {
+          "code": "2360",
+          "name": "致茂電子",
+          "delta_shares": 500,
+          "amount": 1125000.0
+        },
+        {
+          "code": "2886",
+          "name": "兆豐金融控股",
+          "delta_shares": 22000,
+          "amount": 1124200.0
+        },
+        {
+          "code": "5347",
+          "name": "世界先進積體電路",
+          "delta_shares": 6000,
+          "amount": 1056000.0
+        },
+        {
+          "code": "1303",
+          "name": "南亞塑膠工業",
+          "delta_shares": 3000,
+          "amount": 1047000.0
+        },
+        {
+          "code": "6531",
+          "name": "愛普",
+          "delta_shares": 1000,
+          "amount": 923000.0
+        },
+        {
+          "code": "2882",
+          "name": "國泰金融控股",
+          "delta_shares": 8000,
+          "amount": 912000.0
+        },
+        {
+          "code": "2887",
+          "name": "台新新光金",
+          "delta_shares": 21000,
+          "amount": 895650.0
+        },
+        {
+          "code": "1477",
+          "name": "聚陽實業",
+          "delta_shares": 4000,
+          "amount": 824000.0
+        },
+        {
+          "code": "2603",
+          "name": "長榮海運",
+          "delta_shares": 3000,
+          "amount": 789000.0
         },
         {
           "code": "2379",
           "name": "瑞昱半導體",
           "delta_shares": 1000,
-          "amount": 758000.0
-        },
-        {
-          "code": "3231",
-          "name": "緯創",
-          "delta_shares": 4000,
-          "amount": 748000.0
-        },
-        {
-          "code": "6147",
-          "name": "頎邦科技",
-          "delta_shares": 3000,
-          "amount": 663000.0
-        },
-        {
-          "code": "2360",
-          "name": "致茂電子",
-          "delta_shares": 300,
-          "amount": 660000.0
-        },
-        {
-          "code": "2883",
-          "name": "凱基金",
-          "delta_shares": 17000,
-          "amount": 658750.0
-        },
-        {
-          "code": "2891",
-          "name": "中國信託金融控股",
-          "delta_shares": 9000,
-          "amount": 644400.0
-        },
-        {
-          "code": "1303",
-          "name": "南亞塑膠工業",
-          "delta_shares": 2000,
-          "amount": 638000.0
-        },
-        {
-          "code": "6223",
-          "name": "旺矽科技",
-          "delta_shares": 100,
-          "amount": 594000.0
-        },
-        {
-          "code": "2886",
-          "name": "兆豐金融控股",
-          "delta_shares": 11000,
-          "amount": 559900.0
-        },
-        {
-          "code": "4958",
-          "name": "臻鼎-KY",
-          "delta_shares": 1000,
-          "amount": 552000.0
-        },
-        {
-          "code": "2603",
-          "name": "長榮海運",
-          "delta_shares": 2000,
-          "amount": 528000.0
-        },
-        {
-          "code": "5347",
-          "name": "世界先進積體電路",
-          "delta_shares": 3000,
-          "amount": 525000.0
-        },
-        {
-          "code": "6285",
-          "name": "啟碁科技",
-          "delta_shares": 2000,
-          "amount": 493000.0
-        },
-        {
-          "code": "2313",
-          "name": "華通電腦",
-          "delta_shares": 2000,
-          "amount": 487000.0
-        },
-        {
-          "code": "2882",
-          "name": "國泰金融控股",
-          "delta_shares": 4000,
-          "amount": 458000.0
-        },
-        {
-          "code": "2887",
-          "name": "台新新光金",
-          "delta_shares": 10000,
-          "amount": 430000.0
-        },
-        {
-          "code": "1477",
-          "name": "聚陽實業",
-          "delta_shares": 2000,
-          "amount": 412000.0
-        },
-        {
-          "code": "8464",
-          "name": "億豐綜合工業",
-          "delta_shares": 1000,
-          "amount": 375000.0
-        },
-        {
-          "code": "4904",
-          "name": "遠傳電信",
-          "delta_shares": 3000,
-          "amount": 322500.0
+          "amount": 778000.0
         },
         {
           "code": "2412",
           "name": "中華電信",
+          "delta_shares": 5000,
+          "amount": 742500.0
+        },
+        {
+          "code": "8464",
+          "name": "億豐綜合工業",
           "delta_shares": 2000,
-          "amount": 296000.0
+          "amount": 734000.0
+        },
+        {
+          "code": "2059",
+          "name": "川湖科技",
+          "delta_shares": 70,
+          "amount": 700350.0
+        },
+        {
+          "code": "4904",
+          "name": "遠傳電信",
+          "delta_shares": 6000,
+          "amount": 648000.0
+        },
+        {
+          "code": "2327",
+          "name": "國巨",
+          "delta_shares": 1000,
+          "amount": 627000.0
+        },
+        {
+          "code": "6187",
+          "name": "萬潤科技",
+          "delta_shares": 400,
+          "amount": 616000.0
         },
         {
           "code": "2317",
           "name": "鴻海精密工業",
-          "delta_shares": 1000,
-          "amount": 240000.0
+          "delta_shares": 2000,
+          "amount": 486000.0
         },
         {
           "code": "3131",
           "name": "弘塑科技",
-          "delta_shares": 100,
-          "amount": 236000.0
+          "delta_shares": 200,
+          "amount": 473000.0
         },
         {
           "code": "5904",
           "name": "寶雅國際",
-          "delta_shares": 3000,
-          "amount": 214200.0
+          "delta_shares": 6000,
+          "amount": 429600.0
         },
         {
-          "code": "2345",
-          "name": "智邦科技",
-          "delta_shares": 100,
-          "amount": 204000.0
+          "code": "4938",
+          "name": "和碩聯合科技",
+          "delta_shares": 3000,
+          "amount": 300000.0
+        },
+        {
+          "code": "1216",
+          "name": "統一企業",
+          "delta_shares": 3000,
+          "amount": 234600.0
         },
         {
           "code": "2890",
           "name": "永豐金融控股",
-          "delta_shares": 3000,
-          "amount": 134250.0
+          "delta_shares": 5000,
+          "amount": 220250.0
+        },
+        {
+          "code": "2912",
+          "name": "統一超商",
+          "delta_shares": 1000,
+          "amount": 219500.0
         },
         {
           "code": "5871",
           "name": "中租-KY",
           "delta_shares": 1000,
-          "amount": 106000.0
-        },
-        {
-          "code": "4938",
-          "name": "和碩聯合科技",
-          "delta_shares": 1000,
-          "amount": 102500.0
-        },
-        {
-          "code": "1216",
-          "name": "統一企業",
-          "delta_shares": 1000,
-          "amount": 77100.0
+          "amount": 108500.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00989A": {
       "name": "主動摩根美國科技",
@@ -2706,116 +2484,68 @@
     "00400A": {
       "name": "主動國泰動能高息",
       "issuer": "國泰",
-      "holdings": 51,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 52,
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-10-13",
-      "flow_from": "2026-10-12",
-      "flow_to": "2026-10-13",
-      "price_date": "20261013",
+      "flow_from": "2026-10-13",
+      "flow_to": "2026-10-14",
+      "price_date": "20261014",
       "no_price": [],
       "scale_pct": null,
-      "buy": 1090691800.0,
-      "sell": -1313047424.0,
-      "changed": 14,
+      "buy": 1186040000.0,
+      "sell": -155540000.0,
+      "changed": 6,
       "flow": [
         {
-          "code": "2308",
-          "name": "台達電",
-          "delta_shares": -194000,
-          "amount": -344350000.0
+          "code": "6147",
+          "name": "頎邦",
+          "delta_shares": 1293000,
+          "amount": 299976000.0
         },
         {
-          "code": "6187",
-          "name": "萬  潤",
-          "delta_shares": -200000,
-          "amount": -320000000.0
-        },
-        {
-          "code": "2891",
-          "name": "中信金",
-          "delta_shares": 3493000,
-          "amount": 250098800.0
-        },
-        {
-          "code": "2603",
-          "name": "長榮",
-          "delta_shares": 702000,
-          "amount": 185328000.0
-        },
-        {
-          "code": "3037",
-          "name": "欣興",
-          "delta_shares": -140000,
-          "amount": -165200000.0
-        },
-        {
-          "code": "3017",
-          "name": "奇鋐",
-          "delta_shares": -48000,
-          "amount": -157440000.0
-        },
-        {
-          "code": "2383",
-          "name": "台光電",
-          "delta_shares": -28000,
-          "amount": -155260000.0
-        },
-        {
-          "code": "3653",
-          "name": "健策",
-          "delta_shares": -22000,
-          "amount": -153780000.0
+          "code": "2303",
+          "name": "聯電",
+          "delta_shares": 2096000,
+          "amount": 297632000.0
         },
         {
           "code": "2368",
           "name": "金像電",
-          "delta_shares": 129000,
-          "amount": 150930000.0
+          "delta_shares": 227000,
+          "amount": 286020000.0
         },
         {
-          "code": "2330",
-          "name": "台積電",
-          "delta_shares": 60000,
-          "amount": 149400000.0
+          "code": "6187",
+          "name": "萬  潤",
+          "delta_shares": -101000,
+          "amount": -155540000.0
         },
         {
-          "code": "3231",
-          "name": "緯創",
-          "delta_shares": 795000,
-          "amount": 148665000.0
+          "code": "3044",
+          "name": "健鼎",
+          "delta_shares": 253000,
+          "amount": 152559000.0
         },
         {
-          "code": "3008",
-          "name": "大立光",
-          "delta_shares": 20000,
-          "amount": 145500000.0
-        },
-        {
-          "code": "2637",
-          "name": "慧洋-KY",
-          "delta_shares": 590000,
-          "amount": 60770000.0
-        },
-        {
-          "code": "2885",
-          "name": "元大金",
-          "delta_shares": -241040,
-          "amount": -17017424.0
+          "code": "2327",
+          "name": "國巨",
+          "delta_shares": 239000,
+          "amount": 149853000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-10-14"
     },
     "00404A": {
       "name": "主動聯博動能50",
       "issuer": "聯博",
       "holdings": 51,
-      "data_date": "2026-10-13",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-14",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
