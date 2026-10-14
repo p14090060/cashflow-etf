@@ -8981,6 +8981,9 @@
       "heat": 54.9,
       "score_cont": 6,
       "aum": 0,
+      "change_pt": 0.11,
+      "change_pct": 0.99,
+      "mis_time": "09:01",
       "div_frequency": "不配息",
       "yld_source": "none",
       "yld_label": "無配息紀錄"
@@ -9523,7 +9526,7 @@
       "name": "富邦標普500",
       "curated": false,
       "otc": true,
-      "price": 11.65,
+      "price": 11.655,
       "ma60": 11.38,
       "ma20": 11.43,
       "low52": 9.52,
