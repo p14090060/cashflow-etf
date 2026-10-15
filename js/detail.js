@@ -43,13 +43,27 @@ function _dtSlot(name, html) {
 }
 
 // 殖利率顯示：只有 yld_verified 才給數字，其餘照實說明狀態
+// D-053：有效官方本期不分配→本期無；yld_pending 優先於新上市；已核實真 0→0.0%；其餘無可計算→待確認
 function _dtYld(e) {
   if ((e.div_frequency || '') === '不配息') return '不配息';
-  if (e.new_listing && !e.yld) return '未滿1歲';
-  if (e.yld_pending) return '待公告';
-  if (e.yld_verified === true && e.yld > 0) return e.yld.toFixed(1) + '%';
-  if (e.yld > 0) return '待核實';
-  return '--';
+  const y = (typeof e.yld === 'number' && isFinite(e.yld)) ? e.yld : null;
+  if (e.yld_verified === true && y != null && y > 0) return y.toFixed(1) + '%';
+  if (y != null && y > 0) return '待核實';
+  if (typeof distNoDistView === 'function' && distNoDistView(e)) return '本期無';
+  if (e.yld_pending === true) return '待公告';
+  if (e.new_listing) return '未滿1歲';
+  if (y === 0 && e.yld_verified === true) return '0.0%';
+  return '待確認';
+}
+
+// D-053：個股頁完整說明（只用 distNoDistView 已驗過的欄位；文字一律跳脫，連結只用驗證後的 TWSE 公告網址）
+function _dtNoDistHtml(e) {
+  const v = typeof distNoDistView === 'function' ? distNoDistView(e) : null;
+  if (!v) return '';
+  return _dtRow('本期收益分配', '<span data-dist="no-distribution">官方公告本期不分配收益</span>'
+    + '<div class="dt-sub">收益分配評價日 ' + _dtEsc(v.valuation) + '（公告日 ' + _dtEsc(v.announced)
+    + '）；只代表這一次評價結果，不是永久不配息，至 ' + _dtEsc(v.until) + ' 為止有效。'
+    + '來源：<a href="' + _dtEsc(v.srcUrl) + '" target="_blank" rel="noopener noreferrer">' + _dtEsc(v.srcName) + '</a></div>');
 }
 
 // ── 配息判定（PHASE2_PLAN.md Rev.3 第 2.2 節，依序檢查，命中即停止）──
@@ -129,7 +143,8 @@ function _dtDivHtml(e) {
         + _dtRow('除息日', _dtEsc(dateTxt) + ' <span class="dt-tag">' + _dtEsc(dv.label) + '</span>')
         + _dtRow('金額', (dv.amount != null ? '<b>' + dv.amount + ' 元／股</b>' : '—')
             + '<div class="dt-sub">' + _dtEsc(dv.amtNote) + '</div>')
-        + _dtRow('殖利率', _dtEsc(_dtYld(e)));
+        + _dtRow('殖利率', _dtEsc(_dtYld(e)))
+        + _dtNoDistHtml(e);
   if ('div_months' in e) {
     const m = e.div_months;
     h += _dtRow('配息月份', m && m.length ? m.join('、') + ' 月' : '資料不足');

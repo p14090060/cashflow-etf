@@ -9,6 +9,8 @@ scripts/mis_fetcher.py
 import json, sys, time, ssl, datetime
 import urllib.request as _ur
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from daily_check import no_distribution_note   # D-053：與 D-052 TG 告警同一套官方「本期不分配」判定
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
 try:
@@ -604,6 +606,26 @@ def main():
             e["yld_verified"] = False
             e["yld_source"]   = yld_src
             e["yld_label"]    = yld_lbl
+
+        # D-053：官方確認「本期不分配」的可選證據欄位（給排行／個股頁顯示「本期無」）。
+        # 只在 D-052 判定有效（來源／日期／有效期／後續配息）且沒有正殖利率時附上；不改任何數值欄位。
+        # 判定失敗或資料壞掉 → 不附欄位（前端回「待確認」），不中止產出。
+        e.pop("distribution_status", None)
+        try:
+            _dn, _ = no_distribution_note(code, div_etfs.get(code), div_cal_etfs.get(code), today)
+        except Exception as _ex:
+            _dn = None
+            print(f"[DIST] {code} 本期不分配判定失敗，不附狀態：{type(_ex).__name__}")
+        if _dn and not ((e.get("yld") or 0) > 0):
+            _st = div_etfs[code]["distribution_status"]
+            e["distribution_status"] = {
+                "status":         _st["status"],
+                "valuation_date": _st["valuation_date"],
+                "announced_date": _st["announced_date"],
+                "valid_until":    _st["valid_until"],
+                "source_name":    _st["source"]["name"],
+                "source_url":     _st["source"]["url"],
+            }
 
         etfs_out.append(e)
 

@@ -16,6 +16,64 @@ function getEtfTag(code, name) {
   return null;
 }
 
+// ── D-053：官方確認「本期不分配」狀態（market.json 的可選欄位 distribution_status，由 mis_fetcher 依 D-052 判定產出）──
+// 前端依台北當日再核一次：格式、代號／TWSE 公告網址、日期、有效期（不跨下一次評價日 9/30）、
+// 正殖利率或評價日後的配息推翻。任何一項不成立 → null（顯示回到原本的待公告／待確認），不中止渲染。
+function _dsIso(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  const d = new Date(s + 'T00:00:00Z');
+  return (!isNaN(d) && d.toISOString().slice(0, 10) === s) ? s : null;
+}
+function distNoDistView(e) {
+  try {
+    const ds = e && e.distribution_status;
+    if (!ds || typeof ds !== 'object' || ds.status !== 'no_distribution_this_period') return null;
+    if (typeof e.yld === 'number' && e.yld > 0) return null;
+    const val = _dsIso(ds.valuation_date), ann = _dsIso(ds.announced_date), until = _dsIso(ds.valid_until);
+    if (!val || !ann || !until) return null;
+    const plus31 = new Date(Date.parse(val + 'T00:00:00Z') + 31 * 86400000).toISOString().slice(0, 10);
+    const nextVal = (Number(val.slice(0, 4)) + 1) + '-09-30';
+    if (!(val <= ann && ann <= plus31 && ann <= until && until < nextVal)) return null;
+    const today = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);   // 台北當日
+    if (today < ann || today > until) return null;
+    if (typeof ds.source_name !== 'string' || !ds.source_name.trim() || typeof ds.source_url !== 'string') return null;
+    const u = new URL(ds.source_url);
+    const funds = u.searchParams.getAll('fund'), dates = u.searchParams.getAll('date');
+    if (u.protocol !== 'https:' || u.host !== 'www.twse.com.tw' || u.pathname !== '/zh/ETFortune/announcement' || u.hash
+        || u.username || u.password || funds.length !== 1 || funds[0] !== e.code
+        || dates.length !== 1 || dates[0] !== ann.replace(/-/g, '')) return null;
+    const cals = (typeof CALENDAR !== 'undefined' && Array.isArray(CALENDAR)) ? CALENDAR : [];
+    // R1：本檔的配息事件——日期無法比較 → 不採用；評價日之後的事件金額必須是有限、非負的真數字，
+    //     null／缺欄位／字串／bool／NaN／Infinity／負數 → 未知，不採用；正數 → 已實際配息，推翻；真 0 → 維持。別檔資料不影響本檔。
+    for (const c of cals) {
+      if (!c || typeof c !== 'object' || c.code !== e.code) continue;
+      const d = _dsIso(c.iso_date);
+      if (!d) return null;
+      if (d > val) {
+        if (typeof c.amt !== 'number' || !isFinite(c.amt) || c.amt < 0) return null;
+        if (c.amt > 0) return null;
+      }
+    }
+    return { valuation: val, announced: ann, until: until, srcName: ds.source_name, srcUrl: u.href };
+  } catch (_) {
+    return null;
+  }
+}
+
+// 排行殖利率欄文字（D-053 契約）：不配息→不適用；正殖利率→原百分比（未核實加 ~）；
+// 有效官方本期不分配→本期無；yld_pending→待公告（優先於新上市）；新上市→未滿1歲；已核實的真 0→0.0%；其餘→待確認
+function rankYldText(e) {
+  const freq = e.div_freq || e.div_frequency || '?';
+  if (freq === '不配息') return '不適用';
+  const y = (typeof e.yld === 'number' && isFinite(e.yld)) ? e.yld : null;
+  if (y != null && y > 0) return (e.yld_verified ? '' : '~') + y.toFixed(1) + '%';
+  if (distNoDistView(e)) return '本期無';
+  if (e.yld_pending === true) return '待公告';
+  if (e.new_listing) return '未滿1歲';
+  if (y === 0 && e.yld_verified === true) return '0.0%';
+  return '待確認';
+}
+
 function renderRank() {
   const SIG_LABEL = { cheap:'便宜', fair:'合理', hot:'過熱', dear:'偏貴', bond:'債券型' };
   const SIG_CLS   = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' };   // PO Visual Polish 2：與首頁 TOP10 同一組方框標籤
@@ -40,12 +98,7 @@ function renderRank() {
     const cls   = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
     const freq   = e.div_freq || e.div_frequency || '?';
     const noDiv  = freq === '不配息';
-    const yldTxt = noDiv                          ? '不適用'
-                 : e.yld_verified && e.yld > 0   ? e.yld.toFixed(1) + '%'
-                 : (e.new_listing && !e.yld)      ? '未滿1歲'
-                 : e.yld_pending                  ? '待公告'
-                 : e.yld > 0                      ? '~' + e.yld.toFixed(1) + '%'
-                 : '--';
+    const yldTxt = rankYldText(e);   // D-053
     const yldClr = (e.yld > 0 && !noDiv)
                    ? 'var(--num-accent)'   // CP7 Visual Gate（PO）：殖利率數字 dark 黃／light 橘（不分已核實與否，~ 前綴仍標示未核實）
                    : 'var(--dim)';
