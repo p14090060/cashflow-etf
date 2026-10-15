@@ -66,10 +66,24 @@ function _dtNoDistHtml(e) {
     + '來源：<a href="' + _dtEsc(v.srcUrl) + '" target="_blank" rel="noopener noreferrer">' + _dtEsc(v.srcName) + '</a></div>');
 }
 
+// D-054：除息日必須是真字串、完整 YYYY-MM-DD、真實日曆日期，才可比較／算天數／試算
+function _dtValidIso(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const y = +s.slice(0, 4), m = +s.slice(5, 7), d = +s.slice(8, 10);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
+}
+// 有事件但日期不合法：不顯示原始值、不標官方、不試算、不拿其他日期補
+function _dvBadDate() {
+  return { st: 'DX', label: '資料待確認', date: null, dateNote: '日期待確認',
+           amount: null, amtNote: '—', calc: false, calcNote: '除息日期待確認，暫不試算' };
+}
+
 // ── 配息判定（PHASE2_PLAN.md Rev.3 第 2.2 節，依序檢查，命中即停止）──
 function _dvView(e, c) {
   const today = _dtToday();
-  const offIso = c && c.source === 'official' && c.iso_date ? c.iso_date : null;
+  if (c && c.source === 'official' && !_dtValidIso(c.iso_date)) return _dvBadDate();
+  const offIso = c && c.source === 'official' ? c.iso_date : null;
 
   if (offIso && offIso >= today) {
     const amt = c.amt > 0 ? c.amt : null;
@@ -94,6 +108,7 @@ function _dvView(e, c) {
   }
   // est 與 div_next 同源：兩者都來自同一次 calc_div_forecast（div_next 有值），
   // 且沒有被官方金額覆寫（mis_fetcher.py:546-548）。此判斷是由 calendar 欄位推定。
+  if (e.div_next != null && !_dtValidIso(e.div_next)) return _dvBadDate();
   const paired = e.div_next != null && !(c && c.amount_source && c.amt > 0);
   if (e.div_next != null && e.div_next >= today) {
     const ok = paired && e.est > 0;
