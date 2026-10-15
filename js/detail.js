@@ -125,7 +125,7 @@ function _dtDivHtml(e) {
   }
   const verified = e.div_todo === false;
   let h = _dtRow('配息方式', _dtEsc(e.div_frequency || '--')
-            + ' <span class="dt-tag">' + (verified ? '人工核實' : '依歷史推論，未核實') + '</span>')
+            + ' <span class="dt-tag">' + (verified ? '人工核實' : '配息資料尚待補齊') + '</span>')
         + _dtRow('除息日', _dtEsc(dateTxt) + ' <span class="dt-tag">' + _dtEsc(dv.label) + '</span>')
         + _dtRow('金額', (dv.amount != null ? '<b>' + dv.amount + ' 元／股</b>' : '—')
             + '<div class="dt-sub">' + _dtEsc(dv.amtNote) + '</div>')

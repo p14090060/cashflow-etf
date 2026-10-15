@@ -23,6 +23,7 @@ function openFlow(code) { _flowSel = code; Router.openFlow(code); }
 let _lastOk = '';     // 最近一次成功載入的資料時間，空字串＝從沒成功過
 
 function showDataError(err) {
+  _statusErr = true;          // 定時重畫徽章不得蓋掉錯誤（render.js renderStatusBadge）
   const badge = document.getElementById('statusBadge');
   if (badge) {
     badge.className = 'status-badge status-error';
@@ -42,6 +43,7 @@ function showDataError(err) {
 }
 
 function hideDataError() {
+  _statusErr = false;
   const box = document.getElementById('dataError');
   if (box) box.hidden = true;
 }
@@ -60,4 +62,6 @@ function fetchData() {
     _pollTimer = setInterval(fetchData, 30 * 1000);
   }
 }
+// 跨日／跨 09:00：每 30 秒只用已載入的資料重算徽章（不發請求）；載入失敗時不動錯誤徽章
+setInterval(renderStatusBadge, 30 * 1000);
 fetchData();

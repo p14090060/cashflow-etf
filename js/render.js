@@ -116,31 +116,54 @@ function calSrcLabel(c) {
   return { cls: 'src-estimate', text: 'ℹ ' + pre + t };
 }
 
+// ── Header 資料狀態徽章（D-043）────────────────────────────────
+// 「今天」一律用台北日期＋官方年度日曆（trading-calendar.js）判斷，不拿資料裡昨天的 is_holiday 猜今天。
+// 只有資料本身是今天的（updated 日期＝台北今天）才沿用 live／收盤語意；舊資料不冒稱 LIVE、不把 updated 當今天的行情日。
+// 資料載入失敗時由 boot.js 顯示錯誤，這裡的定時重畫不得蓋掉（_statusErr）。
+let _statusArgs = null;
+let _statusErr = false;
+// R1：trading-calendar.js 沒載入／壞掉時不得拋例外中斷 renderAll；台北時鐘自己算，交易日分類一律 unknown
+function _twNowSafe(ms) {
+  try { if (typeof twNow === 'function') { const r = twNow(ms); if (r && r.ymd) return r; } } catch (e) { /* 走下方純時鐘 */ }
+  const t = new Date((ms == null ? Date.now() : ms) + 8 * 3600000);
+  return { ymd: t.toISOString().slice(0, 10), min: t.getUTCHours() * 60 + t.getUTCMinutes(), dow: t.getUTCDay() };
+}
+function _twKindSafe(ymd) {
+  try { if (typeof twDayKind === 'function') { const k = twDayKind(ymd); if (['trading', 'holiday', 'weekend', 'unknown'].indexOf(k) >= 0) return k; } }
+  catch (e) { /* 視為未知 */ }
+  return 'unknown';
+}
+function statusBadgeText(a, nowMs) {
+  const tw = _twNowSafe(nowMs);
+  const kind = _twKindSafe(tw.ymd);
+  const dataDay = String(a.updatedAt || '').slice(0, 10);
+  const dataHm = String(a.updatedAt || '').slice(11, 16);
+  const fresh = dataDay === tw.ymd;            // 資料是台北今天產生的
+  const short = dataDay ? ' · 資料 ' + dataDay.slice(5).replace('-', '/') : '';
+  if (kind === 'weekend' || kind === 'holiday') return { cls: 'status-holiday', text: '今日休市' };
+  // R1：未知年度／壞日曆優先於 LIVE——當天的 updated 不能代替「今天已確認是交易日」
+  if (kind === 'unknown') return { cls: 'status-closed', text: '今日交易狀態待確認' + short };
+  // LIVE 只在盤中（與 mis_fetcher is_trading_hour 相同 09:00～13:50）；盤後仍是盤中旗標 → 只標資料時間，不冒稱 LIVE
+  if (fresh && !a.isClosed && !a.isHoliday && tw.min >= 9 * 60 && tw.min <= 13 * 60 + 50) return { cls: 'status-live', text: 'LIVE · 更新 ' + dataHm };
+  if (fresh && !a.isClosed && !a.isHoliday && tw.min > 13 * 60 + 50 && kind === 'trading') return { cls: 'status-closed', text: '資料時間 ' + dataDay.slice(5).replace('-', '/') + ' ' + dataHm };
+  if (tw.min < 9 * 60) return { cls: 'status-closed', text: '待今日開盤' + short };
+  if (fresh && a.isClosed && !a.isHoliday && dataHm >= '13:30') return { cls: 'status-closed', text: '收盤資料 · ' + dataDay };
+  return { cls: 'status-closed', text: '待今日行情' + short };
+}
+function renderStatusBadge() {
+  if (!_statusArgs || _statusErr) return;
+  const badge = document.getElementById('statusBadge');
+  const r = statusBadgeText(_statusArgs);
+  badge.className = 'status-badge ' + r.cls;
+  badge.textContent = r.text;
+}
+
 // ── renderAll：用資料渲染整頁 ──
 function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
   ETFS = etfs;
   CALENDAR = cal;
-  const badge = document.getElementById('statusBadge');
-  if (isHoliday) {
-    badge.className = 'status-badge status-holiday';
-    badge.textContent = '今日休市';
-  } else if (isClosed) {
-    badge.className = 'status-badge status-closed';
-    const twNow = new Date(new Date().getTime() + 8 * 3600000);
-    const todayStr = twNow.toISOString().slice(0, 10);
-    const dataDateStr = (updatedAt || '').slice(0, 10);
-    let label;
-    if (dataDateStr < todayStr) {
-      label = '盤後資料';
-    } else {
-      const twMin = twNow.getUTCHours() * 60 + twNow.getUTCMinutes();
-      label = twMin < 9 * 60 ? '盤前資料' : '收盤資料';
-    }
-    badge.textContent = label + ' · ' + dataDateStr;
-  } else {
-    badge.className = 'status-badge status-live';
-    badge.textContent = 'LIVE · 更新 ' + (updatedAt || '').slice(11, 16);
-  }
+  _statusArgs = { updatedAt: updatedAt, isClosed: isClosed, isHoliday: isHoliday };
+  renderStatusBadge();
   renderMood(market);
 
   const SIG_LABEL = HOME_SIG_LABEL;

@@ -45,8 +45,20 @@ const Watch = (function () {
     const mark = isPct ? (k === 'up' ? '+' : k === 'dn' ? '−' : '') : (k === 'up' ? '▲' : k === 'dn' ? '▼' : '');
     return '<span class="wc-chg ' + k + '" data-k="' + k + '">' + mark + Math.abs(r).toFixed(d) + (isPct ? '%' : '') + '</span>';
   }
+  // D-043：缺值不只畫兩個「--」。兩欄皆缺 → 一句說明；單欄缺 → 另一欄真值照舊、缺的那欄標明是額或幅。
+  // 真值到了由原 30 秒輪詢（render.js → Watch.refresh）自動換回數字；不補 0、不新增請求。
+  // 今天休市／交易狀態未知時，不承諾「當日」會有新漲跌。沿用既有 .wc-chg.na 樣式（灰），不改 CSS。
+  function isNa(v) { return v == null || isNaN(v); }
   function chgHtml(e) {
-    return '<span class="wc-chgs">' + chgPart(e.change_pt, 2, false) + chgPart(e.change_pct, 2, true) + '</span>';
+    const naPt = isNa(e.change_pt), naPct = isNa(e.change_pct);
+    if (naPt && naPct) {
+      // R1：日曆／helper 缺失時不得拋例外；分類未知 → 中性「漲跌資料尚未提供」
+      const k = (typeof _twKindSafe === 'function' && typeof _twNowSafe === 'function') ? _twKindSafe(_twNowSafe().ymd) : 'unknown';
+      const msg = k === 'trading' ? '當日漲跌資料待更新' : '漲跌資料尚未提供';
+      return '<span class="wc-chgs"><span class="wc-chg na" data-k="na">' + msg + '</span></span>';
+    }
+    return '<span class="wc-chgs">' + (naPt ? '<span class="wc-chg na" data-k="na">漲跌額待更新</span>' : chgPart(e.change_pt, 2, false)) +
+           (naPct ? '<span class="wc-chg na" data-k="na">漲跌幅待更新</span>' : chgPart(e.change_pct, 2, true)) + '</span>';
   }
   function barsHtml(e) {
     const m = e.ret_months || [];
