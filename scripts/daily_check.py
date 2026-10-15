@@ -3,7 +3,7 @@ scripts/daily_check.py
 每日收盤後驗證 market.json 資料品質，有異常發 Telegram 通知。
 自動修正：TWSE 官方新配息金額 vs 儲存 avg 差 >15% → 更新 dividend_info.json
 """
-import ast, datetime, json, os, re, sys, time, urllib.request
+import ast, datetime, json, math, os, re, sys, time, urllib.parse, urllib.request
 from pathlib import Path
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
@@ -239,6 +239,69 @@ def check_new_in_top100(etfs: list) -> list:
     return [code_map[c] for c in new_codes if c in code_map]
 
 
+NO_DIST = "no_distribution_this_period"
+
+
+def _twse_announcement_ok(url, code: str, announced: datetime.date) -> bool:
+    """TWSE e添富公告網址精確驗證：https、www.twse.com.tw、/zh/ETFortune/announcement、無 fragment，
+    query 的 fund 與 date 各只有一個值，fund＝代號、date＝公告日（YYYYMMDD）。"""
+    if not isinstance(url, str) or not url:
+        return False
+    try:
+        u = urllib.parse.urlsplit(url)
+        q = urllib.parse.parse_qs(u.query, keep_blank_values=True, strict_parsing=True)
+    except ValueError:
+        return False
+    return (u.scheme == "https" and u.netloc == "www.twse.com.tw" and u.path == "/zh/ETFortune/announcement"
+            and not u.fragment and q.get("fund") == [code] and q.get("date") == [announced.strftime("%Y%m%d")])
+
+
+def no_distribution_note(code: str, info: dict, cal: dict, today: datetime.date):
+    """官方確認「本期收益不分配」紀錄（dividend_info.json 的 distribution_status）。
+    回傳 (說明文字, None)＝有效；(None, 原因)＝有紀錄但不能採用（缺值警報照報並附原因）；(None, None)＝沒有紀錄。
+    只認格式完整、代號一致、TWSE 公告來源、評價日≤公告日≤今天、在有效期內的紀錄；
+    有效期不得跨過下一次收益評價日（每年 9 月最後日曆日，即 9/30），到期就回復原缺值診斷。
+    之後若出現實際配息（配息日曆有除息日晚於評價日、金額 > 0），舊的不分配紀錄不再採用。"""
+    st = (info or {}).get("distribution_status")
+    if st is None:
+        return None, None
+    if not isinstance(st, dict) or st.get("status") != NO_DIST:
+        return None, "不分配紀錄格式不符"
+    if st.get("code") != code:
+        return None, f"不分配紀錄代號 {st.get('code')!r} 與 {code} 不符"
+    try:
+        val, ann, until = (datetime.date.fromisoformat(st.get(k)) for k in ("valuation_date", "announced_date", "valid_until"))
+    except (TypeError, ValueError):
+        return None, "不分配紀錄日期不合法"
+    src = st.get("source")
+    if not (isinstance(src, dict) and isinstance(src.get("name"), str) and src["name"].strip()
+            and _twse_announcement_ok(src.get("url"), code, ann)):
+        return None, "不分配紀錄缺少官方來源"
+    if not (val <= ann <= val + datetime.timedelta(days=31)):
+        return None, "不分配紀錄公告日與評價日不合理"
+    if not (ann <= until < datetime.date(val.year + 1, 9, 30)):
+        return None, "不分配紀錄有效期跨過下一次收益評價"
+    if today < ann:
+        return None, "不分配紀錄尚未生效（公告日在未來）"
+    if today > until:
+        return None, f"不分配紀錄已於 {until} 到期"
+    if cal is not None:
+        if not isinstance(cal, dict):
+            return None, "配息日曆格式不合法，不採用不分配紀錄"
+        try:
+            ex = datetime.date.fromisoformat(cal.get("ex_dividend_date"))
+        except (TypeError, ValueError):
+            return None, "配息日曆日期無法比較，不採用不分配紀錄"
+        if ex > val:
+            amt = cal.get("amount")
+            # 只有有限、非負的真數字才判斷；null／缺欄位／字串／bool／NaN／Infinity／負數 → 未知，不當 0
+            if isinstance(amt, bool) or not isinstance(amt, (int, float)) or not math.isfinite(amt) or amt < 0:
+                return None, f"{ex} 配息金額無法確認（{amt!r}），不採用不分配紀錄"
+            if amt > 0:
+                return None, f"已有 {ex} 實際配息，不分配紀錄不再適用"
+    return f"本期不分配（評價日 {val}）", None
+
+
 def main():
     # ── 0. market.json 過期檢查（30 小時）──
     # ⚠ 以前這裡看檔案 mtime，在 GitHub Actions 上**永遠不會觸發**：
@@ -419,6 +482,8 @@ def main():
         lines.extend(stale)
     # 新進榜只在有資料問題時通知
     problem_entries = []
+    note_entries    = []
+    today_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date()
     for e in new_entries:
         freq    = e.get("div_freq") or e.get("div_frequency") or ""
         no_div  = freq == "不配息"
@@ -430,7 +495,11 @@ def main():
         if freq in ("不明", "?", ""):
             warn.append("配息方式不明")
         if not yld and not is_new and not no_div and not pending:
-            warn.append("殖利率查無")
+            note, why = no_distribution_note(e["code"], info_map.get(e["code"]), cal_map.get(e["code"]), today_tw)
+            if note:
+                note_entries.append(f"• {e['code']} {e.get('name','')}：{note}（官方公告，屬正常）")
+            else:
+                warn.append("殖利率查無" + (f"（{why}）" if why else ""))
         if not ret1y and not is_new:
             warn.append("報酬率查無")
         if warn:
@@ -440,6 +509,9 @@ def main():
     if problem_entries:
         lines.append("🆕 新進 TOP 100 資料異常")
         lines.extend(problem_entries)
+    if note_entries:
+        lines.append("ℹ 新進 TOP 100 說明")
+        lines.extend(note_entries)
 
     if lines:
         notify("\n".join(lines))

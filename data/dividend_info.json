@@ -1311,7 +1311,20 @@
       "months": [],
       "category": "主動型",
       "avg_dividend_per_share": null,
-      "_todo": false
+      "_todo": false,
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00988A",
+        "valuation_date": "2026-09-30",
+        "announced_date": "2026-10-01",
+        "valid_until": "2027-09-29",
+        "rule": "收益分配評價日為每年9月最後日曆日；本紀錄只涵蓋2026-09-30這一次評價，下一次評價（2027-09-30）前失效",
+        "source": {
+          "name": "TWSE ETF e添富 重大消息（收益分配）序號1：115年09月30日收益分配評價結果決定當次收益不予分配",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00009&date=20261001&fund=00988A&seq=1&type=distribution",
+          "retrieved": "2026-10-15"
+        }
+      }
     },
     "00990A": {
       "name": "主動元大AI新經濟",
