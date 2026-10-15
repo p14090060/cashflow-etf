@@ -1078,6 +1078,9 @@ MEGA_FUNDS = {"00996A": ("23", "主動兆豐台灣豐收")}
 #   ⚠ 只有最新一份，沒有歷史查詢，所以只在 specific=False 時當備援；
 #     bootstrap 回補前一份仍然只能靠 trade_pcf 的 qdt。
 MEGA_PRODUCT = "https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id={}"
+# D-046：fetch_mega 每次呼叫後，各代號實際採用的來源（只供兆豐 collector 判斷，不寫進 out／Active Flow）：
+#   "mega_trade_pcf"（PCF 成功）｜"mega_product"（商品頁備援）｜"mega_feed"（feed 交接檔）｜None（都沒有）
+MEGA_LAST_SOURCE = {}
 
 
 def _mega_product(fund_id):
@@ -1119,7 +1122,9 @@ def fetch_mega(date_obj, specific=False):
     qdt = (mega_feed.next_trading_day(date_obj).strftime("%Y/%m/%d")
            if specific else "")
     out = {}
+    MEGA_LAST_SOURCE.clear()
     for ticker, (fund_id, name) in MEGA_FUNDS.items():
+        MEGA_LAST_SOURCE[ticker] = None
         try:
             op = _opener()
             op.addheaders += [("Referer", MEGA_URL)]
@@ -1158,6 +1163,8 @@ def fetch_mega(date_obj, specific=False):
             h0 = h = ""
         if pcf_ok:
             _mega_parse_pcf(ticker, name, qdt, h0, h, form, out)
+            if ticker in out:
+                MEGA_LAST_SOURCE[ticker] = "mega_trade_pcf"
 
         # trade_pcf 沒拿到（例外或解析不到）就改走商品頁。只有最新一份，所以歷史查詢不適用
         # （bootstrap 回補前一份仍然得靠 qdt）。
@@ -1166,6 +1173,7 @@ def fetch_mega(date_obj, specific=False):
             if pd_date and pd_hold:
                 out[ticker] = {"name": name, "issuer": "兆豐",
                                "data_date": pd_date, "holdings": pd_hold}
+                MEGA_LAST_SOURCE[ticker] = "mega_product"
                 print(f"[兆豐] {ticker} {name}：改用商品頁 {len(pd_hold)} 檔，"
                       f"資料日 {pd_date}")
         # PCF 與商品頁都拿不到（Actions 上兩者皆 403）→ 讀本機 collector 交接的 feed。
@@ -1179,10 +1187,38 @@ def fetch_mega(date_obj, specific=False):
                 hold = _Holdings()
                 hold.update(v["holdings"])
                 out[ticker] = dict(v, holdings=hold)
+                MEGA_LAST_SOURCE[ticker] = "mega_feed"
                 print(f"[兆豐] {ticker} {name}：改用 feed 交接檔 {len(hold)} 檔，"
                       f"資料日 {v['data_date']}（{rec['source']['id']}，抓取 {rec['fetched_at']}）")
         time.sleep(1)
     return out
+
+
+_MEGA_DATE_OLD = re.compile(r'id="div_prev_unit_total".*?(\d{4})/(\d{2})/(\d{2})\s*預估發行受益權單位數', re.S)
+# 2026-10 改版：#div_prev_unit_total 與「預估發行受益權單位數」消失，資料日改標在
+#   <div class="ann-title">YYYY/MM/DD 每基數申購總價金差異額(元)</div>
+#   <div class="ann-title">YYYY/MM/DD 每基數實際申購總價金(元)</div>
+# （D-045 實測：查詢日期 10/14 → 這兩行都是 10/13；查詢日期 10/15 → 都是 10/14）
+_MEGA_DATE_NEW = re.compile(r'class="ann-title">\s*(\d{4})/(\d{2})/(\d{2})\s*每基數(?:申購總價金差異額|實際申購總價金)')
+
+
+def _mega_pcf_date(h):
+    """trade_pcf 頁面的官方資料日。只認上面兩種明確標記，不取頁面第一個日期、查詢日期 qdt、抓取日或本機時鐘。
+    回傳 (YYYY-MM-DD, "ok")；缺標記、日期不合法、多個標記日期不一致 → (None, 原因)。"""
+    found = []
+    for rx, tag in ((_MEGA_DATE_OLD, "舊版標記"), (_MEGA_DATE_NEW, "新版標記")):
+        for m in rx.finditer(h):
+            try:
+                d = datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat()
+            except ValueError:
+                return None, f"{tag}日期不合法 {m.group(0)[-40:]!r}"
+            found.append((tag, d))
+    if not found:
+        return None, "找不到明確資料日標記（舊版 預估發行受益權單位數／新版 每基數申購總價金差異額）"
+    dates = sorted({d for _, d in found})
+    if len(dates) != 1:
+        return None, f"資料日標記互相矛盾：{found}"
+    return dates[0], "ok"
 
 
 def _mega_parse_pcf(ticker, name, qdt, h0, h, form, out):
@@ -1191,9 +1227,16 @@ def _mega_parse_pcf(ticker, name, qdt, h0, h, form, out):
         print(f"[兆豐] {ticker} 取得頁面 {len(h0)}/{len(h)} 字元，"
               f"hidden 欄位 {len(form)} 個")
 
-        m = re.search(r'id="div_prev_unit_total".*?(\d{4})/(\d{2})/(\d{2})\s*預估發行受益權單位數',
-                      h, re.S)
-        data_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+        # D-046：資料日只認明確標記（舊版／2026-10 改版後新版），見 _mega_pcf_date
+        data_date, why = _mega_pcf_date(h)
+        if data_date is None:
+            print(f"[兆豐] {ticker} 資料日判定：{why}")
+        # D-046：新版頁面標「股票代號：XXXX」。postback 沒切到這檔時頁面停在預設基金（實測初始頁是 00690），
+        # 若照樣解析會把別檔持股當成這檔——代號標記存在且不符就整筆不採用（舊版頁面沒有此標記則照舊）。
+        mcode = re.search(r"股票代號：\s*([0-9A-Z]{4,6})", _plain(h))
+        if mcode and mcode.group(1) != ticker:
+            print(f"[兆豐] {ticker} 頁面是 {mcode.group(1)} 的申購買回清單，不採用")
+            data_date = None
 
         holdings = _Holdings()
         for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", h, re.S):

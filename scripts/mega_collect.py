@@ -26,29 +26,38 @@ def _refuse_data_dir(out):
         sys.exit(f"[collect] 拒絕寫入 {p}：collector 不得寫正式資料目錄")
 
 
-def collect_history(d):
-    """官方 trade_pcf 歷史查詢：qdt＝d 的下一交易日；資料日以頁面為準，必須等於 d。"""
+def collect_history(d, fetched_at=None):
+    """官方 trade_pcf 歷史查詢：qdt＝d 的下一交易日；資料日以頁面為準，必須等於 d。
+    fetched_at：只供離線重播帶入原始抓取時間；正式執行留空＝現在。"""
     out = F.fetch_mega(d, specific=True).get(CODE)
     if not out:
         return None, "官方歷史查詢回空"
+    if F.MEGA_LAST_SOURCE.get(CODE) != "mega_trade_pcf":
+        return None, f"來源不是官方 PCF（{F.MEGA_LAST_SOURCE.get(CODE)}），不產出"
     if out["data_date"] != d.isoformat():
         return None, f"官方資料日 {out['data_date']} ≠ 要求 {d}"
     q = mega_feed.next_trading_day(d).isoformat()
     return mega_feed.build_record(CODE, NAME, "兆豐", out["data_date"], out["holdings"],
-                                  "mega_trade_pcf", F.MEGA_URL, query_date=q), "ok"
+                                  "mega_trade_pcf", F.MEGA_URL, query_date=q, fetched_at=fetched_at), "ok"
 
 
-def collect_latest():
-    """最新一份：trade_pcf（含既有商品頁備援）＋商品頁交叉比對，兩者一致才產出。"""
+def collect_latest(fetched_at=None):
+    """最新一份：官方 PCF 成功，且與另外獨立取得的商品頁「同資料日、同股數」才產出（交叉驗證）。
+    D-046：fetch_mega 走商品頁備援（PCF 失敗）時不得標成 mega_trade_pcf，也不得拿商品頁跟自己比——
+    沒有獨立第二來源，安全拒絕並寫明原因。"""
     out = F.fetch_mega(datetime.date.today(), specific=False).get(CODE)
+    src = F.MEGA_LAST_SOURCE.get(CODE)
     pd_date, pd_hold = F._mega_product(FUND_ID)
     if not out:
         return None, "PCF 與商品頁皆未取得"
+    if src != "mega_trade_pcf":
+        return None, (f"官方 PCF 未成功（實際來源 {src}），商品頁沒有獨立來源可交叉驗證，不產出"
+                      f"（商品頁 {pd_date or '未取得'}）")
     if not pd_hold or pd_date != out["data_date"] or \
        {k: v["shares"] for k, v in pd_hold.items()} != {k: v["shares"] for k, v in out["holdings"].items()}:
         return None, f"PCF 與商品頁不一致（PCF {out['data_date']}／商品頁 {pd_date}），不產出"
     return mega_feed.build_record(CODE, NAME, "兆豐", out["data_date"], out["holdings"],
-                                  "mega_trade_pcf", F.MEGA_URL), "ok"
+                                  "mega_trade_pcf", F.MEGA_URL, fetched_at=fetched_at), "ok"
 
 
 def main(argv=None):
