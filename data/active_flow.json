@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-16 09:31",
+  "updated": "2026-10-16 13:40",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
     "00996A": {
@@ -99,8 +99,8 @@
       "issuer": "統一",
       "holdings": 50,
       "data_date": "2026-10-14",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-28",
       "anomaly": null,
@@ -1146,11 +1146,12 @@
       "issuer": "復華",
       "holdings": 61,
       "data_date": "2026-10-15",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-10-01",
       "anomaly": null,
+      "last_change_date": "2026-10-15",
       "flow_from": "2026-10-14",
       "flow_to": "2026-10-15",
       "price_date": "20261015",
@@ -1200,19 +1201,19 @@
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": [],
-      "last_change_date": "2026-10-15"
+      "flow": []
     },
     "00409A": {
       "name": "主動復華全球50",
       "issuer": "復華",
       "holdings": 49,
       "data_date": "2026-10-15",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-23",
       "anomaly": null,
+      "last_change_date": "2026-10-15",
       "flow_from": "2026-10-14",
       "flow_to": "2026-10-15",
       "price_date": "20261015",
@@ -1315,8 +1316,7 @@
           "delta_shares": 800000,
           "amount": 58160000.0
         }
-      ],
-      "last_change_date": "2026-10-15"
+      ]
     },
     "00984A": {
       "name": "主動安聯台灣高息",
@@ -2537,11 +2537,12 @@
       "issuer": "摩根",
       "holdings": 67,
       "data_date": "2026-10-15",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
+      "last_change_date": "2026-10-15",
       "flow_from": "2026-10-14",
       "flow_to": "2026-10-15",
       "price_date": "20261015",
@@ -2556,8 +2557,7 @@
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": [],
-      "last_change_date": "2026-10-15"
+      "flow": []
     },
     "00400A": {
       "name": "主動國泰動能高息",
