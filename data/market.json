@@ -4,9 +4,10 @@
   "is_holiday": false,
   "last_trading_time": null,
   "market": {
-    "price": 46969.87,
-    "change_pt": -1655.96,
-    "change_pct": -3.41
+    "price": 47088.31,
+    "change_pt": 118.44,
+    "change_pct": 0.25,
+    "mis_time": "09:00"
   },
   "etfs": [
     {
@@ -5960,7 +5961,7 @@
       "name": "中信上游半導體",
       "curated": false,
       "otc": false,
-      "price": 25.1,
+      "price": 25.085,
       "ma60": 25.68,
       "ma20": 25.44,
       "low52": 15.91,
@@ -7993,7 +7994,7 @@
       "name": "主動富邦動態入息",
       "curated": false,
       "otc": false,
-      "price": 9.51,
+      "price": 9.5,
       "ma60": 9.66,
       "ma20": 9.42,
       "low52": 9.26,
