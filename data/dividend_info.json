@@ -1828,16 +1828,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-10-17",
-      "mon": "10月",
-      "day": "17",
-      "code": "00929",
-      "name": "復華台灣科技優息",
-      "amt": 0.38,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-10-21",
       "mon": "10月",
       "day": "21",
@@ -1864,6 +1854,16 @@
       "code": "006208",
       "name": "富邦台50",
       "amt": 4.75,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-11-17",
+      "mon": "11月",
+      "day": "17",
+      "code": "00929",
+      "name": "復華台灣科技優息",
+      "amt": 0.38,
       "soon": false,
       "source": "yfinance"
     },
@@ -1924,6 +1924,16 @@
       "code": "00981A",
       "name": "統一台股增長",
       "amt": 0.63,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2027-01-16",
+      "mon": "1月",
+      "day": "16",
+      "code": "00928",
+      "name": "中信上櫃ESG 30",
+      "amt": 2.75,
       "soon": false,
       "source": "yfinance"
     }
