@@ -1,4 +1,4 @@
-import json, math, datetime, ssl, re, requests, sys
+import hashlib, json, math, datetime, os, ssl, re, requests, sys
 import urllib.request as _ur
 from pathlib import Path
 import yfinance as yf
@@ -538,13 +538,144 @@ def _isin_etf_pool(str_mode):
         headers={'User-Agent': 'Mozilla/5.0'}
     )
     with _ur.urlopen(req, timeout=20, context=ctx) as r:
-        html = r.read().decode('ms950', errors='ignore')
+        raw = r.read()
+    html = raw.decode('ms950', errors='ignore')
+    # D-055 R1：快取的來源依據（可核對：與保存的原始回應比 sha256）；不是防竄改簽章
+    _POOL_EVIDENCE[str_mode] = {"url": req.full_url, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw),
+                                "fetched_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(timespec="seconds")}
     return parse_isin_pool(html, 'strMode=%s' % str_mode)
+
+
+# D-055：商品池完整性。2026-10-16 正式事故：正式快取與 _base 的上櫃一般 ETF 18 檔消失（200→182）；
+# 已確認舊程式在上櫃失敗時會把上市部分清單寫進快取，但那次雲端實際的失敗型態沒有原始回應／log，仍未知。規則：
+#   - 只有兩個市場別都成功且非空，才可能保存快取（v2，附各市場列數與 ISIN 原始回應 sha256 的完整性記錄——
+#     這是可核對的記錄，不是完整性證明，也不防刻意改寫）。
+#   - 任一市場失敗／空結果／缺 ETF 區段 → 不寫快取；失敗的市場只能用通過記錄與 _base 交叉核對的 v2 快取補，
+#     舊格式（list）一律不當補齊來源（受損 182 時期快取格式合法也不算完整），只當集合縮減的警示依據。
+#   - 最終候選一律逐代號比對既有集合，無法以既有產品政策解釋的消失 → 拒絕。
+#   - 沒有可信補齊來源或有無故消失 → PoolIncomplete，整支安全中止（不寫 _base／快取，既有資料保留）。
+POOL_MARKETS = ((2, False, "上市"), (4, True, "上櫃"))
+POOL_CACHE_FORMAT = "etf-pool-cache/v2"
+_POOL_STATUS = {}     # 最近一次 fetch_twse_etf_pool 各市場結果：{"上市": "ok"|失敗原因, ...}
+_POOL_EVIDENCE = {}   # 最近一次各市場 ISIN 原始回應依據：{str_mode: {url, sha256, bytes, fetched_at}}
+
+
+class PoolIncomplete(Exception):
+    """兩市場未都成功、又沒有可信完整快取可補：不得以部分商品池繼續。"""
+
+
+def save_pool_cache(results):
+    """原子寫入 v2 快取（tmp→fsync→replace→讀回比對）。只在兩市場都完整且通過集合縮減檢查後呼叫。
+    回傳 "ok"／"not_replaced"（替換前失敗：舊檔原樣）／"uncertain"（已替換但讀回不一致：舊檔已不在，
+    新檔內容不確定——不宣稱保留原快取；下一輪由 load_trusted_pool_cache 的完整性與集合檢查決定能否採信）。"""
+    rows = [[c, n, bool(o)] for c, n, o in results]
+    obj = {"format": POOL_CACHE_FORMAT, "complete": True,
+           "saved_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(timespec="seconds"),
+           "markets": {lab: dict({"str_mode": m, "rows": sum(1 for r in rows if r[2] == otc)}, source=_POOL_EVIDENCE.get(m))
+                       for m, otc, lab in POOL_MARKETS},
+           "rows": rows}
+    data = json.dumps(obj, ensure_ascii=False, indent=2).encode("utf-8")
+    tmp = Path(str(POOL_CACHE) + ".tmp")
+    try:
+        with open(tmp, "wb") as f:
+            f.write(data); f.flush(); os.fsync(f.fileno())
+        os.replace(tmp, POOL_CACHE)
+    except Exception as e:
+        print("[POOL] ⚠ 快取寫入失敗（替換前；原快取原樣保留）：%s" % e)
+        try:
+            tmp.unlink()
+        except Exception:
+            pass
+        return "not_replaced"
+    try:
+        ok = POOL_CACHE.read_bytes() == data
+    except Exception as e:
+        ok, why = False, e
+    if not ok:
+        print("::error::[POOL] 快取已替換但讀回不一致（替換後失敗；原快取已不在，新快取狀態不確定，"
+              "下一輪將以完整性與集合檢查決定是否採信）")
+        return "uncertain"
+    return "ok"
+
+
+def _base_auto_codes():
+    """現有 data/_base.json 中「自動發現」的一般 ETF 代號（排除精選、只留產品格式合法且不被政策排除者）。
+    讀不到 → None（沒有這項依據）。"""
+    try:
+        etfs = json.load(open(OUT_BASE, encoding="utf-8")).get("etfs") or []
+    except Exception:
+        return None
+    return {e["code"]: str(e.get("name") or "") for e in etfs if isinstance(e, dict) and isinstance(e.get("code"), str)
+            and e["code"] not in CURATED_CODES and cache_product_ok(e["code"]) and not pool_excluded(e["code"], str(e.get("name") or "x"))}
+
+
+def pool_reference_codes():
+    """集合縮減的警示依據（不是完整 fallback 依據）：可信 v2 快取或舊格式快取的代號，加上現有 _base 的自動發現代號。
+    舊格式（含受損 182 時期的快取）只拿來「不讓既有商品無故消失」，不會因此升格成完整備援。"""
+    ref, kinds = {}, []        # {代號: 名稱}
+    rows, _ = load_trusted_pool_cache()
+    if rows is not None:
+        ref.update({r[0]: r[1] for r in rows}); kinds.append("v2")
+    else:
+        try:
+            obj = json.load(open(POOL_CACHE, encoding="utf-8"))
+            if isinstance(obj, list):
+                ref.update({r[0]: str(r[1]) if len(r) > 1 else "" for r in obj if isinstance(r, list) and r and isinstance(r[0], str)})
+                kinds.append("legacy")
+        except Exception:
+            pass
+    b = _base_auto_codes()
+    if b:
+        for c, n in b.items():
+            ref.setdefault(c, n)
+        kinds.append("_base")
+    return ref, kinds
+
+
+def load_trusted_pool_cache():
+    """回傳 (rows, None)＝通過完整性記錄與 _base 交叉核對的 v2 快取；(None, 原因)＝不可採信。不因格式合法或檔數就當完整。"""
+    if not POOL_CACHE.exists():
+        return None, "沒有快取"
+    try:
+        obj = json.load(open(POOL_CACHE, encoding="utf-8"))
+    except Exception as e:
+        return None, "快取讀取失敗：%s" % e
+    if not isinstance(obj, dict) or obj.get("format") != POOL_CACHE_FORMAT:
+        return None, "舊格式或未知格式快取，沒有完整性記錄（不當補齊來源）"
+    if obj.get("complete") is not True:
+        return None, "快取未標記為完整"
+    rows, mk = obj.get("rows"), obj.get("markets")
+    if not isinstance(rows, list) or not isinstance(mk, dict):
+        return None, "快取結構不合法"
+    seen, out = set(), []
+    for r in rows:
+        if not (isinstance(r, list) and len(r) == 3 and isinstance(r[0], str) and isinstance(r[1], str) and isinstance(r[2], bool)):
+            return None, "快取資料列不合法：%r" % (r,)
+        if r[0] in seen or not cache_product_ok(r[0]) or pool_excluded(r[0], r[1]):
+            return None, "快取含重複或不合政策的代號：%s" % r[0]
+        seen.add(r[0]); out.append((r[0], r[1], r[2]))
+    for m, otc, lab in POOL_MARKETS:
+        n = sum(1 for r in out if r[2] == otc)
+        info = mk.get(lab)
+        if not isinstance(info, dict) or info.get("str_mode") != m or info.get("rows") != n or n <= 0:
+            return None, "快取 %s 完整性記錄不符（記錄 %r，實際 %d）" % (lab, {k: v for k, v in (info or {}).items() if k != "source"} if isinstance(info, dict) else info, n)
+        src = info.get("source")
+        if not (isinstance(src, dict) and isinstance(src.get("sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", src["sha256"])
+                and isinstance(src.get("bytes"), int) and src["bytes"] > 0):
+            return None, "快取 %s 缺來源依據（ISIN 原始回應 sha256／大小）" % lab
+    # 列數是快取自述，不代表完整：另以現有 _base 的自動發現集合交叉核對，快取少了現有商品就不採信
+    b = _base_auto_codes()
+    if b is not None:
+        lost = sorted(set(b) - {r[0] for r in out})
+        if lost:
+            return None, "快取與現有 _base 集合不符（快取缺 %d 檔：%s）" % (len(lost), lost[:10])
+    return out, None
 
 
 def fetch_twse_etf_pool():
     """抓 ISIN 的股票型 ETF 清單（**上市 + 上櫃**），回傳 [(code, name, is_otc)]。
-    成功時同步更新 etf_pool_cache.json 作為 fallback 備份。
+    D-055：只回報結果與各市場狀態（_POOL_STATUS）；快取只由 build_pool() 在兩市場都成功、
+    而且通過逐代號縮減檢查後才更新。任一市場失敗仍回傳成功那邊的部分結果，由 build_pool() 決定能否補齊。
 
     ⚠ 一定要連上櫃一起抓。2026-09-27 以前只讀 strMode=2，上櫃 ETF 全部進不了池子，
       只有 CURATED 裡寫死的 00928/006201 例外——結果成交量排第 32 名的 00411A
@@ -552,13 +683,20 @@ def fetch_twse_etf_pool():
       連我們自己有抓持股異動的 00411A 都連不回排行頁。
     """
     results, seen = [], set()
-    for str_mode, is_otc, lab in ((2, False, "上市"), (4, True, "上櫃")):
+    _POOL_STATUS.clear(); _POOL_EVIDENCE.clear()
+    for str_mode, is_otc, lab in POOL_MARKETS:
         try:
             got = _isin_etf_pool(str_mode)
         except Exception as e:
             # 其中一邊掛掉不要拖垮另一邊，但一定要出聲——靜默縮水是這專案的老毛病
             print("[POOL] ISIN strMode=%s（%s）抓取失敗: %s" % (str_mode, lab, e))
+            _POOL_STATUS[lab] = "抓取失敗：%s" % type(e).__name__
             continue
+        if not got:
+            print("[POOL] ISIN strMode=%s（%s）結果為空，視為該市場失敗" % (str_mode, lab))
+            _POOL_STATUS[lab] = "空結果"
+            continue
+        _POOL_STATUS[lab] = "ok"
         added = 0
         for code, name in got:
             if code in seen:
@@ -568,14 +706,11 @@ def fetch_twse_etf_pool():
             added += 1
         print("[POOL] %s股票型 ETF: %d 支" % (lab, added))
 
-    if not results:                     # 兩邊都掛才算失敗，交給 build_pool() fallback
+    if not results:                     # 兩邊都掛，交給 build_pool() 判斷可信快取
         print("[POOL] ISIN 兩個市場別都抓不到")
         return []
-    try:
-        with open(POOL_CACHE, "w", encoding="utf-8") as f:
-            json.dump(results, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
+    if not all(_POOL_STATUS.get(lab) == "ok" for _, _, lab in POOL_MARKETS):
+        print("[POOL] 只有部分市場成功，不更新 etf_pool_cache.json（避免部分清單覆寫完整快取）")
     return results
 
 def build_pool():
@@ -583,21 +718,36 @@ def build_pool():
     ISIN 失敗時 fallback etf_pool_cache.json（上次成功的清單），避免縮水成 13 支精選。
     順便把自動發現的上櫃碼補進 TWO_CODES，yfinance 才會用 .TWO 後綴去抓。
     """
+    # D-055 R2：參考集合在本輪任何寫入之前取得（可信／舊快取＋現有 _base），供最終候選逐代號比對
+    ref, kinds = pool_reference_codes()
     auto = fetch_twse_etf_pool()
 
-    if not auto:
-        if POOL_CACHE.exists():
-            try:
-                cached = json.load(open(POOL_CACHE, encoding="utf-8"))
-                # cache 可能是舊的兩元組 [(code, name)]（2026-09-27 之前只存上市），
-                # 補不出市場別時一律當上市，至少不會整批壞掉
-                # cache 是舊規則時代寫的也一樣要過篩選鏈（③槓反期貨可能還在裡面）
-                auto = [(r[0], r[1], bool(r[2]) if len(r) > 2 else False)
-                        for r in cached if len(r) >= 2 and r[0] and r[1]
-                        and cache_product_ok(r[0]) and not pool_excluded(r[0], r[1])]
-                print(f"[POOL] ISIN 失敗，從 etf_pool_cache.json fallback 取得 {len(auto)} 支")
-            except Exception as fb_err:
-                print(f"[POOL] fallback 讀取 cache 失敗: {fb_err}")
+    failed = [lab for _, _, lab in POOL_MARKETS if _POOL_STATUS.get(lab) != "ok"]
+    if failed:
+        # D-055：失敗的市場只能用通過記錄與 _base 核對的 v2 快取補；成功的市場用本次結果（不讓舊快取蓋掉新資料）
+        cached, why = load_trusted_pool_cache()
+        if cached is None:
+            raise PoolIncomplete("ISIN %s 未成功（%s），且沒有可信完整快取（%s）——不以部分商品池繼續"
+                                 % ("、".join(failed), "；".join("%s=%s" % (l, _POOL_STATUS.get(l, "未執行")) for l in failed), why))
+        fail_otc = {otc for _, otc, lab in POOL_MARKETS if lab in failed}
+        have = {c for c, _, _ in auto}
+        fill = [r for r in cached if r[2] in fail_otc and r[0] not in have]
+        auto = list(auto) + fill
+        print(f"[POOL] {'、'.join(failed)} 失敗，從通過核對的 v2 快取補 {len(fill)} 支（快取不更新）")
+
+    # D-055：最終候選（兩市場即時結果，或即時＋快取補齊的混合結果）都要逐代號比對既有集合。
+    # 非空回應或快取自述列數都不能代表完整；無法以既有產品政策（產品格式／L、R、U 字尾／名稱關鍵字）
+    # 解釋的消失 → 不當作下架、不寫快取、不以縮減後商品池繼續（後續 _base／配息都不寫），列出待核對代號。
+    final = {c for c, _, _ in auto}
+    gone = sorted(c for c, n in ref.items() if c not in final and c not in CURATED_CODES
+                  and cache_product_ok(c) and not pool_excluded(c, n or "x"))
+    if gone:
+        raise PoolIncomplete("本次候選商品池缺少既有一般 ETF %d 檔（%s；依據 %s；%s），無已核准移除依據——"
+                             "不寫快取、不以縮減後商品池繼續，待核對"
+                             % (len(gone), gone[:20], "+".join(kinds) or "無",
+                                "兩市場即時結果" if not failed else "即時＋快取補齊（%s 失敗）" % "、".join(failed)))
+    if not failed:
+        save_pool_cache(auto)
 
     pool = [(c, n) for c, n in CURATED if not pool_excluded(c, n)]   # 防禦性：精選池目前無 L/R/U
     added = otc_added = 0
@@ -894,7 +1044,12 @@ def fetch_emega_aum():
 
 
 # ── 主流程 ──────────────────────────────────────────────────────────
-ALL_ETFS  = build_pool()
+try:
+    ALL_ETFS  = build_pool()
+except PoolIncomplete as _pi:
+    # D-055：安全中止——不寫 _base／快取，既有正式資料原樣保留（workflow 該步 continue-on-error）
+    print("::error::[POOL] 商品池不完整，本次不更新：%s" % _pi)
+    sys.exit(1)
 EMEGA_AUM = fetch_emega_aum()
 
 results = []
