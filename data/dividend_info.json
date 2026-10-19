@@ -1834,6 +1834,15 @@
       "category": "高股息",
       "avg_dividend_per_share": 2.5,
       "_todo": true
+    },
+    "00412A": {
+      "name": "主動安聯亞半導體",
+      "frequency": "不配息",
+      "months": [],
+      "category": "主動式",
+      "avg_dividend_per_share": null,
+      "_todo": false,
+      "_source": "2026-10-20 Allianz official: fund does not distribute income. https://etf.allianzgi.com.tw/eventsite/00412A/index.html ; TWSE: income not distributed. https://wwwc.twse.com.tw/zh/ETFortune/newsDetail/8a8216d6a0fa351b01a12f28c912010f"
     }
   },
   "calendar": [
