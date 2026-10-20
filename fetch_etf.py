@@ -260,21 +260,17 @@ DIV_FREQ = {
     "020032":"不配息",  # 元大綠能N，ETN連結「特選台灣綠能報酬指數」，結構上不配息（WebSearch核實，2026-07-24）
 }
 
+_OFFICIAL_FREQ_RECOVERIES = {}
+
+
 def fetch_div_freq_twse(code):
-    """從 TWSE ETF_SEARCH 回傳資料中找配息頻率關鍵字"""
-    try:
-        clean = ''.join(c for c in code if c.isalnum())
-        r = requests.get(
-            f"https://www.twse.com.tw/fund/ETF_SEARCH?response=json&etfNo={clean}",
-            timeout=6, headers={"User-Agent": "Mozilla/5.0"}
-        )
-        text = r.text
-        if '每月' in text or '月配' in text: return "月配"
-        if '每季' in text or '季配' in text: return "季配"
-        if '每半年' in text or '半年' in text: return "半年配"
-        if '每年' in text or '年配' in text: return "年配"
-    except Exception:
-        pass
+    """Resolve explicit, fund-identified TWSE policy; never scan a generic page."""
+    from scripts.official_frequency import resolve_frequency
+    result = resolve_frequency(code)
+    if result.get("status") == "verified":
+        _OFFICIAL_FREQ_RECOVERIES[code] = result
+        return result["frequency"]
+    print("[FREQ] %s official policy unresolved: %s" % (code, result.get("reason")))
     return None
 
 # 名稱關鍵字對應配息頻率
@@ -1333,11 +1329,23 @@ with open(OUT_BASE, "w", encoding="utf-8") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)
 
 # 同步更新 dividend_info.json 的 calendar（mis_fetcher.py 讀這個當估算來源）
-if calendar and OUT_DIV.exists():
+if (calendar or _OFFICIAL_FREQ_RECOVERIES) and OUT_DIV.exists():
     try:
         with open(OUT_DIV, encoding="utf-8") as f:
             div_info = json.load(f)
-        div_info["calendar"] = calendar
+        for code, evidence in _OFFICIAL_FREQ_RECOVERIES.items():
+            meta = div_info.setdefault("etfs", {}).get(code, {})
+            if not isinstance(meta, dict) or meta.get("frequency") not in (None, "", "?", "不明"):
+                continue
+            meta.setdefault("name", next((e.get("name", code) for e in results if e["code"] == code), code))
+            meta.setdefault("months", [])
+            meta.setdefault("avg_dividend_per_share", None)
+            meta.setdefault("_todo", True)
+            meta["frequency"] = evidence["frequency"]
+            meta["frequency_evidence"] = evidence
+            div_info["etfs"][code] = meta
+        if calendar:
+            div_info["calendar"] = calendar
         with open(OUT_DIV, "w", encoding="utf-8") as f:
             json.dump(div_info, f, ensure_ascii=False, indent=2)
         print(f"✓ dividend_info.json calendar 更新：{len(calendar)} 筆")

@@ -52,12 +52,10 @@ jobs:
 
       - name: Daily check & auto-fix avg
         continue-on-error: true
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python scripts/daily_check.py
+        run: python scripts/daily_check.py --defer-notifications "$RUNNER_TEMP/etf-notifications.json"
 
       - name: Commit and push
+        id: publish
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -65,6 +63,14 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')"
           git pull --rebase origin main
           git push
+
+      - name: Notify only after publication verification
+        if: always()
+        env:
+          ETF_PUBLISH_OK: ${{ steps.publish.outcome == 'success' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/daily_check.py --send-prepared "$RUNNER_TEMP/etf-notifications.json"
 
       - name: Trigger update-data to sync market.json
         env:

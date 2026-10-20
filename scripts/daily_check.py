@@ -340,6 +340,38 @@ def main():
     info_map = div_info.get("etfs", {})
     cal_map  = (div_cal or {}).get("etfs", {})
 
+    # Missing policy is a recovery task before it becomes a user alert.
+    from official_frequency import recover_missing
+    frequency_state = (load(DAILY_STATE) or {}).get("frequency_recovery", {})
+    # Least recently attempted first: a bounded run must not starve later ETFs.
+    candidates = sorted(etfs, key=lambda row: frequency_state.get(row.get("code"), {}).get("at", ""))
+    recovery = recover_missing(candidates, info_map)
+    recovery_by_code = {r["code"]: r for r in recovery["attempts"]}
+    checked_at = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat()
+    for attempt in recovery["attempts"]:
+        if attempt.get("status") != "deferred":
+            frequency_state[attempt["code"]] = {"at": checked_at, "result": attempt}
+    if recovery["recovered"]:
+        div_info["etfs"] = info_map
+        save_json(DIV_INFO, div_info)
+        print("[AUTO-RECOVERY] official frequency: " + ",".join(recovery["recovered"]))
+    # Propagate verified static policy to this run's baseline, without changing
+    # any quote, yield, date, signal or unrelated product field.
+    base_path = ROOT / "data" / "_base.json"
+    current_base = load(base_path)
+    if isinstance(current_base, dict):
+        changed = False
+        for row in current_base.get("etfs", []):
+            meta = info_map.get(row.get("code"), {})
+            if (row.get("div_freq") or row.get("div_frequency")) in (None, "", "?", "不明"):
+                frequency = meta.get("frequency") if isinstance(meta, dict) else None
+                if frequency not in (None, "", "?", "不明"):
+                    key = "div_frequency" if "div_frequency" in row else "div_freq"
+                    row[key] = frequency
+                    changed = True
+        if changed:
+            save_json(base_path, current_base)
+
     # ── 0b. ETF 筆數異常（TWSE ISIN 抓取失敗時縮水到精選清單 13 支）──
     if len(etfs) < 50:
         notify(f"🚨 ETF清單異常：market.json 只有 {len(etfs)} 支（正常應 >100），\n"
@@ -352,6 +384,7 @@ def main():
 
     # ── 載入跨日狀態 ──
     state      = load(DAILY_STATE) or {}
+    state["frequency_recovery"] = frequency_state
     yld_prev   = state.get("yld_prev", {})
     vol_streak = state.get("zero_vol_streak", {})
 
@@ -492,9 +525,12 @@ def main():
         yld     = e.get("yld", 0)
         ret1y   = e.get("ret1y", 0)
         warn = []
+        recovery_deferred = recovery_by_code.get(e["code"], {}).get("status") == "deferred"
         if freq in ("不明", "?", ""):
-            warn.append("配息方式不明")
-        if not yld and not is_new and not no_div and not pending:
+            attempt = recovery_by_code.get(e["code"], {})
+            if not recovery_deferred:
+                warn.append("配息方式不明（官方補查未能確認，系統保留原資料）")
+        if not yld and not is_new and not no_div and not pending and not recovery_deferred:
             note, why = no_distribution_note(e["code"], info_map.get(e["code"]), cal_map.get(e["code"]), today_tw)
             if note:
                 note_entries.append(f"• {e['code']} {e.get('name','')}：{note}（官方公告，屬正常）")
@@ -519,5 +555,63 @@ def main():
         print("[OK] 所有監控 ETF 資料正常，TOP 100 無新進")
 
 
+def cli():
+    import argparse
+    import hashlib
+    import subprocess
+    parser = argparse.ArgumentParser()
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--defer-notifications")
+    modes.add_argument("--send-prepared")
+    args = parser.parse_args()
+    if args.send_prepared:
+        path = Path(args.send_prepared)
+        if os.environ.get("ETF_PUBLISH_OK") != "true" or not path.is_file():
+            notify("🚨 自動修復流程或資料發布未完成；系統將於下輪再試，尚未宣告恢復")
+            return 1
+        prepared = json.loads(path.read_text(encoding="utf-8"))
+        # The notification must describe data that actually reached origin/main,
+        # not an uncommitted local repair. No force, reset, or publication here.
+        head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip()
+        remote = subprocess.check_output(["git", "ls-remote", "origin", "refs/heads/main"], cwd=ROOT).decode().split()
+        published = remote[0] if remote else None
+        if published and published != head:
+            # Another writer may legitimately have advanced main after our push.
+            subprocess.check_call(["git", "fetch", "--no-tags", "--depth=20", "origin", published], cwd=ROOT)
+            if subprocess.run(["git", "merge-base", "--is-ancestor", head, published], cwd=ROOT).returncode:
+                published = None
+        if not published:
+            notify("🚨 自動修復發布結果無法確認；系統保留原警報待下輪重新核對")
+            return 1
+        for name, digest in prepared["data_sha256"].items():
+            blob = subprocess.check_output(["git", "show", published + ":data/" + name], cwd=ROOT)
+            if hashlib.sha256(blob.replace(b"\r\n", b"\n")).hexdigest() != digest:
+                notify("🚨 自動修復候選與已發布資料不一致；系統下輪重新核對")
+                return 1
+        for message in prepared["messages"]:
+            notify(message)
+        return 0
+    if not args.defer_notifications:
+        main()
+        return 0
+    messages = []
+    original = globals()["notify"]
+    globals()["notify"] = messages.append
+    try:
+        main()
+        data_hashes = {}
+        for name in ("dividend_info.json", "_base.json", "daily_state.json", "known_codes.json"):
+            path = ROOT / "data" / name
+            if path.is_file():
+                data_hashes[name] = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        path = Path(args.defer_notifications)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"messages": messages, "data_sha256": data_hashes}, ensure_ascii=False), encoding="utf-8")
+        print("[NOTIFY] Prepared; no Telegram sent before publication")
+    finally:
+        globals()["notify"] = original
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(cli())

@@ -16,19 +16,9 @@ FREQ_KEYWORDS = [
 ]
 
 def fetch_freq_twse(code):
-    try:
-        clean = ''.join(c for c in code if c.isalnum())
-        r = requests.get(
-            f"https://www.twse.com.tw/fund/ETF_SEARCH?response=json&etfNo={clean}",
-            timeout=8, headers={"User-Agent": "Mozilla/5.0"}
-        )
-        text = r.text
-        for keywords, freq in FREQ_KEYWORDS:
-            if any(kw in text for kw in keywords):
-                return freq
-    except Exception:
-        pass
-    return None
+    from official_frequency import resolve_frequency
+    result = resolve_frequency(code)
+    return result.get("frequency") if result.get("status") == "verified" else None
 
 
 def main():
@@ -64,7 +54,7 @@ def main():
         print(f"✓ 修正 {len(changes)} 支 ETF 配息頻率：")
         for c in changes:
             print(c)
-    else:
+    elif not skipped:
         print("✓ 全部 ETF 配息頻率與 TWSE 一致，無需修正")
 
     if skipped:
