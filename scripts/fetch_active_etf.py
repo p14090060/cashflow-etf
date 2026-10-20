@@ -1083,10 +1083,15 @@ MEGA_PRODUCT = "https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id={}"
 MEGA_LAST_SOURCE = {}
 
 
+def _mega_opener():
+    from mega_transport import MegaOpener
+    return MegaOpener(_opener(), {value[0] for value in MEGA_FUNDS.values()})
+
+
 def _mega_product(fund_id):
     """回傳 (資料日, holdings)；抓不到或缺資料日回 (None, None)。"""
     try:
-        op = _opener()
+        op = _mega_opener()
         h = op.open(MEGA_PRODUCT.format(fund_id), timeout=30
                     ).read().decode("utf-8", "replace")
     except Exception as e:
@@ -1126,7 +1131,7 @@ def fetch_mega(date_obj, specific=False):
     for ticker, (fund_id, name) in MEGA_FUNDS.items():
         MEGA_LAST_SOURCE[ticker] = None
         try:
-            op = _opener()
+            op = _mega_opener()
             op.addheaders += [("Referer", MEGA_URL)]
             h0 = op.open(MEGA_URL, timeout=30).read().decode("utf-8", "replace")
             form = {}

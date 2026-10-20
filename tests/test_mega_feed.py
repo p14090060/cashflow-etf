@@ -3,6 +3,7 @@
 執行：python tests/test_mega_feed.py
 """
 import contextlib, copy, datetime, io, json, os, sys, tempfile, unittest, urllib.error, urllib.parse
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -216,7 +217,10 @@ def fake_net(pcf=True, product=False, capture=None):
     saved = (F._opener, F.time.sleep)
     F._opener, F.time.sleep = opener, (lambda s: None)
     try:
-        yield
+        # The new 403 transport must also remain offline in this legacy matrix.
+        # Its successful PCF path is exercised separately in test_mega_transport.
+        with patch('curl_cffi.requests.Session', side_effect=ImportError('offline transport unavailable')):
+            yield
     finally:
         F._opener, F.time.sleep = saved
 
