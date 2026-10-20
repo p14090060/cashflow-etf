@@ -1827,13 +1827,27 @@
     },
     "00851": {
       "name": "台新全球AI",
-      "frequency": "不明",
+      "frequency": "年配",
       "months": [
         10
       ],
       "category": "高股息",
       "avg_dividend_per_share": 2.5,
-      "_todo": true
+      "_todo": true,
+      "frequency_evidence": {
+        "status": "verified",
+        "code": "00851",
+        "frequency": "年配",
+        "checked_at": "2026-10-20T15:47:07.198901+08:00",
+        "sources": [
+          {
+            "code": "00851",
+            "frequency": "年配",
+            "url": "https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00851",
+            "sha256": "8650c0c86be5ca201ba88fa388712dae789e8bd46bf3dd92abfd77cf897f1043"
+          }
+        ]
+      }
     },
     "00412A": {
       "name": "主動安聯亞半導體",
