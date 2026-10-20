@@ -6,7 +6,7 @@ scripts/mis_fetcher.py
 → 輸出 data/market.json（前端讀這個）
 """
 
-import json, sys, time, ssl, datetime
+import json, math, sys, time, ssl, datetime
 import urllib.request as _ur
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -56,6 +56,16 @@ def _fetch_url(url):
     with _ur.urlopen(req, timeout=12, context=SSL_CTX) as r:
         return json.loads(r.read().decode("utf-8"))
 
+
+def _mis_positive_price(value):
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+        return number if math.isfinite(number) and number > 0 else None
+    except (ValueError, TypeError):
+        return None
+
 def fetch_mis_etfs(codes, otc_codes=()):
     """
     codes: list of str（ETF 代碼）
@@ -75,30 +85,29 @@ def fetch_mis_etfs(codes, otc_codes=()):
             d = _fetch_url(f"{MIS_URL}?json=1&delay=0&ex_ch={ex_ch}")
             for item in d.get("msgArray", []):
                 code = str(item.get("c", "")).strip()
-                z    = item.get("z", "-")
-                y    = item.get("y", "-")
+                z    = _mis_positive_price(item.get("z"))
+                y    = _mis_positive_price(item.get("y"))
                 v    = item.get("v", "-")
                 t    = item.get("t", "")
                 if not code:
                     continue
                 # 當 z="-" 時，依序 fallback：買賣報價中點 → MIS 昨收(y)
-                if not z or z == "-":
+                if z is None:
                     a_str = item.get("a", "")  # ask: "29.40_29.41_..."
                     b_str = item.get("b", "")  # bid: "29.39_29.38_..."
-                    try:
-                        best_ask = float(a_str.split("_")[0]) if a_str else 0
-                        best_bid = float(b_str.split("_")[0]) if b_str else 0
-                        if best_ask > 0 and best_bid > 0:
-                            z = str(round((best_ask + best_bid) / 2, 4))
-                        elif best_ask > 0:
-                            z = str(best_ask)
-                        elif best_bid > 0:
-                            z = str(best_bid)
-                        elif y and y != "-":
-                            z = y  # 昨收作最終 fallback，比 yfinance 基線準
-                        else:
-                            continue
-                    except (ValueError, IndexError):
+                    # Parse each side independently: '-' on ask must not discard
+                    # an available bid (and vice versa).
+                    best_ask = _mis_positive_price(str(a_str or "").split("_")[0])
+                    best_bid = _mis_positive_price(str(b_str or "").split("_")[0])
+                    if best_ask is not None and best_bid is not None:
+                        z = round(best_ask / 2 + best_bid / 2, 4)
+                    elif best_ask is not None:
+                        z = best_ask
+                    elif best_bid is not None:
+                        z = best_bid
+                    elif y is not None:
+                        z = y  # Existing final fallback remains explicit MIS previous close.
+                    else:
                         continue
                 try:
                     price = float(z)
