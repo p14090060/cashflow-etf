@@ -12,6 +12,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
 from unittest.mock import patch
 
@@ -140,6 +141,24 @@ class RecoveryTests(unittest.TestCase):
             (root / "data/_base.json").write_text(json.dumps(base), encoding="utf-8")
             original_market = daily.MARKET.read_bytes()
             daily.KNOWN_CODES.write_text("[]", encoding="utf-8")
+            saved = {p: p.read_bytes() for p in (root / "data").iterdir() if p.is_file()}
+            before = types.ModuleType("daily_before_recovery")
+            before.__file__ = str(ROOT / "scripts/daily_check.py")
+            baseline = subprocess.check_output(["git", "-c", "safe.directory=" + str(ROOT),
+                                                "-C", str(ROOT), "show",
+                                                "5628fb794de891dc4e79323fc64add77390a20a7:scripts/daily_check.py"])
+            exec(compile(baseline, before.__file__, "exec"), before.__dict__)
+            for name in ("MARKET", "DIV_INFO", "DIV_CAL", "KNOWN_CODES", "DAILY_STATE", "ACTIVE_FLOW", "FETCH_ETF"):
+                setattr(before, name, getattr(daily, name))
+            before.ROOT = root
+            old_messages = []
+            before.notify = old_messages.append
+            with contextlib.redirect_stdout(io.StringIO()):
+                before.main()
+            self.assertTrue(any("00412A" in line and "配息方式不明" in line
+                                for msg in old_messages for line in msg.splitlines()))
+            for path, body in saved.items():
+                path.write_bytes(body)
             messages = []
             daily.notify = messages.append
             original_resolve = policy.resolve_frequency
