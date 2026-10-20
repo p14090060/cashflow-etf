@@ -185,6 +185,11 @@ class RecoveryTests(unittest.TestCase):
         self.assertLess(text.index("--defer-notifications"), text.index("git push"))
         self.assertLess(text.index("git push"), text.index("--send-prepared"))
         self.assertIn("steps.publish.outcome == 'success'", text)
+        import yaml
+        workflow = yaml.safe_load(text)
+        notification = next(s for s in workflow["jobs"]["fetch"]["steps"]
+                            if s.get("name") == "Notify only after publication verification")
+        self.assertIs(notification["continue-on-error"], True)
 
     def test_real_cli_requires_committed_remote_data_before_notifications(self):
         with tempfile.TemporaryDirectory(prefix="etf_notify_test_") as tmp:

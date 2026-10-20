@@ -66,6 +66,7 @@ jobs:
 
       - name: Notify only after publication verification
         if: always()
+        continue-on-error: true  # Notification failure must not block market synchronization.
         env:
           ETF_PUBLISH_OK: ${{ steps.publish.outcome == 'success' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
