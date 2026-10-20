@@ -179,6 +179,20 @@ class RecoveryTests(unittest.TestCase):
                 before = next(x for x in base["etfs"] if x["code"] == e["code"])
                 self.assertEqual(e["price"], before["price"])
             self.assertEqual(len(after["etfs"]), len(expected["etfs"]))
+            # Pending work must neither ask the user to fix data nor disappear
+            # from future new-entry checks after the lookup budget is exhausted.
+            static = json.loads(daily.DIV_INFO.read_bytes())
+            static["etfs"].pop("00412A", None)
+            daily.DIV_INFO.write_text(json.dumps(static), encoding="utf-8")
+            daily.KNOWN_CODES.write_text("[]", encoding="utf-8")
+            messages.clear()
+            original_recover = policy.recover_missing
+            with patch.object(policy, "recover_missing", side_effect=lambda rows, info: original_recover(rows, info, limit=0)), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                daily.main()
+            self.assertNotIn("00412A", json.loads(daily.KNOWN_CODES.read_bytes()))
+            self.assertFalse(any("00412A" in line and "配息方式不明" in line
+                                 for msg in messages for line in msg.splitlines()))
 
     def test_workflow_defers_notifications_until_after_push(self):
         text = (ROOT / ".github/workflows/fetch.yml").read_text(encoding="utf-8")

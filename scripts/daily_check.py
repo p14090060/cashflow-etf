@@ -489,6 +489,13 @@ def main():
 
     # ── TOP 100 新進偵測 ──
     new_entries = check_new_in_top100(etfs)
+    # A queued lookup is not an acknowledged/handled issue. Keep deferred
+    # entrants eligible so a later exhausted lookup can still raise its alert.
+    deferred_codes = {r["code"] for r in recovery["attempts"] if r.get("status") == "deferred"}
+    if deferred_codes:
+        known = load(KNOWN_CODES)
+        if isinstance(known, list):
+            save_json(KNOWN_CODES, [code for code in known if code not in deferred_codes])
 
     # ── _YLD_PENDING 逾期未複查 ──
     stale = check_stale_pending()
