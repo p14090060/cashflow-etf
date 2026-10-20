@@ -38,5 +38,23 @@
     "00932": 0,
     "00936": 0,
     "00939": 0
+  },
+  "frequency_recovery": {
+    "00851": {
+      "at": "2026-10-20T15:26:45.696399+08:00",
+      "result": {
+        "code": "00851",
+        "status": "unresolved",
+        "reason": "official policy unavailable or conflicting",
+        "attempts": [
+          {
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00851",
+            "sha256": "da13b572254beb0f07ddd82848004bca1472bd388bab259c698592d5702009c5",
+            "bytes": 20876,
+            "status": "received"
+          }
+        ]
+      }
+    }
   }
 }
