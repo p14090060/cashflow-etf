@@ -304,8 +304,10 @@ def detect_div_freq(tk, code, name="", hist_days=0):
         import pandas as _pd
         divs = tk.dividends
         if len(divs) == 0:
-            # 有 1 年以上交易紀錄卻從未配息 → 確認不配
-            return "不配息" if hist_days >= 200 else "不明"
+            # D-062：沒有配息歷史不等於「不配息」（可能尚未首次配息、資料源缺漏）。
+            # 前面的已核靜態／人工表／名稱／官方政策都沒有結果時一律回「不明」，
+            # 不論交易天數多長；確認不配息只能來自上述可信來源。
+            return "不明"
         cutoff = _pd.Timestamp.now(tz='UTC') - _pd.Timedelta(days=1095)
         recent = divs[divs.index > cutoff]
         n = len(recent)
