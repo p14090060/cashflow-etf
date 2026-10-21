@@ -101,10 +101,11 @@ def fetch_mis_etfs(codes, otc_codes=()):
                     best_bid = _mis_positive_price(str(b_str or "").split("_")[0])
                     if best_ask is not None and best_bid is not None:
                         z = round(best_ask / 2 + best_bid / 2, 4)
-                    elif best_ask is not None:
-                        z = best_ask
-                    elif best_bid is not None:
-                        z = best_bid
+                    elif best_ask is not None or best_bid is not None:
+                        # D-060: no valid trade and only one side quoted — a lone
+                        # resting order is not a price. Skip this record so the
+                        # ETF keeps its baseline (existing missing-MIS path).
+                        continue
                     elif y is not None:
                         z = y  # Existing final fallback remains explicit MIS previous close.
                     else:
