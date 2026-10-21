@@ -1,16 +1,16 @@
 {
   "format": "etf-pool-cache/v2",
   "complete": true,
-  "saved_at": "2026-10-21T09:07:02+08:00",
+  "saved_at": "2026-10-21T15:09:17+08:00",
   "markets": {
     "上市": {
       "str_mode": 2,
       "rows": 196,
       "source": {
         "url": "https://isin.twse.com.tw/isin/C_public.jsp?strMode=2",
-        "sha256": "691613ec165d4a2d83e40d6fa165bfb5bb4bfe55e801aee900e2933fec983192",
-        "bytes": 9472235,
-        "fetched_at": "2026-10-21T09:06:12+08:00"
+        "sha256": "e6a8145231717a2f13ffaeb274f2b67a0b49f2e6a45230d1bf72bb6d039febe6",
+        "bytes": 9575341,
+        "fetched_at": "2026-10-21T15:06:26+08:00"
       }
     },
     "上櫃": {
@@ -18,9 +18,9 @@
       "rows": 26,
       "source": {
         "url": "https://isin.twse.com.tw/isin/C_public.jsp?strMode=4",
-        "sha256": "4381358b5e3fdd2db1cd865be2a9d9b8bebce44520f4e4fedb5afdcd1349baee",
-        "bytes": 3141628,
-        "fetched_at": "2026-10-21T09:07:02+08:00"
+        "sha256": "eb19233faa721595437286ac3379573161e1431effe3ec89e1dc037f1a5fd403",
+        "bytes": 3166665,
+        "fetched_at": "2026-10-21T15:09:17+08:00"
       }
     }
   },

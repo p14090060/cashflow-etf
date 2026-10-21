@@ -18,14 +18,14 @@
       "name": "元大高股息",
       "ex_dividend_date": "2026-10-22",
       "amount": 1.72,
-      "amount_source": "TWSE × FinMind 核實"
+      "amount_source": "TWSE"
     },
     "00929": {
       "code": "00929",
       "name": "復華台灣科技優息",
       "ex_dividend_date": "2026-10-21",
       "amount": 0.38,
-      "amount_source": "TWSE × FinMind 核實"
+      "amount_source": "TWSE"
     }
   }
 }
