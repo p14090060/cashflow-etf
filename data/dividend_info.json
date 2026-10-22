@@ -1871,6 +1871,59 @@
       "months": [],
       "avg_dividend_per_share": null,
       "_todo": true
+    },
+    "00639": {
+      "name": "富邦深100",
+      "frequency": "不配息",
+      "months": [],
+      "category": "",
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency_evidence": {
+        "status": "verified",
+        "code": "00639",
+        "frequency": "不配息",
+        "policy_statement": "收益分配不配息，基金之收益全部併入基金資產",
+        "sources": [
+          {
+            "code": "00639",
+            "frequency": "不配息",
+            "url": "https://www.fubon.com/asset-management/fund/info/fund?Fd=48",
+            "sha256": "4e617ad706e5753347481ecfbf3c7c63c2c4229d2bb809fcd2b70484348c1fb8",
+            "kind": "fubon_fund_page"
+          }
+        ],
+        "identity": {
+          "code": "00639",
+          "full_name": "富邦深証100證券投資信託基金",
+          "short_name": "富邦深100",
+          "issuer": "富邦證券投資信託股份有限公司",
+          "twse_url": "https://www.twse.com.tw/zh/ETFortune/etfInfo/00639",
+          "twse_sha256": "b377d700c1899148b63c6fb925ffae19d6ae24409fb7f4dd6300181970bf4b40"
+        },
+        "checked_at": "2026-10-22T18:51:02.936952+08:00"
+      }
+    },
+    "00752": {
+      "name": "中信中國50",
+      "frequency": "不配息",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00887": {
+      "name": "永豐中國科技50大",
+      "frequency": "不配息",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00893": {
+      "name": "國泰智能電動車",
+      "frequency": "不配息",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
