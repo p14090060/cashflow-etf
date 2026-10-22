@@ -1924,6 +1924,486 @@
       "months": [],
       "avg_dividend_per_share": null,
       "_todo": true
+    },
+    "006205": {
+      "name": "富邦上証",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "006205",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "富邦上証",
+        "full_name": "富邦上証180基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "006207": {
+      "name": "復華滬深",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "006207",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "復華滬深",
+        "full_name": "復華滬深300 A股基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00636": {
+      "name": "國泰中國A50",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00636",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "國泰中國A50",
+        "full_name": "國泰富時中國A50基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00645": {
+      "name": "富邦日本",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00645",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "富邦日本",
+        "full_name": "富邦日本東証基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00657": {
+      "name": "國泰日經225",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00657",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "國泰日經225",
+        "full_name": "國泰日本ETF傘型基金之日經225基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00661": {
+      "name": "元大日經225",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "年配",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00661",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "元大日經225",
+        "full_name": "元大日經225基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00668": {
+      "name": "國泰美國道瓊",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00668",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "國泰美國道瓊",
+        "full_name": "國泰美國ETF傘型基金之道瓊工業平均指數基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00678": {
+      "name": "群益那斯達克生技",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00678",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "群益那斯達克生技",
+        "full_name": "群益那斯達克生技基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00700": {
+      "name": "富邦恒生國企",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00700",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "富邦恒生國企",
+        "full_name": "富邦恒生國企ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00703": {
+      "name": "台新MSCI中國",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00703",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "台新MSCI中國",
+        "full_name": "台新MSCI中國基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00709": {
+      "name": "富邦歐洲",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00709",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "富邦歐洲",
+        "full_name": "富邦富時歐洲ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00737": {
+      "name": "國泰AI機器人",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00737",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "國泰AI機器人",
+        "full_name": "國泰趨勢ETF傘型基金之納斯達克全球人工智慧及機器人基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00762": {
+      "name": "元大全球AI",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00762",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "元大全球AI",
+        "full_name": "元大全球人工智慧ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00861": {
+      "name": "元大全球未來通訊",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00861",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "元大全球未來通訊",
+        "full_name": "元大全球未來通訊ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00875": {
+      "name": "國泰網路資安",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00875",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "國泰網路資安",
+        "full_name": "國泰網路資安ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00876": {
+      "name": "元大全球5G",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00876",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "元大全球5G",
+        "full_name": "元大全球5G關鍵科技ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00895": {
+      "name": "富邦未來車",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00895",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "富邦未來車",
+        "full_name": "富邦未來車ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00897": {
+      "name": "富邦基因免疫生技",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00897",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "富邦基因免疫生技",
+        "full_name": "富邦基因免疫生技ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00898": {
+      "name": "國泰基因免疫革命",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00898",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "國泰基因免疫革命",
+        "full_name": "國泰全球基因免疫與醫療革命ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00899": {
+      "name": "FT潔淨能源",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00899",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "FT潔淨能源",
+        "full_name": "富蘭克林華美全球潔淨能源ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00903": {
+      "name": "富邦元宇宙",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "季配",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00903",
+        "frequency": "季配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "富邦元宇宙",
+        "full_name": "富邦元宇宙ETF基金",
+        "classification": "不分級別/分配(季配)",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "00886": {
+      "name": "永豐美國科技",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "不配息",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00886",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "永豐美國科技",
+        "full_name": "永豐美國科技ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "009806": {
+      "name": "台新標普500",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "年配",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "009806",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "台新標普500",
+        "full_name": "台新全球傘型基金之台新標普500 ETF基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
+    },
+    "009807": {
+      "name": "台新標普科技精選",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "年配",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "009807",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "台新標普科技精選",
+        "full_name": "台新全球傘型基金之標普科技精選 ETF 基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      }
     }
   },
   "calendar": [
@@ -1934,7 +2414,7 @@
       "code": "00940",
       "name": "元大台灣價值高息",
       "amt": 0.06,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {

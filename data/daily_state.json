@@ -1,15 +1,15 @@
 {
   "yld_prev": {
-    "0056": 8.4,
+    "0056": 8.8,
     "00713": 5.8,
     "0050": 1.5,
     "00919": 10.5,
     "006208": 2.0,
     "00403A": 0.0,
-    "00878": 7.0,
+    "00878": 7.1,
     "00940": 4.67,
-    "00929": 8.6,
-    "00850": 3.4,
+    "00929": 8.8,
+    "00850": 3.5,
     "00646": 0.0,
     "00662": 0.0,
     "00701": 7.8,
@@ -40,149 +40,29 @@
     "00939": 0
   },
   "frequency_recovery": {
-    "00851": {
-      "at": "2026-10-20T15:26:45.696399+08:00",
-      "result": {
-        "code": "00851",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00851",
-            "sha256": "da13b572254beb0f07ddd82848004bca1472bd388bab259c698592d5702009c5",
-            "bytes": 20876,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "006205": {
-      "at": "2026-10-22T09:30:40.802206+08:00",
-      "result": {
-        "code": "006205",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=006205",
-            "sha256": "d820d9992559b11796ede8f62b7edbc99eea7bca280822418c138102011868a4",
-            "bytes": 20877,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "006207": {
-      "at": "2026-10-22T09:30:40.802206+08:00",
-      "result": {
-        "code": "006207",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=006207",
-            "sha256": "218ce6cfe4537f77ae674e414ec729701ff1b2edb19bccc29e2f826993745156",
-            "bytes": 20877,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "00636": {
-      "at": "2026-10-22T09:30:40.802206+08:00",
-      "result": {
-        "code": "00636",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00636",
-            "sha256": "0c8cd1170dd40c54fb4ae4a44ce20c2da4f1db3c6e4b35511cf92351cf629019",
-            "bytes": 20876,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "00636K": {
-      "at": "2026-10-22T09:30:40.802206+08:00",
-      "result": {
-        "code": "00636K",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00636K",
-            "sha256": "cbf06f9b65ced576b9498027cf157d8d8b22bf807339b941517d1e5f6bee89b7",
-            "bytes": 20877,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "00639": {
-      "at": "2026-10-22T15:26:29.127931+08:00",
-      "result": {
-        "code": "00639",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00639",
-            "sha256": "756acb3c4da2d5f8ce464fd1c1bd00474a7c98345f624bed2af0ea480e3b5d15",
-            "bytes": 20876,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "00643K": {
-      "at": "2026-10-22T15:26:29.127931+08:00",
-      "result": {
-        "code": "00643K",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00643K",
-            "sha256": "5c9c63c732eca4892fe42e91f66636e0ef1386236838c973e577437f909e2786",
-            "bytes": 20877,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "00645": {
-      "at": "2026-10-22T15:26:29.127931+08:00",
-      "result": {
-        "code": "00645",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00645",
-            "sha256": "d373a7ff440e7e76b2aba37ba69a322a8c4a6e5890a6651d9c9f5c09632dc749",
-            "bytes": 20876,
-            "status": "received"
-          }
-        ]
-      }
-    },
-    "00657": {
-      "at": "2026-10-22T15:26:29.127931+08:00",
-      "result": {
-        "code": "00657",
-        "status": "unresolved",
-        "reason": "official policy unavailable or conflicting",
-        "attempts": [
-          {
-            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00657",
-            "sha256": "c2128614006af8d001cec457f0392ce2f429c4cacb290f0d0799e2d99c3ee256",
-            "bytes": 20876,
-            "status": "received"
-          }
-        ]
-      }
-    }
-  }
+    "00646": 1792686965.363258,
+    "00735": 1792686965.363258,
+    "009808": 1792686965.363258,
+    "009818": 1792686965.363258
+  },
+  "policy_status": {
+    "00646": 4,
+    "00735": 4,
+    "009808": 4,
+    "009818": 4,
+    "00984A": 1
+  },
+  "policy_first": {
+    "00646": 1792686965.363258,
+    "00735": 1792686965.363258,
+    "009808": 1792686965.363258,
+    "009818": 1792686965.363258
+  },
+  "policy_rounds": {
+    "00646": 1,
+    "00735": 1,
+    "009808": 1,
+    "009818": 1
+  },
+  "policy_notified": {}
 }
