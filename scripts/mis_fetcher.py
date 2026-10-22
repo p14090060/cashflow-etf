@@ -11,6 +11,7 @@ import urllib.request as _ur
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from daily_check import no_distribution_note   # D-053：與 D-052 TG 告警同一套官方「本期不分配」判定
+from official_frequency import policy_source_problem as _policy_source_problem   # D-071 R1：與 daily 同一套新來源有效性規則
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
 try:
@@ -226,6 +227,8 @@ def calc_yield_with_source(code: str, price: float,
 
     info       = div_etfs.get(code, {})
     frequency  = info.get("frequency", "季配")
+    if _policy_source_problem(code, info) not in (None, "absent"):
+        frequency = "不明"                   # D-071 R1：失效新來源的頻率不參與殖利率推算（與未知政策同處理）
     multiplier = FREQ_MAP.get(frequency, 4)
 
     if multiplier == 0:
@@ -541,6 +544,8 @@ def main():
         d = div_etfs.get(code, {})
         if d:
             e["div_frequency"]     = d.get("frequency", e.get("div_freq", "不明"))
+            if _policy_source_problem(code, d) not in (None, "absent"):
+                e["div_frequency"] = "不明"          # D-071 R1：新來源證據失效 → 不採用其頻率（不帶回 _base 舊值）
             e["div_months"]        = d.get("months", [])
             e["div_avg_per_share"] = d.get("avg_dividend_per_share")
             e["div_category"]      = d.get("category", "")

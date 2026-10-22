@@ -14,6 +14,8 @@ except Exception:
 OUT_BASE  = Path(__file__).parent / "data" / "_base.json"
 OUT_DIV   = Path(__file__).parent / "data" / "dividend_info.json"
 POOL_CACHE = Path(__file__).parent / "data" / "etf_pool_cache.json"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from scripts.official_frequency import policy_source_problem as _policy_source_problem   # D-071 R1：與 daily／mis 同一套新來源規則
 
 # 啟動時載入 dividend_info.json，_todo:false 的條目作為最高優先來源
 def _load_confirmed_freq():
@@ -24,6 +26,7 @@ def _load_confirmed_freq():
             code: meta["frequency"]
             for code, meta in info.get("etfs", {}).items()
             if not meta.get("_todo", True) and meta.get("frequency")
+            and _policy_source_problem(code, meta) in (None, "absent")      # D-071 R1：失效新來源不當已確認
         }
     except Exception:
         return {}

@@ -34,10 +34,12 @@ TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 
-def notify(msg: str):
+def notify(msg: str) -> bool:
+    """送 Telegram；API 回 ok=true 才回 True（D-071：送達確認後才記錄回執）。錯誤訊息不含 token。"""
     print(f"[NOTIFY] {msg}")
     if not TG_TOKEN or not TG_CHAT_ID:
-        return
+        print("[NOTIFY FAILED] 未設定 TELEGRAM_BOT_TOKEN／TELEGRAM_CHAT_ID，訊息未發送", file=sys.stderr)
+        return False
     try:
         data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg}).encode()
         req  = urllib.request.Request(
@@ -45,9 +47,92 @@ def notify(msg: str):
             data=data,
             headers={"Content-Type": "application/json"},
         )
-        urllib.request.urlopen(req, timeout=10)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+        if body.get("ok") is not True:
+            raise RuntimeError("Telegram 回應失敗：%s" % body.get("error_code"))
     except Exception as e:
-        print(f"[NOTIFY ERROR] {e}", file=sys.stderr)
+        print(f"[NOTIFY ERROR] {type(e).__name__}: {str(e).replace(TG_TOKEN, '***') if TG_TOKEN else e}", file=sys.stderr)
+        return False
+    return True
+
+
+def _now():
+    return time.time()
+
+
+# ── D-071：配息政策缺值自動查證的跨輪狀態與求助門檻 ──
+# daily_state 只放 {欄位: {代號: 數值}}（與 87176ee6 json_safe.validate_daily_state 相容）：
+#   frequency_recovery 上次 TWSE 逐檔查詢 epoch；policy_status 狀態碼（official_frequency.QUEUED…NO_RESULT）；
+#   policy_first 第一次「完成判讀仍無解」epoch；policy_rounds 完成判讀仍無解的輪數；policy_notified 求助確認送達 epoch。
+POLICY_HELP_ROUNDS  = 3
+POLICY_HELP_SECONDS = 24 * 3600
+POLICY_REMIND_DAYS  = 14
+POLICY_HELP_MAX     = 15
+POLICY_KEYS = ("frequency_recovery", "policy_status", "policy_first", "policy_rounds", "policy_notified")
+ACK = {}                 # 本輪求助訊息要求的送達回執 {"policy_notified": [代號]}
+ACK_MESSAGE = [None]
+
+
+def _num_map(v):
+    return {c: x for c, x in (v or {}).items() if isinstance(c, str) and isinstance(x, (int, float))
+            and not isinstance(x, bool) and math.isfinite(x)} if isinstance(v, dict) else {}
+
+
+def update_policy_state(state, result, now):
+    """依本輪查證結果更新跨輪狀態；回傳達求助門檻的代號（未在 POLICY_REMIND_DAYS 內確認送達過）。"""
+    import official_frequency as of
+    st = {k: _num_map(state.get(k)) for k in POLICY_KEYS}
+    for c in result["twse_tried"]:
+        st["frequency_recovery"][c] = now
+    tracked = set(result["status"])
+    for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
+        st[k] = {c: v for c, v in st[k].items() if c in tracked}        # 已不再未知／衝突者清除
+    for c, s in result["status"].items():
+        if s == of.ADOPTED:
+            for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
+                st[k].pop(c, None)
+            continue
+        st["policy_status"][c] = s                   # R1：照實記錄本輪狀態（排隊／暫時失敗不沿用舊的無解）
+        if c in result["completed"]:                 # 只有支援來源都完成判讀才算一輪；排隊／暫時失敗不算
+            st["policy_first"].setdefault(c, now)
+            st["policy_rounds"][c] = st["policy_rounds"].get(c, 0) + 1
+    state.update(st)
+    # R1：只有本輪所有適用來源都實際讀完（completed）仍無解／矛盾才可能求助；歷史輪數保留但不冒充本輪已查完
+    due = [c for c, s in st["policy_status"].items()
+           if c in result["completed"] and s in (of.CONFLICT, of.NO_RESULT) and st["policy_rounds"].get(c, 0) >= POLICY_HELP_ROUNDS
+           and now - st["policy_first"].get(c, now) >= POLICY_HELP_SECONDS
+           and now - st["policy_notified"].get(c, 0) >= POLICY_REMIND_DAYS * 86400]
+    return sorted(due, key=lambda c: (st["policy_first"][c], c))
+
+
+def policy_help_lines(due, result, state, names):
+    """達門檻的彙整求助（工程摘要）：列已查來源／輪數／時間／缺口，不要求 PO 代查官網。列出者才要求送達回執。"""
+    import official_frequency as of
+    if not due:
+        return []
+    fmt = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone(datetime.timedelta(hours=8))).strftime("%m/%d %H:%M")
+    shown = due[:POLICY_HELP_MAX]
+    sitca = result["sitca"]
+    out = ["🔎 配息政策自動查證仍無解（%d 檔；已跨 %d 輪、24 小時以上）" % (len(due), POLICY_HELP_ROUNDS),
+           "支援的自動來源只有投信投顧公會 ETF 基本資料月報（本輪 %s，更新 %s）與 TWSE ETFortune 政策公告；"
+           "其他發行人網站未自動支援，不代表所有官方皆查無。每檔列本輪實際讀過的來源" % (sitca.get("report_month") or "未取得", sitca.get("updated") or "—")]
+    for c in shown:
+        out.append("• %s %s：%s；本輪已查 %s；%s（完成判讀 %d 輪，首次 %s）" % (
+            c, names.get(c, ""), of.STATUS_TEXT[state["policy_status"][c]], "＋".join(result["checked"].get(c) or []),
+            result["detail"].get(c, ""), state["policy_rounds"][c], fmt(state["policy_first"][c])))
+    if len(due) > len(shown):
+        out.append("…其餘 %d 檔下輪接續列出" % (len(due) - len(shown)))
+    ACK.setdefault("policy_notified", []).extend(shown)
+    return out
+
+
+def _apply_ack(state, ack, now=None):
+    now = _now() if now is None else now
+    for key, codes in ack.items():
+        cur = state.get(key) if isinstance(state.get(key), dict) else {}
+        cur.update({c: now for c in codes})
+        state[key] = cur
 
 
 def load(path):
@@ -340,21 +425,23 @@ def main():
     info_map = div_info.get("etfs", {})
     cal_map  = (div_cal or {}).get("etfs", {})
 
-    # Missing policy is a recovery task before it becomes a user alert.
-    from official_frequency import recover_missing
-    frequency_state = (load(DAILY_STATE) or {}).get("frequency_recovery", {})
-    # Least recently attempted first: a bounded run must not starve later ETFs.
-    candidates = sorted(etfs, key=lambda row: frequency_state.get(row.get("code"), {}).get("at", ""))
-    recovery = recover_missing(candidates, info_map)
-    recovery_by_code = {r["code"]: r for r in recovery["attempts"]}
-    checked_at = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat()
-    for attempt in recovery["attempts"]:
-        if attempt.get("status") != "deferred":
-            frequency_state[attempt["code"]] = {"at": checked_at, "result": attempt}
-    if recovery["recovered"]:
+    # D-071：全體未知政策（不限 TOP100／新進）先自動查證；合格就同輪寫入候選，經既有發布步驟採用。
+    import official_frequency
+    ACK.clear()
+    ACK_MESSAGE[0] = None
+    now_ts = _now()
+    tz8 = datetime.timezone(datetime.timedelta(hours=8))
+    policy_state = load(DAILY_STATE) or {}
+    recovery = official_frequency.recover_policies(
+        etfs, info_map, _num_map(policy_state.get("frequency_recovery")),
+        datetime.datetime.fromtimestamp(now_ts, tz8).date(), datetime.datetime.fromtimestamp(now_ts, tz8).isoformat())
+    for c, s in sorted(recovery["status"].items()):
+        print("[POLICY] %s %s %s" % (c, official_frequency.STATUS_TEXT[s], recovery["detail"].get(c, "")))
+    print("[POLICY] SITCA %s" % json.dumps(recovery["sitca"], ensure_ascii=False))
+    if recovery["adopted"]:
         div_info["etfs"] = info_map
         save_json(DIV_INFO, div_info)
-        print("[AUTO-RECOVERY] official frequency: " + ",".join(recovery["recovered"]))
+        print("[AUTO-RECOVERY] official policy adopted: " + ",".join(recovery["adopted"]))
     # Propagate verified static policy to this run's baseline, without changing
     # any quote, yield, date, signal or unrelated product field.
     base_path = ROOT / "data" / "_base.json"
@@ -364,7 +451,7 @@ def main():
         for row in current_base.get("etfs", []):
             meta = info_map.get(row.get("code"), {})
             if (row.get("div_freq") or row.get("div_frequency")) in (None, "", "?", "不明"):
-                frequency = meta.get("frequency") if isinstance(meta, dict) else None
+                frequency = official_frequency.known_policy(row.get("code"), meta)   # R1：壞 policy_source 不疊回
                 if frequency not in (None, "", "?", "不明"):
                     key = "div_frequency" if "div_frequency" in row else "div_freq"
                     row[key] = frequency
@@ -384,7 +471,7 @@ def main():
 
     # ── 載入跨日狀態 ──
     state      = load(DAILY_STATE) or {}
-    state["frequency_recovery"] = frequency_state
+    policy_due = update_policy_state(state, recovery, now_ts)
     yld_prev   = state.get("yld_prev", {})
     vol_streak = state.get("zero_vol_streak", {})
 
@@ -491,7 +578,7 @@ def main():
     new_entries = check_new_in_top100(etfs)
     # A queued lookup is not an acknowledged/handled issue. Keep deferred
     # entrants eligible so a later exhausted lookup can still raise its alert.
-    deferred_codes = {r["code"] for r in recovery["attempts"] if r.get("status") == "deferred"}
+    deferred_codes = {c for c, s in recovery["status"].items() if s != official_frequency.ADOPTED}
     if deferred_codes:
         known = load(KNOWN_CODES)
         if isinstance(known, list):
@@ -532,11 +619,8 @@ def main():
         yld     = e.get("yld", 0)
         ret1y   = e.get("ret1y", 0)
         warn = []
-        recovery_deferred = recovery_by_code.get(e["code"], {}).get("status") == "deferred"
-        if freq in ("不明", "?", ""):
-            attempt = recovery_by_code.get(e["code"], {})
-            if not recovery_deferred:
-                warn.append("配息方式不明（官方補查未能確認，系統保留原資料）")
+        # D-071：政策未知不在這裡直接求助（一次查無／排隊／暫時失敗都不是 PO 工作），交給下方達門檻的彙整求助
+        recovery_deferred = (e["code"] in recovery["status"] and e["code"] not in recovery["conflicts_known"]) or freq in ("不明", "?", "")
         if not yld and not is_new and not no_div and not pending and not recovery_deferred:
             note, why = no_distribution_note(e["code"], info_map.get(e["code"]), cal_map.get(e["code"]), today_tw)
             if note:
@@ -549,6 +633,7 @@ def main():
             problem_entries.append(
                 f"• {e['code']} {e.get('name','')}：{'、'.join(warn)}"
             )
+    lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in etfs}))
     if problem_entries:
         lines.append("🆕 新進 TOP 100 資料異常")
         lines.extend(problem_entries)
@@ -557,9 +642,60 @@ def main():
         lines.extend(note_entries)
 
     if lines:
-        notify("\n".join(lines))
+        msg = "\n".join(lines)
+        ok = notify(msg)
+        if any(ACK.values()):
+            ACK_MESSAGE[0] = msg
+            if ok is True:                       # 直接模式：確認送達才寫回執；延後模式由 --send-prepared 處理
+                _apply_ack(state, ACK)
+                save_json(DAILY_STATE, state)
     else:
         print("[OK] 所有監控 ETF 資料正常，TOP 100 無新進")
+
+
+def _git(*a):
+    import subprocess
+    return subprocess.run(["git", *a], cwd=ROOT, capture_output=True)
+
+
+def persist_ack(codes, head, published, prepared_digest):
+    """求助確認送達後保存回執。R1：完全不碰共用 index、HEAD 與工作目錄——以「已發布版（＝本輪 HEAD）」的 daily_state
+    為底套上回執，用私有暫存 index（GIT_INDEX_FILE）建只改 data/daily_state.json 的 commit（父＝head），
+    push <commit>:refs/heads/main（不 force、被拒不重試）。任何不符／失敗 → 不推、不假稱已保存（下輪重送），
+    也不需要清理（沒有改動任何共用狀態）。"""
+    import hashlib, os, subprocess, tempfile
+    if published != head:
+        print("[ACK] 遠端 main 已被其他 writer 前進：回執不保存，下輪仍會重送")
+        return False
+    base = _git("show", head + ":data/daily_state.json")
+    if base.returncode != 0 or hashlib.sha256(base.stdout.replace(b"\r\n", b"\n")).hexdigest() != prepared_digest:
+        print("[ACK] 已發布的 daily_state 不是本輪核驗那份：回執不保存，下輪仍會重送")
+        return False
+    state = json.loads(base.stdout.decode("utf-8"))
+    _apply_ack(state, codes)
+    body = (json.dumps(state, ensure_ascii=False, indent=2)).encode("utf-8")
+    fd, index = tempfile.mkstemp(prefix="ack_index_")
+    os.close(fd)
+    os.remove(index)
+    env = dict(os.environ, GIT_INDEX_FILE=index)
+    run = lambda *a, **k: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, env=env, **k)
+    try:
+        blob = run("hash-object", "-w", "--stdin", input=body).stdout.decode().strip()
+        ok = (len(blob) == 40 and run("read-tree", head).returncode == 0
+              and run("update-index", "--cacheinfo", "100644," + blob + ",data/daily_state.json").returncode == 0)
+        tree = run("write-tree").stdout.decode().strip() if ok else ""
+        commit = run("commit-tree", tree, "-p", head, "-m", "chore: record policy help receipt").stdout.decode().strip() if len(tree) == 40 else ""
+        ok = (len(commit) == 40
+              and _git("diff-tree", "--no-commit-id", "--name-only", "-r", head, commit).stdout.decode().split() == ["data/daily_state.json"]
+              and _git("push", "-q", "origin", commit + ":refs/heads/main").returncode == 0)
+    finally:
+        if os.path.exists(index):
+            os.remove(index)
+    if ok:
+        print("[ACK] 送達回執已保存（%s）：%s" % (commit[:8], "；".join(f"{k}={','.join(v)}" for k, v in codes.items())))
+        return True
+    print("[ACK] 回執未能保存（未改動共用 index／HEAD／工作目錄）：下輪仍會重送")
+    return False
 
 
 def cli():
@@ -595,8 +731,18 @@ def cli():
             if hashlib.sha256(blob.replace(b"\r\n", b"\n")).hexdigest() != digest:
                 notify("🚨 自動修復候選與已發布資料不一致；系統下輪重新核對")
                 return 1
-        for message in prepared["messages"]:
-            notify(message)
+        ack = prepared.get("ack") or {}
+        ok_all = True
+        for i, message in enumerate(prepared["messages"]):
+            delivered = notify(message)
+            ok_all = ok_all and delivered is True
+            if ack and i == ack.get("message_index"):
+                if delivered is True:
+                    ok_all = persist_ack(ack["codes"], head, published, prepared["data_sha256"].get("daily_state.json")) and ok_all
+                else:
+                    print("[ACK] 求助訊息未送達：不寫回執，下輪仍會重送")
+        if not ok_all:
+            print("[NOTIFY] 有訊息未送達或回執未保存；下輪重送（結束碼沿用現役：通知步驟不擋後續流程）")
         return 0
     if not args.defer_notifications:
         main()
@@ -613,7 +759,10 @@ def cli():
                 data_hashes[name] = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
         path = Path(args.defer_notifications)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({"messages": messages, "data_sha256": data_hashes}, ensure_ascii=False), encoding="utf-8")
+        doc = {"messages": messages, "data_sha256": data_hashes}
+        if any(ACK.values()) and ACK_MESSAGE[0] in messages:
+            doc["ack"] = {"message_index": messages.index(ACK_MESSAGE[0]), "codes": {k: v for k, v in ACK.items() if v}}
+        path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
         print("[NOTIFY] Prepared; no Telegram sent before publication")
     finally:
         globals()["notify"] = original

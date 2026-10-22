@@ -164,7 +164,8 @@ class RecoveryTests(unittest.TestCase):
             original_resolve = policy.resolve_frequency
             def resolver(code):
                 return original_resolve(code, lambda u: SEARCH if "newsList?" in u else RAW) if code == "00412A" else {"status": "unresolved", "reason": "fixture unavailable"}
-            with patch.object(policy, "resolve_frequency", resolver), contextlib.redirect_stdout(io.StringIO()):
+            with patch.object(policy, "resolve_frequency", resolver), contextlib.redirect_stdout(io.StringIO()), \
+                    patch.object(policy, "_get_sitca", lambda url: (_ for _ in ()).throw(OSError("offline"))):   # D-071：SITCA 不連網
                 daily.main()
             self.assertEqual(json.loads(daily.DIV_INFO.read_bytes())["etfs"]["00412A"]["frequency"], "不配息")
             for message in messages:
@@ -186,8 +187,12 @@ class RecoveryTests(unittest.TestCase):
             daily.DIV_INFO.write_text(json.dumps(static), encoding="utf-8")
             daily.KNOWN_CODES.write_text("[]", encoding="utf-8")
             messages.clear()
-            original_recover = policy.recover_missing
-            with patch.object(policy, "recover_missing", side_effect=lambda rows, info: original_recover(rows, info, limit=0)), \
+            # D-071 適配：daily 改用 recover_policies（全體未知＋SITCA 月報＋TWSE 輪替）；同一斷言：查詢額度用完
+            # （limit=0、SITCA 不可用）的待查項目不得要求使用者修資料，也不得從 known_codes 消失。
+            original_recover = policy.recover_policies
+            offline = lambda url: (_ for _ in ()).throw(OSError("offline"))
+            with patch.object(policy, "recover_policies",
+                              side_effect=lambda *a, **k: original_recover(*a, **dict(k, limit=0, sitca_get=offline))), \
                     contextlib.redirect_stdout(io.StringIO()):
                 daily.main()
             self.assertNotIn("00412A", json.loads(daily.KNOWN_CODES.read_bytes()))
