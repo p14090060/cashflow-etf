@@ -119,6 +119,70 @@
           }
         ]
       }
+    },
+    "00639": {
+      "at": "2026-10-22T15:26:29.127931+08:00",
+      "result": {
+        "code": "00639",
+        "status": "unresolved",
+        "reason": "official policy unavailable or conflicting",
+        "attempts": [
+          {
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00639",
+            "sha256": "756acb3c4da2d5f8ce464fd1c1bd00474a7c98345f624bed2af0ea480e3b5d15",
+            "bytes": 20876,
+            "status": "received"
+          }
+        ]
+      }
+    },
+    "00643K": {
+      "at": "2026-10-22T15:26:29.127931+08:00",
+      "result": {
+        "code": "00643K",
+        "status": "unresolved",
+        "reason": "official policy unavailable or conflicting",
+        "attempts": [
+          {
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00643K",
+            "sha256": "5c9c63c732eca4892fe42e91f66636e0ef1386236838c973e577437f909e2786",
+            "bytes": 20877,
+            "status": "received"
+          }
+        ]
+      }
+    },
+    "00645": {
+      "at": "2026-10-22T15:26:29.127931+08:00",
+      "result": {
+        "code": "00645",
+        "status": "unresolved",
+        "reason": "official policy unavailable or conflicting",
+        "attempts": [
+          {
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00645",
+            "sha256": "d373a7ff440e7e76b2aba37ba69a322a8c4a6e5890a6651d9c9f5c09632dc749",
+            "bytes": 20876,
+            "status": "received"
+          }
+        ]
+      }
+    },
+    "00657": {
+      "at": "2026-10-22T15:26:29.127931+08:00",
+      "result": {
+        "code": "00657",
+        "status": "unresolved",
+        "reason": "official policy unavailable or conflicting",
+        "attempts": [
+          {
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00657",
+            "sha256": "c2128614006af8d001cec457f0392ce2f429c4cacb290f0d0799e2d99c3ee256",
+            "bytes": 20876,
+            "status": "received"
+          }
+        ]
+      }
     }
   }
 }
