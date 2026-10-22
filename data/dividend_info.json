@@ -1857,6 +1857,20 @@
       "avg_dividend_per_share": null,
       "_todo": false,
       "_source": "2026-10-20 Allianz official: fund does not distribute income. https://etf.allianzgi.com.tw/eventsite/00412A/index.html ; TWSE: income not distributed. https://wwwc.twse.com.tw/zh/ETFortune/newsDetail/8a8216d6a0fa351b01a12f28c912010f"
+    },
+    "00877": {
+      "name": "復華中國5G",
+      "frequency": "不配息",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true
+    },
+    "00955": {
+      "name": "中信日本商社",
+      "frequency": "年配",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [
