@@ -2404,6 +2404,41 @@
         "classification": "不分級別/分配(年配)",
         "checked_at": "2026-10-23T00:36:05.363258+08:00"
       }
+    },
+    "00415A": {
+      "name": "主動群益核心50",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "季配",
+      "frequency_evidence": {
+        "status": "verified",
+        "code": "00415A",
+        "frequency": "季配",
+        "sources": [
+          {
+            "code": "00415A",
+            "frequency": "季配",
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsDetail/8a8216d6a0fa351b01a14258a8130176",
+            "sha256": "fefd5cabc9a9dadc5d88abea5980a3de0fae7bda8b70a4432a76caf633d046ae"
+          }
+        ],
+        "checked_at": "2026-10-23T15:06:31.303501+08:00",
+        "attempts": [
+          {
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsList?keyword=00415A",
+            "sha256": "0ef2b6092df22a56f11240647eebac31f5595f48084fbafff96d91c21afad4d4",
+            "bytes": 21571,
+            "status": "received"
+          },
+          {
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsDetail/8a8216d6a0fa351b01a14258a8130176",
+            "sha256": "fefd5cabc9a9dadc5d88abea5980a3de0fae7bda8b70a4432a76caf633d046ae",
+            "bytes": 47126,
+            "status": "received"
+          }
+        ]
+      }
     }
   },
   "calendar": [
