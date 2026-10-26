@@ -1,7 +1,81 @@
 {
-  "updated": "2026-10-23 15:16",
+  "updated": "2026-10-26 09:12",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
+    "00992A": {
+      "name": "主動群益科技創新",
+      "issuer": "群益",
+      "holdings": 43,
+      "data_date": "2026-10-22",
+      "advanced": false,
+      "reason": "not_updated",
+      "fetched": false,
+      "first_seen": "2026-09-29",
+      "anomaly": null,
+      "last_change_date": "2026-10-22",
+      "flow_from": "2026-10-21",
+      "flow_to": "2026-10-22",
+      "price_date": "20261022",
+      "no_price": [],
+      "scale_pct": null,
+      "buy": 0,
+      "sell": -8820000.0,
+      "changed": 1,
+      "flow": [
+        {
+          "code": "6584",
+          "name": "南俊國際",
+          "delta_shares": -20000,
+          "amount": -8820000.0
+        }
+      ]
+    },
+    "00400A": {
+      "name": "主動國泰動能高息",
+      "issuer": "國泰",
+      "holdings": 53,
+      "data_date": "2026-10-22",
+      "advanced": false,
+      "reason": "not_updated",
+      "fetched": false,
+      "first_seen": "2026-09-29",
+      "anomaly": null,
+      "last_change_date": "2026-10-22",
+      "flow_from": "2026-10-21",
+      "flow_to": "2026-10-22",
+      "price_date": "20261022",
+      "no_price": [],
+      "scale_pct": null,
+      "buy": 854455000.0,
+      "sell": -406640000.0,
+      "changed": 4,
+      "flow": [
+        {
+          "code": "6669",
+          "name": "緯穎",
+          "delta_shares": -221000,
+          "amount": -406640000.0
+        },
+        {
+          "code": "6274",
+          "name": "台  燿",
+          "delta_shares": 279000,
+          "amount": 396180000.0
+        },
+        {
+          "code": "3406",
+          "name": "玉晶光",
+          "delta_shares": 245000,
+          "amount": 284200000.0
+        },
+        {
+          "code": "7769",
+          "name": "鴻  勁",
+          "delta_shares": 33000,
+          "amount": 174075000.0
+        }
+      ]
+    },
     "00981A": {
       "name": "主動統一台股增長",
       "issuer": "統一",
@@ -857,34 +931,6 @@
           "name": "愛普*",
           "delta_shares": 10000,
           "amount": 7950000.0
-        }
-      ]
-    },
-    "00992A": {
-      "name": "主動群益科技創新",
-      "issuer": "群益",
-      "holdings": 43,
-      "data_date": "2026-10-22",
-      "advanced": false,
-      "reason": "not_updated",
-      "fetched": true,
-      "first_seen": "2026-09-29",
-      "anomaly": null,
-      "last_change_date": "2026-10-22",
-      "flow_from": "2026-10-21",
-      "flow_to": "2026-10-22",
-      "price_date": "20261022",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 0,
-      "sell": -8820000.0,
-      "changed": 1,
-      "flow": [
-        {
-          "code": "6584",
-          "name": "南俊國際",
-          "delta_shares": -20000,
-          "amount": -8820000.0
         }
       ]
     },
@@ -2311,52 +2357,6 @@
       "sell": 0,
       "changed": 0,
       "flow": []
-    },
-    "00400A": {
-      "name": "主動國泰動能高息",
-      "issuer": "國泰",
-      "holdings": 53,
-      "data_date": "2026-10-22",
-      "advanced": false,
-      "reason": "not_updated",
-      "fetched": true,
-      "first_seen": "2026-09-29",
-      "anomaly": null,
-      "last_change_date": "2026-10-22",
-      "flow_from": "2026-10-21",
-      "flow_to": "2026-10-22",
-      "price_date": "20261022",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 854455000.0,
-      "sell": -406640000.0,
-      "changed": 4,
-      "flow": [
-        {
-          "code": "6669",
-          "name": "緯穎",
-          "delta_shares": -221000,
-          "amount": -406640000.0
-        },
-        {
-          "code": "6274",
-          "name": "台  燿",
-          "delta_shares": 279000,
-          "amount": 396180000.0
-        },
-        {
-          "code": "3406",
-          "name": "玉晶光",
-          "delta_shares": 245000,
-          "amount": 284200000.0
-        },
-        {
-          "code": "7769",
-          "name": "鴻  勁",
-          "delta_shares": 33000,
-          "amount": 174075000.0
-        }
-      ]
     },
     "00404A": {
       "name": "主動聯博動能50",
