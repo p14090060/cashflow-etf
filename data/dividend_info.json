@@ -301,14 +301,27 @@
     },
     "00735": {
       "name": "國泰臺韓科技",
-      "frequency": "年配",
+      "frequency": "半年配",
       "months": [
         1,
         5
       ],
       "category": "指數型",
       "avg_dividend_per_share": 1.0,
-      "_todo": false
+      "_todo": false,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00735",
+        "frequency": "半年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "國泰臺韓科技",
+        "full_name": "國泰趨勢ETF傘型基金之臺韓科技基金",
+        "classification": "不分級別/分配(半年配)",
+        "checked_at": "2026-10-26T14:00:00+08:00"
+      }
     },
     "006201": {
       "name": "元大富櫃50",
@@ -320,11 +333,24 @@
     },
     "00646": {
       "name": "元大S&P500",
-      "frequency": "不配息",
+      "frequency": "年配",
       "months": [],
       "category": "海外",
-      "avg_dividend_per_share": 0,
-      "_todo": false
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00646",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "元大S&P500",
+        "full_name": "元大標普500基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-10-26T14:00:00+08:00"
+      }
     },
     "00662": {
       "name": "富邦NASDAQ",
