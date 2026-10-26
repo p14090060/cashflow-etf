@@ -1,35 +1,7 @@
 {
-  "updated": "2026-10-26 09:12",
+  "updated": "2026-10-26 15:11",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
-    "00992A": {
-      "name": "主動群益科技創新",
-      "issuer": "群益",
-      "holdings": 43,
-      "data_date": "2026-10-22",
-      "advanced": false,
-      "reason": "not_updated",
-      "fetched": false,
-      "first_seen": "2026-09-29",
-      "anomaly": null,
-      "last_change_date": "2026-10-22",
-      "flow_from": "2026-10-21",
-      "flow_to": "2026-10-22",
-      "price_date": "20261022",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 0,
-      "sell": -8820000.0,
-      "changed": 1,
-      "flow": [
-        {
-          "code": "6584",
-          "name": "南俊國際",
-          "delta_shares": -20000,
-          "amount": -8820000.0
-        }
-      ]
-    },
     "00400A": {
       "name": "主動國泰動能高息",
       "issuer": "國泰",
@@ -931,6 +903,34 @@
           "name": "愛普*",
           "delta_shares": 10000,
           "amount": 7950000.0
+        }
+      ]
+    },
+    "00992A": {
+      "name": "主動群益科技創新",
+      "issuer": "群益",
+      "holdings": 43,
+      "data_date": "2026-10-22",
+      "advanced": false,
+      "reason": "not_updated",
+      "fetched": true,
+      "first_seen": "2026-09-29",
+      "anomaly": null,
+      "last_change_date": "2026-10-22",
+      "flow_from": "2026-10-21",
+      "flow_to": "2026-10-22",
+      "price_date": "20261022",
+      "no_price": [],
+      "scale_pct": null,
+      "buy": 0,
+      "sell": -8820000.0,
+      "changed": 1,
+      "flow": [
+        {
+          "code": "6584",
+          "name": "南俊國際",
+          "delta_shares": -20000,
+          "amount": -8820000.0
         }
       ]
     },
