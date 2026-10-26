@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26 12:30",
+  "updated": "2026-10-26 12:34",
   "is_closed": false,
   "is_holiday": false,
   "last_trading_time": null,
@@ -2156,11 +2156,11 @@
       "change_pt": -0.25,
       "change_pct": -0.32,
       "mis_time": "13:30",
-      "div_frequency": "不配息",
+      "div_frequency": "年配",
       "div_months": [],
-      "div_avg_per_share": 0,
+      "div_avg_per_share": null,
       "div_category": "海外",
-      "div_todo": false,
+      "div_todo": true,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -3288,7 +3288,7 @@
       "change_pt": -2.55,
       "change_pct": -2.6,
       "mis_time": "13:30",
-      "div_frequency": "年配",
+      "div_frequency": "半年配",
       "div_months": [
         1,
         5
