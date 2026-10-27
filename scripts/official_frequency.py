@@ -423,7 +423,7 @@ def _pending_resolution_problem(code, meta, since):
         return "absent"
     r = meta["pending_resolution"]
     if r.get("status") != "announced" or r.get("code") != code or not _official_amount(r.get("amount_source")) \
-            or r.get("source") != "TWSE 配息日曆（dividend_calendar.json）":
+            or r.get("source") not in ("TWSE 配息日曆（dividend_calendar.json）", HISTORY_SOURCE):
         return "resolution status／code／source invalid"
     try:
         ps = datetime.date.fromisoformat(str(r.get("pending_since")))
@@ -438,6 +438,20 @@ def _pending_resolution_problem(code, meta, since):
         return "resolution ex-date not after pending_since"
     if since is not None and str(since) != ps.isoformat():
         return "resolution belongs to a different pending period"
+    # R1（F1）：歷史清單來源嚴格核實際寫出的格式；日曆來源不得混帶歷史專有欄位（保留已發布日曆格式相容）
+    hist_keys = {"url", "sha256", "pay_date"}
+    if r.get("source") == HISTORY_SOURCE:
+        if not history_url_ok(code, r.get("url"), ps):
+            return "history resolution url invalid"
+        if not isinstance(r.get("sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", r["sha256"]):
+            return "history resolution sha256 invalid"
+        if r.get("pay_date") is not None:
+            try:
+                datetime.date.fromisoformat(r["pay_date"])
+            except (TypeError, ValueError):
+                return "history resolution pay_date invalid"
+    elif hist_keys & set(r):
+        return "calendar resolution carries history-only fields"
     return None
 
 
@@ -710,3 +724,94 @@ def recover_policies(etfs, info_map, last_try, today, now_iso, twse_resolver=Non
             "twse_tried": twse_tried, "conflicts_known": conflicts_known,
             "sitca": {"ok": st is not None, "report_month": st and st["report_month"], "updated": st and st["updated"],
                       "sha256": st and st["sha256"], "attempts": sitca_attempts}}
+
+
+# ── 10/26 補修：逾期待公告的 TWSE 歷史配息清單查證（日曆只含未來除息，已除息的公告會漏掉）──
+# 既有 TWSE per-ETF 端點（fetch_dividend_calendar.fetch_twse_per_etf 同一路徑），只查 pending_since 之後；主機限定 www.twse.com.tw、不跟轉址。
+TWSE_DIV_LIST = BASE + "/rwd/zh/ETFortune/dividendList"
+HISTORY_SOURCE = "TWSE ETFortune 配息清單（dividendList，逐檔歷史）"
+_HIST_HEADER = ["證券代號", "證券簡稱", "除息交易日", "收益分配基準日", "收益分配發放日"]
+_HIST_HEADER_FULL = _HIST_HEADER + ["收益分配金額(每1受益權益單位)"]     # R1：第六欄＝金額＋官方單位文字（去空白後精確比對）
+
+
+def history_url_ok(code, url, pending_since):
+    """R1（F1）：系統實際寫出的歷史清單網址格式——https、精確 www.twse.com.tw、無帳密／port／fragment、精確 dividendList 路徑、
+    查詢鍵恰為 stkNo＝同代號與 startDate＝pending_since 次日（各一次，無其他鍵）。"""
+    try:
+        sp = urllib.parse.urlsplit(url) if isinstance(url, str) else None
+        if sp is None or sp.scheme != "https" or sp.hostname != "www.twse.com.tw" or sp.netloc != "www.twse.com.tw" \
+                or sp.username or sp.password or sp.port or sp.fragment or sp.path != "/rwd/zh/ETFortune/dividendList":
+            return False
+        q = urllib.parse.parse_qsl(sp.query, keep_blank_values=True, strict_parsing=True)
+    except ValueError:
+        return False
+    want = {"stkNo": code, "startDate": (pending_since + datetime.timedelta(days=1)).strftime("%Y%m%d")}
+    return len(q) == 2 and dict(q) == want
+
+
+def _roc(text):
+    m = re.fullmatch(r"(\d{3})年(\d{2})月(\d{2})日", str(text).strip())
+    if not m:
+        raise ValueError("ROC date invalid: %r" % text)
+    return datetime.date(int(m[1]) + 1911, int(m[2]), int(m[3]))
+
+
+def parse_dividend_list(body, code):
+    """TWSE dividendList 頁 → 同代號列 [(除息日, 金額, 發放日)]。表頭必須是配息清單；其他基金的列忽略；
+    除息日或金額不能解析、金額非正數的同代號列 → 記為壞列（不採用）。回傳 (good_rows, bad_rows)。"""
+    import html as _html
+    text = body.decode("utf-8", errors="strict")
+    cells_of = lambda tr: [re.sub(r"\s+", " ", _html.unescape(re.sub(r"<[^>]+>", " ", c))).strip()
+                           for c in re.findall(r"<t[dh]\b[^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
+    # R1（F2）：表頭與資料列必須在同一個 table；前六欄的語意與位置（含第六欄金額與官方單位文字）逐一核對，只做空白正規化。
+    norm = lambda s: re.sub(r"\s+", "", s)
+    tables, stray = [], 0
+    for tb in re.findall(r"<table\b[^>]*>.*?</table>", text, re.S | re.I):
+        rows = [cells_of(tr) for tr in re.findall(r"<tr\b[^>]*>.*?</tr>", tb, re.S | re.I)]
+        heads = [i for i, r in enumerate(rows) if [norm(c) for c in r[:6]] == _HIST_HEADER_FULL]
+        if heads:
+            tables.append(rows[heads[0] + 1:])
+        else:
+            stray += sum(1 for r in rows if r and r[0] == code)       # 同代號資料列落在未確認表頭的 table
+    if len(tables) != 1 or stray:
+        raise ValueError("TWSE dividendList table header not confirmed (tables=%d, stray rows=%d)" % (len(tables), stray))
+    rows = tables[0]
+    good, bad = [], []
+    for r in rows:
+        if len(r) < 6 or r[0] != code:
+            continue
+        try:
+            ex = _roc(r[2]); pay = _roc(r[4]) if r[4] else None
+            amt = float(r[5].replace(",", ""))
+            if not (amt > 0) or amt != amt or amt == float("inf"):
+                raise ValueError("amount not positive")
+        except ValueError as e:
+            bad.append({"row": r[:6], "why": str(e)})
+            continue
+        good.append({"ex_dividend_date": ex, "amount": amt, "pay_date": pay})
+    return good, bad
+
+
+def twse_history_announcement(code, since, get=None):
+    """逐檔歷史查證。回傳 (status, detail)：announced（同代號、除息日在 since 之後、正額）／none（已讀到清單但無可採列）／
+    error（讀取失敗、403、逾時、轉址、不是配息清單頁 → 暫時失敗，下輪重試，不算查無）。不推估、不改金額／殖利率。"""
+    if not isinstance(code, str) or not re.fullmatch(r"[0-9A-Z]{4,8}", code):
+        return "none", "代號不合法"
+    get = get or _get
+    url = TWSE_DIV_LIST + "?" + urllib.parse.urlencode({"stkNo": code, "startDate": (since + datetime.timedelta(days=1)).strftime("%Y%m%d")})
+    try:
+        body = get(url)
+    except Exception as ex:
+        return "error", "TWSE 歷史配息清單讀取失敗（%s），下輪重試" % type(ex).__name__
+    try:
+        good, bad = parse_dividend_list(body, code)
+    except (ValueError, UnicodeError) as ex:
+        return "error", "TWSE 歷史配息清單內容不可用（%s），下輪重試" % str(ex)[:60]
+    after = sorted((g for g in good if g["ex_dividend_date"] > since), key=lambda g: g["ex_dividend_date"])
+    if not after:
+        why = "；另有 %d 列無效（%s）" % (len(bad), bad[0]["why"]) if bad else ""
+        return "none", "TWSE 歷史配息清單 %s 之後沒有同檔已公告正額%s" % (since, why)
+    g = after[0]
+    return "announced", {"ex_dividend_date": g["ex_dividend_date"].isoformat(), "amount": g["amount"], "amount_source": "TWSE",
+                         "pay_date": g["pay_date"].isoformat() if g["pay_date"] else None, "url": url,
+                         "sha256": hashlib.sha256(body).hexdigest()}

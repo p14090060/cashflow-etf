@@ -201,8 +201,10 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday, meta) {
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' };
 
   // 只從成交量前 100 篩選，避免冷門 ETF 混入
+  // RANK_FRESHNESS：只用已就緒的成交量（rank.js rankVolState）；有未就緒的檔時名次只是暫定，TOP10 不顯示名次數字
+  const _vs = rankVolState(ETFS, _statusArgs);
   const TOP100 = [...ETFS]
-    .filter(e => (e.cur_vol || 0) > 0 && e.price > 0)
+    .filter(e => rankVolReady(_vs, e) && e.cur_vol > 0 && e.price > 0)
     .sort((a, b) => (b.cur_vol || 0) - (a.cur_vol || 0))
     .slice(0, 100);
 
@@ -215,10 +217,11 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday, meta) {
 
   // ── H5 成交量 TOP 10（不稱今日：沒有逐檔交易日）：與排行頁相同，取成交量前 10；整列開 Detail ──
   const top10 = TOP100.slice(0, 10);
-  const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  const _prov = !_vs.valid || _vs.pending > 0;
+  const rankClass = i => _prov ? '' : i===0?'gold':i===1?'silver':i===2?'bronze':'';
   document.getElementById('waitItems').innerHTML = top10.map((e,i) => `
     <button class="hot-item home-row" type="button" data-code="${_homeEsc(e.code)}" onclick="openDetail('${_homeEsc(e.code)}')">
-      <span class="hot-rank ${rankClass(i)}">${i+1}</span>
+      <span class="hot-rank ${rankClass(i)}"${_prov ? ' title="成交量更新中，名次暫定"' : ''}>${_prov ? '·' : i+1}</span>
       <span class="hr-main">
         <span class="hr-line"><span class="wait-code">${_homeEsc(e.code)}</span><span class="wait-name">${_homeEsc(e.name)}</span></span>
         <span class="hr-sub">

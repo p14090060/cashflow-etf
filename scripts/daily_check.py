@@ -274,13 +274,26 @@ def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
             deferred.append(code)
             continue
         status, detail = official_frequency.pending_announcement(code, since, cal_map.get(code))
+        source = "TWSE 配息日曆（dividend_calendar.json）"
+        if status != "announced":
+            # 10/26 補修：日曆只含未來除息，已除息的公告會漏 → 同一輪再查 TWSE 逐檔歷史配息清單（同一額度內）
+            hstatus, hdetail = official_frequency.twse_history_announcement(code, since)
+            print("[PENDING-HISTORY] %s since %s → %s %s" % (code, since, hstatus, hdetail))
+            if hstatus == "announced":
+                status, detail, source = hstatus, hdetail, official_frequency.HISTORY_SOURCE
+            elif hstatus == "error":
+                rech[code] = now
+                print("[PENDING-RECHECK] %s 歷史清單暫時失敗：本輪不算查完、不提醒（下輪重試）" % code)
+                continue
+            else:
+                detail = "%s；%s" % (detail, hdetail)
         rech[code] = now
         print("[PENDING-RECHECK] %s since %s → %s %s" % (code, since, status, detail))
         if status == "announced":
             meta = dict(info_map.get(code) or {})
             meta.setdefault("name", (cal_map.get(code) or {}).get("name", code))
             meta["pending_resolution"] = dict(detail, status="announced", code=code, pending_since=since.isoformat(),
-                                              source="TWSE 配息日曆（dividend_calendar.json）",
+                                              source=source,
                                               checked_at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat())
             info_map[code] = meta
             resolved.append(code)
@@ -290,7 +303,7 @@ def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
         if now - notif.get(code, 0) < REMIND_DAYS * 86400:
             continue                             # 已確認送達過，REMIND_DAYS 天內不重複催
         ACK.setdefault("pending_notified", []).append(code)
-        out.append((days, f"• {code}：已 {days} 天未人工複查（上次 {since}）；本輪已自動核對 TWSE 官方配息日曆：{detail}"))
+        out.append((days, f"• {code}：已 {days} 天未人工複查（上次 {since}）；本輪已自動核對 TWSE 官方配息日曆與逐檔歷史配息清單：{detail}"))
     if deferred:
         print("[PENDING-RECHECK] deferred（查證額度已用完，下輪優先）：" + ",".join(deferred))
     state["pending_recheck"], state["pending_notified"] = rech, notif

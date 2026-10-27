@@ -21,6 +21,13 @@ function openFlow(code) { _flowSel = code; Router.openFlow(code); }
 // 畫面上跟真的一模一樣——使用者沒有理由察覺自己在看假數字。
 // 現在分兩種情況講清楚，一律不拿舊資料冒充現在的資料。
 let _lastOk = '';     // 最近一次成功載入的資料時間，空字串＝從沒成功過
+// RANK_FRESHNESS：已畫上的 updated（YYYY-MM-DD HH:MM）；較舊或亂序回來的快照（快取／傳播慢）不倒退覆蓋，
+// 時間缺／壞的快照也不蓋掉已有的有效資料（第一次載入仍照畫，排行由 rank.js 標「時間無法確認」）
+let _appliedAt = '';
+function _snapKey(u) {
+  const m = typeof u === 'string' ? /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})$/.exec(u) : null;
+  return (m && _dsIso(m[1]) && _RK_HM.test(m[2])) ? u : '';   // 日期／時間須真實有效（rank.js）
+}
 
 function showDataError(err) {
   _statusErr = true;          // 定時重畫徽章不得蓋掉錯誤（render.js renderStatusBadge）
@@ -53,6 +60,9 @@ function fetchData() {
     // fetch 只有在網路層失敗才 reject，404/500 會進 then，所以要自己檢查
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(d => {
+      const k = _snapKey(d && d.updated);
+      if (_appliedAt && (!k || k < _appliedAt)) { hideDataError(); return; }
+      if (k) _appliedAt = k;
       _lastOk = d.updated || '';
       hideDataError();
       renderAll(d.etfs, d.calendar || [], d.updated, d.market, d.is_closed, d.is_holiday,

@@ -196,9 +196,13 @@ def fetch_mis_etfs(codes, otc_codes=(), today=None):
                 try:
                     price = float(z)
                     prev  = float(y) if y and y != "-" else price
-                    vol   = float(str(v).replace(",", "")) if v and v != "-" else 0
-                    if not all(math.isfinite(x) for x in (price, prev, vol)) or price <= 0:
+                    vol   = float(str(v).replace(",", "")) if v and v != "-" else None
+                    if not all(math.isfinite(x) for x in (price, prev) + (() if vol is None else (vol,))) or price <= 0:
                         continue                       # MIS 回 NaN／Infinity 等非有限值：當作沒有報價
+                    # 成交量未取得（v="-"／缺）或報價時間在 09:00 前（開盤前試撮）／缺時間：不是當日已確認成交量，
+                    # 記成未知（None），不寫成 0 冒充「今天真的沒成交」；價格判定不變
+                    if vol is not None and (not t or t[:5] < "09:00"):
+                        vol = None
                     results[code] = {
                         "price":      price,
                         "vol":        vol,
@@ -789,8 +793,13 @@ def main():
             e["cur_vol"]    = m["vol"]
             e["mis_time"]   = m["mis_time"]
             e["quote_date"], e["quote_src"] = today_iso, "MIS"
-            # MIS v 單位是「張」，yfinance avg_vol 單位是「股」，1張=1000股
-            _vol_heat(e, b, m["vol"], m.get("change_pct", 0))
+            if m["vol"] is None:
+                # 成交量未知（開盤前／未取得）：量相關欄位缺值，同官方無成交量的處理，不用 0 或平均量代替
+                for k in ("cur_vol", "vol_ratio", "heat"):
+                    e.pop(k, None)
+            else:
+                # MIS v 單位是「張」，yfinance avg_vol 單位是「股」，1張=1000股
+                _vol_heat(e, b, m["vol"], m.get("change_pct", 0))
         else:
             _reference(e, b, off)
         e["close_confirmed"] = e["close_status"] is not None
