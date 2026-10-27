@@ -1,4 +1,4 @@
-import json, math, datetime, ssl, re, requests, sys
+import json, math, datetime, os, ssl, re, requests, sys
 import urllib.request as _ur
 from pathlib import Path
 import yfinance as yf
@@ -1373,6 +1373,155 @@ def history_fallback(code, name, curated):
     return entry, None
 
 
+# ── 00972 歷史缺口（2026-10-27）：一年歷史不足時，同 Yahoo 來源的有界替代區間查證 ──
+# 原請求 period=1y 不足 5 筆時，先用「主回應 validRanges 明示支援」的較長區間再取一次日線（每檔最多 1 個替代請求、
+# 每輪最多 HIST_ALT_LIMIT 檔）；替代結果須核代號、日線粒度、回應區間、唯一且遞增的交易日、有限正價、實際涵蓋滿一年，
+# 合格才截成與 period=1y 相同的一年視窗照原計算；近期才有資料≠一年歷史 → 不採用，照 D-044 保留官方價與 null 指標。
+# 查證狀態寫到執行期檔 logs/history_check.json（不發布、不進 data）給同一 job 的 daily_check 判斷是否已完成判讀；
+# 輪替依 daily_state.history_recheck（daily_check 記錄的上次實際查證時間）由舊到新優先。
+# R1（2026-10-28）：只有可查證的舊 ETF（上市滿一年）參與保留額度；查證紀錄綁定本輪執行識別與 _base 實際內容 SHA256、原子寫出。
+HIST_ALT_LIMIT  = 4
+HIST_ALT_RANGES = ("2y", "5y", "10y", "max")          # 比 1y 長、由短到長；只取主回應 validRanges 有列的
+HIST_CHECK_OUT  = Path(os.environ.get("ETF_HISTORY_CHECK") or (Path(__file__).parent / "logs" / "history_check.json"))
+HIST_CHECK = {}                                       # {代號: {"status", "detail", "range"}}
+
+
+def _hist_meta(tk):
+    """yfinance 最近一次 history() 回應的 metadata（不另發請求；get_history_metadata 會補打 5d／1h，不用）。"""
+    try:
+        m = getattr(tk._lazy_load_price_history(), "_history_metadata", None)
+        return m if isinstance(m, dict) else None
+    except Exception:
+        return None
+
+
+def _hist_today():
+    return datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date()
+
+
+def _hist_ineligible(code, today):
+    """不具替代查證資格 → (狀態, 說明)；可查證的舊 ETF → None。保留額度與 alt_history 用同一判斷。"""
+    ld = ISIN_LISTING_DATE.get(code)
+    try:
+        d_list = datetime.date.fromisoformat(ld) if ld else None
+    except ValueError:
+        d_list = None
+    if d_list is None:
+        return "no_listing", "沒有可追溯的上市日，不做替代查證"
+    if (today - d_list).days < 365:
+        return "new_listing", "上市 %s 未滿一年，歷史不足屬正常" % ld
+    return None
+
+
+def _hist_alt_plan():
+    """額度輪替：上一份 _base 已是歷史不足、且本輪官方上市日可查證滿一年的檔，依 daily_state.history_recheck 由舊到新保留額度；
+    新上市／無上市日不占額度。其餘先到先用剩下的。"""
+    try:
+        prev = json.loads(OUT_BASE.read_text(encoding="utf-8")).get("etfs") or []
+        insuff = sorted({e.get("code") for e in prev if isinstance(e, dict) and e.get("indicator_status") == INSUFFICIENT} - {None})
+    except Exception:
+        insuff = []
+    try:
+        rech = json.loads((Path(__file__).parent / "data" / "daily_state.json").read_text(encoding="utf-8")).get("history_recheck") or {}
+    except Exception:
+        rech = {}
+    num = lambda v: v if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) else 0
+    today = _hist_today()
+    insuff = [c for c in insuff if _hist_ineligible(c, today) is None]
+    return insuff and sorted(insuff, key=lambda c: (num(rech.get(c)), c))[:HIST_ALT_LIMIT] or []
+
+
+HIST_ALT_RESERVED = None                              # 第一次需要額度時才規劃（此時本輪 ISIN 上市日已載入）
+HIST_ALT_USED = {"reserved": set(), "other": 0}
+
+
+def _hist_alt_slot(code):
+    global HIST_ALT_RESERVED
+    if HIST_ALT_RESERVED is None:
+        HIST_ALT_RESERVED = set(_hist_alt_plan())
+    if code in HIST_ALT_RESERVED:
+        HIST_ALT_USED["reserved"].add(code)
+        return True
+    if HIST_ALT_USED["other"] < HIST_ALT_LIMIT - len(HIST_ALT_RESERVED):
+        HIST_ALT_USED["other"] += 1
+        return True
+    return False
+
+
+def verify_daily_history(hist, meta, ticker_code, want_range, today):
+    """替代區間回應的嚴格核對。回傳 (一年視窗 DataFrame, None) 或 (None, 拒用原因)。"""
+    if not isinstance(meta, dict):
+        return None, "回應沒有 metadata"
+    if meta.get("symbol") != ticker_code:
+        return None, "代號不符（%r）" % (meta.get("symbol"),)
+    if meta.get("dataGranularity") != "1d":
+        return None, "粒度 %r 不是日線" % (meta.get("dataGranularity"),)
+    # R2：yfinance 1.5.2 只把 period='max' 轉成 period1／period2 起訖請求（不送 range），Yahoo 正常回應 range 為空字串；
+    # 只對 max 精確接受 ""，缺 range（None）、其他區間（2y／5y…）仍須完全相符
+    if not (meta.get("range") == want_range or (want_range == "max" and meta.get("range") == "")):
+        return None, "回應區間 %r 不是請求的 %s" % (meta.get("range"), want_range)
+    if hist is None or hist.empty or "Close" not in hist.columns:
+        return None, "沒有資料列"
+    days = [ts.date() for ts in hist.index]
+    if len(set(days)) != len(days):
+        return None, "%d 筆只有 %d 個交易日（非日線）" % (len(days), len(set(days)))
+    if any(b <= a for a, b in zip(days, days[1:])):
+        return None, "交易日未遞增"
+    if days[-1] > today:
+        return None, "含未來交易日 %s" % days[-1]
+    close = [float(x) for x in hist["Close"]]
+    bad = [i for i, x in enumerate(close) if not (math.isfinite(x) and x > 0)]
+    if bad and (bad != [len(close) - 1] or not math.isnan(close[-1])):      # 只容許最後一筆缺值（NaN）
+        return None, "收盤價有缺值／非有限／非正數（%s）" % days[bad[0]]
+    one_yr_ago = today - datetime.timedelta(days=365)
+    keep = [d >= one_yr_ago for d in days]                     # 與 period=1y 相同的一年視窗
+    win = hist[keep]
+    ok = [d for d, x in zip(days, close) if d >= one_yr_ago and math.isfinite(x) and x > 0]
+    if len(ok) < 5:
+        return None, "一年視窗內不足 5 筆"
+    # 覆蓋以截窗後的有效收盤判斷：舊年度資料被截掉後不能替一年視窗作證（避免舊 ETF 被原計算判成新上市）
+    if ok[0] > one_yr_ago + datetime.timedelta(days=15):
+        return None, "一年視窗有效日線只涵蓋 %s～%s（%d 個交易日），不足一年" % (ok[0], ok[-1], len(ok))
+    gap = max(((b - a).days, a) for a, b in zip(ok, ok[1:])) if len(ok) > 1 else (0, None)
+    if gap[0] > 15:
+        return None, "一年視窗內 %s 起缺 %d 天日線，不足一年" % (gap[1], gap[0])
+    if ok[-1] < today - datetime.timedelta(days=10):
+        return None, "最後一筆 %s 過舊" % ok[-1]
+    return win, None
+
+
+def alt_history(tk, code, ticker_code):
+    """period=1y 不足時的替代區間查證。合格回傳一年視窗日線，否則 None（狀態記在 HIST_CHECK）。"""
+    today = _hist_today()
+
+    def rec(status, detail, rng=None):
+        HIST_CHECK[code] = {"status": status, "detail": detail, "range": rng}
+        print("[HISTORY-ALT] %s %s %s%s" % (code, status, detail, " (%s)" % rng if rng else ""))
+        return None
+    inel = _hist_ineligible(code, today)
+    if inel:
+        return rec(*inel)
+    meta = _hist_meta(tk)
+    valid = meta.get("validRanges") if isinstance(meta, dict) else None
+    if not isinstance(valid, list):
+        return rec("error", "一年請求沒有可判讀的 validRanges，無法確認支援區間（本輪不算查完）")
+    rng = next((r for r in HIST_ALT_RANGES if r in valid), None)
+    if rng is None:
+        return rec("no_range", "來源支援區間 %s 沒有比一年長的區間" % ",".join(map(str, valid)))
+    if not _hist_alt_slot(code):
+        return rec("queued", "本輪替代查證額度已用完，排隊下輪", rng)
+    try:
+        h = tk.history(period=rng, interval="1d", auto_adjust=False)
+    except Exception as e:
+        return rec("error", "替代請求失敗：%s（本輪不算查完）" % type(e).__name__, rng)
+    if h is None or h.empty:
+        return rec("error", "替代請求沒有回資料（逾時或錯誤，本輪不算查完）", rng)
+    win, why = verify_daily_history(h, _hist_meta(tk), ticker_code, rng, today)
+    if win is None:
+        return rec("rejected", why, rng)
+    rec("recovered", "替代區間取得 %s 起一年日線 %d 筆" % (win.index[0].date(), len(win)), rng)
+    return win
+
 # ── 主流程 ──────────────────────────────────────────────────────────
 try:
     ALL_ETFS  = build_pool()
@@ -1389,6 +1538,10 @@ for code, name in ALL_ETFS:
     try:
         tk = yf.Ticker(ticker_code)
         hist = tk.history(period="1y", auto_adjust=False)
+        if hist.empty or len(hist) < 5 or "Close" not in hist.columns or len(hist["Close"].dropna()) < 5:
+            alt = alt_history(tk, code, ticker_code)        # 2026-10-27：同來源有界替代區間查證（不合格 → 照原本不足處理）
+            if alt is not None:
+                hist = alt
         if hist.empty or len(hist) < 5:
             raise ValueError("insufficient data")
 
@@ -1677,11 +1830,30 @@ output = {
 OUT_BASE.parent.mkdir(parents=True, exist_ok=True)
 # 非關鍵欄位（既有語意可為 null）的 NaN／Infinity 轉 null；必要欄位不合法 → 不寫檔、exit 1，原檔不動
 nullify_nonfinite(results)
+try:                                                  # R1：先移除舊查證紀錄，本輪寫不出時 daily 不會誤採上一份
+    HIST_CHECK_OUT.unlink()
+except FileNotFoundError:
+    pass
+except Exception as e:
+    print(f"[HISTORY-ALT] 舊查證狀態無法移除：{e}", file=sys.stderr)
 try:
     atomic_write_json(OUT_BASE, output, validate=validate_base_policy)   # 含商品收錄政策：K／ETN 不得寫入
 except Exception as e:
     print(f"::error::_base.json 未更新（驗證或寫入失敗，原檔保留）：{e}", file=sys.stderr)
     sys.exit(1)
+
+# 2026-10-27：替代歷史查證狀態（執行期檔，不發布）。R1：綁定本輪執行識別（_run_id）、寫出後 _base 的實際內容 SHA256
+# 與查證時間；daily_check 只採用同一執行、同一份 _base 的紀錄。暫存檔＋os.replace 原子寫出。
+try:
+    import time as _time
+    HIST_CHECK_OUT.parent.mkdir(parents=True, exist_ok=True)
+    _tmp = HIST_CHECK_OUT.with_name(HIST_CHECK_OUT.name + ".tmp")
+    _tmp.write_text(json.dumps({"run": _run_id(), "base_sha256": _sha256_file(OUT_BASE), "checked_at": _time.time(),
+                                "base_updated": output["updated"], "limit": HIST_ALT_LIMIT, "checks": HIST_CHECK},
+                               ensure_ascii=False, indent=1), encoding="utf-8")
+    os.replace(_tmp, HIST_CHECK_OUT)
+except Exception as e:
+    print(f"[HISTORY-ALT] 查證狀態未能寫出（daily_check 視為未完成判讀）：{e}", file=sys.stderr)
 
 # 同步更新 dividend_info.json 的 calendar（mis_fetcher.py 讀這個當估算來源）
 # 原子寫入；失敗時 dividend_info.json 原檔保留，並以 exit 1 回報（_base.json 已是獨立的成功寫入）

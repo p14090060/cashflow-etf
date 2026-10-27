@@ -584,6 +584,88 @@ def update_policy_state(state, result, now):
     return sorted(due, key=lambda c: (st["policy_first"][c], c))
 
 
+# ── 2026-10-27（00972 歷史缺口）：歷史不足（insufficient_history）先看自動查證進度，跨輪仍無解才彙整求助 ──
+# fetch_etf 在一年歷史不足時做同 Yahoo 來源的替代區間查證，狀態寫到執行期檔 logs/history_check.json（同一 job、不發布），
+# 只採用綁定目前 _base.json updated 的那份；讀不到／不是同一份 → 本輪視為未查證（unchecked），不算完成、不求助。
+# 完成判讀＝rejected（替代區間實際讀到但不合格）或 no_range（來源沒有比一年長的支援區間）；queued／error 不算。
+# daily_state 數值契約：history_recheck 上次實際查證 epoch（fetch 輪替用）；history_status 狀態碼；history_first 第一次完成判讀
+# 仍不足 epoch；history_rounds 完成判讀仍不足的輪數；history_notified 求助確認送達 epoch（沿用送達才寫回執）。
+# R1（2026-10-28）：紀錄須同一執行識別（_run_id）且 base_sha256＝daily 回填政策前讀到的 _base 內容；缺識別／錯 run／錯 hash／
+# 損壞 → 整份不採用。history_recheck 改記紀錄的 fetch 查證時間 checked_at，同一份紀錄（同 checked_at）重讀不再計輪。
+HIST_CHECK_FILE   = Path(os.environ.get("ETF_HISTORY_CHECK") or (ROOT / "logs" / "history_check.json"))
+HIST_HELP_ROUNDS  = 3
+HIST_HELP_SECONDS = 24 * 3600
+HIST_REMIND_DAYS  = 14
+HIST_CODES = {"queued": 0, "error": 1, "rejected": 2, "no_range": 3, "recovered": 4, "new_listing": 5, "no_listing": 6, "unchecked": 7}
+HIST_DONE  = ("rejected", "no_range")
+HIST_KEYS  = ("history_recheck", "history_status", "history_first", "history_rounds", "history_notified")
+
+
+def load_history_checks():
+    """須在 daily 回填政策（改寫 _base）之前呼叫：比對的是 fetch 寫出的原基線內容。回傳 ({代號: 紀錄}, checked_at)。"""
+    doc, run, at = load(HIST_CHECK_FILE), _run_id(), None
+    if isinstance(doc, dict):
+        at = doc.get("checked_at")
+    if not (run and isinstance(doc, dict) and doc.get("run") == run and doc.get("base_sha256")
+            and doc.get("base_sha256") == _sha256_file(ROOT / "data" / "_base.json")
+            and isinstance(at, (int, float)) and not isinstance(at, bool) and math.isfinite(at)):
+        return {}, None
+    checks = doc.get("checks")
+    if not isinstance(checks, dict):
+        return {}, None
+    return {c: v for c, v in checks.items() if isinstance(c, str) and isinstance(v, dict) and v.get("status") in HIST_CODES}, at
+
+
+def _hist_insufficient(e):
+    return isinstance(e, dict) and e.get("indicator_status") == "insufficient_history"
+
+
+def update_history_state(state, etfs, checks, now, checked_at=None):
+    """依本輪查證結果更新跨輪狀態；回傳達求助門檻的代號（未在 HIST_REMIND_DAYS 內確認送達過）。
+    checked_at：紀錄的 fetch 查證時間；已計過的同一份紀錄（checked_at 不比 history_recheck 新）不再計輪。"""
+    st = {k: _num_map(state.get(k)) for k in HIST_KEYS}
+    if checked_at is None:
+        checks = {}
+    fresh = {c for c in checks if checked_at > st["history_recheck"].get(c, float("-inf"))}
+    tracked = {e["code"] for e in etfs if _hist_insufficient(e) and not e.get("new_listing") and isinstance(e.get("code"), str)}
+    tracked |= {c for c, v in checks.items() if v["status"] not in ("recovered", "new_listing")}
+    for k in HIST_KEYS[1:]:
+        st[k] = {c: v for c, v in st[k].items() if c in tracked}          # 已不再不足者清除
+    for c, v in checks.items():
+        if c in fresh and v["status"] in HIST_DONE + ("error", "recovered"):
+            st["history_recheck"][c] = checked_at                         # 實際發過替代請求（或確認無區間）才算輪到
+    done = set()
+    for c in sorted(tracked):
+        s = (checks.get(c) or {}).get("status", "unchecked")
+        st["history_status"][c] = HIST_CODES[s]                          # 照實記錄本輪狀態（排隊／暫時失敗不沿用舊的無解）
+        if s in HIST_DONE and c in fresh:
+            done.add(c)
+            st["history_first"].setdefault(c, now)
+            st["history_rounds"][c] = st["history_rounds"].get(c, 0) + 1
+        print("[HISTORY] %s %s %s" % (c, s, (checks.get(c) or {}).get("detail", "本輪沒有替代查證紀錄")))
+    state.update(st)
+    due = [c for c in done if st["history_rounds"].get(c, 0) >= HIST_HELP_ROUNDS
+           and now - st["history_first"].get(c, now) >= HIST_HELP_SECONDS
+           and now - st["history_notified"].get(c, 0) >= HIST_REMIND_DAYS * 86400]
+    return sorted(due, key=lambda c: (st["history_first"][c], c))
+
+
+def history_help_lines(due, state, checks, names):
+    """達門檻的彙整求助：列查證來源／區間／判讀／輪數，不要求 PO 代查。列出者才要求送達回執。"""
+    if not due:
+        return []
+    fmt = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone(datetime.timedelta(hours=8))).strftime("%m/%d %H:%M")
+    out = ["🔎 歷史資料自動查證仍不足（%d 檔；已跨 %d 輪、24 小時以上）" % (len(due), HIST_HELP_ROUNDS),
+           "已保留官方收盤價，均線／報酬等指標維持空值、不判訊號；每輪已用同一 Yahoo 來源一年及較長支援區間查證，判讀如下"]
+    for c in due:
+        ck = checks.get(c) or {}
+        out.append("• %s %s：%s區間判讀：%s（完成判讀 %d 輪，首次 %s）" % (
+            c, names.get(c, ""), (ck.get("range") + " ") if ck.get("range") else "", ck.get("detail", ""),
+            state["history_rounds"][c], fmt(state["history_first"][c])))
+    ACK.setdefault("history_notified", []).extend(due)
+    return out
+
+
 def policy_help_lines(due, result, state, names):
     """達門檻的彙整求助（工程摘要）：列已查來源／輪數／時間／缺口，不要求 PO 代查官網。列出者才要求送達回執。"""
     import official_frequency as of
@@ -662,6 +744,7 @@ def main():
         print("[AUTO-RECOVERY] official policy adopted: " + ",".join(recovery["adopted"]))
     # Propagate verified static policy to this run's baseline, without changing
     # any quote, yield, date, signal or unrelated product field.
+    hist_checks, hist_at = load_history_checks()     # R1：在下面回填政策改寫 _base 之前，比對 fetch 原基線指紋
     base_path = ROOT / "data" / "_base.json"
     current_base = load(base_path)
     if isinstance(current_base, dict):
@@ -692,6 +775,7 @@ def main():
     for k in ("frequency_unresolved", "frequency_notified"):      # D-068 R1 F4 舊欄位（未曾正式發布）由 D-071 狀態取代
         state.pop(k, None)
     policy_due = update_policy_state(state, recovery, now_ts)
+    hist_due   = update_history_state(state, etfs, hist_checks, now_ts, hist_at)
     yld_prev   = state.get("yld_prev", {})
     vol_streak = state.get("zero_vol_streak", {})
 
@@ -709,7 +793,8 @@ def main():
                 f"• {e['code']} {e.get('name','')}：近1年報酬 {ret1y:+.1f}%，"
                 f"數值異常（>300%），疑似拆分未修正，請人工確認"
             )
-        elif ret1y is None and not new_listing:
+        elif ret1y is None and not new_listing and not _hist_insufficient(e):
+            # 2026-10-27：已知歷史不足（官方價保留、指標 null）改由 update_history_state 依查證進度與門檻彙整，不在此第一次就求助
             issues.append(
                 f"• {e['code']} {e.get('name','')}：近1年報酬無法計算（非新上市），"
                 f"疑似資料抓取失敗或拆分問題，請確認"
@@ -859,13 +944,14 @@ def main():
                 note_entries.append(f"• {e['code']} {e.get('name','')}：{note}（官方公告，屬正常）")
             else:
                 warn.append("殖利率查無" + (f"（{why}）" if why else ""))
-        if not ret1y and not is_new:
+        if not ret1y and not is_new and not _hist_insufficient(e):
             warn.append("報酬率查無")
         if warn:
             problem_entries.append(
                 f"• {e['code']} {e.get('name','')}：{'、'.join(warn)}"
             )
     lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in etfs}))
+    lines.extend(history_help_lines(hist_due, state, hist_checks, {e.get("code"): e.get("name", "") for e in etfs}))
     if problem_entries:
         lines.append("🆕 新進 TOP 100 資料異常")
         lines.extend(problem_entries)
