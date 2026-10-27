@@ -1,16 +1,16 @@
 {
   "format": "etf-pool-cache/v2",
   "complete": true,
-  "saved_at": "2026-10-26T15:02:14+08:00",
+  "saved_at": "2026-10-27T09:08:39+08:00",
   "markets": {
     "上市": {
       "str_mode": 2,
-      "rows": 196,
+      "rows": 197,
       "source": {
         "url": "https://isin.twse.com.tw/isin/C_public.jsp?strMode=2",
-        "sha256": "5a093e448efefe9ead2f17be8a33c95f6814fae5e1cec592b8ad9da2cc904332",
-        "bytes": 9600567,
-        "fetched_at": "2026-10-26T15:02:11+08:00"
+        "sha256": "675ccd59dbe551720181c090ef994e1af5e75d47d7de78621183539fd06aff9f",
+        "bytes": 9600807,
+        "fetched_at": "2026-10-27T09:07:32+08:00"
       }
     },
     "上櫃": {
@@ -18,9 +18,9 @@
       "rows": 26,
       "source": {
         "url": "https://isin.twse.com.tw/isin/C_public.jsp?strMode=4",
-        "sha256": "4b87635a4ff0bdfcef44263b7db76062ad29d359e471b740eafcf1c059c56576",
+        "sha256": "f3a68f9abcb89cb9cb917b1d3af0b57e9af197a731b95e6644d653fc746695e5",
         "bytes": 3169752,
-        "fetched_at": "2026-10-26T15:02:14+08:00"
+        "fetched_at": "2026-10-27T09:08:39+08:00"
       }
     }
   },
@@ -88,6 +88,11 @@
     [
       "00415A",
       "主動群益核心50",
+      false
+    ],
+    [
+      "00416A",
+      "主動台新臺灣中小",
       false
     ],
     [

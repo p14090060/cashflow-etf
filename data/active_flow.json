@@ -1,53 +1,7 @@
 {
-  "updated": "2026-10-26 15:11",
+  "updated": "2026-10-27 09:21",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
-    "00400A": {
-      "name": "主動國泰動能高息",
-      "issuer": "國泰",
-      "holdings": 53,
-      "data_date": "2026-10-22",
-      "advanced": false,
-      "reason": "not_updated",
-      "fetched": false,
-      "first_seen": "2026-09-29",
-      "anomaly": null,
-      "last_change_date": "2026-10-22",
-      "flow_from": "2026-10-21",
-      "flow_to": "2026-10-22",
-      "price_date": "20261022",
-      "no_price": [],
-      "scale_pct": null,
-      "buy": 854455000.0,
-      "sell": -406640000.0,
-      "changed": 4,
-      "flow": [
-        {
-          "code": "6669",
-          "name": "緯穎",
-          "delta_shares": -221000,
-          "amount": -406640000.0
-        },
-        {
-          "code": "6274",
-          "name": "台  燿",
-          "delta_shares": 279000,
-          "amount": 396180000.0
-        },
-        {
-          "code": "3406",
-          "name": "玉晶光",
-          "delta_shares": 245000,
-          "amount": 284200000.0
-        },
-        {
-          "code": "7769",
-          "name": "鴻  勁",
-          "delta_shares": 33000,
-          "amount": 174075000.0
-        }
-      ]
-    },
     "00981A": {
       "name": "主動統一台股增長",
       "issuer": "統一",
@@ -125,13 +79,13 @@
     "00988A": {
       "name": "主動統一全球創新",
       "issuer": "統一",
-      "holdings": 38,
+      "holdings": 40,
       "data_date": "2026-10-20",
       "advanced": false,
       "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-23",
-      "anomaly": null,
+      "anomaly": "00988A 同一資料日 2026-10-20 持股內容不同（9 檔），未計入 Flow；可能是資料日判斷錯誤或投信同日更新",
       "last_change_date": "2026-10-20",
       "flow_from": "2026-10-19",
       "flow_to": "2026-10-20",
@@ -201,7 +155,7 @@
       "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-23",
-      "anomaly": null,
+      "anomaly": "00411A 同一資料日 2026-10-20 持股內容不同（4 檔），未計入 Flow；可能是資料日判斷錯誤或投信同日更新",
       "last_change_date": "2026-10-20",
       "flow_from": "2026-10-19",
       "flow_to": "2026-10-20",
@@ -2330,9 +2284,9 @@
       "name": "主動摩根美國科技",
       "issuer": "摩根",
       "holdings": 69,
-      "data_date": "2026-10-21",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-10-22",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
@@ -2357,6 +2311,52 @@
       "sell": 0,
       "changed": 0,
       "flow": []
+    },
+    "00400A": {
+      "name": "主動國泰動能高息",
+      "issuer": "國泰",
+      "holdings": 53,
+      "data_date": "2026-10-22",
+      "advanced": false,
+      "reason": "not_updated",
+      "fetched": true,
+      "first_seen": "2026-09-29",
+      "anomaly": null,
+      "last_change_date": "2026-10-22",
+      "flow_from": "2026-10-21",
+      "flow_to": "2026-10-22",
+      "price_date": "20261022",
+      "no_price": [],
+      "scale_pct": null,
+      "buy": 854455000.0,
+      "sell": -406640000.0,
+      "changed": 4,
+      "flow": [
+        {
+          "code": "6669",
+          "name": "緯穎",
+          "delta_shares": -221000,
+          "amount": -406640000.0
+        },
+        {
+          "code": "6274",
+          "name": "台  燿",
+          "delta_shares": 279000,
+          "amount": 396180000.0
+        },
+        {
+          "code": "3406",
+          "name": "玉晶光",
+          "delta_shares": 245000,
+          "amount": 284200000.0
+        },
+        {
+          "code": "7769",
+          "name": "鴻  勁",
+          "delta_shares": 33000,
+          "amount": 174075000.0
+        }
+      ]
     },
     "00404A": {
       "name": "主動聯博動能50",
