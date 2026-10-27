@@ -1,7 +1,15 @@
 name: Fetch ETF Data
 
+# 觸發：只由 cron-job.org 在台北 09:00／15:00 呼叫 workflow_dispatch（＋手動）。
+# 原生 schedule 已移除：GitHub cron 實際延遲數小時，和 cron-job.org 重複執行，15:00 兩個 run
+# 重疊造成 rebase 衝突（例：Run 37897157963 失敗，與 Run 37896570460 重疊）。
 on:
-  workflow_dispatch:           # 手動觸發
+  workflow_dispatch:
+
+# 自己這條 workflow 不並行：重疊的觸發排隊等前一個做完（不取消進行中的 run）
+concurrency:
+  group: fetch-etf-data
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -25,11 +33,18 @@ jobs:
       #   跟「一切正常」長得一模一樣。壞掉的時候更要讓警報跑得到。
       #   腳本本身失敗時不會覆寫既有資料，所以讓它繼續是安全的。
       - name: Fetch ETF base data
+        id: fetch_base
         continue-on-error: true
         run: python fetch_etf.py
 
+      # 與 dividend-update.yml 相同的 secrets：沒有 FINMIND_TOKEN 時 FinMind 來源會被跳過，
+      # 15:00 這次會用較少的來源覆寫 dividend-update 剛更新的 dividend_calendar.json
       - name: Fetch dividend calendar (TWSE official)
         continue-on-error: true
+        env:
+          FINMIND_TOKEN:      ${{ secrets.FINMIND_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scripts/fetch_dividend_calendar.py
 
       # 主動式 ETF 持股（各投信 PCF）。投信官網可能擋 Actions IP 或改版，
@@ -50,21 +65,35 @@ jobs:
           MEGA_FEED_DIR: ${{ github.workspace }}/_mega_feed
         run: python scripts/fetch_active_etf.py
 
+      # continue-on-error 保留：查核／通知失敗不能擋住後面的 Gate 發布與行情觸發（有效資料照常更新）。
+      # 但失敗不能被當成成功：心跳要求本步 outcome 成功，最後一步把它標紅（F-1）。
       - name: Daily check & auto-fix avg
+        id: daily_check
         continue-on-error: true
+        # D-063：資格查核通知照底版先送（送達才寫 notified）；其餘訊息延到發布核驗後的下一步才送
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scripts/daily_check.py --defer-notifications "$RUNNER_TEMP/etf-notifications.json"
 
-      - name: Commit and push
+      # 發布關卡：驗證「實際要提交的內容」（工作目錄 → git index → rebase 後的 HEAD），檔案清單＝提交清單。
+      # 壞檔還原成上一版（HEAD 版本也須驗證通過）、其他有效檔照常發布；任何意外 → 整批不提交。
+      # 「腳本 exit 0」不等於「資料有效」：這裡不看前面步驟的結束碼，逐檔重驗。
+      - name: Commit and push (validated)
         id: publish
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json data/daily_state.json data/etf_pool_cache.json data/active_flow.json data/_active_snapshot.json
-          git diff --cached --quiet || git commit -m "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')"
-          git pull --rebase origin main
-          git push
+          python scripts/publish_gate.py --message "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')" \
+            data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json \
+            data/daily_state.json data/etf_pool_cache.json data/active_flow.json data/_active_snapshot.json \
+            data/excluded_products.json
 
       - name: Notify only after publication verification
+        id: notify
         if: always()
         continue-on-error: true  # Notification failure must not block market synchronization.
         env:
@@ -89,8 +118,10 @@ jobs:
       # 到底算不算數，GitHub 兩種說法都有人講。萬一不算，secret 明明設好了
       # step 卻被永遠跳過 → healthchecks 每天誤報「掛了」，反而毀掉這套機制。
       # 判斷移到 shell 裡，語義百分之百確定。
+      # 成功心跳只在「基線抓取成功、daily_check（資格查核／通知）成功、且發布關卡沒有擋下任何檔」時送出；
+      # 否則 healthchecks 會因沒收到 ping 而告警。看 outcome（continue-on-error 下 conclusion 永遠是 success）
       - name: Heartbeat ping (healthchecks.io)
-        if: success()
+        if: success() && steps.fetch_base.outcome == 'success' && steps.daily_check.outcome == 'success' && steps.notify.outcome == 'success' && steps.publish.outputs.degraded == 'false'
         env:
           HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
         run: |
@@ -100,3 +131,16 @@ jobs:
           fi
           curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL"
           echo "ping 已送出"
+
+      # 基線抓取失敗、daily_check（資格查核／通知）失敗或有檔案被發布關卡擋下 → job 紅燈（其他有效資料已照常提交）
+      - name: Fail if data was not fully updated
+        if: always() && (steps.fetch_base.outcome != 'success' || steps.daily_check.outcome != 'success' || steps.notify.outcome != 'success' || steps.publish.outputs.degraded != 'false')
+        run: |
+          if [ "${{ steps.daily_check.outcome }}" != "success" ]; then
+            echo "::error::daily_check 失敗（資格查核摘要無效或通知未送達；outcome=${{ steps.daily_check.outcome }}）"
+          fi
+          if [ "${{ steps.notify.outcome }}" != "success" ]; then
+            echo "::error::發布後通知未完成（發布未確認、候選不符或通知未送達；outcome=${{ steps.notify.outcome }}）"
+          fi
+          echo "::error::資料未完整更新（fetch_base=${{ steps.fetch_base.outcome }}, daily_check=${{ steps.daily_check.outcome }}, notify=${{ steps.notify.outcome }}, publish=${{ steps.publish.outcome }}, degraded=${{ steps.publish.outputs.degraded }}, blocked=${{ steps.publish.outputs.blocked }}）；資料是否已發布以 publish／degraded 為準"
+          exit 1

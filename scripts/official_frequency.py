@@ -144,10 +144,11 @@ def recover_missing(etfs, info_map, resolver=None, limit=4):
         if not isinstance(meta, dict):
             attempts.append({"code": code, "status": "unresolved", "reason": "invalid static record"})
             continue
-        if meta.get("frequency") not in UNKNOWN:
+        known = effective_frequency(code, meta)          # D-068：有證據就須通過驗證；壞證據＝未知，照常補查／警報
+        if known is not None:
             # Previously verified/static data was not yet propagated to market.
             entry.pop("div_freq", None)
-            entry["div_frequency"] = meta["frequency"]
+            entry["div_frequency"] = known
             continue
         if len([a for a in attempts if a.get("status") != "deferred"]) >= limit:
             attempts.append({"code": code, "status": "deferred", "reason": "bounded lookup budget; retry next run"})
@@ -174,6 +175,270 @@ def recover_missing(etfs, info_map, resolver=None, limit=4):
         entry["div_frequency"] = frequency
         recovered.append(code)
     return {"attempts": attempts, "recovered": recovered}
+
+
+# ── D-068：官方政策證據與待公告查證（只服務配息通知修復；不是通用爬蟲）──
+# 採用的發行人／交易所文件只限下列 https 來源（精確主機＋路徑前綴）；每份文件須另有 TWSE 同代號身分頁核對。
+EVIDENCE_SOURCES = (
+    ("www.twse.com.tw", "/"),
+    ("www.cathaysite.com.tw", "/"),
+    ("cwapi.cathaysite.com.tw", "/"),
+    ("www.fubon.com", "/asset-management/"),
+    ("www.fsitc.com.tw", "/"),
+)
+POLICIES = ("不配息", "月配", "季配", "半年配", "年配", "雙月配")
+_HEX64 = re.compile(r"[0-9a-f]{64}")
+# 「收益不分配」類政策只認明確語句；單獨一個「無」字不算（例如表格欄位「收益分配 無」必須另有完整句）。
+_NO_DIST_PHRASES = ("本基金收益不分配", "收益不分配", "不配息，基金之收益全部併入基金資產")
+
+
+def _https_url_ok(url):
+    try:
+        sp = urllib.parse.urlsplit(str(url))
+    except ValueError:
+        return False
+    return sp.scheme == "https" and bool(sp.hostname) and not sp.username and not sp.password
+
+
+def evidence_url_ok(url):
+    try:
+        sp = urllib.parse.urlsplit(str(url))
+    except ValueError:
+        return False
+    if sp.scheme != "https" or sp.username or sp.password or sp.port or sp.fragment:
+        return False
+    return any(sp.hostname == h and sp.path.startswith(p) for h, p in EVIDENCE_SOURCES)
+
+
+# D-068 R1（F1）：持久化證據讀回時一樣要核「來源＋種類＋身分鏈」，不因「已存進去」就可信。
+# 只接受下列三種實際 producer 寫出的形狀（不以代號豁免）：
+#   twse_notice  ：resolve_frequency（TWSE ETFortune 公告）——sources 無 kind、url＝www.twse.com.tw/zh/ETFortune/newsDetail/<hex>，無 identity
+#   issuer_doc   ：verify_issuer_no_distribution——sources 一筆、kind 為已審兩種之一、url 符合該種類，必有 TWSE 精確身分鏈
+#   legacy_tsit  ：D-063 後已審發布的台新產品頁格式（00851）——url 精確 www.tsit.com.tw/ETF/Home/ETFSeriesDetail/<同代號>，無 kind／identity
+_TWSE_NOTICE = re.compile(r"/zh/ETFortune/newsDetail/[a-fA-F0-9]+")
+_ISSUER_KINDS = {
+    "fubon_fund_page": lambda sp: sp.hostname == "www.fubon.com" and sp.path == "/asset-management/fund/info/fund"
+                                  and re.fullmatch(r"Fd=\d+", sp.query or "") is not None,
+    "cathay_prospectus_pdf": lambda sp: sp.hostname == "cwapi.cathaysite.com.tw" and sp.path.startswith("/uploads/")
+                                        and sp.path.lower().endswith(".pdf") and not sp.query,
+}
+
+
+def _split_exact(url):
+    """https、無帳密／port／fragment 才回 SplitResult，否則 None（壞型別不崩潰）。"""
+    if not isinstance(url, str):
+        return None
+    try:
+        sp = urllib.parse.urlsplit(url)
+        if sp.scheme != "https" or sp.username or sp.password or sp.port or sp.fragment or not sp.hostname:
+            return None
+    except ValueError:
+        return None
+    return sp
+
+
+def _source_shape(code, s):
+    sp = _split_exact(s.get("url"))
+    if sp is None:
+        return None
+    kind = s.get("kind")
+    if kind is None:
+        if sp.hostname == "www.twse.com.tw" and _TWSE_NOTICE.fullmatch(sp.path) and not sp.query:
+            return "twse_notice"
+        if sp.hostname == "www.tsit.com.tw" and sp.path == "/ETF/Home/ETFSeriesDetail/" + code and not sp.query:
+            return "legacy_tsit"
+        return None
+    if isinstance(kind, str) and kind in _ISSUER_KINDS and _ISSUER_KINDS[kind](sp):
+        return "issuer_doc"
+    return None
+
+
+def policy_evidence_problem(code, meta):
+    """dividend_info 單檔的官方政策證據是否可採；None＝可採，否則回原因。沒有證據欄位回 'absent'。"""
+    try:
+        return _policy_evidence_problem(code, meta)
+    except Exception as ex:                      # 壞型別一律當無效證據，不崩潰
+        return "evidence malformed（%s）" % type(ex).__name__
+
+
+def _policy_evidence_problem(code, meta):
+    if not isinstance(meta, dict):
+        return "invalid static record"
+    ev = meta.get("frequency_evidence")
+    if ev is None:
+        return "absent"
+    if not isinstance(ev, dict) or ev.get("status") != "verified" or ev.get("code") != code:
+        return "evidence status／code mismatch"
+    if meta.get("frequency") not in POLICIES or ev.get("frequency") != meta.get("frequency"):
+        return "evidence frequency mismatch"
+    srcs = ev.get("sources")
+    if not isinstance(srcs, list) or not srcs:
+        return "evidence has no sources"
+    shapes = set()
+    for s in srcs:
+        if not isinstance(s, dict) or not isinstance(s.get("sha256"), str) or not _HEX64.fullmatch(s["sha256"]):
+            return "evidence source sha256 invalid"
+        if s.get("code") != code or s.get("frequency") != meta.get("frequency"):
+            return "evidence source code／frequency mismatch"
+        shape = _source_shape(code, s)
+        if shape is None:
+            return "evidence source not an accepted official source／kind"
+        shapes.add(shape)
+    if len(shapes) != 1 or (shapes & {"issuer_doc", "legacy_tsit"} and len(srcs) != 1):
+        return "evidence mixes source kinds"
+    shape = shapes.pop()
+    try:
+        datetime.datetime.fromisoformat(str(ev.get("checked_at")))
+    except ValueError:
+        return "evidence checked_at invalid"
+    ident = ev.get("identity")
+    if shape != "issuer_doc":
+        return None if ident is None else "identity chain not expected for this source kind"
+    # 發行人文件：必須有 TWSE 同代號身分鏈，身分頁 URL 精確等於 www.twse.com.tw/zh/ETFortune/etfInfo/<代號>
+    if not isinstance(ident, dict) or ident.get("code") != code:
+        return "identity chain missing／code mismatch"
+    if not all(isinstance(ident.get(k), str) and ident[k] for k in ("full_name", "issuer", "short_name")):
+        return "identity chain fields missing"
+    if ident.get("twse_url") != "https://www.twse.com.tw/zh/ETFortune/etfInfo/" + code:
+        return "identity TWSE url not exact"
+    if not isinstance(ident.get("twse_sha256"), str) or not _HEX64.fullmatch(ident["twse_sha256"]):
+        return "identity TWSE sha256 invalid"
+    kind = srcs[0]["kind"]
+    if (kind == "fubon_fund_page" and "富邦" not in ident["issuer"]) or (kind == "cathay_prospectus_pdf" and "國泰" not in ident["issuer"]):
+        return "identity issuer does not match document kind"
+    if ev.get("frequency") != "不配息" or ev.get("policy_statement") not in _NO_DIST_PHRASES + ("收益分配不配息，基金之收益全部併入基金資產",):
+        return "issuer evidence statement／policy invalid"
+    return None
+
+
+def effective_frequency(code, meta):
+    """靜態頻率的單一採用規則（fetch／mis／daily 共用）：有證據就必須通過驗證，否則視為未知；
+    沒有證據欄位的既有靜態資料照舊沿用（不追溯推翻人工核實資料）。"""
+    if not isinstance(meta, dict) or meta.get("frequency") in UNKNOWN:
+        return None
+    p = policy_evidence_problem(code, meta)
+    if p not in (None, "absent"):
+        return None
+    return meta["frequency"]
+
+
+def _plain(html_bytes):
+    text = html_bytes.decode("utf-8", errors="strict")
+    text = re.sub(r"<script\b.*?</script>|<style\b.*?</style>", " ", text, flags=re.S | re.I)
+    return re.sub(r"\s+", "", __import__("html").unescape(re.sub(r"<[^>]+>", " ", text)))
+
+
+def twse_identity(code, html_bytes):
+    """TWSE ETFortune etfInfo 頁：取完整基金名稱與發行公司，且證券代號必須是 code。"""
+    t = _plain(html_bytes)
+    m = re.search(r"ETF商品(?P<name>[^\s]{6,120}?)證券代號(?P<code>[0-9A-Z]{4,8})證券簡稱(?P<short>.{1,30}?)證券類別.{1,20}?發行公司(?P<issuer>.{2,40}?股份有限公司)", t)
+    if not m or m.group("code") != code:
+        raise ValueError("TWSE identity page code missing or mismatched")
+    return {"code": code, "full_name": m.group("name"), "short_name": m.group("short"), "issuer": m.group("issuer")}
+
+
+def _norm_name(s):
+    return re.sub(r"[\s（）()]|加掛美元受益憑證", "", s)
+
+
+def verify_issuer_no_distribution(code, twse_url, twse_bytes, doc_url, doc_bytes, doc_text, kind, checked_at):
+    """以已保存原文核實「發行人文件明確不分配收益」並建立可持久化證據；任何一項不符 → ValueError。
+    kind: 'fubon_fund_page'（HTML，頁內 stkId 必須等於代號）或 'cathay_prospectus_pdf'（PDF 由呼叫端轉出文字 doc_text，
+    PDF 本身沒有代號 → 須以文件內完整基金名稱＝TWSE 身分頁完整名稱、發行公司相符建立身分鏈）。"""
+    if not evidence_url_ok(twse_url) or urllib.parse.urlsplit(twse_url).path != "/zh/ETFortune/etfInfo/" + code:
+        raise ValueError("TWSE identity url not exact")
+    if not evidence_url_ok(doc_url) or urllib.parse.urlsplit(doc_url).hostname == "www.twse.com.tw":
+        raise ValueError("issuer document url not allowed")
+    ident = twse_identity(code, twse_bytes)
+    if kind == "fubon_fund_page":
+        if not doc_url.startswith("https://www.fubon.com/asset-management/fund/info/fund?Fd="):
+            raise ValueError("fubon fund page url not exact")
+        raw = doc_bytes.decode("utf-8", errors="strict")
+        stk = re.findall(r'var\s+stkId\s*=\s*"([0-9A-Z]{4,8})"', raw)
+        if stk != [code] or "富邦" not in ident["issuer"]:
+            raise ValueError("fubon page stkId／issuer does not match TWSE identity")
+        t = _plain(doc_bytes)
+        stmt = "收益分配不配息，基金之收益全部併入基金資產"          # 基金檔案欄位「收益分配」的完整值，不是單字判斷
+        if t.count(stmt) != 1:
+            raise ValueError("fubon page has no single explicit no-distribution policy field")
+    elif kind == "cathay_prospectus_pdf":
+        if not doc_url.startswith("https://cwapi.cathaysite.com.tw/uploads/") or not doc_bytes.startswith(b"%PDF-"):
+            raise ValueError("cathay prospectus url／format not exact")
+        t = re.sub(r"\s+", "", doc_text or "")
+        if "國泰" not in ident["issuer"] or _norm_name(ident["full_name"]) not in t:
+            raise ValueError("prospectus does not name the TWSE-identified fund／issuer")
+        if not re.search(r"\(無，本基金收益不分配\)|本基金收益不分配", t):
+            raise ValueError("prospectus has no explicit no-distribution statement")
+        stmt = "本基金收益不分配"
+    else:
+        raise ValueError("unknown issuer document kind")
+    return {"status": "verified", "code": code, "frequency": "不配息", "policy_statement": stmt,
+            "sources": [{"code": code, "frequency": "不配息", "url": doc_url, "sha256": hashlib.sha256(doc_bytes).hexdigest(),
+                         "kind": kind}],
+            "identity": dict(ident, twse_url=twse_url, twse_sha256=hashlib.sha256(twse_bytes).hexdigest()),
+            "checked_at": checked_at}
+
+
+# ── 待公告逾期查證：只用既有可信 TWSE 配息日曆（dividend_calendar.json），不另外爬投信網站 ──
+# D-068 R1（F2）：只認 fetch_dividend_calendar.py 實際寫出的 TWSE 官方金額來源字串（精確比對，不以字首代表官方）。
+# 「（保留前值）」「FinMind（估算）」「MoneyDJ」「Gavin 人工確認」等一律非官方 → partial。
+_TWSE_AMOUNT_SOURCES = re.compile(r"TWSE|TWSE × FinMind 核實|TWSE（FinMind 差異 \d{1,3}%）")
+
+
+def _official_amount(src):
+    return isinstance(src, str) and _TWSE_AMOUNT_SOURCES.fullmatch(src) is not None
+
+
+def pending_announcement(code, since, cal_entry):
+    """回傳 (status, detail)。status：announced（有效同檔官方公告：除息日在 since 之後、金額為 TWSE 官方且 > 0）／
+    partial（有日期但金額非官方或 0，維持待公告）／none／invalid（資料壞掉）。不試算、不改殖利率。"""
+    if not isinstance(cal_entry, dict):
+        return "none", "TWSE 配息日曆沒有這檔"
+    if cal_entry.get("code") != code:             # producer 一定寫 code；缺漏或不符都不能關聯到這檔
+        return "invalid", "日曆項目代號 %r 與 %s 不符" % (cal_entry.get("code"), code)
+    try:
+        ex = datetime.date.fromisoformat(str(cal_entry.get("ex_dividend_date")))
+    except ValueError:
+        return "invalid", "除息日不合法：%r" % cal_entry.get("ex_dividend_date")
+    if ex <= since:
+        return "none", "日曆最近除息日 %s 不在上次查證 %s 之後" % (ex, since)
+    amt = cal_entry.get("amount")
+    if isinstance(amt, bool) or not isinstance(amt, (int, float)) or amt != amt or amt in (float("inf"), float("-inf")):
+        return "invalid", "金額不合法：%r" % amt
+    if amt <= 0 or not _official_amount(cal_entry.get("amount_source")):
+        return "partial", "已有除息日 %s，但金額 %r（來源 %r）非 TWSE 官方，維持待公告" % (ex, amt, cal_entry.get("amount_source"))
+    return "announced", {"ex_dividend_date": ex.isoformat(), "amount": float(amt), "amount_source": cal_entry.get("amount_source")}
+
+
+def pending_resolution_problem(code, meta, since=None):
+    """dividend_info 單檔的待公告解除紀錄是否有效；None＝有效。since 給了就須是同一段待公告（pending_since 相同）。"""
+    try:
+        return _pending_resolution_problem(code, meta, since)
+    except Exception as ex:
+        return "resolution malformed（%s）" % type(ex).__name__
+
+
+def _pending_resolution_problem(code, meta, since):
+    if not isinstance(meta, dict) or not isinstance(meta.get("pending_resolution"), dict):
+        return "absent"
+    r = meta["pending_resolution"]
+    if r.get("status") != "announced" or r.get("code") != code or not _official_amount(r.get("amount_source")) \
+            or r.get("source") != "TWSE 配息日曆（dividend_calendar.json）":
+        return "resolution status／code／source invalid"
+    try:
+        ps = datetime.date.fromisoformat(str(r.get("pending_since")))
+        ex = datetime.date.fromisoformat(str(r.get("ex_dividend_date")))
+        datetime.datetime.fromisoformat(str(r.get("checked_at")))
+    except ValueError:
+        return "resolution dates invalid"
+    a = r.get("amount")
+    if isinstance(a, bool) or not isinstance(a, (int, float)) or not (a > 0) or a != a or a == float("inf"):
+        return "resolution amount invalid"
+    if ex <= ps:
+        return "resolution ex-date not after pending_since"
+    if since is not None and str(since) != ps.isoformat():
+        return "resolution belongs to a different pending period"
+    return None
 
 
 # ── D-071：全體未知配息政策的自動查證（TWSE 公告＋投信投顧公會 SITCA ETF 基本資料表）──
@@ -329,8 +594,9 @@ def policy_source_problem(code, meta):
 
 
 def known_policy(code, meta):
-    """已知政策或 None。policy_source 存在但無效 → 視為未知、重新查證（不沿用壞證據）。"""
-    if not isinstance(meta, dict) or meta.get("frequency") in UNKNOWN:
+    """已知政策或 None（安全版整合：D-068 frequency_evidence 與 D-071 policy_source 兩種證據都必須有效）。
+    任一證據欄位存在但無效 → 視為未知、重新查證；兩者都沒有的既有已核靜態政策照舊沿用。"""
+    if effective_frequency(code, meta) is None:
         return None
     if policy_source_problem(code, meta) not in (None, "absent"):
         return None
@@ -345,6 +611,7 @@ def _adopt(info_map, code, name, frequency, source):
     meta.setdefault("_todo", True)              # 政策查證不等於金額／月份查證
     meta["frequency"] = frequency
     meta.pop("policy_source", None)
+    meta.pop("frequency_evidence", None)       # 安全版整合：舊（可能失效）的 D-068 證據不得殘留在新採用紀錄上
     if source is not None:
         meta["policy_source"] = source
     info_map[code] = meta

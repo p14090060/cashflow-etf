@@ -37,10 +37,13 @@ TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 
-def notify(msg: str):
+def notify(msg: str) -> bool:
+    """送出 Telegram；確認送達回傳 True。未設定 secrets、HTTP／連線錯誤、逾時、API 回應 ok 不為 true → False。
+    錯誤訊息不含 token 或含 token 的網址。"""
     print(f"[NOTIFY] {msg}")
     if not TG_TOKEN or not TG_CHAT_ID:
-        return
+        print("[NOTIFY FAILED] 未設定 TELEGRAM_BOT_TOKEN／TELEGRAM_CHAT_ID，訊息未發送", file=sys.stderr)
+        return False
     try:
         data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg}).encode()
         req  = urllib.request.Request(
@@ -48,9 +51,15 @@ def notify(msg: str):
             data=data,
             headers={"Content-Type": "application/json"},
         )
-        urllib.request.urlopen(req, timeout=10)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+        if body.get("ok") is not True:
+            print(f"[NOTIFY FAILED] Telegram 回應失敗：{body.get('error_code')} {body.get('description')}", file=sys.stderr)
+            return False
     except Exception as e:
-        print(f"[NOTIFY ERROR] {e}", file=sys.stderr)
+        print(f"[NOTIFY FAILED] {type(e).__name__}: {str(e).replace(TG_TOKEN, '***')}", file=sys.stderr)
+        return False
+    return True
 
 
 def current_slot():
@@ -63,18 +72,19 @@ def current_slot():
     return None
 
 
-def main():
+def main() -> int:
+    """回傳 exit code：0＝已送達或正常略過（非通知時段、沒有便宜訊號）；1＝該送卻沒送成。"""
     slot = current_slot()
     if not slot:
         print("[SKIP] 非通知時間點")
-        return
+        return 0
 
     try:
         with open(MARKET, encoding="utf-8") as f:
             market = json.load(f)
     except Exception:
-        print("[ERROR] 無法讀取 market.json")
-        return
+        print("[ERROR] 無法讀取 market.json，未發送")
+        return 1
 
     etfs = market.get("etfs", [])
 
@@ -97,12 +107,12 @@ def main():
 
     if not cheap:
         print(f"[{slot}] 監控清單無便宜訊號，略過通知")
-        return
+        return 0
 
     lines = [f"💚 [{slot}] 監控清單 便宜訊號"] + cheap
     lines.append("⚠ 訊號僅供參考，非買賣建議")
-    notify("\n".join(lines))
+    return 0 if notify("\n".join(lines)) else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

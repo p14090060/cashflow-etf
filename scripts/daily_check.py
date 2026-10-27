@@ -3,8 +3,12 @@ scripts/daily_check.py
 每日收盤後驗證 market.json 資料品質，有異常發 Telegram 通知。
 自動修正：TWSE 官方新配息金額 vs 儲存 avg 差 >15% → 更新 dividend_info.json
 """
-import ast, datetime, json, math, os, re, sys, time, urllib.parse, urllib.request
+import ast, datetime, hashlib, json, math, os, re, sys, time, urllib.parse, urllib.request
 from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent))
+from json_safe import atomic_write_json, VALIDATORS, validate_pool_cache   # noqa: E402
+import product_policy   # noqa: E402
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
 try:
@@ -34,11 +38,16 @@ TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 
+NOTIFY_FAILED = []      # 本次有通知沒送成 → 結束碼非零（fetch.yml 此步 continue-on-error：步驟失敗，但 job 不因此紅燈）
+
+
 def notify(msg: str) -> bool:
-    """送 Telegram；API 回 ok=true 才回 True（D-071：送達確認後才記錄回執）。錯誤訊息不含 token。"""
+    """送 Telegram；確認送達（API 回 ok=true）才回傳 True。未設定 secrets、HTTP／連線錯誤、逾時、API 失敗
+    → False 並記入 NOTIFY_FAILED。錯誤訊息不含 token。"""
     print(f"[NOTIFY] {msg}")
     if not TG_TOKEN or not TG_CHAT_ID:
         print("[NOTIFY FAILED] 未設定 TELEGRAM_BOT_TOKEN／TELEGRAM_CHAT_ID，訊息未發送", file=sys.stderr)
+        NOTIFY_FAILED.append("no-secrets")
         return False
     try:
         data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg}).encode()
@@ -50,89 +59,12 @@ def notify(msg: str) -> bool:
         with urllib.request.urlopen(req, timeout=10) as resp:
             body = json.loads(resp.read().decode("utf-8"))
         if body.get("ok") is not True:
-            raise RuntimeError("Telegram 回應失敗：%s" % body.get("error_code"))
+            raise RuntimeError(f"Telegram 回應失敗：{body.get('error_code')} {body.get('description')}")
     except Exception as e:
-        print(f"[NOTIFY ERROR] {type(e).__name__}: {str(e).replace(TG_TOKEN, '***') if TG_TOKEN else e}", file=sys.stderr)
+        print(f"[NOTIFY FAILED] {type(e).__name__}: {str(e).replace(TG_TOKEN, '***')}", file=sys.stderr)
+        NOTIFY_FAILED.append(type(e).__name__)
         return False
     return True
-
-
-def _now():
-    return time.time()
-
-
-# ── D-071：配息政策缺值自動查證的跨輪狀態與求助門檻 ──
-# daily_state 只放 {欄位: {代號: 數值}}（與 87176ee6 json_safe.validate_daily_state 相容）：
-#   frequency_recovery 上次 TWSE 逐檔查詢 epoch；policy_status 狀態碼（official_frequency.QUEUED…NO_RESULT）；
-#   policy_first 第一次「完成判讀仍無解」epoch；policy_rounds 完成判讀仍無解的輪數；policy_notified 求助確認送達 epoch。
-POLICY_HELP_ROUNDS  = 3
-POLICY_HELP_SECONDS = 24 * 3600
-POLICY_REMIND_DAYS  = 14
-POLICY_HELP_MAX     = 15
-POLICY_KEYS = ("frequency_recovery", "policy_status", "policy_first", "policy_rounds", "policy_notified")
-ACK = {}                 # 本輪求助訊息要求的送達回執 {"policy_notified": [代號]}
-ACK_MESSAGE = [None]
-
-
-def _num_map(v):
-    return {c: x for c, x in (v or {}).items() if isinstance(c, str) and isinstance(x, (int, float))
-            and not isinstance(x, bool) and math.isfinite(x)} if isinstance(v, dict) else {}
-
-
-def update_policy_state(state, result, now):
-    """依本輪查證結果更新跨輪狀態；回傳達求助門檻的代號（未在 POLICY_REMIND_DAYS 內確認送達過）。"""
-    import official_frequency as of
-    st = {k: _num_map(state.get(k)) for k in POLICY_KEYS}
-    for c in result["twse_tried"]:
-        st["frequency_recovery"][c] = now
-    tracked = set(result["status"])
-    for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
-        st[k] = {c: v for c, v in st[k].items() if c in tracked}        # 已不再未知／衝突者清除
-    for c, s in result["status"].items():
-        if s == of.ADOPTED:
-            for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
-                st[k].pop(c, None)
-            continue
-        st["policy_status"][c] = s                   # R1：照實記錄本輪狀態（排隊／暫時失敗不沿用舊的無解）
-        if c in result["completed"]:                 # 只有支援來源都完成判讀才算一輪；排隊／暫時失敗不算
-            st["policy_first"].setdefault(c, now)
-            st["policy_rounds"][c] = st["policy_rounds"].get(c, 0) + 1
-    state.update(st)
-    # R1：只有本輪所有適用來源都實際讀完（completed）仍無解／矛盾才可能求助；歷史輪數保留但不冒充本輪已查完
-    due = [c for c, s in st["policy_status"].items()
-           if c in result["completed"] and s in (of.CONFLICT, of.NO_RESULT) and st["policy_rounds"].get(c, 0) >= POLICY_HELP_ROUNDS
-           and now - st["policy_first"].get(c, now) >= POLICY_HELP_SECONDS
-           and now - st["policy_notified"].get(c, 0) >= POLICY_REMIND_DAYS * 86400]
-    return sorted(due, key=lambda c: (st["policy_first"][c], c))
-
-
-def policy_help_lines(due, result, state, names):
-    """達門檻的彙整求助（工程摘要）：列已查來源／輪數／時間／缺口，不要求 PO 代查官網。列出者才要求送達回執。"""
-    import official_frequency as of
-    if not due:
-        return []
-    fmt = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone(datetime.timedelta(hours=8))).strftime("%m/%d %H:%M")
-    shown = due[:POLICY_HELP_MAX]
-    sitca = result["sitca"]
-    out = ["🔎 配息政策自動查證仍無解（%d 檔；已跨 %d 輪、24 小時以上）" % (len(due), POLICY_HELP_ROUNDS),
-           "支援的自動來源只有投信投顧公會 ETF 基本資料月報（本輪 %s，更新 %s）與 TWSE ETFortune 政策公告；"
-           "其他發行人網站未自動支援，不代表所有官方皆查無。每檔列本輪實際讀過的來源" % (sitca.get("report_month") or "未取得", sitca.get("updated") or "—")]
-    for c in shown:
-        out.append("• %s %s：%s；本輪已查 %s；%s（完成判讀 %d 輪，首次 %s）" % (
-            c, names.get(c, ""), of.STATUS_TEXT[state["policy_status"][c]], "＋".join(result["checked"].get(c) or []),
-            result["detail"].get(c, ""), state["policy_rounds"][c], fmt(state["policy_first"][c])))
-    if len(due) > len(shown):
-        out.append("…其餘 %d 檔下輪接續列出" % (len(due) - len(shown)))
-    ACK.setdefault("policy_notified", []).extend(shown)
-    return out
-
-
-def _apply_ack(state, ack, now=None):
-    now = _now() if now is None else now
-    for key, codes in ack.items():
-        cur = state.get(key) if isinstance(state.get(key), dict) else {}
-        cur.update({c: now for c in codes})
-        state[key] = cur
 
 
 def load(path):
@@ -144,8 +76,8 @@ def load(path):
 
 
 def save_json(path, obj):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
+    """原子寫入（依檔名套資料契約）；失敗原檔保留、例外往上丟。"""
+    atomic_write_json(path, obj, validate=VALIDATORS.get(Path(path).name))
 
 
 FETCH_ETF          = ROOT / "fetch_etf.py"
@@ -265,15 +197,29 @@ def check_active_flow() -> list:
     return issues
 
 
-def check_stale_pending() -> list:
-    """_YLD_PENDING 是人工維護、不會自動清除的清單，放著沒人複查就會一直顯示
-    「待公告」——2026-09-23 就發現有 8 支滿 1 歲、最久 2.2 年沒人回頭查。
-    這裡挑出超過 STALE_PENDING_DAYS 天沒複查的，提醒去查是不是已經開始配息。
+PENDING_CHECK_LIMIT = 4          # D-068：每輪最多查證幾檔逾期待公告（公平輪替，其餘 deferred 下輪優先）
+# D-068 R1（F3）：本輪提醒「要求」的送達回執 {daily_state 欄位: [代號]} 與承載它的訊息。
+# 準備時不寫回執；只有該則訊息確認送達（notify 回 True）且回執可靠保存後，才啟動 REMIND_DAYS 去重。
+ACK = {}
+ACK_MESSAGE = [None]
 
-    _YLD_PENDING 是 {代碼: "最後查證日"} 的 dict 字面值，直接從原始碼取出後用
+
+def _now():
+    return time.time()
+
+
+def _apply_ack(state, ack, now=None):
+    now = _now() if now is None else now
+    for key, codes in ack.items():
+        cur = state.get(key) if isinstance(state.get(key), dict) else {}
+        cur.update({c: now for c in codes})
+        state[key] = cur
+
+
+def _pending_dates():
+    """_YLD_PENDING 是 {代碼: "最後查證日"} 的 dict 字面值，直接從原始碼取出後用
     ast.literal_eval 解析（不 import fetch_etf，那支在 import 時就會打 TWSE API）。
-    解析失敗就安靜跳過，寧可不提醒也不要誤報。
-    """
+    解析失敗就安靜跳過，寧可不提醒也不要誤報。"""
     try:
         src = FETCH_ETF.read_text(encoding="utf-8")
         m = re.search(r"_YLD_PENDING\s*=\s*(\{.*?\n\})", src, re.S)
@@ -285,24 +231,77 @@ def check_stale_pending() -> list:
     except Exception as e:
         print(f"[WARN] _YLD_PENDING 解析失敗，跳過逾期檢查: {e}")
         return []
+    return pending
 
-    today, out = datetime.date.today(), []
+
+def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
+    """_YLD_PENDING 是人工維護的清單（2026-09-23 就發現有 8 支滿 1 歲、最久 2.2 年沒人回頭查）。
+    D-068：逾 STALE_PENDING_DAYS 天的不再直接推給 PO，先用既有可信的 TWSE 配息日曆（dividend_calendar.json）查證：
+    - 有效同檔官方公告（除息日在上次查證之後、TWSE 官方金額 > 0）→ 在 dividend_info 寫入 pending_resolution
+      （綁定同一段 pending_since），fetch 之後也不會被靜態清單蓋回；不試算、不改殖利率、不宣稱已發放。
+    - 仍無／只有非官方金額／資料壞掉 → 保留待公告，附本輪查證結果提醒；同一檔「確認送達後」REMIND_DAYS 天內不重複催
+      （R1：這裡只讀 pending_notified 回執，不寫；送達回執由 _apply_ack 在送達＋保存後寫入）。
+    - 每輪最多 PENDING_CHECK_LIMIT 檔，依上次查證時間由舊到新；超出的 deferred（不當成已查無、不提醒、不記查證時間）。
+    回傳 (提醒行, 已解除代號, 說明行, deferred 代號)。state 只放 {代號: epoch 秒數}（daily_state 數值契約）。"""
+    import official_frequency
+    pending = _pending_dates()
+    if not isinstance(pending, dict):
+        return [], [], [], []                    # 還是舊的 set 格式，沒有日期可判
+    info_map = info_map if info_map is not None else {}
+    cal_map = cal_map or {}
+    state = state if state is not None else {}
+    today = today or datetime.date.today()
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+    rech = {c: v for c, v in (state.get("pending_recheck") or {}).items() if isinstance(c, str) and num(v)}
+    notif = {c: v for c, v in (state.get("pending_notified") or {}).items() if isinstance(c, str) and num(v)}
+    now = time.time()
+    stale = []
     for code, checked in pending.items():
         try:
-            d = datetime.date.fromisoformat(str(checked))
+            since = datetime.date.fromisoformat(str(checked))
         except ValueError:
             continue
-        days = (today - d).days
-        if days > STALE_PENDING_DAYS:
-            out.append((days, f"• {code}：已 {days} 天未複查（上次 {checked}）"))
+        days = (today - since).days
+        if days <= STALE_PENDING_DAYS:
+            continue
+        if official_frequency.pending_resolution_problem(code, info_map.get(code), since.isoformat()) is None:
+            continue                             # 這段待公告已有有效官方公告解除紀錄
+        stale.append((code, since, days))
+    stale.sort(key=lambda x: (rech.get(x[0], 0), -x[2], x[0]))
+    out, resolved, notes, deferred = [], [], [], []
+    for i, (code, since, days) in enumerate(stale):
+        if i >= PENDING_CHECK_LIMIT:
+            deferred.append(code)
+            continue
+        status, detail = official_frequency.pending_announcement(code, since, cal_map.get(code))
+        rech[code] = now
+        print("[PENDING-RECHECK] %s since %s → %s %s" % (code, since, status, detail))
+        if status == "announced":
+            meta = dict(info_map.get(code) or {})
+            meta.setdefault("name", (cal_map.get(code) or {}).get("name", code))
+            meta["pending_resolution"] = dict(detail, status="announced", code=code, pending_since=since.isoformat(),
+                                              source="TWSE 配息日曆（dividend_calendar.json）",
+                                              checked_at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat())
+            info_map[code] = meta
+            resolved.append(code)
+            notes.append(f"• {code}：已核到 TWSE 官方配息公告（除息 {detail['ex_dividend_date']}、每單位 {detail['amount']}），"
+                         f"解除待公告（以發布核驗後為準；未宣稱已發放、殖利率未改）")
+            continue
+        if now - notif.get(code, 0) < REMIND_DAYS * 86400:
+            continue                             # 已確認送達過，REMIND_DAYS 天內不重複催
+        ACK.setdefault("pending_notified", []).append(code)
+        out.append((days, f"• {code}：已 {days} 天未人工複查（上次 {since}）；本輪已自動核對 TWSE 官方配息日曆：{detail}"))
+    if deferred:
+        print("[PENDING-RECHECK] deferred（查證額度已用完，下輪優先）：" + ",".join(deferred))
+    state["pending_recheck"], state["pending_notified"] = rech, notif
     out.sort(reverse=True)
-    return [t for _, t in out]
+    return [t for _, t in out], resolved, notes, deferred
 
 
 def check_new_in_top100(etfs: list) -> list:
     top100 = sorted(
         [e for e in etfs if (e.get("cur_vol") or 0) > 0 and e.get("price", 0) > 0],
-        key=lambda e: e.get("heat", 0),
+        key=lambda e: e.get("heat") or 0,   # D-047：歷史不足 ETF 的熱度是 null（資料不改），排序時當 0，不讓 None 比較崩潰
         reverse=True,
     )[:100]
     current_codes = {e["code"] for e in top100}
@@ -387,7 +386,215 @@ def no_distribution_note(code: str, info: dict, cal: dict, today: datetime.date)
     return f"本期不分配（評價日 {val}）", None
 
 
+# ── ETF 資格 60 天查核（D-013／D-014）──
+# fetch_etf.py 每次都向官方 ISIN（上市＋上櫃）查核：完整成功時列出的 ETF seen 更新為當天（＝查核成功，不通知）。
+# 這裡只處理「距最後一次成功官方確認已滿 60 天」的檔：附上**本輪** fetch 的官方查核摘要（來源、時間、兩市場結果）通知 PO。
+# 摘要必須屬於本輪執行（run 相同）且對應目前的證據／排除清單內容（SHA256 相同）；缺失／過期／損壞 → 不發資格 TG、
+# 不宣稱已查核，以非零結束交給既有失敗監控。行情與資料池不受影響。同一檔同一狀態 14 天內不重複；送達後才記 notified。
+# 自動登錄的 ETN（excluded_products.json notify_pending=true）：送達才清除，失敗留待下輪重送。
+REMIND_DAYS = 14
+_STATE_TEXT = {
+    "absent":      "官方 ISIN 本輪完整查核未列出此檔（不推定下市，需 PO 判斷是否不再收錄）",
+    "source_fail": "官方 ISIN 本輪查核不完整（來源失敗），工程端無法確認",
+}
+ELIG_FAILED = []        # 資格查核無法完成（摘要無效等）→ 結束碼非零
+
+
+def _check_report_path():
+    import tempfile
+    return os.environ.get("ETF_POOL_CHECK_REPORT") or os.path.join(tempfile.gettempdir(), "etf_pool_check.json")
+
+
+def _run_id():
+    if os.environ.get("GITHUB_RUN_ID"):
+        return "%s-%s" % (os.environ["GITHUB_RUN_ID"], os.environ.get("GITHUB_RUN_ATTEMPT", "1"))
+    return os.environ.get("ETF_RUN_ID") or None
+
+
+def _sha256_file(path):
+    import hashlib
+    try:
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    except FileNotFoundError:
+        return None
+
+
+def load_check_report():
+    """回傳 (摘要, None) 或 (None, 無效原因)。只接受本輪 fetch 寫出、且證據／排除清單內容與現在相同的摘要。"""
+    run = _run_id()
+    if not run:
+        return None, "沒有本輪執行識別（GITHUB_RUN_ID／ETF_RUN_ID）"
+    try:
+        rep = json.load(open(_check_report_path(), encoding="utf-8"))
+    except FileNotFoundError:
+        return None, "本輪 fetch 沒有產生查核摘要"
+    except Exception as e:
+        return None, f"查核摘要損壞（{type(e).__name__}）"
+    if not isinstance(rep, dict) or not isinstance(rep.get("markets"), dict) or not isinstance(rep.get("full"), bool) \
+            or not isinstance(rep.get("checked_at"), str):
+        return None, "查核摘要格式不符"
+    if rep.get("run") != run:
+        return None, f"查核摘要不是本輪執行（摘要 {rep.get('run')}、本輪 {run}）"
+    if rep.get("evidence_sha256") != _sha256_file(product_policy.EVIDENCE_FILE) \
+            or rep.get("excluded_sha256") != _sha256_file(product_policy.POLICY_FILE):
+        return None, "查核摘要與目前的證據／排除清單內容不符"
+    return rep, None
+
+
+def _published_excluded():
+    """已正式發布（HEAD）的排除清單代號；讀不到 → 空集合（訊息就不宣稱已生效）。"""
+    import subprocess
+    repo = Path(product_policy.POLICY_FILE).resolve().parent.parent
+    r = subprocess.run(["git", "-C", str(repo), "show", "HEAD:data/excluded_products.json"], capture_output=True)
+    try:
+        return set(json.loads(r.stdout.decode("utf-8"))["products"]) if r.returncode == 0 else set()
+    except Exception:
+        return set()
+
+
+def _pool_cache_is_v2_record():
+    """D-056：etf_pool_cache.json 仍是 D-055 v2 完整性記錄（沒有 ISIN 區段／CFI）→ 尚未初始化資格證據（不是損壞）。"""
+    try:
+        obj = json.load(open(product_policy.EVIDENCE_FILE, encoding="utf-8"))
+    except Exception:
+        return False
+    return isinstance(obj, dict) and obj.get("format") == "etf-pool-cache/v2"
+
+
+def check_eligibility(today=None):
+    """回傳 True＝沒有需要通知或通知已送達；False＝通知沒送成（不記錄，下輪重送）或查核摘要無效（不發資格 TG）。"""
+    tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    today = today or tw.date()
+    try:
+        rows = None if _pool_cache_is_v2_record() else product_policy.read_evidence_file()
+        pol = product_policy.load_policy()
+    except product_policy.PolicyError as e:
+        return notify(f"🚨 ETF 資格證據或排除清單無法讀取（fail-closed，行情不會用它放行）：{e}")
+    listed = set(pol["products"])
+    lines, touched, etn_sent = [], [], []
+    pending = sorted(c for c, r in pol["products"].items() if r.get("notify_pending") is True)
+    if pending:
+        published = _published_excluded()
+        for c in pending:
+            r = pol["products"][c]
+            state = "已正式發布生效" if c in published else "已登錄，隨本輪資料發布後生效（發布前尚未生效）"
+            lines.append(f"• {c} {r['name']}：{r['reason']}（{r['source']}，{r['confirmed']}），依政策排除（D-004）—{state}")
+            etn_sent.append(c)
+    overdue = [r for r in (rows or []) if not product_policy.exclusion_reason(r["code"], listed)
+               and product_policy.eligibility_status(r, today) == "overdue"]
+    rep, why = load_check_report() if (overdue or rows is None) else (None, None)
+    head = None
+    if overdue and rep is None:
+        print(f"::error::[ELIG] {len(overdue)} 檔滿 60 天未確認，但{why}；不發資格通知、不宣稱已查核", file=sys.stderr)
+        ELIG_FAILED.append(why)
+    elif rep is not None:
+        head = f"查核來源：{rep.get('source', 'TWSE ISIN')}；本輪時間 {rep['checked_at']}；結果 {rep['markets']}"
+        if rep.get("init_missing"):
+            lines.append(f"• 首次資格證據未涵蓋現有 {len(rep['init_missing'])} 檔一般 ETF，未發布：{rep['init_missing'][:20]}")
+        for r in overdue:
+            state = "absent" if rep["full"] else "source_fail"
+            prev = r.get("notified", "")
+            if prev.startswith(state + ":"):
+                try:
+                    if (today - datetime.date.fromisoformat(prev.split(":", 1)[1])).days < REMIND_DAYS:
+                        continue
+                except ValueError:
+                    pass
+            lines.append(f"• {r['code']} {r['name']}：最後官方確認 {r['seen']}"
+                         f"{'；完整查核缺席起 ' + r['absent_since'] if r.get('absent_since') else ''}；{_STATE_TEXT[state]}")
+            touched.append((r, state))
+    if rows is None:
+        print("[ELIG] etf_pool_cache.json 尚未初始化為新格式資格證據，略過 60 天查核")
+    if not lines:
+        print("[ELIG] 沒有需要通知的資格查核結果")
+        return not ELIG_FAILED
+    text = "🔎 ETF 資格查核" + ("（本輪已先查官方來源，仍需 PO 知悉／判斷）\n" + head if head else "") + "\n" + "\n".join(lines) \
+        + "\n行情照常更新；一般 ETF 只有 PO 明確批准才會移除。"
+    ok = notify(text)
+    if ok and touched:
+        for r, state in touched:
+            r["notified"] = f"{state}:{today.isoformat()}"
+        try:
+            atomic_write_json(product_policy.EVIDENCE_FILE, rows, validate=validate_pool_cache)
+        except Exception as e:
+            print(f"[ELIG] 通知已送達，但 notified 寫入失敗（下次可能重送）：{e}", file=sys.stderr)
+    if ok and etn_sent:
+        for c in etn_sent:
+            pol["products"][c].pop("notify_pending", None)
+        try:
+            atomic_write_json(product_policy.POLICY_FILE, pol, validate=VALIDATORS["excluded_products.json"])
+        except Exception as e:
+            print(f"[ELIG] 通知已送達，但 notify_pending 清除失敗（下次可能重送）：{e}", file=sys.stderr)
+    return ok and not ELIG_FAILED
+
+
+# ── D-071（安全版整合）：配息政策缺值自動查證的跨輪狀態與求助門檻（取代 D-068 R1 F4 的 frequency_unresolved 摘要，
+#    單一流程、不重複通知）。daily_state 只放 {欄位: {代號: 數值}}（json_safe.validate_daily_state）：
+#   frequency_recovery 上次 TWSE 逐檔查詢 epoch；policy_status 狀態碼（official_frequency.QUEUED…NO_RESULT）；
+#   policy_first 第一次「完成判讀仍無解」epoch；policy_rounds 完成判讀仍無解的輪數；policy_notified 求助確認送達 epoch。
+POLICY_HELP_ROUNDS  = 3
+POLICY_HELP_SECONDS = 24 * 3600
+POLICY_REMIND_DAYS  = 14
+POLICY_HELP_MAX     = 15
+POLICY_KEYS = ("frequency_recovery", "policy_status", "policy_first", "policy_rounds", "policy_notified")
+
+
+def _num_map(v):
+    return {c: x for c, x in (v or {}).items() if isinstance(c, str) and isinstance(x, (int, float))
+            and not isinstance(x, bool) and math.isfinite(x)} if isinstance(v, dict) else {}
+
+
+def update_policy_state(state, result, now):
+    """依本輪查證結果更新跨輪狀態；回傳達求助門檻的代號（未在 POLICY_REMIND_DAYS 內確認送達過）。"""
+    import official_frequency as of
+    st = {k: _num_map(state.get(k)) for k in POLICY_KEYS}
+    for c in result["twse_tried"]:
+        st["frequency_recovery"][c] = now
+    tracked = set(result["status"])
+    for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
+        st[k] = {c: v for c, v in st[k].items() if c in tracked}        # 已不再未知／衝突者清除
+    for c, s in result["status"].items():
+        if s == of.ADOPTED:
+            for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
+                st[k].pop(c, None)
+            continue
+        st["policy_status"][c] = s                   # 照實記錄本輪狀態（排隊／暫時失敗不沿用舊的無解）
+        if c in result["completed"]:
+            st["policy_first"].setdefault(c, now)
+            st["policy_rounds"][c] = st["policy_rounds"].get(c, 0) + 1
+    state.update(st)
+    # 只有本輪所有適用來源都實際讀完（completed）仍無解／矛盾才可能求助；歷史輪數保留但不冒充本輪已查完
+    due = [c for c, s in st["policy_status"].items()
+           if c in result["completed"] and s in (of.CONFLICT, of.NO_RESULT) and st["policy_rounds"].get(c, 0) >= POLICY_HELP_ROUNDS
+           and now - st["policy_first"].get(c, now) >= POLICY_HELP_SECONDS
+           and now - st["policy_notified"].get(c, 0) >= POLICY_REMIND_DAYS * 86400]
+    return sorted(due, key=lambda c: (st["policy_first"][c], c))
+
+
+def policy_help_lines(due, result, state, names):
+    """達門檻的彙整求助（工程摘要）：列已查來源／輪數／時間／缺口，不要求 PO 代查官網。列出者才要求送達回執。"""
+    import official_frequency as of
+    if not due:
+        return []
+    fmt = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone(datetime.timedelta(hours=8))).strftime("%m/%d %H:%M")
+    shown = due[:POLICY_HELP_MAX]
+    sitca = result["sitca"]
+    out = ["🔎 配息政策自動查證仍無解（%d 檔；已跨 %d 輪、24 小時以上）" % (len(due), POLICY_HELP_ROUNDS),
+           "支援的自動來源只有投信投顧公會 ETF 基本資料月報（本輪 %s，更新 %s）與 TWSE ETFortune 政策公告；"
+           "其他發行人網站未自動支援，不代表所有官方皆查無。每檔列本輪實際讀過的來源" % (sitca.get("report_month") or "未取得", sitca.get("updated") or "—")]
+    for c in shown:
+        out.append("• %s %s：%s；本輪已查 %s；%s（完成判讀 %d 輪，首次 %s）" % (
+            c, names.get(c, ""), of.STATUS_TEXT[state["policy_status"][c]], "＋".join(result["checked"].get(c) or []),
+            result["detail"].get(c, ""), state["policy_rounds"][c], fmt(state["policy_first"][c])))
+    if len(due) > len(shown):
+        out.append("…其餘 %d 檔下輪接續列出" % (len(due) - len(shown)))
+    ACK.setdefault("policy_notified", []).extend(shown)
+    return out
+
+
 def main():
+    ACK.clear()
+    ACK_MESSAGE[0] = None
     # ── 0. market.json 過期檢查（30 小時）──
     # ⚠ 以前這裡看檔案 mtime，在 GitHub Actions 上**永遠不會觸發**：
     #   git 不保存 mtime，每次 actions/checkout 拿到的都是「剛剛」。
@@ -425,10 +632,8 @@ def main():
     info_map = div_info.get("etfs", {})
     cal_map  = (div_cal or {}).get("etfs", {})
 
-    # D-071：全體未知政策（不限 TOP100／新進）先自動查證；合格就同輪寫入候選，經既有發布步驟採用。
+    # D-071（安全版整合）：全體未知政策（不限 TOP100／新進）先自動查證；合格就同輪寫入候選，經原 Gate 發布採用。
     import official_frequency
-    ACK.clear()
-    ACK_MESSAGE[0] = None
     now_ts = _now()
     tz8 = datetime.timezone(datetime.timedelta(hours=8))
     policy_state = load(DAILY_STATE) or {}
@@ -451,7 +656,7 @@ def main():
         for row in current_base.get("etfs", []):
             meta = info_map.get(row.get("code"), {})
             if (row.get("div_freq") or row.get("div_frequency")) in (None, "", "?", "不明"):
-                frequency = official_frequency.known_policy(row.get("code"), meta)   # R1：壞 policy_source 不疊回
+                frequency = official_frequency.known_policy(row.get("code"), meta)   # D-071：失效證據不疊回
                 if frequency not in (None, "", "?", "不明"):
                     key = "div_frequency" if "div_frequency" in row else "div_freq"
                     row[key] = frequency
@@ -471,6 +676,8 @@ def main():
 
     # ── 載入跨日狀態 ──
     state      = load(DAILY_STATE) or {}
+    for k in ("frequency_unresolved", "frequency_notified"):      # D-068 R1 F4 舊欄位（未曾正式發布）由 D-071 狀態取代
+        state.pop(k, None)
     policy_due = update_policy_state(state, recovery, now_ts)
     yld_prev   = state.get("yld_prev", {})
     vol_streak = state.get("zero_vol_streak", {})
@@ -569,6 +776,18 @@ def main():
         save_json(DIV_INFO, div_info)
         print(f"[AUTO-FIX] 更新 {len(updated)} 支 avg")
 
+    # ── _YLD_PENDING 逾期：先查證再決定通知（D-068）──
+    stale, pending_resolved, pending_notes, _ = check_stale_pending(info_map, cal_map, state)
+    if pending_resolved:
+        div_info["etfs"] = info_map
+        save_json(DIV_INFO, div_info)
+        cur_base = load(ROOT / "data" / "_base.json")
+        if isinstance(cur_base, dict):
+            for row in cur_base.get("etfs", []):
+                if row.get("code") in pending_resolved:
+                    row["yld_pending"] = False
+            save_json(ROOT / "data" / "_base.json", cur_base)
+
     # ── 儲存跨日狀態 ──
     state["yld_prev"]        = yld_prev
     state["zero_vol_streak"] = vol_streak
@@ -583,9 +802,6 @@ def main():
         known = load(KNOWN_CODES)
         if isinstance(known, list):
             save_json(KNOWN_CODES, [code for code in known if code not in deferred_codes])
-
-    # ── _YLD_PENDING 逾期未複查 ──
-    stale = check_stale_pending()
 
     # ── 主動式 ETF 持股資料健康檢查 ──
     active_issues = check_active_flow()
@@ -605,8 +821,11 @@ def main():
         lines.append("📉 主動式 ETF 持股資料異常")
         lines.extend(active_issues)
     if stale:
-        lines.append(f"⏰ 待公告 ETF 逾 {STALE_PENDING_DAYS} 天未複查（查到已配息就從 _YLD_PENDING 移除）")
+        lines.append(f"⏰ 待公告 ETF 逾 {STALE_PENDING_DAYS} 天未人工複查，本輪自動查證仍未能解除")
         lines.extend(stale)
+    if pending_notes:
+        lines.append("ℹ 待公告自動查證結果")
+        lines.extend(pending_notes)
     # 新進榜只在有資料問題時通知
     problem_entries = []
     note_entries    = []
@@ -646,56 +865,62 @@ def main():
         ok = notify(msg)
         if any(ACK.values()):
             ACK_MESSAGE[0] = msg
-            if ok is True:                       # 直接模式：確認送達才寫回執；延後模式由 --send-prepared 處理
+            if ok is True:                       # 直接模式：確認送達才寫回執；延後模式（notify＝收集）由 --send-prepared 處理
                 _apply_ack(state, ACK)
                 save_json(DAILY_STATE, state)
     else:
         print("[OK] 所有監控 ETF 資料正常，TOP 100 無新進")
 
 
-def _git(*a):
-    import subprocess
-    return subprocess.run(["git", *a], cwd=ROOT, capture_output=True)
+def run():
+    """資格查核獨立於下方行情檢查（行情檢查有提早 return）；任何通知沒送成 → 1。"""
+    check_eligibility()
+    main()
+    return 1 if (NOTIFY_FAILED or ELIG_FAILED) else 0
 
 
 def persist_ack(codes, head, published, prepared_digest):
-    """求助確認送達後保存回執。R1：完全不碰共用 index、HEAD 與工作目錄——以「已發布版（＝本輪 HEAD）」的 daily_state
-    為底套上回執，用私有暫存 index（GIT_INDEX_FILE）建只改 data/daily_state.json 的 commit（父＝head），
-    push <commit>:refs/heads/main（不 force、被拒不重試）。任何不符／失敗 → 不推、不假稱已保存（下輪重送），
-    也不需要清理（沒有改動任何共用狀態）。"""
-    import hashlib, os, subprocess, tempfile
+    """提醒／求助確認送達後保存回執（D-068 經原 Gate ＋ D-071 不碰共用現場）。
+    以「已發布版（＝本輪 HEAD）」的 daily_state 為底套上回執，在 `git worktree add --detach` 的隔離工作樹寫入候選，
+    於該工作樹執行原 publish_gate.run（--base head、--expect 候選 hash、只列 data/daily_state.json：只推直接後代、
+    非 force、被拒不重試）。共用 index／HEAD／工作目錄完全不碰，失敗也不需清理；隔離工作樹用完即移除。
+    遠端已前進／內容不符／Gate 失敗 → 不推、不假稱已保存，回 False（下輪重送；寧可重複提醒也不壓掉）。"""
+    import shutil, subprocess, tempfile
     if published != head:
-        print("[ACK] 遠端 main 已被其他 writer 前進：回執不保存，下輪仍會重送")
+        print("[ACK] 遠端 main 已被其他 writer 前進：回執不保存（不覆蓋他人資料），下輪仍會重送")
         return False
-    base = _git("show", head + ":data/daily_state.json")
+    git = lambda *a, cwd=ROOT: subprocess.run(["git", *a], cwd=cwd, capture_output=True)
+    base = git("show", head + ":data/daily_state.json")
     if base.returncode != 0 or hashlib.sha256(base.stdout.replace(b"\r\n", b"\n")).hexdigest() != prepared_digest:
         print("[ACK] 已發布的 daily_state 不是本輪核驗那份：回執不保存，下輪仍會重送")
         return False
     state = json.loads(base.stdout.decode("utf-8"))
     _apply_ack(state, codes)
-    body = (json.dumps(state, ensure_ascii=False, indent=2)).encode("utf-8")
-    fd, index = tempfile.mkstemp(prefix="ack_index_")
-    os.close(fd)
-    os.remove(index)
-    env = dict(os.environ, GIT_INDEX_FILE=index)
-    run = lambda *a, **k: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, env=env, **k)
+    tmp = Path(tempfile.mkdtemp(prefix="ack_wt_"))
+    wt = tmp / "wt"
+    cwd = os.getcwd()
+    rc = 1
     try:
-        blob = run("hash-object", "-w", "--stdin", input=body).stdout.decode().strip()
-        ok = (len(blob) == 40 and run("read-tree", head).returncode == 0
-              and run("update-index", "--cacheinfo", "100644," + blob + ",data/daily_state.json").returncode == 0)
-        tree = run("write-tree").stdout.decode().strip() if ok else ""
-        commit = run("commit-tree", tree, "-p", head, "-m", "chore: record policy help receipt").stdout.decode().strip() if len(tree) == 40 else ""
-        ok = (len(commit) == 40
-              and _git("diff-tree", "--no-commit-id", "--name-only", "-r", head, commit).stdout.decode().split() == ["data/daily_state.json"]
-              and _git("push", "-q", "origin", commit + ":refs/heads/main").returncode == 0)
+        if git("worktree", "add", "-q", "--detach", str(wt), head).returncode != 0:
+            raise RuntimeError("worktree add failed")
+        target = wt / "data" / "daily_state.json"
+        atomic_write_json(target, state, validate=VALIDATORS.get("daily_state.json"))
+        import publish_gate
+        os.chdir(wt)
+        rc = publish_gate.run(["data/daily_state.json"], "chore: record notification receipt", base=head,
+                              expect={"data/daily_state.json": hashlib.sha256(target.read_bytes()).hexdigest()})
+    except Exception as e:
+        print(f"[ACK] 回執保存失敗：{type(e).__name__}")
+        rc = 1
     finally:
-        if os.path.exists(index):
-            os.remove(index)
-    if ok:
-        print("[ACK] 送達回執已保存（%s）：%s" % (commit[:8], "；".join(f"{k}={','.join(v)}" for k, v in codes.items())))
-        return True
-    print("[ACK] 回執未能保存（未改動共用 index／HEAD／工作目錄）：下輪仍會重送")
-    return False
+        os.chdir(cwd)
+        git("worktree", "remove", "--force", str(wt))
+        shutil.rmtree(tmp, ignore_errors=True)
+    if rc != 0:
+        print("[ACK] 回執未能經發布關卡保存（未改動共用 index／HEAD／工作目錄）：下輪仍會重送")
+        return False
+    print("[ACK] 送達回執已保存：" + "；".join(f"{k}={','.join(v)}" for k, v in codes.items()))
+    return True
 
 
 def cli():
@@ -732,28 +957,29 @@ def cli():
                 notify("🚨 自動修復候選與已發布資料不一致；系統下輪重新核對")
                 return 1
         ack = prepared.get("ack") or {}
-        ok_all = True
+        ack_ok = True
         for i, message in enumerate(prepared["messages"]):
             delivered = notify(message)
-            ok_all = ok_all and delivered is True
             if ack and i == ack.get("message_index"):
                 if delivered is True:
-                    ok_all = persist_ack(ack["codes"], head, published, prepared["data_sha256"].get("daily_state.json")) and ok_all
+                    ack_ok = persist_ack(ack["codes"], head, published, prepared["data_sha256"].get("daily_state.json"))
                 else:
-                    print("[ACK] 求助訊息未送達：不寫回執，下輪仍會重送")
-        if not ok_all:
-            print("[NOTIFY] 有訊息未送達或回執未保存；下輪重送（結束碼沿用現役：通知步驟不擋後續流程）")
-        return 0
+                    print("[ACK] 承載提醒的訊息未送達：不寫回執，下輪仍會重送")
+        return 1 if (NOTIFY_FAILED or not ack_ok) else 0   # 通知沒送達／回執沒保存都不能算成功（心跳依此步 outcome）
     if not args.defer_notifications:
-        main()
-        return 0
+        return run()
+    ACK.clear()
+    # D-063：資格查核照底版原樣先執行、以真實 notify 送出（其訊息本身標明「發布前尚未生效」，
+    # notified／notify_pending 只在確認送達後才寫入，失敗下輪重送）；行情／補查等 main() 訊息才延到發布核驗後。
+    check_eligibility()
     messages = []
     original = globals()["notify"]
     globals()["notify"] = messages.append
     try:
         main()
         data_hashes = {}
-        for name in ("dividend_info.json", "_base.json", "daily_state.json", "known_codes.json"):
+        for name in ("dividend_info.json", "_base.json", "daily_state.json", "known_codes.json",
+                     "etf_pool_cache.json", "excluded_products.json"):
             path = ROOT / "data" / name
             if path.is_file():
                 data_hashes[name] = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
@@ -763,11 +989,13 @@ def cli():
         if any(ACK.values()) and ACK_MESSAGE[0] in messages:
             doc["ack"] = {"message_index": messages.index(ACK_MESSAGE[0]), "codes": {k: v for k, v in ACK.items() if v}}
         path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
-        print("[NOTIFY] Prepared; no Telegram sent before publication")
+        print("[NOTIFY] 一般／補查通知 %d 則已準備，待發布核驗後才送；資格查核通知另依底版流程（送達才記錄）"
+              % len(messages))
     finally:
         globals()["notify"] = original
-    return 0
+    return 1 if (NOTIFY_FAILED or ELIG_FAILED) else 0
 
 
 if __name__ == "__main__":
     sys.exit(cli())
+

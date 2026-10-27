@@ -1,7 +1,12 @@
-import hashlib, json, math, datetime, os, ssl, re, requests, sys
+import json, math, datetime, ssl, re, requests, sys
 import urllib.request as _ur
 from pathlib import Path
 import yfinance as yf
+sys.path.append(str(Path(__file__).resolve().parent / "scripts"))
+from json_safe import (atomic_write_json, nullify_nonfinite, validate_base, validate_base_policy, validate_dividend_info,   # noqa: E402
+                       validate_pool_cache, validate_excluded_products)
+import product_policy as _policy   # noqa: E402
+import official_frequency as _official   # noqa: E402  D-068：官方政策證據／待公告解除的單一驗證規則
 
 # Windows 本機主控台常是 cp950，print() 遇到 ✓/⚠ 等符號會 UnicodeEncodeError 整支腳本崩潰
 # （GitHub Actions 的 Ubuntu 預設 UTF-8 不受影響，但本機手動執行會中招，2026-07-08 發現）
@@ -12,10 +17,9 @@ except Exception:
     pass
 
 OUT_BASE  = Path(__file__).parent / "data" / "_base.json"
+OUT_MARKET = Path(__file__).parent / "data" / "market.json"   # 初始化核對用（唯讀）
 OUT_DIV   = Path(__file__).parent / "data" / "dividend_info.json"
 POOL_CACHE = Path(__file__).parent / "data" / "etf_pool_cache.json"
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from scripts.official_frequency import policy_source_problem as _policy_source_problem   # D-071 R1：與 daily／mis 同一套新來源規則
 
 # 啟動時載入 dividend_info.json，_todo:false 的條目作為最高優先來源
 def _load_confirmed_freq():
@@ -26,12 +30,29 @@ def _load_confirmed_freq():
             code: meta["frequency"]
             for code, meta in info.get("etfs", {}).items()
             if not meta.get("_todo", True) and meta.get("frequency")
-            and _policy_source_problem(code, meta) in (None, "absent")      # D-071 R1：失效新來源不當已確認
+            and _official.known_policy(code, meta) is not None            # D-068／D-071：附了任一種證據就必須有效
         }
     except Exception:
         return {}
 
 _CONFIRMED_FREQ = _load_confirmed_freq()
+
+
+def _load_div_meta():
+    """D-068：dividend_info.json 逐檔原始紀錄（唯讀）：官方政策證據與待公告解除紀錄由 official_frequency 驗證後才採用。"""
+    try:
+        with open(OUT_DIV, encoding="utf-8") as f:
+            etfs = json.load(f).get("etfs", {})
+        return etfs if isinstance(etfs, dict) else {}
+    except Exception:
+        return {}
+
+
+_DIV_META = _load_div_meta()
+# 已驗證官方政策證據（含 _todo:true；政策已核實不代表金額已核實）
+_EVIDENCE_FREQ = {code: meta["frequency"] for code, meta in _DIV_META.items()
+                  if isinstance(meta, dict) and "frequency_evidence" in meta and _official.policy_evidence_problem(code, meta) is None
+                  and _official.known_policy(code, meta) is not None}   # D-071：同檔若另附失效 policy_source 也不採用
 
 def _load_confirmed_months():
     """dividend_info.json 裡 _todo:false（人工核實過）的除息月份清單。"""
@@ -66,6 +87,14 @@ SPLIT_RECORDS = {
 }
 
 # 手動覆蓋 ret1y：yfinance 歷史資料異常的 ETF，填真實年化報酬率
+def _yld_pending_for(code):
+    """D-068：「待公告」＝在 _YLD_PENDING 且該段待公告沒有有效的官方公告解除紀錄（daily_check 查證後寫入 dividend_info）。
+    解除紀錄綁定同一段 pending_since，人工改了查證日期就要重新查證；靜態清單不會把已解除的蓋回去。"""
+    if code not in _YLD_PENDING:
+        return False
+    return _official.pending_resolution_problem(code, _DIV_META.get(code), _YLD_PENDING[code]) is not None
+
+
 _RET1Y_OVERRIDE = {
     # 改用 Adj Close 後拆分問題已自動修正，不再需要手動覆蓋
 }
@@ -290,6 +319,10 @@ def detect_div_freq(tk, code, name="", hist_days=0):
     confirmed = _CONFIRMED_FREQ.get(code)
     if confirmed:
         return confirmed
+    # 0b. D-068：dividend_info 已驗證的官方政策證據（例：發行人文件明確不分配收益）
+    evidenced = _EVIDENCE_FREQ.get(code)
+    if evidenced:
+        return evidenced
     # 1. 手動維護表
     manual = DIV_FREQ.get(code)
     if manual:
@@ -449,8 +482,15 @@ EXCLUDE_KW = [
 # 00682U／00693U／00763U），所以用代號擋。A／B／D／K／C 等字尾不受影響。
 EXCLUDE_SUFFIX = ('L', 'R', 'U')
 
-# ISIN 頁的區段名 → 該區段 CFI 應有的前綴（健全性檢查）
-ISIN_SECTIONS = {'ETF': 'CE', 'ETN': 'CM'}
+# 商品收錄政策（PO 2026-10-10 永久規則）：不收錄代號尾碼 K 的商品、不收錄任何 ETN。
+# 稽核清單 data/excluded_products.json 讀不到或格式錯 → 直接丟例外結束（fail-closed，不當成沒有排除商品）。
+EXCLUDED_CODES = _policy.listed_codes()
+
+# ISIN 頁的區段名 → 該區段 CFI 應有的前綴。**只收 ETF 區段且 CFI 為 CE… 的列**；
+# ETN 區段（CFI CM…）只用來交叉排除與提醒補登稽核清單，不收錄（PO 2026-10-10）。
+ISIN_SECTIONS = {'ETF': 'CE'}
+ISIN_ETN_SECTION = ('ETN', 'CM')
+POOL_STATUS = {'markets_ok': 0}   # 本輪 ISIN 成功的市場別數（2＝上市＋上櫃都成功），build_pool 用來驗 CURATED
 _SECTION_RE = re.compile(r'<tr><td[^>]*colspan=7[^>]*>\s*<B>\s*(.*?)\s*<B>', re.I)
 _TD_RE = re.compile(r'<td[^>]*>(.*?)</td>', re.I | re.S)
 
@@ -466,21 +506,37 @@ def pool_excluded(code, name):
         return 'suffix-T'
     if code.endswith(EXCLUDE_SUFFIX):   # ③ 槓桿／反向／期貨
         return 'suffix-' + code[-1]
+    pol = _policy.exclusion_reason(code, EXCLUDED_CODES)   # ⑤ K 尾碼／ETN 稽核清單（PO 2026-10-10）
+    if pol:
+        return pol
     if any(kw in name for kw in EXCLUDE_KW):  # ④ 名稱關鍵字
         return 'keyword'
     return None
 
 
-# etf_pool_cache.json 只存 [code, name, is_otc]，沒有 CFI／區段資訊，fallback 時用代號區段驗產品類型。
-# 2026-10-05 實測 ISIN 上市＋上櫃：ETF 區段 360 檔代號全為 00 開頭、ETN 區段 21 檔全為 02 開頭，
-# 其他區段（股票、權證、特別股、TDR、受益證券…）沒有任何 00／02 開頭代號。
-# 舊程式讀到頁尾時誤收的 01111S～01114S（受益證券-資產基礎證券）就靠這條擋。
-_CACHE_PRODUCT_RE = re.compile(r'0[02][0-9]{2,4}[A-Z]?')
+# etf_pool_cache.json 新格式每列是 {code, name, is_otc, section, cfi}，保存 ISIN 區段與 CFI，fallback 時照它驗類型。
+# 舊格式 [code, name, is_otc] 沒有類型資訊 → 保守規則：只認 00 開頭代號（2026-10-05 實測 ISIN 上市＋上櫃
+# ETF 區段 360 檔代號全為 00 開頭；02 開頭全在 ETN 區段，一律不收；其他區段沒有 00 開頭代號）。
+# 舊程式讀到頁尾時誤收的 01111S～01114S（受益證券-資產基礎證券）也靠這條擋。
+_CACHE_PRODUCT_RE = re.compile(r'00[0-9]{2,4}[A-Z]?')
 
 
 def cache_product_ok(code):
-    """cache fallback 的產品類型防線：只認 ETF（00…）／ETN（02…）代號格式。"""
+    """舊格式 cache fallback 的產品類型防線：只認 ETF（00…）代號格式；ETN（02…）與類型不明一律不收。"""
     return bool(_CACHE_PRODUCT_RE.fullmatch(code or ''))
+
+
+def cache_row_ok(r):
+    """cache 一列 → (code, name, is_otc) 或 None。新格式要 section＝ETF、CFI 為 CE…；舊格式走 cache_product_ok。"""
+    if isinstance(r, dict):
+        code, name = r.get('code'), r.get('name')
+        if (r.get('section') != 'ETF' or not str(r.get('cfi') or '').startswith(ISIN_SECTIONS['ETF'])
+                or not isinstance(code, str) or not code or not isinstance(name, str) or not name):
+            return None
+        return code, name, bool(r.get('is_otc'))
+    if isinstance(r, (list, tuple)) and len(r) >= 2 and r[0] and r[1] and cache_product_ok(r[0]):
+        return r[0], r[1], bool(r[2]) if len(r) > 2 else False
+    return None
 
 
 def isin_sections(html):
@@ -493,8 +549,13 @@ def isin_sections(html):
     return out
 
 
+# D-044：本輪 ISIN 原文解析到的上市日 {code: "YYYY-MM-DD"}。ISIN 本輪失敗（走 cache fallback）就是空的
+# → 歷史不足的已上市 ETF 沒有可追溯上市日，不走 history_fallback（寧可不收也不猜上市日）。
+ISIN_LISTING_DATE = {}
+
+
 def parse_isin_rows(section, cfi_prefix, label=''):
-    """解析一個區段的資料列 → [(code, name)]；CFI 不符預期前綴的列印警告後略過。"""
+    """解析一個區段的資料列 → [(code, name, cfi)]；CFI 不符預期前綴的列印警告後略過。"""
     out = []
     for row in re.split(r'<tr>', section, flags=re.I):
         tds = _TD_RE.findall(row)
@@ -505,32 +566,51 @@ def parse_isin_rows(section, cfi_prefix, label=''):
         if not cfi.startswith(cfi_prefix):
             print("[POOL] %s %s %s CFI=%s 不是 %s…，略過" % (label, code, name, cfi, cfi_prefix))
             continue
-        out.append((code, name))
+        out.append((code, name, cfi))
+        # D-044：同一 ISIN 原文的「公開發行／上市日」（第 3 欄 YYYY/MM/DD）只另存備查，不改回傳契約與證據檔格式
+        _ld = re.fullmatch(r'(\d{4})/(\d{2})/(\d{2})', tds[2].strip())
+        if _ld:
+            # 既有測試會把本函式單獨抽出執行（沒有模組層級的 ISIN_LISTING_DATE），所以經 globals() 取用
+            globals().setdefault("ISIN_LISTING_DATE", {})[code] = "%s-%s-%s" % _ld.groups()
+    return out
+
+
+def parse_isin_pool_typed(html, label=''):
+    """從一個市場別的 ISIN 頁取出資料池候選 [(code, name, cfi)]（篩選鏈①～⑤）。
+    只收「ETF」區段且 CFI 為 CE… 的列；找不到 ETF 區段 → 丟例外（視為該市場別抓取失敗，不退回整頁解析）。
+    ETN 區段不收錄：它的代號若也出現在 ETF 區段 → 一併排除（fail-closed）；不在稽核清單 → 印警告請補登。
+    找不到 ETN 區段 → 印警告；收錄仍只看 ETF 區段＋CFI，不會因此放進任何 ETN。"""
+    secs = isin_sections(html)
+    if 'ETF' not in secs:
+        raise ValueError("找不到 ETF 區段（%s）" % label)
+    etn_title, etn_prefix = ISIN_ETN_SECTION
+    etn = set()
+    POOL_STATUS['last_etn'] = {}            # 本頁 ETN 區段 {代號: CFI}（CM…），供既有 ETF 改列 ETN 的可信判斷
+    if etn_title in secs:
+        for code, name, cfi in parse_isin_rows(secs[etn_title], etn_prefix, label):
+            etn.add(code)
+            POOL_STATUS['last_etn'][code] = cfi
+            if code not in EXCLUDED_CODES and not code.endswith(EXCLUDE_SUFFIX):
+                print("[POOL] %s ETN %s %s 不在 excluded_products.json，已排除；請補登稽核清單" % (label, code, name))
+    else:
+        print("[POOL] %s 找不到 ETN 區段（收錄仍只認 ETF 區段＋CFI）" % label)
+    out, seen = [], set()
+    for title, prefix in ISIN_SECTIONS.items():
+        for code, name, cfi in parse_isin_rows(secs[title], prefix, label):
+            if code in seen or code in etn or pool_excluded(code, name):
+                continue
+            seen.add(code)
+            out.append((code, name, cfi))
     return out
 
 
 def parse_isin_pool(html, label=''):
-    """從一個市場別的 ISIN 頁取出資料池候選 [(code, name)]（篩選鏈①～④）。
-    找不到 ETF 區段 → 丟例外（視為該市場別抓取失敗，不退回整頁解析）；
-    找不到 ETN 區段 → 視為該市場別沒有 ETN，印警告，ETF 照收。"""
-    secs = isin_sections(html)
-    if 'ETF' not in secs:
-        raise ValueError("找不到 ETF 區段（%s）" % label)
-    out, seen = [], set()
-    for title, prefix in ISIN_SECTIONS.items():
-        if title not in secs:
-            print("[POOL] %s 找不到 %s 區段，視為沒有 %s" % (label, title, title))
-            continue
-        for code, name in parse_isin_rows(secs[title], prefix, label):
-            if code in seen or pool_excluded(code, name):
-                continue
-            seen.add(code)
-            out.append((code, name))
-    return out
+    """parse_isin_pool_typed 的 (code, name) 版。"""
+    return [(c, n) for c, n, _ in parse_isin_pool_typed(html, label)]
 
 
 def _isin_etf_pool(str_mode):
-    """抓 ISIN 某一市場別的 ETF＋ETN 候選，回傳 [(code, name)]。strMode=2 上市、4 上櫃。"""
+    """抓 ISIN 某一市場別的 ETF 候選（不含 ETN），回傳 [(code, name, cfi)]。strMode=2 上市、4 上櫃。"""
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -539,218 +619,250 @@ def _isin_etf_pool(str_mode):
         headers={'User-Agent': 'Mozilla/5.0'}
     )
     with _ur.urlopen(req, timeout=20, context=ctx) as r:
-        raw = r.read()
-    html = raw.decode('ms950', errors='ignore')
-    # D-055 R1：快取的來源依據（可核對：與保存的原始回應比 sha256）；不是防竄改簽章
-    _POOL_EVIDENCE[str_mode] = {"url": req.full_url, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw),
-                                "fetched_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(timespec="seconds")}
-    return parse_isin_pool(html, 'strMode=%s' % str_mode)
+        html = r.read().decode('ms950', errors='ignore')
+    return parse_isin_pool_typed(html, 'strMode=%s' % str_mode)
 
 
-# D-055：商品池完整性。2026-10-16 正式事故：正式快取與 _base 的上櫃一般 ETF 18 檔消失（200→182）；
-# 已確認舊程式在上櫃失敗時會把上市部分清單寫進快取，但那次雲端實際的失敗型態沒有原始回應／log，仍未知。規則：
-#   - 只有兩個市場別都成功且非空，才可能保存快取（v2，附各市場列數與 ISIN 原始回應 sha256 的完整性記錄——
-#     這是可核對的記錄，不是完整性證明，也不防刻意改寫）。
-#   - 任一市場失敗／空結果／缺 ETF 區段 → 不寫快取；失敗的市場只能用通過記錄與 _base 交叉核對的 v2 快取補，
-#     舊格式（list）一律不當補齊來源（受損 182 時期快取格式合法也不算完整），只當集合縮減的警示依據。
-#   - 最終候選一律逐代號比對既有集合，無法以既有產品政策解釋的消失 → 拒絕。
-#   - 沒有可信補齊來源或有無故消失 → PoolIncomplete，整支安全中止（不寫 _base／快取，既有資料保留）。
-POOL_MARKETS = ((2, False, "上市"), (4, True, "上櫃"))
-POOL_CACHE_FORMAT = "etf-pool-cache/v2"
-_POOL_STATUS = {}     # 最近一次 fetch_twse_etf_pool 各市場結果：{"上市": "ok"|失敗原因, ...}
-_POOL_EVIDENCE = {}   # 最近一次各市場 ISIN 原始回應依據：{str_mode: {url, sha256, bytes, fetched_at}}
+# D-055（D-056 對齊到 ETF 類型證據契約）：商品池完整性。2026-10-16 正式事故：上櫃 ISIN 抓取失敗
+# （官方 log：Connection reset by peer），舊程式把上市部分清單寫進快取，上櫃一般 ETF 18 檔從 _base／market 消失（200→182）。
+# 正式版 D-055 的 v2 快取（列數＋原始回應 sha256）在這裡不再寫出；etf_pool_cache.json 只有一種可信格式＝ETF 類型證據
+# （每列 ISIN 區段＋CFI＋seen，product_policy）。等價規則：
+#   - 任一市場失敗／空結果／缺 ETF 區段 → 不寫證據；有證據時兩市場既有資格全部保留（plan_pool），沒有證據 → PoolIncomplete。
+#   - 兩市場都成功但少列既有代號 → 不推定下架：保留舊資格並記 absent_since（plan_pool），合併後證據不得縮水（evidence_shrink）。
+#   - 最終候選（含單邊失敗時沿用證據的結果）寫任何檔之前，逐代號比對現有 _base.json ∪ market.json；
+#     少了無法以排除清單（K／ETN／PO_REMOVED）或本輪可信 ETN 變更解釋的代號 → PoolIncomplete，不寫證據／排除清單／_base。
+#   - D-055 v2 記錄與舊格式 list 都沒有 CFI：不升格成資格證據、不當補齊來源（read_prev_evidence）。
+POOL_CACHE_V2_FORMAT = "etf-pool-cache/v2"
 
 
 class PoolIncomplete(Exception):
-    """兩市場未都成功、又沒有可信完整快取可補：不得以部分商品池繼續。"""
+    """商品池不完整（沒有可信證據可補、或最終候選少了既有一般 ETF）：不得以部分商品池繼續。"""
 
 
-def save_pool_cache(results):
-    """原子寫入 v2 快取（tmp→fsync→replace→讀回比對）。只在兩市場都完整且通過集合縮減檢查後呼叫。
-    回傳 "ok"／"not_replaced"（替換前失敗：舊檔原樣）／"uncertain"（已替換但讀回不一致：舊檔已不在，
-    新檔內容不確定——不宣稱保留原快取；下一輪由 load_trusted_pool_cache 的完整性與集合檢查決定能否採信）。"""
-    rows = [[c, n, bool(o)] for c, n, o in results]
-    obj = {"format": POOL_CACHE_FORMAT, "complete": True,
-           "saved_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(timespec="seconds"),
-           "markets": {lab: dict({"str_mode": m, "rows": sum(1 for r in rows if r[2] == otc)}, source=_POOL_EVIDENCE.get(m))
-                       for m, otc, lab in POOL_MARKETS},
-           "rows": rows}
-    data = json.dumps(obj, ensure_ascii=False, indent=2).encode("utf-8")
-    tmp = Path(str(POOL_CACHE) + ".tmp")
-    try:
-        with open(tmp, "wb") as f:
-            f.write(data); f.flush(); os.fsync(f.fileno())
-        os.replace(tmp, POOL_CACHE)
-    except Exception as e:
-        print("[POOL] ⚠ 快取寫入失敗（替換前；原快取原樣保留）：%s" % e)
-        try:
-            tmp.unlink()
-        except Exception:
-            pass
-        return "not_replaced"
-    try:
-        ok = POOL_CACHE.read_bytes() == data
-    except Exception as e:
-        ok, why = False, e
-    if not ok:
-        print("::error::[POOL] 快取已替換但讀回不一致（替換後失敗；原快取已不在，新快取狀態不確定，"
-              "下一輪將以完整性與集合檢查決定是否採信）")
-        return "uncertain"
-    return "ok"
-
-
-def _base_auto_codes():
-    """現有 data/_base.json 中「自動發現」的一般 ETF 代號（排除精選、只留產品格式合法且不被政策排除者）。
-    讀不到 → None（沒有這項依據）。"""
-    try:
-        etfs = json.load(open(OUT_BASE, encoding="utf-8")).get("etfs") or []
-    except Exception:
-        return None
-    return {e["code"]: str(e.get("name") or "") for e in etfs if isinstance(e, dict) and isinstance(e.get("code"), str)
-            and e["code"] not in CURATED_CODES and cache_product_ok(e["code"]) and not pool_excluded(e["code"], str(e.get("name") or "x"))}
-
-
-def pool_reference_codes():
-    """集合縮減的警示依據（不是完整 fallback 依據）：可信 v2 快取或舊格式快取的代號，加上現有 _base 的自動發現代號。
-    舊格式（含受損 182 時期的快取）只拿來「不讓既有商品無故消失」，不會因此升格成完整備援。"""
-    ref, kinds = {}, []        # {代號: 名稱}
-    rows, _ = load_trusted_pool_cache()
-    if rows is not None:
-        ref.update({r[0]: r[1] for r in rows}); kinds.append("v2")
-    else:
-        try:
-            obj = json.load(open(POOL_CACHE, encoding="utf-8"))
-            if isinstance(obj, list):
-                ref.update({r[0]: str(r[1]) if len(r) > 1 else "" for r in obj if isinstance(r, list) and r and isinstance(r[0], str)})
-                kinds.append("legacy")
-        except Exception:
-            pass
-    b = _base_auto_codes()
-    if b:
-        for c, n in b.items():
-            ref.setdefault(c, n)
-        kinds.append("_base")
-    return ref, kinds
-
-
-def load_trusted_pool_cache():
-    """回傳 (rows, None)＝通過完整性記錄與 _base 交叉核對的 v2 快取；(None, 原因)＝不可採信。不因格式合法或檔數就當完整。"""
-    if not POOL_CACHE.exists():
-        return None, "沒有快取"
+def read_prev_evidence():
+    """上一版 ETF 類型證據；D-055 v2 完整性記錄（沒有 CFI）視同沒有證據（None），不升格、不拿來補齊。
+    新格式證據損壞 → PolicyError（fail-closed）。"""
     try:
         obj = json.load(open(POOL_CACHE, encoding="utf-8"))
-    except Exception as e:
-        return None, "快取讀取失敗：%s" % e
-    if not isinstance(obj, dict) or obj.get("format") != POOL_CACHE_FORMAT:
-        return None, "舊格式或未知格式快取，沒有完整性記錄（不當補齊來源）"
-    if obj.get("complete") is not True:
-        return None, "快取未標記為完整"
-    rows, mk = obj.get("rows"), obj.get("markets")
-    if not isinstance(rows, list) or not isinstance(mk, dict):
-        return None, "快取結構不合法"
-    seen, out = set(), []
-    for r in rows:
-        if not (isinstance(r, list) and len(r) == 3 and isinstance(r[0], str) and isinstance(r[1], str) and isinstance(r[2], bool)):
-            return None, "快取資料列不合法：%r" % (r,)
-        if r[0] in seen or not cache_product_ok(r[0]) or pool_excluded(r[0], r[1]):
-            return None, "快取含重複或不合政策的代號：%s" % r[0]
-        seen.add(r[0]); out.append((r[0], r[1], r[2]))
-    for m, otc, lab in POOL_MARKETS:
-        n = sum(1 for r in out if r[2] == otc)
-        info = mk.get(lab)
-        if not isinstance(info, dict) or info.get("str_mode") != m or info.get("rows") != n or n <= 0:
-            return None, "快取 %s 完整性記錄不符（記錄 %r，實際 %d）" % (lab, {k: v for k, v in (info or {}).items() if k != "source"} if isinstance(info, dict) else info, n)
-        src = info.get("source")
-        if not (isinstance(src, dict) and isinstance(src.get("sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", src["sha256"])
-                and isinstance(src.get("bytes"), int) and src["bytes"] > 0):
-            return None, "快取 %s 缺來源依據（ISIN 原始回應 sha256／大小）" % lab
-    # 列數是快取自述，不代表完整：另以現有 _base 的自動發現集合交叉核對，快取少了現有商品就不採信
-    b = _base_auto_codes()
-    if b is not None:
-        lost = sorted(set(b) - {r[0] for r in out})
-        if lost:
-            return None, "快取與現有 _base 集合不符（快取缺 %d 檔：%s）" % (len(lost), lost[:10])
-    return out, None
+    except Exception:
+        obj = None                                          # 不存在／讀不到：交給 read_evidence_file 判斷（存在但損壞 → PolicyError）
+    if isinstance(obj, dict) and obj.get("format") == POOL_CACHE_V2_FORMAT:
+        print("[POOL] etf_pool_cache.json 是 D-055 v2 完整性記錄（沒有 ISIN 區段／CFI），不當 ETF 類型證據；"
+              "需一次上市＋上櫃都成功的完整查核初始化")
+        return None
+    return _policy.read_evidence_file(POOL_CACHE)
+
+
+def pool_missing_codes(pool, etn_new):
+    """最終候選與現有 _base.json ∪ market.json 逐代號比對：回傳無法以排除清單或本輪可信 ETN 變更解釋的缺少代號。
+    檔案損壞 → PolicyError（fail-closed）；檔案不存在 → 該檔不計。"""
+    have = {c for c, _, _ in pool}
+    return sorted(c for c in _init_codes() if c not in have and not _policy.exclusion_reason(c, EXCLUDED_CODES)
+                  and c not in etn_new)
 
 
 def fetch_twse_etf_pool():
     """抓 ISIN 的股票型 ETF 清單（**上市 + 上櫃**），回傳 [(code, name, is_otc)]。
-    D-055：只回報結果與各市場狀態（_POOL_STATUS）；快取只由 build_pool() 在兩市場都成功、
-    而且通過逐代號縮減檢查後才更新。任一市場失敗仍回傳成功那邊的部分結果，由 build_pool() 決定能否補齊。
+    資料池成員與 etf_pool_cache.json（ETF 類型證據）由 update_pool_evidence 決定（D-014）。
 
     ⚠ 一定要連上櫃一起抓。2026-09-27 以前只讀 strMode=2，上櫃 ETF 全部進不了池子，
       只有 CURATED 裡寫死的 00928/006201 例外——結果成交量排第 32 名的 00411A
       （主動統一前沿科技）、第 33 名的 00998A 都不在排行榜上，
       連我們自己有抓持股異動的 00411A 都連不回排行頁。
     """
-    results, seen = [], set()
-    _POOL_STATUS.clear(); _POOL_EVIDENCE.clear()
-    for str_mode, is_otc, lab in POOL_MARKETS:
+    POOL_STATUS['markets_ok'] = 0
+    POOL_STATUS['plan'] = None
+    _clear_check_report()                   # 本輪開始：舊摘要作廢，daily_check 不會拿到上一輪（或早上）的結果
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date().isoformat()
+    today_etf, today_etn, errors = {}, {}, {}
+    for str_mode, is_otc, lab in ((2, False, "上市"), (4, True, "上櫃")):
         try:
             got = _isin_etf_pool(str_mode)
         except Exception as e:
             # 其中一邊掛掉不要拖垮另一邊，但一定要出聲——靜默縮水是這專案的老毛病
             print("[POOL] ISIN strMode=%s（%s）抓取失敗: %s" % (str_mode, lab, e))
-            _POOL_STATUS[lab] = "抓取失敗：%s" % type(e).__name__
+            today_etf[is_otc] = None
+            errors[lab] = "%s: %s" % (type(e).__name__, e)
             continue
-        if not got:
+        if not got:                                         # D-055：空結果視同該市場失敗，不當完整查核
             print("[POOL] ISIN strMode=%s（%s）結果為空，視為該市場失敗" % (str_mode, lab))
-            _POOL_STATUS[lab] = "空結果"
+            today_etf[is_otc] = None
+            errors[lab] = "空結果"
             continue
-        _POOL_STATUS[lab] = "ok"
-        added = 0
-        for code, name in got:
-            if code in seen:
-                continue
-            seen.add(code)
-            results.append((code, name, is_otc))
-            added += 1
-        print("[POOL] %s股票型 ETF: %d 支" % (lab, added))
+        POOL_STATUS['markets_ok'] += 1
+        today_etf[is_otc] = [r if len(r) > 2 else (r[0], r[1], ISIN_SECTIONS['ETF']) for r in got]
+        today_etn[is_otc] = dict(POOL_STATUS.get('last_etn') or {})
+        errors[lab] = "ok"
+        print("[POOL] %s股票型 ETF: %d 支" % (lab, len(got)))
+    return update_pool_evidence(today_etf, today_etn, errors, today)
 
-    if not results:                     # 兩邊都掛，交給 build_pool() 判斷可信快取
-        print("[POOL] ISIN 兩個市場別都抓不到")
-        return []
-    if not all(_POOL_STATUS.get(lab) == "ok" for _, _, lab in POOL_MARKETS):
-        print("[POOL] 只有部分市場成功，不更新 etf_pool_cache.json（避免部分清單覆寫完整快取）")
-    return results
+
+def _check_report_path():
+    import os, tempfile
+    return os.environ.get("ETF_POOL_CHECK_REPORT") or os.path.join(tempfile.gettempdir(), "etf_pool_check.json")
+
+
+def _run_id():
+    """本輪執行識別：Actions 同一 job 內各步驟相同（GITHUB_RUN_ID＋ATTEMPT）；本機可用 ETF_RUN_ID。都沒有 → None
+    （daily_check 不會接受沒有執行識別的摘要）。"""
+    import os
+    if os.environ.get("GITHUB_RUN_ID"):
+        return "%s-%s" % (os.environ["GITHUB_RUN_ID"], os.environ.get("GITHUB_RUN_ATTEMPT", "1"))
+    return os.environ.get("ETF_RUN_ID") or None
+
+
+def _clear_check_report():
+    import os
+    try:
+        os.remove(_check_report_path())
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        print("[POOL] 舊查核摘要無法刪除：%s" % e)
+
+
+def _sha256_file(path):
+    import hashlib
+    try:
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    except FileNotFoundError:
+        return None
+
+
+def _write_check_report(report):
+    """本輪官方查核摘要（daily_check 用來附在通知裡）。暫存檔，不在 data/、不發布。
+    綁定本輪執行（run）與寫出當下的證據／排除清單內容（SHA256），daily_check 只接受完全相符的摘要。"""
+    report = dict(report, run=_run_id(), evidence_sha256=_sha256_file(POOL_CACHE),
+                  excluded_sha256=_sha256_file(_policy.POLICY_FILE))
+    try:
+        with open(_check_report_path(), "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False)
+    except Exception as e:
+        print("[POOL] 查核摘要寫入失敗：%s" % e)
+
+
+def _init_codes():
+    """初始化核對對象：現有 _base.json 與 market.json 的商品聯集。檔案不存在 → 該檔不計；
+    存在但讀不到／不是 {etfs: [{code: 字串}]} → 例外（fail-closed，不當成空集合）。"""
+    out = set()
+    for p in (OUT_BASE, OUT_MARKET):
+        if not Path(p).exists():
+            continue
+        try:
+            doc = json.load(open(p, encoding="utf-8"))
+            etfs = doc.get("etfs")
+            if not isinstance(etfs, list) or not all(isinstance(e, dict) and isinstance(e.get("code"), str) for e in etfs):
+                raise ValueError("etfs 不是 [{code: 字串}]")
+        except Exception as e:
+            raise _policy.PolicyError("初始化無法核對 %s：%s: %s" % (Path(p).name, type(e).__name__, e))
+        out |= {e["code"] for e in etfs}
+    return out
+
+
+def update_pool_evidence(today_etf, today_etn, errors, today):
+    """D-014：ISIN 上市＋上櫃都成功的那一次才改變資料池成員與證據檔；其他情況沿用最後有效證據。
+    完整查核：合併（列出的 seen＝今天；缺席保留舊 seen 記 absent_since；新合格 ETF 加入；官方 ETN 區段＋CM 的
+    既有代號登錄排除清單 ETN）。寫出前檢查：初始化須涵蓋現有 _base.json ∪ market.json 全部未排除代號、合併後不得縮水；
+    不符 → 不寫任何檔、exit 1（保留最後有效資料）。不完整：證據檔不寫；兩市場既有未排除資格全部保留；
+    當天新出現、證據沒有的代號暫緩到下一次完整查核。"""
+    report = {"checked_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M"),
+              "source": "TWSE ISIN C_public.jsp strMode=2（上市）／4（上櫃）", "markets": errors,
+              "full": False, "listed": [], "absent": [], "deferred": [], "etn_registered": [], "init_missing": []}
+    prev = read_prev_evidence()                             # 新格式但損壞 → PolicyError → 整支結束（fail-closed）
+    plan = _policy.plan_pool(prev, today_etf, today_etn, EXCLUDED_CODES, today)
+    if plan is None:                                        # 沒有可用證據又不完整：不以部分結果繼續（D-055）
+        _write_check_report(report)
+        raise PoolIncomplete("ISIN 不完整（%s）且沒有新格式 ETF 類型證據可沿用——不寫證據／_base，既有資料保留"
+                             % "；".join("%s=%s" % kv for kv in errors.items()))
+    # D-055：寫任何檔之前，最終候選逐代號比對現有 _base.json ∪ market.json（含單邊失敗時沿用證據的結果）
+    missing = pool_missing_codes(plan["pool"], plan["etn_new"])
+    if missing:
+        report["init_missing" if prev is None else "pool_missing"] = missing
+        _write_check_report(report)
+        if prev is None:                                    # 初始化沿用既審訊息與結束方式
+            print("::error::[POOL] 首次 ETF 類型證據沒有涵蓋現有 _base.json／market.json 的 %d 檔一般 ETF，不寫入、不發布：%s"
+                  % (len(missing), missing[:20]), file=sys.stderr)
+            sys.exit(1)
+        raise PoolIncomplete("本次候選商品池缺少現有 _base.json／market.json 的一般 ETF %d 檔（%s；%s），"
+                             "無排除清單／可信 ETN 變更依據——不寫證據／_base，待核對"
+                             % (len(missing), missing[:20], "完整查核" if plan["full"] else "單邊失敗沿用證據"))
+    POOL_STATUS['plan'] = plan
+    report.update(full=plan["full"], absent=plan["absent"], deferred=plan["deferred"],
+                  listed=sorted(c for rows in today_etf.values() if rows for c, _, _ in rows))
+    if not plan["full"]:
+        print("[POOL] ISIN 只有 %d 個市場別成功：沿用最後有效證據 %d 檔，不覆寫 etf_pool_cache.json"
+              % (POOL_STATUS['markets_ok'], len(plan["pool"])))
+        if plan["deferred"]:
+            print("[POOL] 單邊成功，新代號暫緩到下次完整查核：%s" % plan["deferred"])
+        _write_check_report(report)
+        return plan["pool"]
+    new_rows = plan["evidence"]
+    # 初始化涵蓋檢查（現有 _base.json ∪ market.json 全部未排除商品）已在上方對所有路徑執行
+    shrink = _policy.evidence_shrink(prev, new_rows, EXCLUDED_CODES | set(plan["etn_new"]))
+    if shrink:                                              # 先檢查、後寫檔：任何檢查失敗都不留下半套變更
+        print("::error::[POOL] 合併後證據少了 %d 檔未排除代號，不寫入：%s" % (len(shrink), shrink[:20]), file=sys.stderr)
+        _write_check_report(report)
+        sys.exit(1)
+    if plan["etn_new"]:                                     # 可信 ETF→ETN 變更：登錄排除清單（同一批由 Gate 發布）
+        pol = _policy.load_policy()
+        for c, (name, cfi, otc) in plan["etn_new"].items():
+            pol["products"][c] = {"name": name, "type": "ETN", "reason": "ISIN 改列 ETN 區段（CFI %s）" % cfi,
+                                  "source": "TWSE ISIN C_public.jsp strMode=%d ETN 區段" % (4 if otc else 2),
+                                  "confirmed": today,
+                                  "notify_pending": True}   # 待通知 PO；daily_check 送達後才清除，失敗下輪重送
+        try:
+            atomic_write_json(_policy.POLICY_FILE, pol, validate=validate_excluded_products)
+        except Exception as e:
+            print("::error::[POOL] 排除清單寫入失敗（不更新證據）：%s" % e, file=sys.stderr)
+            _write_check_report(report)
+            sys.exit(1)
+        EXCLUDED_CODES.update(plan["etn_new"])
+        report["etn_registered"] = sorted(plan["etn_new"])
+        print("::warning::[POOL] 依 ISIN ETN 區段登錄排除：%s" % sorted(plan["etn_new"]))
+    try:
+        atomic_write_json(POOL_CACHE, new_rows, validate=validate_pool_cache)
+    except Exception as e:
+        print("::error::[POOL] etf_pool_cache.json 寫入失敗（原檔保留）：%s" % e, file=sys.stderr)
+        _write_check_report(report)
+        sys.exit(1)
+    if plan["absent"]:
+        print("[POOL] 完整查核未列出、保留舊資格：%s" % plan["absent"][:20])
+    _write_check_report(report)
+    return plan["pool"]
 
 def build_pool():
     """精選池 + ISIN 自動發現池合併，精選碼不重複。
     ISIN 失敗時 fallback etf_pool_cache.json（上次成功的清單），避免縮水成 13 支精選。
     順便把自動發現的上櫃碼補進 TWO_CODES，yfinance 才會用 .TWO 後綴去抓。
     """
-    # D-055 R2：參考集合在本輪任何寫入之前取得（可信／舊快取＋現有 _base），供最終候選逐代號比對
-    ref, kinds = pool_reference_codes()
-    auto = fetch_twse_etf_pool()
+    auto = fetch_twse_etf_pool()          # D-055 完整性檢查在 update_pool_evidence（寫任何檔之前）
 
-    failed = [lab for _, _, lab in POOL_MARKETS if _POOL_STATUS.get(lab) != "ok"]
-    if failed:
-        # D-055：失敗的市場只能用通過記錄與 _base 核對的 v2 快取補；成功的市場用本次結果（不讓舊快取蓋掉新資料）
-        cached, why = load_trusted_pool_cache()
-        if cached is None:
-            raise PoolIncomplete("ISIN %s 未成功（%s），且沒有可信完整快取（%s）——不以部分商品池繼續"
-                                 % ("、".join(failed), "；".join("%s=%s" % (l, _POOL_STATUS.get(l, "未執行")) for l in failed), why))
-        fail_otc = {otc for _, otc, lab in POOL_MARKETS if lab in failed}
-        have = {c for c, _, _ in auto}
-        fill = [r for r in cached if r[2] in fail_otc and r[0] not in have]
-        auto = list(auto) + fill
-        print(f"[POOL] {'、'.join(failed)} 失敗，從通過核對的 v2 快取補 {len(fill)} 支（快取不更新）")
+    if not auto:
+        if POOL_CACHE.exists():
+            try:
+                cached = json.load(open(POOL_CACHE, encoding="utf-8"))
+                # cache 可能是舊的兩元組 [(code, name)]（2026-09-27 之前只存上市），
+                # 補不出市場別時一律當上市，至少不會整批壞掉
+                # cache 是舊規則時代寫的也一樣要過篩選鏈（③槓反期貨可能還在裡面）
+                # 新格式驗 section＋CFI；舊格式只認 00 開頭（cache_row_ok）；兩者都要再過篩選鏈（含 K／ETN）
+                auto = [t for t in (cache_row_ok(r) for r in cached) if t and not pool_excluded(t[0], t[1])]
+                print(f"[POOL] ISIN 失敗，從 etf_pool_cache.json fallback 取得 {len(auto)} 支")
+            except Exception as fb_err:
+                print(f"[POOL] fallback 讀取 cache 失敗: {fb_err}")
 
-    # D-055：最終候選（兩市場即時結果，或即時＋快取補齊的混合結果）都要逐代號比對既有集合。
-    # 非空回應或快取自述列數都不能代表完整；無法以既有產品政策（產品格式／L、R、U 字尾／名稱關鍵字）
-    # 解釋的消失 → 不當作下架、不寫快取、不以縮減後商品池繼續（後續 _base／配息都不寫），列出待核對代號。
-    final = {c for c, _, _ in auto}
-    gone = sorted(c for c, n in ref.items() if c not in final and c not in CURATED_CODES
-                  and cache_product_ok(c) and not pool_excluded(c, n or "x"))
-    if gone:
-        raise PoolIncomplete("本次候選商品池缺少既有一般 ETF %d 檔（%s；依據 %s；%s），無已核准移除依據——"
-                             "不寫快取、不以縮減後商品池繼續，待核對"
-                             % (len(gone), gone[:20], "+".join(kinds) or "無",
-                                "兩市場即時結果" if not failed else "即時＋快取補齊（%s 失敗）" % "、".join(failed)))
-    if not failed:
-        save_pool_cache(auto)
-
-    pool = [(c, n) for c, n in CURATED if not pool_excluded(c, n)]   # 防禦性：精選池目前無 L/R/U
+    # CURATED 也要過篩選鏈＋商品類型驗證：上市＋上櫃 ISIN 都成功時，必須出現在 ISIN「ETF」區段（CFI CE…）；
+    # ISIN 不完整時退回 cache_product_ok（只認 00 開頭），任何情況都不能繞過 K／ETN 排除
+    # D-014：有新格式證據時，只認本次資料池（＝證據）中的代號；不完整時不能用「00 開頭」繞過資格
+    plan = POOL_STATUS.get('plan')
+    verified = ({c for c, _, _ in auto} if (plan is not None or POOL_STATUS.get('markets_ok') == 2) else None)
+    pool = []
+    for c, n in CURATED:
+        ok_type = (c in verified) if verified is not None else cache_product_ok(c)
+        why = pool_excluded(c, n) or (None if ok_type else 'curated-unverified')
+        if why:
+            print(f"[POOL] CURATED {c} {n} 排除：{why}")
+            continue
+        pool.append((c, n))
     added = otc_added = 0
     for code, name, is_otc in auto:
         if is_otc:
@@ -927,20 +1039,160 @@ def fetch_twse_etfortune_yld(code, price, div_freq):
     return 0.0
 
 
+_DEC_RE   = re.compile(r"[+-]?(?:[1-9]\d{0,2}(?:,\d{3})+|\d+)(?:\.\d+)?")
+# ↑ 十進位數字（可帶號、千分位須每 3 位一組）；先驗格式再去逗號。拒 58,3／1,2,3／1,,000／Infinity／NaN／1e3
+_SHARE_RE = re.compile(r"[1-9]\d{0,2}(?:,\d{3})+|\d+")   # 非負整數股數（千分位首組不得 0 開頭）
+_PRICE_MAX = 1_000_000.0                               # 合理價格上限（防呆，非業務規則）
+TWSE_NO_TRADE_CLOSE = "--"                             # MI_INDEX 收盤價欄的無成交標記
+TPEX_NO_TRADE_CLOSE = "----"                           # TPEx 收盤欄的無成交標記
+TPEX_NO_CHANGE      = "---"                            # TPEx 漲跌欄的不比較標記（無成交時）
+TWSE_SIGNS          = {"+", "-", "", "X"}              # MI_INDEX 漲跌(+/-) 欄合法值；X＝不比價
+
+
+def _dec(s):
+    """嚴格十進位數字 → float；空白、"--"、"ERROR"、"Infinity"、"NaN"、"1e3" 等都回 None。"""
+    t = str(s).strip()
+    if not _DEC_RE.fullmatch(t):
+        return None
+    v = float(t.replace(",", ""))
+    return v if math.isfinite(v) else None
+
+
+def _shares(s):
+    """嚴格非負整數股數 → int；負數、小數、空白、文字回 None（不截斷、不取整）。"""
+    t = str(s).strip()
+    return int(t.replace(",", "")) if _SHARE_RE.fullmatch(t) else None
+
+
+def _price(s):
+    """有效收盤價：有限、> 0、不超過合理上限；否則 None。"""
+    v = _dec(s)
+    return v if v is not None and 0 < v < _PRICE_MAX else None
+
+
+def _roc_date(date_str):
+    """'20261008' → ('115年10月08日', '115/10/08')：官方報表內的民國日期寫法。"""
+    roc = int(date_str[:4]) - 1911
+    return f"{roc}年{date_str[4:6]}月{date_str[6:]}日", f"{roc}/{date_str[4:6]}/{date_str[6:]}"
+
+
+def _official_record(src, date_iso, close_raw, no_trade_mark, chg, shares_raw):
+    """逐檔官方收盤證據。status：traded＝有成交收盤價；no_trade＝官方確認當日無成交（價格 None、成交 0 股）。
+    無成交只認來源契約的標記且成交股數＝0；標記與成交股數矛盾、收盤或股數解析失敗 → None（拒絕，不當證據）。"""
+    shares = _shares(shares_raw)
+    if shares is None:
+        return None
+    close_txt = str(close_raw).strip()
+    if close_txt == no_trade_mark:
+        if shares != 0:
+            return None
+        return {"date": date_iso, "src": src, "status": "no_trade", "price": None,
+                "change_pt": None, "prev_close": None, "vol_shares": 0}
+    close = _price(close_txt)
+    if close is None:
+        return None
+    prev = round(close - chg, 2) if chg is not None else None
+    if prev is not None and not prev > 0:
+        chg, prev = None, None                        # 前收盤不合理：漲跌缺值，不虛構
+    return {"date": date_iso, "src": src, "status": "traded", "price": close,
+            "change_pt": round(chg, 2) if chg is not None else None,
+            "prev_close": prev, "vol_shares": shares}
+
+
+def parse_mi_index_row(row, date_iso):
+    """MI_INDEX 每日收盤行情一列 → 逐檔官方收盤證據（給 mis_fetcher 判斷收盤用）。
+    欄位：[證券代號, 名稱, 成交股數, 成交筆數, 成交金額, 開, 高, 低, 收盤價, 漲跌(+/-), 漲跌價差, ...]
+    收盤價 "--" 且成交股數 0 → 官方確認無成交。漲跌符號是 X（不比價）或不在合法值內、價差無法解析
+    → change_pt=None（保留缺值，不否定整筆）。"""
+    if len(row) < 11:
+        return None
+    sign = re.sub(r"<[^>]+>", "", str(row[9])).strip()
+    diff = _dec(row[10])
+    chg = None
+    if sign in TWSE_SIGNS and diff is not None and diff >= 0:
+        if sign == "-":
+            chg = -diff
+        elif sign == "+":
+            chg = diff
+        elif sign == "" and diff == 0:
+            chg = 0.0
+    return _official_record("TWSE_MI_INDEX", date_iso, row[8], TWSE_NO_TRADE_CLOSE, chg, row[2])
+
+
+def parse_tpex_row(row, date_iso):
+    """TPEx 上櫃每日收盤行情一列。欄位：[代號, 名稱, 收盤, 漲跌, 開, 高, 低, 成交股數, ...]
+    （索引 11／13 是「最後買／賣量（張數）」，不是成交量）。收盤 "----" 且成交股數 0 → 官方確認無成交。
+    漲跌是帶號數字（+0.06／-0.30／0.00）；"---" 或無法解析 → None（保留缺值）。"""
+    if len(row) < 8:
+        return None
+    chg_txt = str(row[3]).strip()
+    chg = None if chg_txt == TPEX_NO_CHANGE else _dec(chg_txt)
+    return _official_record("TPEX_OTC", date_iso, row[2], TPEX_NO_TRADE_CLOSE, chg, row[7])
+
+
+_MI_INDEX_FIELDS = {0: "證券代號", 2: "成交股數", 8: "收盤價", 9: "漲跌(+/-)", 10: "漲跌價差"}
+_TPEX_FIELDS     = {0: "代號", 2: "收盤", 3: "漲跌", 7: "成交股數"}
+
+
+def twse_rows_from_response(resp, date_str):
+    """驗證 MI_INDEX 回應並取出逐檔資料：stat＝OK、回應 date＝要求日期、
+    「每日收盤行情」表標題日期＝要求日期、欄位表頭符合預期。任一不符回 None（拒絕當日證據）。
+    回傳 (mapping {code: close_or_None}（既有覆蓋用）, rows {code: 證據 or None})。"""
+    if not isinstance(resp, dict) or resp.get("stat") != "OK" or str(resp.get("date", "")) != date_str:
+        return None
+    roc_title, _ = _roc_date(date_str)
+    tbl = next((t for t in resp.get("tables", []) if "每日收盤行情" in str(t.get("title", ""))), None)
+    if not tbl or roc_title not in str(tbl.get("title", "")) or not tbl.get("data"):
+        return None
+    fields = [str(f).strip() for f in tbl.get("fields", [])]
+    if any(i >= len(fields) or fields[i] != name for i, name in _MI_INDEX_FIELDS.items()):
+        return None
+    date_iso = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
+    mapping, rows = {}, {}
+    for row in tbl["data"]:
+        code = str(row[0]).strip()
+        mapping[code] = _price(row[8]) if len(row) > 8 else None   # 既有價格覆蓋：只收有效收盤價
+        rows[code] = parse_mi_index_row(row, date_iso)
+    return mapping, rows
+
+
+def tpex_rows_from_response(resp, date_str):
+    """驗證 TPEx 上櫃收盤行情回應：stat＝ok、回應 date＝要求日期、表內 date（民國 115/10/08）＝要求日期、
+    欄位表頭符合預期（成交股數在索引 7）。任一不符或無資料回 None。回傳 {code: 證據 or None}。"""
+    if not isinstance(resp, dict) or str(resp.get("stat", "")).lower() != "ok" or str(resp.get("date", "")) != date_str:
+        return None
+    _, roc_slash = _roc_date(date_str)
+    tbl = (resp.get("tables") or [{}])[0]
+    if str(tbl.get("date", "")).strip() != roc_slash or not tbl.get("data"):
+        return None
+    fields = [re.sub(r"<[^>]+>", "", str(f)).strip() for f in tbl.get("fields", [])]
+    if any(i >= len(fields) or fields[i] != name for i, name in _TPEX_FIELDS.items()):
+        return None
+    date_iso = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
+    return {str(row[0]).strip(): parse_tpex_row(row, date_iso) for row in tbl["data"]}
+
+
+def _official_get(url):
+    import urllib.request as _ur3, ssl as _ssl3
+    ctx = _ssl3.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = _ssl3.CERT_NONE
+    req = _ur3.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with _ur3.urlopen(req, timeout=20, context=ctx) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
 def fetch_twse_official_closes(max_lookback=6):
-    """從今日往回找最近一個有完整收盤資料的交易日，回傳 (date_str, {code: close_or_None})。
+    """從今日往回找最近一個有完整收盤資料的交易日，回傳 (date_str, {code: close_or_None}, {code: 證據})。
 
     2026-07-08 發現：yfinance 對台股上市 ETF 偶發整批回傳最新交易日 Close=NaN，
     dropna() 會悄悄退回前一日舊價，且無任何警報（158/179 支 ETF 曾同時中招）。
     改用 TWSE 官方 MI_INDEX 全市場收盤行情一次性核對/覆蓋 price，徹底避免此類 yfinance 資料延遲問題。
 
     close_or_None: None 代表當日零成交量（TWSE 顯示 "--"），呼叫端應保留原價，不覆蓋。
-    找不到任何資料（連假、TWSE 暫時性故障）時回傳 (None, {})，呼叫端應 fallback 純用 yfinance。
+    回應日期與要求日期不符（例：要求 10/12 回 10/08）視同該日沒有資料，繼續往回找。
+    找不到任何資料（連假、TWSE 暫時性故障）時回傳 (None, {}, {})，呼叫端應 fallback 純用 yfinance。
     """
-    import urllib.request as _ur3, ssl as _ssl3
-    ctx = _ssl3.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = _ssl3.CERT_NONE
     now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
     for delta in range(max_lookback):
         d = now_tw.date() - datetime.timedelta(days=delta)
@@ -948,32 +1200,46 @@ def fetch_twse_official_closes(max_lookback=6):
             continue
         date_str = d.strftime('%Y%m%d')
         try:
-            url = (f"https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX"
-                   f"?date={date_str}&type=ALLBUT0999&response=json")
-            req = _ur3.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with _ur3.urlopen(req, timeout=15, context=ctx) as r:
-                resp = json.loads(r.read().decode("utf-8"))
-            if resp.get("stat") != "OK":
+            got = twse_rows_from_response(_official_get(
+                f"https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX"
+                f"?date={date_str}&type=ALLBUT0999&response=json"), date_str)
+            if not got:
                 continue
-            tables = resp.get("tables", [])
-            if len(tables) < 9 or not tables[8].get("data"):
-                continue
-            mapping = {}
-            for row in tables[8]["data"]:
-                code = row[0].strip()
-                try:
-                    mapping[code] = float(str(row[8]).replace(",", ""))
-                except (ValueError, IndexError):
-                    mapping[code] = None
+            mapping, rows = got
             print(f"[TWSE] 官方收盤核對來源：{date_str}（{len(mapping)} 檔）")
-            return date_str, mapping
+            return date_str, mapping, rows
         except Exception as e:
             print(f"[TWSE] {date_str} 抓取失敗: {e}")
             continue
     print("[TWSE] 官方收盤核對來源抓取失敗，本次改用 yfinance 原始價格（無交叉核對）")
+    return None, {}, {}
+
+
+def fetch_tpex_official_rows(max_lookback=6):
+    """TPEx 上櫃每日收盤行情（完整逐檔證據）。與 fetch_active_etf.fetch_tpex_closes 的 {code: price} 契約無關。
+    回傳 (date_str, {code: 證據})；找不到回 (None, {})。"""
+    now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    for delta in range(max_lookback):
+        d = now_tw.date() - datetime.timedelta(days=delta)
+        if d.weekday() >= 5:
+            continue
+        date_str = d.strftime('%Y%m%d')
+        try:
+            rows = tpex_rows_from_response(_official_get(
+                "https://www.tpex.org.tw/www/zh-tw/afterTrading/otc"
+                f"?date={d.strftime('%Y/%m/%d')}&type=EW&response=json"), date_str)
+            if not rows:
+                continue
+            print(f"[TPEx] 官方上櫃收盤：{date_str}（{len(rows)} 檔）")
+            return date_str, rows
+        except Exception as e:
+            print(f"[TPEx] {date_str} 抓取失敗: {e}")
+            continue
+    print("[TPEx] 官方上櫃收盤抓取失敗，上櫃 ETF 本次沒有官方收盤證據")
     return None, {}
 
-_TWSE_PRICE_DATE, _TWSE_OFFICIAL_CLOSES = fetch_twse_official_closes()
+_TWSE_PRICE_DATE, _TWSE_OFFICIAL_CLOSES, _TWSE_OFFICIAL_ROWS = fetch_twse_official_closes()
+_TPEX_DATE, _TPEX_OFFICIAL_ROWS = fetch_tpex_official_rows()
 _twse_override_count = 0
 
 def fetch_nav_twse(code):
@@ -1044,6 +1310,69 @@ def fetch_emega_aum():
     return out
 
 
+# ── D-044：已上市但歷史不足的 ETF ───────────────────────────────────
+# yfinance 歷史 < 5 筆（例：00412A 10/13 剛上市、00972 Yahoo 只回 1 筆）原本整檔 SKIP，網站就少了這檔。
+# 只有「本輪 ISIN 原文有上市日、上市日不晚於官方收盤日、官方收盤證據有成交且日期合法」才保留：
+#   價格／成交量＝官方收盤證據；均線、RSI、52 週、平均量、量比、熱度、報酬、maD 一律 null（不填 0、不拿少量資料冒完整期間）；
+#   signal＝null（不判便宜／合理／偏貴）；indicator_status＝"insufficient_history"；listing_date＝ISIN 上市日。
+# 上市年齡由 ISIN 上市日判斷，不用 Yahoo 第一筆（00972 2025-01-09 上市，Yahoo 只有 1 筆也不是新上市）。
+INSUFFICIENT = "insufficient_history"
+
+
+def _div_freq_offline(code, name):
+    """detect_div_freq 的前三步（已確認／手動表／名稱關鍵字），不發任何請求；查不到回「不明」。"""
+    f = _CONFIRMED_FREQ.get(code) or DIV_FREQ.get(code)
+    if f:
+        return f
+    for keywords, freq in _NAME_FREQ:
+        if any(kw in name for kw in keywords):
+            return freq
+    return "不明"
+
+
+def history_fallback(code, name, curated):
+    """回傳 (entry, None) 或 (None, 拒絕原因)。"""
+    otc = code in TWO_CODES
+    rows, ds = (_TPEX_OFFICIAL_ROWS, _TPEX_DATE) if otc else (_TWSE_OFFICIAL_ROWS, _TWSE_PRICE_DATE)
+    ld = ISIN_LISTING_DATE.get(code)
+    if not ld:
+        return None, "本輪 ISIN 沒有可追溯的上市日"
+    if not ds or not re.fullmatch(r"\d{8}", str(ds)):
+        return None, "沒有官方收盤報表日期"
+    off_iso = "%s-%s-%s" % (ds[:4], ds[4:6], ds[6:])
+    off = rows.get(code)
+    if not off:
+        return None, "官方收盤報表沒有這檔"
+    if off.get("status") != "traded" or off.get("date") != off_iso:
+        return None, "官方收盤證據不是當日有成交（%s／%s）" % (off.get("status"), off.get("date"))
+    px = off.get("price")
+    if not isinstance(px, (int, float)) or isinstance(px, bool) or not math.isfinite(px) or px <= 0:
+        return None, "官方收盤價無效 %r" % (px,)
+    vs = off.get("vol_shares")
+    if not isinstance(vs, int) or isinstance(vs, bool) or vs < 0:
+        return None, "官方成交股數無效 %r" % (vs,)
+    try:
+        d_list, d_off = datetime.date.fromisoformat(ld), datetime.date.fromisoformat(off_iso)
+    except ValueError:
+        return None, "上市日或官方日期不合法"
+    if d_list > d_off:
+        return None, "上市日 %s 晚於官方收盤日 %s（尚未上市）" % (ld, off_iso)
+    entry = {
+        "code": code, "name": name, "curated": curated, "otc": otc,
+        "price": px, "ma60": None, "ma20": None, "low52": None, "high52": None, "rsi": None,
+        "yld": 0.0, "yld_verified": False, "yld_pending": _yld_pending_for(code),
+        "days": DIV_DAYS.get(code, 90), "est": DIV_EST.get(code, 0.30), "div_next": None,
+        "signal": None, "maD": None,
+        "ret5d": None, "ret1m": None, "ret1y": None, "ret_months": [None] * 6,
+        "new_listing": (d_off - d_list).days < 365,
+        "avg_vol": None, "cur_vol": float(vs), "vol_ratio": None, "heat": None, "score_cont": None,
+        "aum": safe(float(EMEGA_AUM.get(code, 0) or 0)), "div_freq": _div_freq_offline(code, name),
+        "price_date": off_iso, "price_prev": None, "official_close": off,
+        "indicator_status": INSUFFICIENT, "listing_date": ld,
+    }
+    return entry, None
+
+
 # ── 主流程 ──────────────────────────────────────────────────────────
 try:
     ALL_ETFS  = build_pool()
@@ -1068,6 +1397,8 @@ for code, name in ALL_ETFS:
         v = hist["Volume"].dropna()
         if len(c) < 5:
             raise ValueError("insufficient clean data")
+        price_date = c.index[-1].date().isoformat()     # yfinance 最後一筆的日期（第三方，非收盤證明）
+        price_prev = round(float(c.iloc[-2]), 2)        # 同一序列的前一筆收盤（yfinance 價格算漲跌用）
 
         # Adj Close：拆分回溯調整，用於報酬率計算；Close 用於現價/均線/訊號
         adj = hist["Adj Close"].dropna() if "Adj Close" in hist.columns else c
@@ -1188,7 +1519,7 @@ for code, name in ALL_ETFS:
             yld = _YLD_OVERRIDE[code]
             yld_verified = True
 
-        yld_pending = code in _YLD_PENDING
+        yld_pending = _yld_pending_for(code)
 
         signal, maD = calc_signal(price, ma20, ma60, low52, high52,
                                    ret5d, vol_ratio, rsi, yld, name, code)
@@ -1210,6 +1541,11 @@ for code, name in ALL_ETFS:
             "avg_vol": safe(avg_vol), "cur_vol": safe(cur_vol),
             "vol_ratio": safe(vol_ratio), "heat": safe(heat), "score_cont": safe(score_cont),
             "aum": safe(aum), "div_freq": div_freq,
+            # 逐檔資料來源（mis_fetcher 判斷有效日期／收盤證據用）：
+            # price_date／price_prev＝yfinance 最後一筆日期與前一筆收盤；official_close＝逐檔官方收盤證據
+            # （上市取 TWSE MI_INDEX、上櫃取 TPEx，各自驗證報表日期；status traded／no_trade；表內沒有＝None）
+            "price_date": price_date, "price_prev": safe(price_prev),
+            "official_close": (_TPEX_OFFICIAL_ROWS if code in TWO_CODES else _TWSE_OFFICIAL_ROWS).get(code),
         })
         tag = "精選" if curated else "自動"
         print(f"[{tag}] {code} {name}  {price}  sig={signal}  vol={avg_vol:.0f}")
@@ -1229,6 +1565,15 @@ for code, name in ALL_ETFS:
                 "aum": 0, "div_freq": DIV_FREQ.get(code, "不明"),
             })
             print(f"[WARN] {code} {name} 失敗（保留精選）: {e}")
+        elif str(e) in ("insufficient data", "insufficient clean data"):
+            # D-044：歷史不足但已上市且有可信官方收盤 → 保留（指標不足）；條件不成立照原本略過
+            fb, why = history_fallback(code, name, curated)
+            if fb:
+                results.append(fb)
+                print(f"[INSUFFICIENT] {code} {name}  官方收盤 {fb['price']}（{fb['price_date']}），"
+                      f"上市日 {fb['listing_date']}，歷史不足 → 保留、指標不足")
+            else:
+                print(f"[SKIP] {code} {name} 失敗，略過: {e}（歷史不足保留條件不成立：{why}）")
         else:
             print(f"[SKIP] {code} {name} 失敗，略過: {e}")
 
@@ -1330,10 +1675,18 @@ output = {
 }
 
 OUT_BASE.parent.mkdir(parents=True, exist_ok=True)
-with open(OUT_BASE, "w", encoding="utf-8") as f:
-    json.dump(output, f, ensure_ascii=False, indent=2)
+# 非關鍵欄位（既有語意可為 null）的 NaN／Infinity 轉 null；必要欄位不合法 → 不寫檔、exit 1，原檔不動
+nullify_nonfinite(results)
+try:
+    atomic_write_json(OUT_BASE, output, validate=validate_base_policy)   # 含商品收錄政策：K／ETN 不得寫入
+except Exception as e:
+    print(f"::error::_base.json 未更新（驗證或寫入失敗，原檔保留）：{e}", file=sys.stderr)
+    sys.exit(1)
 
 # 同步更新 dividend_info.json 的 calendar（mis_fetcher.py 讀這個當估算來源）
+# 原子寫入；失敗時 dividend_info.json 原檔保留，並以 exit 1 回報（_base.json 已是獨立的成功寫入）
+# D-063：同一次原子寫入一併納入正式版官方頻率補查結果（只補原本未知的頻率，附官方證據）。
+_div_failed = False
 if (calendar or _OFFICIAL_FREQ_RECOVERIES) and OUT_DIV.exists():
     try:
         with open(OUT_DIV, encoding="utf-8") as f:
@@ -1351,14 +1704,17 @@ if (calendar or _OFFICIAL_FREQ_RECOVERIES) and OUT_DIV.exists():
             div_info["etfs"][code] = meta
         if calendar:
             div_info["calendar"] = calendar
-        with open(OUT_DIV, "w", encoding="utf-8") as f:
-            json.dump(div_info, f, ensure_ascii=False, indent=2)
+        atomic_write_json(OUT_DIV, div_info, validate=validate_dividend_info)
         print(f"✓ dividend_info.json calendar 更新：{len(calendar)} 筆")
     except Exception as e:
-        print(f"[WARN] dividend_info.json 更新失敗: {e}")
+        print(f"::error::dividend_info.json 未更新（原檔保留）：{e}", file=sys.stderr)
+        _div_failed = True
 
 print(f"\n✓ data/_base.json 完成：精選 {curated_n} + 自動發現 {auto_n} = {len(results)} 支 ETF")
 if _TWSE_PRICE_DATE:
     print(f"✓ TWSE 官方收盤核對（{_TWSE_PRICE_DATE}）：覆蓋 {_twse_override_count} 支價格")
 else:
     print("⚠ 本次未能取得 TWSE 官方收盤核對來源，price 僅來自 yfinance")
+
+if _div_failed:
+    sys.exit(1)

@@ -3,7 +3,13 @@
 // ⚠ 一律用傳統 <script> 載入，不要加 type="module"：
 //   HTML 裡有 15 個行內 onclick 需要這些函式掛在 window 上。
 // ── Mood card ──
-function renderMood(market) {
+// 有效行情時間 "YYYY-MM-DD[ HH:MM]" → "MM/DD[ HH:MM]"
+function fmtQuoteTime(t) {
+  return t ? t.slice(5, 7) + '/' + t.slice(8, 10) + t.slice(10) : '';
+}
+
+// meta：market.json 的 market_state／quote_date／quote_time；舊版檔沒有 meta.market_state
+function renderMood(market, meta) {
   const pct = market ? market.change_pct : 0;
   const pt  = market ? market.change_pt  : 0;
   const pr  = market ? market.price      : 0;
@@ -33,6 +39,14 @@ function renderMood(market) {
     val.className = 'mi-val';
     val.textContent = `${pct === 0 ? '' : sign + ' '}${arrow}${pt.toFixed(1)} (${arrow}${pct.toFixed(2)}%)`;
     idxEl.append('加權 ', val);
+    // 大盤與個股時效各自判斷：大盤不是本次即時報價時，標出大盤自己的資料時間（不明就寫不明），
+    // 不讓個股 LIVE 掩蓋過期的指數；和頁面徽章同一個時間、或已休市時不重複標
+    const st = meta && meta.market_state;
+    if (st && st !== 'holiday' && market.is_live === false) {
+      const mt = market.quote_date ? market.quote_date + (market.mis_time ? ' ' + market.mis_time : '') : '';
+      if (!mt) idxEl.append(' · 大盤資料時間未知');
+      else if (mt !== (meta.quote_time || '')) idxEl.append(' · 大盤資料 ' + fmtQuoteTime(mt));
+    }
   }
 }
 
@@ -120,6 +134,9 @@ function calSrcLabel(c) {
 // 「今天」一律用台北日期＋官方年度日曆（trading-calendar.js）判斷，不拿資料裡昨天的 is_holiday 猜今天。
 // 只有資料本身是今天的（updated 日期＝台北今天）才沿用 live／收盤語意；舊資料不冒稱 LIVE、不把 updated 當今天的行情日。
 // 資料載入失敗時由 boot.js 顯示錯誤，這裡的定時重畫不得蓋掉（_statusErr）。
+// D-056 對齊休市日修復：新版 market.json 帶 market_state（live／stale／closed／holiday），
+// 只在資料是台北今天產生的才採用；stale →「資料時間 MM/DD HH:MM」（不明寫「資料時間未知」、部分收盤確認加「· 收盤確認 n/N」），
+// closed 只在 quote_date＝今天才寫「收盤資料」；沒有 market_state 的舊版檔沿用 updated 規則。
 let _statusArgs = null;
 let _statusErr = false;
 // R1：trading-calendar.js 沒載入／壞掉時不得拋例外中斷 renderAll；台北時鐘自己算，交易日分類一律 unknown
@@ -144,10 +161,23 @@ function statusBadgeText(a, nowMs) {
   // R1：未知年度／壞日曆優先於 LIVE——當天的 updated 不能代替「今天已確認是交易日」
   if (kind === 'unknown') return { cls: 'status-closed', text: '今日交易狀態待確認' + short };
   // LIVE 只在盤中（與 mis_fetcher is_trading_hour 相同 09:00～13:50）；盤後仍是盤中旗標 → 只標資料時間，不冒稱 LIVE
-  if (fresh && !a.isClosed && !a.isHoliday && tw.min >= 9 * 60 && tw.min <= 13 * 60 + 50) return { cls: 'status-live', text: 'LIVE · 更新 ' + dataHm };
-  if (fresh && !a.isClosed && !a.isHoliday && tw.min > 13 * 60 + 50 && kind === 'trading') return { cls: 'status-closed', text: '資料時間 ' + dataDay.slice(5).replace('-', '/') + ' ' + dataHm };
   if (tw.min < 9 * 60) return { cls: 'status-closed', text: '待今日開盤' + short };
-  if (fresh && a.isClosed && !a.isHoliday && dataHm >= '13:30') return { cls: 'status-closed', text: '收盤資料 · ' + dataDay };
+  const meta = a.meta || null;
+  const state = meta && meta.market_state;
+  if (state && fresh) {
+    if (state === 'stale') {
+      let t = meta.quote_time ? '資料時間 ' + fmtQuoteTime(meta.quote_time) : '資料時間未知';
+      // 部分 ETF 已有逐檔官方收盤：揭露數量，不把整頁說成已收盤
+      const cc = meta.close_confirmed;
+      if (cc && cc.etfs > 0) t += ' · 收盤確認 ' + cc.etfs + '/' + cc.total;
+      return { cls: 'status-closed', text: t };
+    }
+    if (state === 'closed' && meta.quote_date === tw.ymd) return { cls: 'status-closed', text: '收盤資料 · ' + meta.quote_date };
+    // live 只走下方盤中規則；holiday（官方日曆是交易日）、closed 但行情日不是今天 → 不沿用，落到中性文字
+  }
+  if (fresh && (!state || state === 'live') && !a.isClosed && !a.isHoliday && tw.min <= 13 * 60 + 50) return { cls: 'status-live', text: 'LIVE · 更新 ' + dataHm };
+  if (fresh && (!state || state === 'live') && !a.isClosed && !a.isHoliday && tw.min > 13 * 60 + 50 && kind === 'trading') return { cls: 'status-closed', text: '資料時間 ' + dataDay.slice(5).replace('-', '/') + ' ' + dataHm };
+  if (!state && fresh && a.isClosed && !a.isHoliday && dataHm >= '13:30') return { cls: 'status-closed', text: '收盤資料 · ' + dataDay };
   return { cls: 'status-closed', text: '待今日行情' + short };
 }
 function renderStatusBadge() {
@@ -159,12 +189,13 @@ function renderStatusBadge() {
 }
 
 // ── renderAll：用資料渲染整頁 ──
-function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday) {
+// meta：market.json 的 market_state／quote_date／quote_time／close_confirmed（徽章規則見 statusBadgeText）
+function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday, meta) {
   ETFS = etfs;
   CALENDAR = cal;
-  _statusArgs = { updatedAt: updatedAt, isClosed: isClosed, isHoliday: isHoliday };
+  _statusArgs = { updatedAt: updatedAt, isClosed: isClosed, isHoliday: isHoliday, meta: meta || null };
   renderStatusBadge();
-  renderMood(market);
+  renderMood(market, meta);
 
   const SIG_LABEL = HOME_SIG_LABEL;
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' };

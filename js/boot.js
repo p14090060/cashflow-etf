@@ -55,7 +55,9 @@ function fetchData() {
     .then(d => {
       _lastOk = d.updated || '';
       hideDataError();
-      renderAll(d.etfs, d.calendar || [], d.updated, d.market, d.is_closed, d.is_holiday);
+      renderAll(d.etfs, d.calendar || [], d.updated, d.market, d.is_closed, d.is_holiday,
+                { market_state: d.market_state, quote_date: d.quote_date, quote_time: d.quote_time,
+                  close_confirmed: d.close_confirmed });
     })
     .catch(showDataError);
   if (!_pollTimer) {

@@ -1,12 +1,18 @@
 name: Update Market Data (Intraday)
 
 on:
+  # 盤中每 10 分鐘只由 cron-job.org 以 workflow_dispatch 觸發；原生 */10 已移除（與 cron-job.org 重複）
   schedule:
     # 台北 14:00 收盤後補抓一次，確保收盤現價和加權同步
     - cron: "0 6 * * 1-5"
     # 每天 08:50 台北時間（含週末）：確保非交易時段的修改也能更新，錯開 fetch.yml 的 09:00
     - cron: "50 0 * * *"
   workflow_dispatch:    # 支援手動觸發
+
+# 同一條 workflow 不並行：執行中的 run 不取消；GitHub 只保留一個等待中的 run，新觸發會取代舊的等待者
+concurrency:
+  group: market-update-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -39,25 +45,69 @@ jobs:
       - name: Run MIS fetcher
         run: python scripts/mis_fetcher.py
 
+      # 發布：逐檔新舊判斷（market_guard.py）＋publish_gate.py（契約、只允許 market.json、不 force）。
+      # 每輪先把 origin/main 固定成完整 SHA（base）：fetcher 產生、Guard 比較、Gate 驗證與推送都只認這個 SHA，
+      # 不再用會移動的 origin/main。Guard 判定前先記下候選 SHA256，Gate 只接受這份位元組（--expect），候選中途被換 → 中止。
+      # Gate 帶 --base：不 pull --rebase，只推 base 的直接後代；遠端在這期間前進 → 非 force push 被拒 →
+      # 下一輪從新 base 重跑 mis_fetcher＋Guard＋Gate（不把舊行情 rebase 到新遠端上）。
+      # 結果分四種寫入 outputs.status：published（有推送，sha＝推送的 SHA）／skipped（遠端不舊）／
+      # unchanged（Gate 沒有可推送的變更）；倒退、無法判斷、任何必要命令失敗、重試耗盡 → exit 1（不當成功）。
+      - name: Publish data/market.json
+        id: publish
+        run: |
+          out() { if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "$1" >> "$GITHUB_OUTPUT"; fi; }
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          gate_out=$(mktemp) || exit 1
+          built_on=$(git rev-parse HEAD) || exit 1
+          for i in 1 2 3; do
+            git fetch -q origin main || exit 1
+            base=$(git rev-parse --verify 'origin/main^{commit}') || exit 1
+            if [ "$base" != "$built_on" ]; then
+              git reset -q --hard "$base" || exit 1
+              python scripts/mis_fetcher.py || exit 1
+              built_on=$base
+            fi
+            cand=$(sha256sum data/market.json | cut -d' ' -f1) || exit 1
+            rc=0; python scripts/market_guard.py data/market.json "$base" || rc=$?   # Actions 的 bash 是 -e
+            if [ $rc -eq 10 ]; then
+              echo "[PUBLISH] SKIP: remote $base is not older; nothing published"
+              out "published=false"; out "status=skipped"; exit 0
+            fi
+            if [ $rc -ne 0 ]; then exit 1; fi
+            : > "$gate_out"
+            rc=0
+            GITHUB_OUTPUT="$gate_out" python scripts/publish_gate.py --base "$base" --expect "data/market.json=$cand" \
+              --message "chore: update market data $(date +'%Y-%m-%d %H:%M' -d '+8 hours')" data/market.json || rc=$?
+            if [ $rc -eq 0 ]; then
+              pushed=$(sed -n 's/^pushed=//p' "$gate_out" | tail -n 1)
+              if [ -n "$pushed" ]; then
+                echo "[PUBLISH] published $pushed"
+                out "published=true"; out "status=published"; out "sha=$pushed"
+              else
+                echo "[PUBLISH] gate passed but nothing was pushed"
+                out "published=false"; out "status=unchanged"
+              fi
+              exit 0
+            fi
+            echo "publish attempt $i/3 failed, regenerating on the new origin/main"
+            git reset -q --hard "$base" || exit 1
+            built_on=none
+            sleep $((i * 10))
+          done
+          echo "::error::data/market.json not published after 3 attempts"
+          exit 1
+
+      # 通知只用已確認推送的內容：只有 publish 回報 published 才執行，並核對工作目錄的 market.json
+      # 就是推送的 SHA 中那一份。SKIP／無變更／失敗都不送候選訊號。通知失敗不撤回已發布的資料，step 標紅並註明。
       - name: Intraday cheap signal notify
+        if: steps.publish.outputs.published == 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python scripts/intraday_notify.py
-
-      - name: Commit data/market.json
+          PUBLISHED_SHA:      ${{ steps.publish.outputs.sha }}
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/market.json
-          git diff --cached --quiet && echo "No changes, skipping." && exit 0
-          git commit -m "chore: update market data $(date +'%Y-%m-%d %H:%M' -d '+8 hours')"
-          # Retry up to 3 times — local machine may push concurrently
-          for i in 1 2 3; do
-            git pull --rebase -X ours origin main && git push && exit 0
-            echo "Push attempt $i/3 failed, retrying in ${i}0s..."
-            sleep $((i * 10))
-          done
-          # All retries failed — local machine already pushed fresh data, treat as success
-          echo "Push skipped after retries (local machine is primary updater)."
-          exit 0
+          if [ "$(git rev-parse HEAD)" != "$PUBLISHED_SHA" ] || ! git diff --quiet "$PUBLISHED_SHA" -- data/market.json; then
+            echo "::error::market.json 與已發布 $PUBLISHED_SHA 不一致，不發通知（資料已發布）"; exit 1
+          fi
+          python scripts/intraday_notify.py || { echo "::error::已發布 $PUBLISHED_SHA，但通知失敗（資料不撤回）"; exit 1; }

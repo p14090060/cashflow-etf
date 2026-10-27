@@ -8,6 +8,10 @@ name: Auto Sync ETF Dividend Info
 permissions:
   contents: write
 
+concurrency:
+  group: validate-freq
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -21,16 +25,19 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Auto sync ETF dividend info (new ETFs + avg + months + freq)
-        run: python scripts/auto_sync_etfs.py
-
-      - name: Commit if changed
+      - name: Auto sync ETF dividend info (new ETFs + avg + months + freq) and commit
+        # 每次嘗試都從最新 origin/main 重新產生（不沿用舊結果），再交給 publish_gate.py：
+        # 契約驗證、只允許 data/dividend_info.json、固定 SHA 推送、不 force。推送被拒或驗證失敗 → 整輪重來，
+        # 最多 3 次；全部失敗 exit 1（不當成功）
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/dividend_info.json
-          git diff --cached --quiet && echo "no changes" || (
-            git commit -m "chore: auto-sync ETF dividend info $(date +'%Y-%m-%d')" &&
-            git pull --rebase origin main &&
-            git push
-          )
+          for i in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main || exit 1
+            python scripts/auto_sync_etfs.py || exit 1
+            if python scripts/publish_gate.py --message "chore: auto-sync ETF dividend info $(date +'%Y-%m-%d')" data/dividend_info.json; then exit 0; fi
+            echo "publish attempt $i/3 failed, regenerating on the new origin/main"
+            sleep $((i * 10))
+          done
+          echo "::error::data/dividend_info.json not published after 3 attempts"
+          exit 1
