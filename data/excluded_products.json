@@ -1,0 +1,187 @@
+{
+ "policy": "金流黑盒子 ETF 存股雷達不收錄任何代號尾碼 K 的商品，也不收錄任何 ETN（PO 2026-10-10 正式決策，永久規則）。本檔為人工維護、版本控管的稽核清單，Writer 只讀不寫；新出現的 ETN 由產品池的 ISIN 區段＋CFI 規則排除，並另行補登本檔。",
+ "products": {
+  "00625K": {
+   "name": "富邦上証+R",
+   "type": "K",
+   "reason": "代號尾碼 K（外幣計價受益憑證），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETF 區段，CFI CEOGEU（2026-10-05 快照）；名稱 +R／+U 經 WebSearch 核實為人民幣／美元受益憑證（2026-10-10）",
+   "confirmed": "2026-10-10"
+  },
+  "00636K": {
+   "name": "國泰中國A50+U",
+   "type": "K",
+   "reason": "代號尾碼 K（外幣計價受益憑證），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETF 區段，CFI CEOGEU（2026-10-05 快照）；名稱 +R／+U 經 WebSearch 核實為人民幣／美元受益憑證（2026-10-10）",
+   "confirmed": "2026-10-10"
+  },
+  "00643K": {
+   "name": "群益深証中小+R",
+   "type": "K",
+   "reason": "代號尾碼 K（外幣計價受益憑證），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETF 區段，CFI CEOGEU（2026-10-05 快照）；名稱 +R／+U 經 WebSearch 核實為人民幣／美元受益憑證（2026-10-10）",
+   "confirmed": "2026-10-10"
+  },
+  "00657K": {
+   "name": "國泰日經225+U",
+   "type": "K",
+   "reason": "代號尾碼 K（外幣計價受益憑證），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETF 區段，CFI CEOGEU（2026-10-05 快照）；名稱 +R／+U 經 WebSearch 核實為人民幣／美元受益憑證（2026-10-10）",
+   "confirmed": "2026-10-10"
+  },
+  "00668K": {
+   "name": "國泰美國道瓊+U",
+   "type": "K",
+   "reason": "代號尾碼 K（外幣計價受益憑證），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETF 區段，CFI CEOGEU（2026-10-05 快照）；名稱 +R／+U 經 WebSearch 核實為人民幣／美元受益憑證（2026-10-10）",
+   "confirmed": "2026-10-10"
+  },
+  "020000": {
+   "name": "富邦特選蘋果N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020001": {
+   "name": "富邦存股雙十N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=4（上櫃）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020011": {
+   "name": "統一微波高息20N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020012": {
+   "name": "富邦行動通訊N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "02001L": {
+   "name": "富邦蘋果正二N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020020": {
+   "name": "元大台股領航N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020025": {
+   "name": "統一亞洲半導體N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=4（上櫃）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020028": {
+   "name": "元大特選電動車N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020029": {
+   "name": "元大ESG高股息N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020030": {
+   "name": "統一智慧電動車N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020031": {
+   "name": "統一IC設計臺灣N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020032": {
+   "name": "元大綠能N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020033": {
+   "name": "統一恆生科期N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=4（上櫃）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020034": {
+   "name": "元大IC設計N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020035": {
+   "name": "元大上櫃ESG高息N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=4（上櫃）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020036": {
+   "name": "元大金融配息N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020037": {
+   "name": "元大金融高股息N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020038": {
+   "name": "元大ESG配息N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020039": {
+   "name": "元大加權N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=2（上市）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020040": {
+   "name": "元大上櫃ESG龍頭N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=4（上櫃）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  },
+  "020041": {
+   "name": "兆豐半導體氣候N",
+   "type": "ETN",
+   "reason": "ETN（指數投資證券），依 PO 2026-10-10 永久規則不收錄",
+   "source": "TWSE ISIN C_public.jsp strMode=4（上櫃）ETN 區段，CFI CMXXXU（2026-10-05 快照）",
+   "confirmed": "2026-10-10"
+  }
+ }
+}
