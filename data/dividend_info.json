@@ -1468,7 +1468,20 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.21,
-      "_todo": true
+      "_todo": true,
+      "pending_resolution": {
+        "ex_dividend_date": "2026-10-21",
+        "amount": 0.21,
+        "amount_source": "TWSE",
+        "pay_date": "2026-11-13",
+        "url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList?stkNo=00408A&startDate=20260722",
+        "sha256": "a10f6a3dc50db1b113a47fc0ad53cb84d3252f687db1b338f93e3dc407e0bf24",
+        "status": "announced",
+        "code": "00408A",
+        "pending_since": "2026-07-21",
+        "source": "TWSE ETFortune 配息清單（dividendList，逐檔歷史）",
+        "checked_at": "2026-10-27T18:13:51.138336+08:00"
+      }
     },
     "00406A": {
       "name": "主動中信台灣收益",
