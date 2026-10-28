@@ -182,11 +182,53 @@ def _check_official(code, off):
         raise DataInvalid(f"{code} official_close.status 無效")
 
 
+def _check_index_close(where, m):
+    """大盤官方收盤證據只認同一列、同一日期與官方漲跌，不能掛在MIS或舊價上。"""
+    from decimal import Decimal, ROUND_HALF_UP
+    import datetime
+    c = m.get("index_close")
+    keys = {"source", "date", "price", "prev_close", "change_pt", "change_pct"}
+    if not isinstance(c, dict) or set(c) != keys or c.get("source") != "TWSE_MI_INDEX":
+        raise DataInvalid(f"{where} 大盤收盤來源／欄位無效")
+    if not _is_date(c.get("date")) or c["date"] > datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date().isoformat():
+        raise DataInvalid(f"{where} 大盤收盤日期無效")
+    for key in ("price", "prev_close", "change_pt", "change_pct"):
+        _req_num(where + ".index_close", c, key)
+    if c["price"] <= 0 or c["prev_close"] <= 0:
+        raise DataInvalid(f"{where} 大盤收盤／昨收必須正值")
+    q = Decimal("0.01")
+    price, prev, change, pct = (Decimal(str(c[k])) for k in ("price", "prev_close", "change_pt", "change_pct"))
+    try:
+        coherent = price - prev == change and (change / prev * 100).quantize(q, rounding=ROUND_HALF_UP) == pct
+    except ArithmeticError:
+        coherent = False
+    if not coherent:
+        raise DataInvalid(f"{where} 大盤官方數值關係不一致")
+    if m.get("quote_date") != c["date"] or m.get("quote_src") != c["source"] or m.get("is_live") is not False or m.get("close_confirmed") is not True:
+        raise DataInvalid(f"{where} 大盤收盤證據與行情狀態不一致")
+    if any(not _fin(m.get(k)) or m[k] != c[k] for k in ("price", "change_pt", "change_pct")):
+        raise DataInvalid(f"{where} 大盤收盤證據與顯示數值不同")
+
+
+def confirmed_market_close(m):
+    if not isinstance(m, dict) or m.get("index_close") is None:
+        return False
+    try:
+        _check_index_close("market", m)
+        return True
+    except (DataInvalid, ArithmeticError, TypeError, ValueError):
+        return False
+
+
 def _check_market_block(where, m):
     if not isinstance(m, dict):
         raise DataInvalid(f"{where} market 不是物件")
     for k in ("price", "change_pt", "change_pct"):       # render.js renderMood 直接 toFixed
         _req_num(where + ".market", m, k)
+    if m.get("index_close") is not None:
+        _check_index_close(where + ".market", m)
+    elif m.get("close_confirmed") is True:
+        raise DataInvalid(f"{where} 大盤缺官方收盤證據卻標為已確認")
 
 
 def _check_calendar(where, cal):

@@ -14,7 +14,7 @@ from daily_check import no_distribution_note   # D-053：與 D-052 TG 告警同�
 import official_frequency as _official_policy     # D-068：官方政策證據的單一驗證規則
 
 sys.path.append(str(Path(__file__).resolve().parent))
-from json_safe import atomic_write_json, validate_market, validate_market_policy, INSUFFICIENT_HISTORY   # noqa: E402
+from json_safe import atomic_write_json, validate_market, validate_market_policy, INSUFFICIENT_HISTORY, confirmed_market_close   # noqa: E402
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
 try:
@@ -914,12 +914,17 @@ def main():
     # ── 大盤（獨立判斷：個股有當日報價不代表大盤也是）──
     if mis_ok and mis_market:
         market_out = dict(base.get("market", {}))
+        market_out.pop("index_close", None)
+        market_out.pop("quote_src", None)
         market_out.update(mis_market)
-        market_out.update(quote_date=today.isoformat(), is_live=True)
+        market_out.update(quote_date=today.isoformat(), is_live=True, close_confirmed=False)
     else:
-        # 基線大盤（fetch_etf 的 yfinance ^TWII）沒有日期欄位 → 日期不明；上一份是 MIS 就沿用
+        bm = base.get("market") or {}
         pm = (prev or {}).get("market") or {}
-        if _keep_prev(pm, None, None):
+        if confirmed_market_close(bm) and (not pm.get("quote_date") or bm["quote_date"] >= pm["quote_date"]):
+            market_out = dict(bm)
+            market_out.pop("mis_time", None)
+        elif _keep_prev(pm, None, None):
             market_out = dict(pm)
             market_out["quote_date"] = pm.get("quote_date")
         else:
@@ -927,7 +932,7 @@ def main():
             market_out.pop("mis_time", None)
             market_out["quote_date"] = None
         market_out["is_live"] = False
-    market_out["close_confirmed"] = False      # 目前沒有大盤的官方收盤來源，不宣稱大盤已收盤
+    market_out["close_confirmed"] = confirmed_market_close(market_out)
 
     # ── 狀態 ──
     # holiday：已確認休市（週末或官方休市表）

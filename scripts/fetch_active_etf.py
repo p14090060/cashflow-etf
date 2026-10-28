@@ -230,6 +230,58 @@ TSIT_FUNDS = {
     "00411A": ("64YTW", "主動統一前沿科技"),
 }
 
+_TSIT_DATE_BASIS = "details-taipei-v1"
+
+
+def _tsit_holding_date(values, as_of):
+    """統一股票明細的同一個台北日期；PCF生效日不拿來代替持股基準日。"""
+    tz = datetime.timezone(datetime.timedelta(hours=8))
+    dates = set()
+    for value in values:
+        if not isinstance(value, str):
+            return None
+        try:
+            m = re.fullmatch(r"/Date\((-?\d+)\)/", value)
+            if m:
+                day = datetime.datetime.fromtimestamp(int(m[1]) / 1000, tz).date()
+            elif re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+                day = datetime.date.fromisoformat(value)
+            else:
+                stamp = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+                if stamp.tzinfo is None:
+                    stamp = stamp.replace(tzinfo=tz)
+                day = stamp.astimezone(tz).date()
+            if day > as_of:
+                return None
+            dates.add(day)
+        except (ValueError, TypeError, OverflowError, OSError):
+            return None
+    return next(iter(dates)).isoformat() if len(dates) == 1 else None
+
+
+def _tsit_date_guard(etfs, prev):
+    """舊日期基準只初始化一次、不造Flow；可信基準之後拒絕來源倒退。"""
+    old = (prev or {}).get("etfs") or {}
+    initialized = set()
+    result = prev
+    for code in TSIT_FUNDS:
+        incoming = etfs.get(code)
+        if not incoming:
+            continue
+        before = old.get(code)
+        if not before:
+            continue
+        if before.get("date_basis") != _TSIT_DATE_BASIS:
+            if result is prev:
+                result = dict(prev, etfs=dict(old))
+            result["etfs"][code] = dict(incoming)
+            initialized.add(code)
+            print(f"[統一] {code} 初始化明細台北日基準，本輪不計新 Flow")
+        elif incoming.get("data_date", "") < before.get("data_date", ""):
+            del etfs[code]
+            print(f"[統一] {code} 資料日倒退，保留既有可信快照與 Flow")
+    return result, initialized
+
 
 def fetch_tsit(date_obj, specific=False):
     """specific=True 時抓指定日期的歷史 PCF（統一的 API 支援，用來回補前一交易日）。"""
@@ -266,17 +318,10 @@ def fetch_tsit(date_obj, specific=False):
             print(f"[統一] {ticker} 失敗: {e}")
             continue
 
-        # PCF 自己的資料日（TranDate）。統一的 PCF 比行情落後約 2 天，且傳進去的
-        # date 參數不等於回傳的 TranDate，所以資料日一定要從回應裡取，
-        # 不能拿執行當天的日期充當——那會讓「資料沒更新」被誤顯示成「今日無異動」。
-        data_date = _ms_date((d.get("pcf") or [{}])[0].get("TranDate"))
-
         st = [a for a in (d.get("asset") or []) if a.get("AssetCode") == "ST"]
         details = (st[0].get("Details") or []) if st else []
-        # 查歷史時 pcf 陣列可能是空的，但每一筆持股明細自己也帶 TranDate，拿來備援
-        if not data_date and details:
-            data_date = _ms_date(details[0].get("TranDate"))
         holdings = _Holdings()
+        used_dates = []
         for x in details:
             code = str(x.get("DetailCode", "")).strip()
             try:
@@ -284,13 +329,19 @@ def fetch_tsit(date_obj, specific=False):
             except (TypeError, ValueError):
                 continue
             if code and share:
+                used_dates.append(x.get("TranDate"))
                 holdings[code] = {
                     "name": str(x.get("DetailName", "")).strip(),
                     "shares": share,
                 }
         if holdings:
+            data_date = _tsit_holding_date(used_dates, date_obj)
+            if data_date is None:
+                print(f"[統一] {ticker} 股票明細日期缺漏、混日或晚於查詢日，本次不採用")
+                continue
             out[ticker] = {"name": name, "issuer": "統一",
-                           "data_date": data_date, "holdings": holdings}
+                           "data_date": data_date, "holdings": holdings,
+                           "date_basis": _TSIT_DATE_BASIS}
             print(f"[統一] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
         time.sleep(1)
     return out
@@ -1854,6 +1905,7 @@ def main():
     # 之前寫成 `if not prev` 只涵蓋全空的情況，每加一家就會空白一天。
     prev_etfs = (prev or {}).get("etfs") or {}
 
+    prev, tsit_initialized = _tsit_date_guard(etfs, prev)
     # 兆豐（00996A incident）：PCF／商品頁／feed 三種來源共用同一道日期保護，見 _mega_date_guard
     prev, no_basis = _mega_date_guard(etfs, prev)
     prev_etfs = (prev or {}).get("etfs") or {}
@@ -1901,6 +1953,10 @@ def main():
             print("[BOOTSTRAP] 這些投信不支援歷史查詢，只能等下一個交易日")
 
     flows = build_flow(prev, snapshot) if prev else {}
+    for code in tsit_initialized:
+        flows[code] = {"advanced": False, "reason": "no_basis",
+                       "data_date": etfs[code]["data_date"], "basis_date": None,
+                       "buy": 0, "sell": 0, "changed": 0, "flow": []}
     old_out = (load_json(OUT) or {}).get("etfs") or {}
 
     # 這次沒抓到的 ETF 一律保留上次的結果，不讓它從畫面上消失。

@@ -1182,6 +1182,53 @@ def _official_get(url):
         return json.loads(r.read().decode("utf-8"))
 
 
+_TWSE_MARKET_CLOSE = None
+
+
+def parse_twse_market_close(resp, date_str):
+    """重用逐檔收盤同一份MI_INDEX的價格指數表；不額外發請求、不猜日期或昨收。"""
+    from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+    if not isinstance(resp, dict) or resp.get("stat") != "OK" or resp.get("date") != date_str:
+        return None
+    try:
+        day = datetime.datetime.strptime(date_str, "%Y%m%d").date()
+        if day > datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date():
+            return None
+        title = f"{day.year - 1911}年{day.month:02d}月{day.day:02d}日 價格指數(臺灣證券交易所)"
+        tables = [t for t in resp.get("tables", []) if isinstance(t, dict) and t.get("title") == title]
+        fields = ["指數", "收盤指數", "漲跌(+/-)", "漲跌點數", "漲跌百分比(%)", "特殊處理註記"]
+        if len(tables) != 1 or tables[0].get("fields") != fields:
+            return None
+        rows = [r for r in tables[0].get("data", []) if isinstance(r, list) and r and r[0] == "發行量加權股價指數"]
+        if len(rows) != 1 or len(rows[0]) != 6 or str(rows[0][5]).strip():
+            return None
+        row = rows[0]
+        def number(value):
+            if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+                raise ValueError("bad index number")
+            text = str(value).strip()
+            if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", text):
+                raise ValueError("bad index number")
+            return Decimal(text.replace(",", ""))
+        price, amount, pct = number(row[1]), number(row[3]), number(row[4])
+        sign = re.sub(r"<[^>]*>", "", str(row[2])).strip()
+        if amount < 0 or sign not in ("+", "-", "") or (not sign and amount != 0):
+            return None
+        change = -amount if sign == "-" else amount
+        prev = price - change
+        if price <= 0 or prev <= 0 or (change / prev * 100).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP) != pct:
+            return None
+        if not all(math.isfinite(float(v)) for v in (price, prev, change, pct)):
+            return None
+        record = {"source": "TWSE_MI_INDEX", "date": day.isoformat(), "price": float(price),
+                  "prev_close": float(prev), "change_pt": float(change), "change_pct": float(pct)}
+        return {"price": float(price), "change_pt": float(change), "change_pct": float(pct),
+                "quote_date": day.isoformat(), "quote_src": "TWSE_MI_INDEX", "is_live": False,
+                "close_confirmed": True, "index_close": record}
+    except (ValueError, TypeError, KeyError, ArithmeticError, InvalidOperation):
+        return None
+
+
 def fetch_twse_official_closes(max_lookback=6):
     """從今日往回找最近一個有完整收盤資料的交易日，回傳 (date_str, {code: close_or_None}, {code: 證據})。
 
@@ -1193,6 +1240,8 @@ def fetch_twse_official_closes(max_lookback=6):
     回應日期與要求日期不符（例：要求 10/12 回 10/08）視同該日沒有資料，繼續往回找。
     找不到任何資料（連假、TWSE 暫時性故障）時回傳 (None, {}, {})，呼叫端應 fallback 純用 yfinance。
     """
+    global _TWSE_MARKET_CLOSE
+    _TWSE_MARKET_CLOSE = None
     now_tw = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
     for delta in range(max_lookback):
         d = now_tw.date() - datetime.timedelta(days=delta)
@@ -1200,12 +1249,14 @@ def fetch_twse_official_closes(max_lookback=6):
             continue
         date_str = d.strftime('%Y%m%d')
         try:
-            got = twse_rows_from_response(_official_get(
+            response = _official_get(
                 f"https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX"
-                f"?date={date_str}&type=ALLBUT0999&response=json"), date_str)
+                f"?date={date_str}&type=ALLBUT0999&response=json")
+            got = twse_rows_from_response(response, date_str)
             if not got:
                 continue
             mapping, rows = got
+            _TWSE_MARKET_CLOSE = parse_twse_market_close(response, date_str)
             print(f"[TWSE] 官方收盤核對來源：{date_str}（{len(mapping)} 檔）")
             return date_str, mapping, rows
         except Exception as e:
@@ -1771,7 +1822,7 @@ def _fetch_twse_market():
     return {"price": round(cur, 2), "change_pt": chg_pt, "change_pct": chg_pc}
 
 try:
-    m = _fetch_twse_market()
+    m = _TWSE_MARKET_CLOSE or _fetch_twse_market()
     if m:
         market = m
         print(f"[OK] 大盤(TWSE) {m['price']}  {m['change_pt']:+.2f} ({m['change_pct']:+.2f}%)")
