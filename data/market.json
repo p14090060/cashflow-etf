@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-28 13:50",
+  "updated": "2026-10-28 14:21",
   "quote_date": "2026-10-28",
   "quote_time": "2026-10-28 13:30",
   "market_state": "stale",
@@ -18,7 +18,7 @@
     "change_pct": 2.04,
     "mis_time": "13:33",
     "quote_date": "2026-10-28",
-    "is_live": true,
+    "is_live": false,
     "close_confirmed": false
   },
   "etfs": [
