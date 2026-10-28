@@ -1031,7 +1031,7 @@
     },
     "00984A": {
       "name": "主動安聯台灣高息",
-      "frequency": "半年配",
+      "frequency": "季配",
       "months": [
         1,
         4,
@@ -1039,7 +1039,20 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.168,
-      "_todo": false
+      "_todo": false,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00984A",
+        "frequency": "季配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "主動安聯台灣高息",
+        "full_name": "安聯台灣高息成長主動式ETF基金",
+        "classification": "不分級別/分配(季配)",
+        "checked_at": "2026-10-28T08:38:00.760226+08:00"
+      }
     },
     "00904": {
       "name": "台新臺灣半導體30",
@@ -1415,16 +1428,24 @@
     },
     "009818": {
       "name": "華南永昌NASDAQxT",
-      "frequency": "季配",
-      "months": [
-        3,
-        6,
-        9,
-        12
-      ],
+      "frequency": "不配息",
+      "months": [],
       "category": "指數型",
-      "avg_dividend_per_share": 0.62,
-      "_todo": false
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "009818",
+        "frequency": "不配息",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "華南永昌NASDAQxT",
+        "full_name": "華南永昌NASDAQ 100科技ETF基金",
+        "classification": "不分級別/不分配",
+        "checked_at": "2026-10-28T08:38:00.760226+08:00"
+      }
     },
     "00994A": {
       "name": "主動第一金台股優",
