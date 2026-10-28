@@ -757,7 +757,7 @@
     },
     "009808": {
       "name": "華南永昌優選50",
-      "frequency": "年配",
+      "frequency": "季配",
       "months": [
         2,
         5,
@@ -765,7 +765,20 @@
       ],
       "category": "高股息",
       "avg_dividend_per_share": 0.5255,
-      "_todo": false
+      "_todo": false,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "009808",
+        "frequency": "季配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "華南永昌優選50",
+        "full_name": "華南永昌台灣優選50ETF基金",
+        "classification": "不分級別/分配(季配)",
+        "checked_at": "2026-10-28T08:34:22.228139+08:00"
+      }
     },
     "00980A": {
       "name": "主動野村臺灣優選",
