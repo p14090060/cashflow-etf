@@ -656,7 +656,7 @@ def history_help_lines(due, state, checks, names):
         return []
     fmt = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone(datetime.timedelta(hours=8))).strftime("%m/%d %H:%M")
     out = ["🔎 歷史資料自動查證仍不足（%d 檔；已跨 %d 輪、24 小時以上）" % (len(due), HIST_HELP_ROUNDS),
-           "已保留官方收盤價，均線／報酬等指標維持空值、不判訊號；每輪已用同一 Yahoo 來源一年及較長支援區間查證，判讀如下"]
+           "已保留官方收盤價，均線／報酬等指標維持空值、不判訊號；各檔列本輪實際查證來源與結果，排隊／暫時失敗不算查完。不是要求你手填資料。"]
     for c in due:
         ck = checks.get(c) or {}
         out.append("• %s %s：%s區間判讀：%s（完成判讀 %d 輪，首次 %s）" % (

@@ -1435,6 +1435,8 @@ HIST_ALT_LIMIT  = 4
 HIST_ALT_RANGES = ("2y", "5y", "10y", "max")          # 比 1y 長、由短到長；只取主回應 validRanges 有列的
 HIST_CHECK_OUT  = Path(os.environ.get("ETF_HISTORY_CHECK") or (Path(__file__).parent / "logs" / "history_check.json"))
 HIST_CHECK = {}                                       # {代號: {"status", "detail", "range"}}
+HIST_TWSE_USED = False                                # 每輪最多一檔；13月＋商品頁／配息頁最多15個GET
+HIST_TWSE_TARGET = None
 
 
 def _hist_meta(tk):
@@ -1541,13 +1543,51 @@ def verify_daily_history(hist, meta, ticker_code, want_range, today):
     return win, None
 
 
-def alt_history(tk, code, ticker_code):
+def _twse_alt_history(code, name, today, previous):
+    """Yahoo不足才核同代號官方歷史；不碰正常一年資料、不填假指標。"""
+    global HIST_TWSE_USED, HIST_TWSE_TARGET
+    if code in TWO_CODES:
+        return None
+    try:
+        end = datetime.datetime.strptime(_TWSE_PRICE_DATE, "%Y%m%d").date()
+        price = _TWSE_OFFICIAL_CLOSES.get(code)
+        if isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price <= 0:
+            raise ValueError("沒有本輪有效官方末價")
+    except (ValueError, TypeError):
+        HIST_CHECK[code] = {"status": "error", "detail": previous["detail"] + "；本輪官方末價不能確認，TWSE歷史未查完", "range": previous.get("range")}
+        return None
+    if HIST_TWSE_TARGET is None:
+        eligible = [c for c in _hist_alt_plan() if c not in TWO_CODES
+                    and isinstance(_TWSE_OFFICIAL_CLOSES.get(c), (int, float))
+                    and not isinstance(_TWSE_OFFICIAL_CLOSES.get(c), bool)
+                    and math.isfinite(_TWSE_OFFICIAL_CLOSES[c]) and _TWSE_OFFICIAL_CLOSES[c] > 0]
+        HIST_TWSE_TARGET = eligible[0] if eligible else code
+    if HIST_TWSE_USED or code != HIST_TWSE_TARGET:
+        HIST_CHECK[code] = {"status": "queued", "detail": previous["detail"] + "；TWSE歷史額度已用，下輪優先查證，不算查完", "range": previous.get("range")}
+        return None
+    HIST_TWSE_USED = True
+    try:
+        import twse_history
+        h = twse_history.fetch_history(code, name, today, end, price)
+        proof = h.attrs["twse_history"]
+        HIST_CHECK[code] = {"status": "recovered", "detail": "Yahoo一年／較長區間不足；TWSE官方一年日線%d筆、%d個現金分配事件及無分割證據已核對" % (len(h), len(proof["cash_events"])), "range": "TWSE一年", "official": proof}
+        print("[HISTORY-TWSE] %s recovered %d rows (%s → %s)" % (code, len(h), proof["first"], proof["last"]))
+        return h
+    except Exception as ex:
+        HIST_CHECK[code] = {"status": "error", "detail": previous["detail"] + "；TWSE官方歷史未能完成（%s：%s），下輪再查，不算查無" % (type(ex).__name__, str(ex)[:150]), "range": previous.get("range")}
+        print("[HISTORY-TWSE] %s incomplete %s" % (code, type(ex).__name__))
+        return None
+
+
+def alt_history(tk, code, ticker_code, name=None):
     """period=1y 不足時的替代區間查證。合格回傳一年視窗日線，否則 None（狀態記在 HIST_CHECK）。"""
     today = _hist_today()
 
     def rec(status, detail, rng=None):
         HIST_CHECK[code] = {"status": status, "detail": detail, "range": rng}
         print("[HISTORY-ALT] %s %s %s%s" % (code, status, detail, " (%s)" % rng if rng else ""))
+        if name and status in ("error", "no_range", "rejected"):
+            return _twse_alt_history(code, name, today, dict(HIST_CHECK[code]))
         return None
     inel = _hist_ineligible(code, today)
     if inel:
@@ -1590,7 +1630,7 @@ for code, name in ALL_ETFS:
         tk = yf.Ticker(ticker_code)
         hist = tk.history(period="1y", auto_adjust=False)
         if hist.empty or len(hist) < 5 or "Close" not in hist.columns or len(hist["Close"].dropna()) < 5:
-            alt = alt_history(tk, code, ticker_code)        # 2026-10-27：同來源有界替代區間查證（不合格 → 照原本不足處理）
+            alt = alt_history(tk, code, ticker_code, name)  # Yahoo不足才按額度核官方一年日線及調整事件
             if alt is not None:
                 hist = alt
         if hist.empty or len(hist) < 5:
@@ -1693,7 +1733,8 @@ for code, name in ALL_ETFS:
             except Exception:
                 pass
         import pandas as _pd
-        divs = tk.dividends  # 一次抓，配息預測共用
+        # 官方歷史已核過同一批分配事件，不再回頭要求壞掉的Yahoo事件來源。
+        divs = hist.loc[hist["Dividends"] > 0, "Dividends"] if hist.attrs.get("twse_history") else tk.dividends
 
         # 先偵測配息頻率，殖利率年化計算需要用到
         div_freq = detect_div_freq(tk, code, name, hist_days=len(hist))
