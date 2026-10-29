@@ -80,7 +80,9 @@ function renderPriceZone() {
     return;
   }
   cnt.hidden = false;
-  cnt.textContent = '目前共有 ' + n + ' 檔 ETF 符合價格條件';
+  cnt.textContent = _pzList[0].signal === 'cheap'
+    ? '目前共有 ' + n + ' 檔便宜 ETF'
+    : '目前沒有便宜 ETF，顯示 ' + n + ' 檔合理 ETF（最多 20 檔）';
   const shown = (_pzExpanded || n <= PZ_SHOW) ? _pzList : _pzList.slice(0, PZ_SHOW);
   list.innerHTML = shown.map(e => {
     const code = _homeEsc(e.code);
@@ -201,7 +203,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday, meta) {
   const SIG_CLASS = { cheap:'sig-cheap', fair:'sig-fair', hot:'sig-hot', dear:'sig-dear', bond:'sig-bond' };
 
   // 只從成交量前 100 篩選，避免冷門 ETF 混入
-  // RANK_FRESHNESS：只用已就緒的成交量（rank.js rankVolState）；有未就緒的檔時名次只是暫定，TOP10 不顯示名次數字
+  // RANK_FRESHNESS：只用已就緒的成交量；資料未齊時保留數字並明示暫定，未就緒者不參與排名。
   const _vs = rankVolState(ETFS, _statusArgs);
   const TOP100 = [...ETFS]
     .filter(e => rankVolReady(_vs, e) && e.cur_vol > 0 && e.price > 0)
@@ -209,19 +211,30 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday, meta) {
     .slice(0, 100);
 
   // ── H4 價格合理區（PHASE5_PLAN §2.4，PO 決策 3、5、8、12、13）──
-  // 母體＝成交量前 100；cheap／fair 且有配息；cheap 在前、同狀態依 cur_vol。不用 LAZY_WATCHLIST、0 檔不給 fallback。
-  _pzList = TOP100
-    .filter(e => (e.signal === 'cheap' || e.signal === 'fair') && (e.div_frequency || '') !== '不配息')
-    .sort((a, b) => (a.signal === b.signal ? 0 : a.signal === 'cheap' ? -1 : 1) || (b.cur_vol || 0) - (a.cur_vol || 0));
+  // 母體仍是可確認成交量前100、配息型；有便宜只列便宜，沒有便宜才列合理，合理最多20檔。
+  const pzEligible = TOP100.filter(e => (e.div_frequency || '') !== '不配息');
+  const cheap = pzEligible.filter(e => e.signal === 'cheap');
+  _pzList = cheap.length ? cheap : pzEligible.filter(e => e.signal === 'fair').slice(0, 20);
   renderPriceZone();
 
   // ── H5 成交量 TOP 10（不稱今日：沒有逐檔交易日）：與排行頁相同，取成交量前 10；整列開 Detail ──
   const top10 = TOP100.slice(0, 10);
   const _prov = !_vs.valid || _vs.pending > 0;
+  let tvRankState = document.getElementById('tvRankState');
+  if (!tvRankState) { // 舊HTML快取配到新版JS時也能正常顯示提醒。
+    tvRankState = document.createElement('div');
+    tvRankState.id = 'tvRankState';
+    tvRankState.className = 'home-note';
+    tvRankState.setAttribute('role', 'status');
+    document.getElementById('tvNote').insertAdjacentElement('afterend', tvRankState);
+  }
+  tvRankState.textContent = top10.length && _prov
+    ? '成交量資料尚未齊全，以下為暫定名次。'
+    : !top10.length ? (_vs.valid && _vs.pending === 0 ? '目前沒有成交量大於 0 的 ETF。' : '成交量尚未確認，暫不排名。') : '';
   const rankClass = i => _prov ? '' : i===0?'gold':i===1?'silver':i===2?'bronze':'';
   document.getElementById('waitItems').innerHTML = top10.map((e,i) => `
     <button class="hot-item home-row" type="button" data-code="${_homeEsc(e.code)}" onclick="openDetail('${_homeEsc(e.code)}')">
-      <span class="hot-rank ${rankClass(i)}"${_prov ? ' title="成交量更新中，名次暫定"' : ''}>${_prov ? '·' : i+1}</span>
+      <span class="hot-rank ${rankClass(i)}"${_prov ? ' title="成交量更新中，名次暫定"' : ''}>${i+1}</span>
       <span class="hr-main">
         <span class="hr-line"><span class="wait-code">${_homeEsc(e.code)}</span><span class="wait-name">${_homeEsc(e.name)}</span></span>
         <span class="hr-sub">
