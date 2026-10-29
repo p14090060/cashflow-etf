@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-29 13:50",
+  "updated": "2026-10-29 14:31",
   "quote_date": "2026-10-29",
   "quote_time": "2026-10-29 13:30",
   "market_state": "stale",
@@ -17,7 +17,7 @@
     "change_pt": -667.25,
     "change_pct": -1.42,
     "quote_date": "2026-10-29",
-    "is_live": true,
+    "is_live": false,
     "close_confirmed": false,
     "mis_time": "13:33"
   },
@@ -489,7 +489,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 12,
-      "est": 0.055,
+      "est": 0.06,
       "div_next": "2026-11-07",
       "signal": "dear",
       "maD": 3.4,
@@ -10694,11 +10694,11 @@
       "iso_date": "2026-11-10",
       "day": "10",
       "mon": "11月",
-      "amt": 0.055,
+      "amt": 0.06,
       "soon": true,
       "days_until": 12,
       "source": "official",
-      "amount_source": "FinMind（估算）"
+      "amount_source": "MoneyDJ"
     },
     {
       "code": "006208",
