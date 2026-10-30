@@ -55,18 +55,10 @@
   },
   "pending_notified": {},
   "history_recheck": {
-    "00972": 1793246111.1941235
+    "00972": 1793323843.3217564
   },
-  "history_status": {
-    "00972": 4
-  },
-  "history_first": {
-    "00972": 1793146256.3013127
-  },
-  "history_rounds": {
-    "00972": 5
-  },
-  "history_notified": {
-    "00972": 1793237214.9093506
-  }
+  "history_status": {},
+  "history_first": {},
+  "history_rounds": {},
+  "history_notified": {}
 }
