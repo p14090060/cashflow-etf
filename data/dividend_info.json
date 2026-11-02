@@ -2140,6 +2140,17 @@
         "full_name": "元大日經225基金",
         "classification": "不分級別/分配(年配)",
         "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      },
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00661",
+        "valuation_date": "2026-09-30",
+        "announced_date": "2026-10-01",
+        "valid_until": "2027-09-29",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00005&date=20261001&fund=00661&seq=1&type=distribution"
+        }
       }
     },
     "00668": {
@@ -2536,6 +2547,13 @@
           }
         ]
       }
+    },
+    "009831": {
+      "name": "FT核心AI電力算力",
+      "frequency": "不配息",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [

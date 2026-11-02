@@ -2421,7 +2421,15 @@
       "div_category": "",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-09-30",
+        "announced_date": "2026-10-01",
+        "valid_until": "2027-09-29",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00005&date=20261001&fund=00661&seq=1&type=distribution"
+      }
     },
     {
       "code": "00662",
@@ -10536,9 +10544,12 @@
       "quote_date": "2026-11-02",
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
-      "div_frequency": "不明",
+      "div_frequency": "不配息",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "div_category": "",
+      "div_months": [],
+      "div_todo": true
     }
   ],
   "calendar": [
