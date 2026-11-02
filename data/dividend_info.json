@@ -212,7 +212,18 @@
       "category": "高股息",
       "avg_dividend_per_share": null,
       "_todo": true,
-      "_source": "2026-09-05 雙源查證：MoneyDJ basic0005 明寫「查無配息資料」→ 上市後從未配息，應進 _YLD_PENDING；basic0004 頻率季配"
+      "_source": "2026-09-05 雙源查證：MoneyDJ basic0005 明寫「查無配息資料」→ 上市後從未配息，應進 _YLD_PENDING；basic0004 頻率季配",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00403A",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-01-30",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00009&date=20261102&seq=1&fund=00403A&type=distribution"
+        }
+      }
     },
     "00881": {
       "name": "國泰台灣科技龍頭",
@@ -1637,7 +1648,18 @@
       ],
       "category": "海外",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "009811",
+        "valuation_date": "2026-09-30",
+        "announced_date": "2026-10-01",
+        "valid_until": "2027-03-29",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00009&date=20261001&seq=1&fund=009811&type=distribution"
+        }
+      }
     },
     "00401A": {
       "name": "主動摩根台灣鑫收",
@@ -1678,7 +1700,18 @@
       ],
       "category": "主動型",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00986A",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-09-29",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00047&date=20261102&seq=1&fund=00986A&type=distribution"
+        }
+      }
     },
     "009826": {
       "name": "貝萊德世界股票",
@@ -1725,7 +1758,18 @@
       "category": "主動型",
       "avg_dividend_per_share": null,
       "_todo": true,
-      "_source": "MoneyDJ basic0004「年配」+ 用戶提供並於 2026-09-11 再次確認：年配息、每年10月底收益評價日、11月除息，實際配發與否由經理公司依收益情況決定；2026-08-20 成立、09-02 上市，尚未配息"
+      "_source": "MoneyDJ basic0004「年配」+ 用戶提供並於 2026-09-11 再次確認：年配息、每年10月底收益評價日、11月除息，實際配發與否由經理公司依收益情況決定；2026-08-20 成立、09-02 上市，尚未配息",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00409A",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-09-29",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00022&date=20261102&seq=1&fund=00409A&type=distribution"
+        }
+      }
     },
     "00404A": {
       "name": "主動聯博動能50",
@@ -2451,6 +2495,17 @@
         "full_name": "富邦元宇宙ETF基金",
         "classification": "不分級別/分配(季配)",
         "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      },
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00903",
+        "valuation_date": "2026-08-31",
+        "announced_date": "2026-09-01",
+        "valid_until": "2026-11-29",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00010&date=20260901&seq=1&fund=00903&type=distribution"
+        }
       }
     },
     "00886": {
@@ -2554,6 +2609,68 @@
       "months": [],
       "avg_dividend_per_share": null,
       "_todo": true
+    },
+    "009800": {
+      "name": "中信NASDAQ",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "年配",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "009800",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "中信NASDAQ",
+        "full_name": "中國信託NASDAQ 100 ETF基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-11-02T20:56:47.059401+08:00"
+      },
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "009800",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-09-29",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00026&date=20261102&seq=1&fund=009800&type=distribution"
+        }
+      }
+    },
+    "00989A": {
+      "name": "主動摩根美國科技",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "季配",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00989A",
+        "frequency": "季配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "主動摩根美國科技",
+        "full_name": "摩根大美國領先科技主動式ETF基金",
+        "classification": "不分級別/分配(季配)",
+        "checked_at": "2026-11-02T20:56:47.060399+08:00"
+      },
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00989A",
+        "valuation_date": "2026-09-24",
+        "announced_date": "2026-09-30",
+        "valid_until": "2026-12-23",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00011&date=20260930&seq=1&fund=00989A&type=distribution"
+        }
+      }
     }
   },
   "calendar": [

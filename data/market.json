@@ -416,7 +416,15 @@
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-01-30",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00009&date=20261102&seq=1&fund=00403A&type=distribution"
+      }
     },
     {
       "code": "00878",
@@ -1263,7 +1271,15 @@
       "div_category": "主動型",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-09-29",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00022&date=20261102&seq=1&fund=00409A&type=distribution"
+      }
     },
     {
       "code": "00410A",
@@ -4899,7 +4915,15 @@
       "div_category": "",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-08-31",
+        "announced_date": "2026-09-01",
+        "valid_until": "2026-11-29",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00010&date=20260901&seq=1&fund=00903&type=distribution"
+      }
     },
     {
       "code": "00904",
@@ -7332,7 +7356,15 @@
       "close_confirmed": true,
       "div_frequency": "年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-09-29",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00026&date=20261102&seq=1&fund=009800&type=distribution"
+      }
     },
     {
       "code": "009801",
@@ -7876,7 +7908,15 @@
       "div_category": "海外",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-09-30",
+        "announced_date": "2026-10-01",
+        "valid_until": "2027-03-29",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00009&date=20261001&seq=1&fund=009811&type=distribution"
+      }
     },
     {
       "code": "009812",
@@ -8915,7 +8955,15 @@
       "div_category": "主動型",
       "div_todo": true,
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-10-31",
+        "announced_date": "2026-11-02",
+        "valid_until": "2027-09-29",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00047&date=20261102&seq=1&fund=00986A&type=distribution"
+      }
     },
     {
       "code": "00987A",
@@ -9072,7 +9120,15 @@
       "close_confirmed": true,
       "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "valuation_date": "2026-09-24",
+        "announced_date": "2026-09-30",
+        "valid_until": "2026-12-23",
+        "source_name": "TWSE ETFortune官方公告",
+        "source_url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00011&date=20260930&seq=1&fund=00989A&type=distribution"
+      }
     },
     {
       "code": "00990A",
