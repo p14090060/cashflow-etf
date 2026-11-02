@@ -8281,7 +8281,7 @@
       "rsi": 23.7,
       "yld": 10.9,
       "yld_verified": true,
-      "yld_pending": true,
+      "yld_pending": false,
       "days": 350,
       "est": 2.15,
       "div_next": "2027-10-19",
