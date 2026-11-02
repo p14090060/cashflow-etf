@@ -236,7 +236,8 @@ def _pending_dates():
 
 def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
     """_YLD_PENDING 是人工維護的清單（2026-09-23 就發現有 8 支滿 1 歲、最久 2.2 年沒人回頭查）。
-    D-068：逾 STALE_PENDING_DAYS 天的不再直接推給 PO，先用既有可信的 TWSE 配息日曆（dividend_calendar.json）查證：
+    所有待公告都依額度輪替查證；STALE_PENDING_DAYS 只控制未解提醒，不延後查證。
+    D-068：先用既有可信的 TWSE 配息日曆（dividend_calendar.json）查證：
     - 有效同檔官方公告（除息日在上次查證之後、TWSE 官方金額 > 0）→ 在 dividend_info 寫入 pending_resolution
       （綁定同一段 pending_since），fetch 之後也不會被靜態清單蓋回；不試算、不改殖利率、不宣稱已發放。
     - 仍無／只有非官方金額／資料壞掉 → 保留待公告，附本輪查證結果提醒；同一檔「確認送達後」REMIND_DAYS 天內不重複催
@@ -262,7 +263,7 @@ def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
         except ValueError:
             continue
         days = (today - since).days
-        if days <= STALE_PENDING_DAYS:
+        if days < 0:
             continue
         if official_frequency.pending_resolution_problem(code, info_map.get(code), since.isoformat()) is None:
             continue                             # 這段待公告已有有效官方公告解除紀錄
@@ -300,6 +301,8 @@ def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
             notes.append(f"• {code}：已核到 TWSE 官方配息公告（除息 {detail['ex_dividend_date']}、每單位 {detail['amount']}），"
                          f"解除待公告（以發布核驗後為準；未宣稱已發放、殖利率未改）")
             continue
+        if days <= STALE_PENDING_DAYS:
+            continue                             # 尚未逾提醒門檻：已查證，但不催 PO
         if now - notif.get(code, 0) < REMIND_DAYS * 86400:
             continue                             # 已確認送達過，REMIND_DAYS 天內不重複催
         ACK.setdefault("pending_notified", []).append(code)
