@@ -2543,7 +2543,7 @@
       "code": "006208",
       "name": "富邦台50",
       "amt": 4.75,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
