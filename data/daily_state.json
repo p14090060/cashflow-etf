@@ -56,7 +56,9 @@
   "policy_rounds": {
     "009831": 3
   },
-  "policy_notified": {},
+  "policy_notified": {
+    "009831": 1793585825.102628
+  },
   "pending_recheck": {
     "00408A": 1793096029.7361457
   },
