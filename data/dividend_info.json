@@ -350,6 +350,17 @@
         "full_name": "元大標普500基金",
         "classification": "不分級別/分配(年配)",
         "checked_at": "2026-10-26T14:00:00+08:00"
+      },
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "00646",
+        "valuation_date": "2026-09-30",
+        "announced_date": "2026-10-01",
+        "valid_until": "2027-09-29",
+        "source": {
+          "name": "TWSE ETFortune官方公告",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00005&date=20261001&fund=00646&seq=1&type=all"
+        }
       }
     },
     "00662": {

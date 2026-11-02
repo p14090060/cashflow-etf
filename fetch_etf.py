@@ -51,7 +51,7 @@ def _load_div_meta():
 _DIV_META = _load_div_meta()
 # 已驗證官方政策證據（含 _todo:true；政策已核實不代表金額已核實）
 _EVIDENCE_FREQ = {code: meta["frequency"] for code, meta in _DIV_META.items()
-                  if isinstance(meta, dict) and "frequency_evidence" in meta and _official.policy_evidence_problem(code, meta) is None
+                  if isinstance(meta, dict) and ("frequency_evidence" in meta or "policy_source" in meta)
                   and _official.known_policy(code, meta) is not None}   # D-071：同檔若另附失效 policy_source 也不採用
 
 def _load_confirmed_months():
@@ -1371,8 +1371,8 @@ INSUFFICIENT = "insufficient_history"
 
 
 def _div_freq_offline(code, name):
-    """detect_div_freq 的前三步（已確認／手動表／名稱關鍵字），不發任何請求；查不到回「不明」。"""
-    f = _CONFIRMED_FREQ.get(code) or DIV_FREQ.get(code)
+    """只讀已確認／已驗官方政策／手動表／名稱，不發請求；查不到回「不明」。"""
+    f = _CONFIRMED_FREQ.get(code) or _EVIDENCE_FREQ.get(code) or DIV_FREQ.get(code)
     if f:
         return f
     for keywords, freq in _NAME_FREQ:

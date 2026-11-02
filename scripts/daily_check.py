@@ -687,6 +687,51 @@ def policy_help_lines(due, result, state, names):
     return out
 
 
+def check_unverified_otc_yields(etfs, state, now, resolver=None, limit=4):
+    """Mature OTC missing yields: bounded official checks, not immediate PO homework.
+
+    Numeric state only; transient errors get a separate engineering-source alert
+    after3 actual attempts spanning24h, delivery-acknowledged14-day cooldown.
+    """
+    keys = ('yield_recheck', 'yield_status', 'yield_error_first', 'yield_error_rounds', 'yield_error_notified')
+    eligible = {e['code']:e for e in etfs if e.get('otc') is True and not e.get('new_listing') and not e.get('yld_pending')
+                and e.get('yld') == 0 and (e.get('div_freq') or e.get('div_frequency')) not in ('不配息', '不明', '?', '', None)}
+    if not eligible and not any(k in state for k in keys):
+        return {}, []
+    import official_yield_check
+    resolver = resolver or official_yield_check.diagnose
+    st = {k:{c:v for c,v in _num_map(state.get(k)).items() if c in eligible} for k in keys}
+    today = datetime.datetime.fromtimestamp(now, datetime.timezone(datetime.timedelta(hours=8))).date()
+    result, due = {}, []
+    codes = sorted(eligible, key=lambda c:(st['yield_recheck'].get(c,0), c))
+    for i,c in enumerate(codes):
+        if i >= limit:
+            result[c] = {'status':'queued','detail':'本輪官方殖利率查證額度已滿，排隊下輪；未完成判讀'}
+            st['yield_status'][c] = 0
+            continue
+        try:
+            r = resolver(c, eligible[c].get('name',''), today)
+            if not isinstance(r,dict) or r.get('status') not in ('error','no_record','positive','future','zero_record'):
+                raise ValueError('invalid official diagnosis')
+        except Exception:
+            r = {'status':'error','detail':'官方殖利率查證未完成，下輪續查；不是查無','attempts':[]}
+        result[c] = r
+        st['yield_recheck'][c] = now
+        st['yield_status'][c] = {'error':1,'no_record':2,'positive':3,'future':4,'zero_record':5}[r['status']]
+        if r['status'] == 'error':
+            if r.get('attempts'):
+                st['yield_error_first'].setdefault(c, now)
+                st['yield_error_rounds'][c] = st['yield_error_rounds'].get(c,0) + 1
+                if st['yield_error_rounds'][c] >= 3 and now-st['yield_error_first'][c] >= 24*3600 and now-st['yield_error_notified'].get(c,0) >= 14*86400:
+                    due.append(c)
+        else:
+            for key in keys[2:]:
+                st[key].pop(c,None)
+        print('[YIELD-CHECK] %s %s %s' % (c,r['status'],r.get('detail','')))
+    state.update(st)
+    return result,due
+
+
 def main():
     ACK.clear()
     ACK_MESSAGE[0] = None
@@ -776,6 +821,7 @@ def main():
         state.pop(k, None)
     policy_due = update_policy_state(state, recovery, now_ts)
     hist_due   = update_history_state(state, etfs, hist_checks, now_ts, hist_at)
+    yield_checks, yield_source_due = check_unverified_otc_yields(etfs, state, now_ts)
     yld_prev   = state.get("yld_prev", {})
     vol_streak = state.get("zero_vol_streak", {})
 
@@ -896,6 +942,7 @@ def main():
     # A queued lookup is not an acknowledged/handled issue. Keep deferred
     # entrants eligible so a later exhausted lookup can still raise its alert.
     deferred_codes = {c for c, s in recovery["status"].items() if s != official_frequency.ADOPTED}
+    deferred_codes.update(c for c,r in yield_checks.items() if r['status'] in ('error','queued'))
     if deferred_codes:
         known = load(KNOWN_CODES)
         if isinstance(known, list):
@@ -942,6 +989,14 @@ def main():
             note, why = no_distribution_note(e["code"], info_map.get(e["code"]), cal_map.get(e["code"]), today_tw)
             if note:
                 note_entries.append(f"• {e['code']} {e.get('name','')}：{note}（官方公告，屬正常）")
+            elif e['code'] in yield_checks:
+                result = yield_checks[e['code']]
+                if result['status'] in ('no_record','future','zero_record'):
+                    note_entries.append(f"• {e['code']} {e.get('name','')}：{result['detail']}；殖利率暫未核實，系統持續查證")
+                elif result['status'] == 'positive':
+                    warn.append('官方有正額配息，但殖利率未讀入')
+                # queued/error are not a completed no-data result; retry independently
+                # of TOP100 entry, with separately rate-limited source-failure reporting.
             else:
                 warn.append("殖利率查無" + (f"（{why}）" if why else ""))
         if not ret1y and not is_new and not _hist_insufficient(e):
@@ -952,6 +1007,10 @@ def main():
             )
     lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in etfs}))
     lines.extend(history_help_lines(hist_due, state, hist_checks, {e.get("code"): e.get("name", "") for e in etfs}))
+    if yield_source_due:
+        lines.append('🔧 殖利率官方來源持續未完成（至少3次、跨24小時；不是宣稱官方查無）')
+        lines.extend('• %s %s：%s' % (c, next((e.get('name','') for e in etfs if e['code']==c),c), yield_checks[c]['detail']) for c in yield_source_due)
+        ACK.setdefault('yield_error_notified', []).extend(yield_source_due)
     if problem_entries:
         lines.append("🆕 新進 TOP 100 資料異常")
         lines.extend(problem_entries)
@@ -967,6 +1026,8 @@ def main():
             if ok is True:                       # 直接模式：確認送達才寫回執；延後模式（notify＝收集）由 --send-prepared 處理
                 _apply_ack(state, ACK)
                 save_json(DAILY_STATE, state)
+    elif any(r['status'] in ('error','queued') for r in yield_checks.values()):
+        print('[PENDING] 官方殖利率查證尚未完成，留待下輪；本輪無需即時通知，不宣稱全部恢復')
     else:
         print("[OK] 所有監控 ETF 資料正常，TOP 100 無新進")
 
