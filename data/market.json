@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-02 15:18",
+  "updated": "2026-11-02 23:01",
   "quote_date": "2026-11-02",
   "quote_time": "2026-11-02",
   "market_state": "closed",
@@ -7355,6 +7355,10 @@
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
       "div_frequency": "年配",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "",
+      "div_todo": true,
       "yld_source": "none",
       "yld_label": "無配息紀錄",
       "distribution_status": {
@@ -9119,6 +9123,10 @@
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
       "div_frequency": "季配",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "",
+      "div_todo": true,
       "yld_source": "none",
       "yld_label": "無配息紀錄",
       "distribution_status": {
@@ -10601,11 +10609,12 @@
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
       "div_frequency": "不配息",
-      "yld_source": "none",
-      "yld_label": "無配息紀錄",
-      "div_category": "",
       "div_months": [],
-      "div_todo": true
+      "div_avg_per_share": null,
+      "div_category": "",
+      "div_todo": true,
+      "yld_source": "none",
+      "yld_label": "無配息紀錄"
     }
   ],
   "calendar": [
