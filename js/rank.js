@@ -152,7 +152,7 @@ function renderRank() {
   // 有量的不足 100 支時放寬條件補滿，並以 avg_vol 當次要排序（未成交者依平時量排）。
   const byVol   = (a, b) => (b.cur_vol || 0) - (a.cur_vol || 0)
                          || (b.avg_vol || 0) - (a.avg_vol || 0);
-  // RANK_FRESHNESS：只有成交量已就緒的才排名次；未就緒的保留在榜尾「待確認」，不給名次、不用 0 或平均量代替
+  // 排行最多100筆；未就緒者只保留查詢狀態，不追加榜尾、不用0或平均量補排名
   const st      = rankVolState(ETFS, typeof _statusArgs !== 'undefined' ? _statusArgs : null);
   const withVol = [...ETFS].filter(e => rankVolReady(st, e) && e.cur_vol > 0 && e.price > 0);
   const sorted  = (withVol.length >= 100 ? withVol
@@ -168,7 +168,7 @@ function renderRank() {
   _rankWaiting = waiting;
   _rankStateLine(st);
 
-  document.getElementById('rankRows').innerHTML = sorted.concat(waiting).map((e, i) => {
+  document.getElementById('rankRows').innerHTML = sorted.map((e, i) => {
     const wait  = i >= sorted.length;
     const rank  = wait ? '' : i + 1;
     const cls   = (wait || prov) ? '' : rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';   // 暫定名次不上獎牌色
@@ -329,7 +329,7 @@ function applyRankFind(scroll) {
     return;
   }
 
-  // 成交量待確認：列在榜尾、沒有名次，要講清楚不是落榜
+  // 成交量待確認：只說明暫不排名，不增加排行列
   const wq = _rankWaiting.filter(e => _matchEtf(e, q) > 0).sort((a, b) => _matchEtf(b, q) - _matchEtf(a, q));
   if (wq.length) {
     wq.forEach(e => {
