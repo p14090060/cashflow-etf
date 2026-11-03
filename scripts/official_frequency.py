@@ -422,6 +422,8 @@ def _pending_resolution_problem(code, meta, since):
     if not isinstance(meta, dict) or not isinstance(meta.get("pending_resolution"), dict):
         return "absent"
     r = meta["pending_resolution"]
+    if r.get("source") == "TPEx ETF InfoHub 配息清單（etfExDiv）":
+        return _tpex_resolution_problem(code, meta, since)
     if r.get("status") != "announced" or r.get("code") != code or not _official_amount(r.get("amount_source")) \
             or r.get("source") not in ("TWSE 配息日曆（dividend_calendar.json）", HISTORY_SOURCE):
         return "resolution status／code／source invalid"
@@ -452,6 +454,48 @@ def _pending_resolution_problem(code, meta, since):
                 return "history resolution pay_date invalid"
     elif hist_keys & set(r):
         return "calendar resolution carries history-only fields"
+    return None
+
+
+def _tpex_resolution_problem(code, meta, since):
+    """同基金 TPEx 正額公告；嚴格獨立格式，不混用 TWSE 資格或來源。"""
+    r = meta["pending_resolution"]
+    keys = {"status", "code", "pending_since", "ex_dividend_date", "amount", "amount_source", "source",
+            "checked_at", "pay_date", "url", "sha256", "request_params", "identity"}
+    if set(r) != keys or r.get("status") != "announced" or r.get("code") != code or r.get("amount_source") != "TPEx":
+        return "TPEx resolution format／code／amount source invalid"
+    if not isinstance(code, str) or not re.fullmatch(r"[0-9A-Z]{4,8}", code):
+        return "TPEx resolution code invalid"
+    ps = datetime.date.fromisoformat(r["pending_since"])
+    ex = datetime.date.fromisoformat(r["ex_dividend_date"])
+    checked = datetime.datetime.fromisoformat(r["checked_at"])
+    if checked.tzinfo is None or checked.date() > datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date():
+        return "TPEx resolution checked date invalid"
+    if ex <= ps or checked.date() < ps or (since is not None and str(since) != ps.isoformat()):
+        return "TPEx resolution pending period invalid"
+    amount = r["amount"]
+    if isinstance(amount, bool) or not isinstance(amount, (int, float)) or not (0 < amount < float("inf")):
+        return "TPEx resolution amount invalid"
+    if r["pay_date"] is not None and datetime.date.fromisoformat(r["pay_date"]) < ex:
+        return "TPEx resolution payment before ex-date"
+    ident = r["identity"]
+    ikeys = {"code", "name", "full_name", "issuer", "listing_date", "url", "sha256"}
+    if not isinstance(ident, dict) or set(ident) != ikeys or ident.get("code") != code:
+        return "TPEx resolution identity invalid"
+    if not isinstance(ident["name"], str) or not ident["name"].strip() or _norm(ident["name"]) != _norm(meta.get("name")):
+        return "TPEx resolution identity name mismatch"
+    if not isinstance(ident["full_name"], str) or "基金" not in ident["full_name"] or not isinstance(ident["issuer"], str) or not ident["issuer"].strip():
+        return "TPEx resolution full identity missing"
+    listed = datetime.date.fromisoformat(ident["listing_date"])
+    if listed > ps or listed > checked.date():
+        return "TPEx resolution listing date invalid"
+    if ident["url"] != "https://info.tpex.org.tw/api/etfProduct?lang=zh-tw&query=" + code or r["url"] != "https://info.tpex.org.tw/api/etfExDiv":
+        return "TPEx resolution URL invalid"
+    for value in (ident["sha256"], r["sha256"]):
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+            return "TPEx resolution hash invalid"
+    if r["request_params"] != {"stkNo": code, "startDate": listed.strftime("%Y%m%d"), "endDate": checked.strftime("%Y%m%d"), "lang": "zh-tw"}:
+        return "TPEx resolution request parameters invalid"
     return None
 
 
