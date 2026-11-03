@@ -2719,6 +2719,13 @@
           "sha256": "604fa1c30c680d9084121fcb9393f5196f6a2e4f3ad11c70e9d84d2920dd24cc"
         }
       }
+    },
+    "00416A": {
+      "name": "主動台新臺灣中小",
+      "frequency": "季配",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true
     }
   },
   "calendar": [

@@ -10604,9 +10604,12 @@
       "quote_date": "2026-11-03",
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
-      "div_frequency": "不明",
+      "div_frequency": "季配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "div_category": "",
+      "div_months": [],
+      "div_todo": true
     },
     {
       "code": "009831",
