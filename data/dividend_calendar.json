@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-11-02",
+    "last_updated": "2026-11-03",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -19,6 +19,34 @@
       "ex_dividend_date": "2026-11-20",
       "amount": 0.0,
       "amount_source": null
+    },
+    "006208": {
+      "code": "006208",
+      "name": "富邦台50",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 3.88,
+      "amount_source": "MoneyDJ"
+    },
+    "00878": {
+      "code": "00878",
+      "name": "國泰永續高股息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 1.01,
+      "amount_source": "FinMind（估算）"
+    },
+    "00932": {
+      "code": "00932",
+      "name": "兆豐永續高息等權",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.23,
+      "amount_source": "FinMind（估算）"
+    },
+    "00936": {
+      "code": "00936",
+      "name": "台新永續高息中小",
+      "ex_dividend_date": "2026-11-16",
+      "amount": 0.16,
+      "amount_source": "FinMind（估算）"
     },
     "00940": {
       "code": "00940",

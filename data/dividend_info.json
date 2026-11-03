@@ -59,7 +59,7 @@
         11
       ],
       "category": "指數型",
-      "avg_dividend_per_share": 4.75,
+      "avg_dividend_per_share": 3.88,
       "_todo": false
     },
     "00929": {
@@ -2701,7 +2701,7 @@
       "code": "00878",
       "name": "國泰永續高息",
       "amt": 1.01,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
