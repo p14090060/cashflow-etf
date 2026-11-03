@@ -9681,7 +9681,7 @@
       "rsi": 41.6,
       "yld": 0.0,
       "yld_verified": false,
-      "yld_pending": true,
+      "yld_pending": false,
       "days": 90,
       "est": 0.3,
       "div_next": null,
