@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ETF存股雷達">
 <meta name="theme-color" content="#0F141B">
+<script defer src="js/analytics.js?v=20261104ga1"></script>
 <!-- Phase 5 V1（PHASE5_PLAN §7.1）：CSS 前決定主題，避免閃一下錯誤主題。
      localStorage etfRadar.theme（dark／light）優先；未手動選擇則跟系統，且系統改變時跟著變。 -->
 <script>
@@ -418,6 +419,12 @@
 <footer class="site-footer">
   本站 ETF 配息資料來源：🏛️ <a href="https://openapi.twse.com.tw" target="_blank" rel="noopener">TWSE OpenAPI</a>（政府開放資料，data.gov.tw/license）｜📊 各投信公告（手動更新）<br>
   完整配息行事曆請參考 TWSE 官方：<a href="https://www.twse.com.tw/zh/ETFortune/dividendCalendar" target="_blank" rel="noopener">twse.com.tw/zh/ETFortune/dividendCalendar</a>
+  <details>
+    <summary>流量統計說明與設定</summary>
+    <p>本站使用 Google Analytics 統計瀏覽與工具入口使用情況。Google 可能透過 Cookie 辨識瀏覽器及處理裝置、網站互動等資料；本站關閉 Google Signals 與廣告個人化，不自行傳送自選清單、搜尋文字或試算金額。</p>
+    <p><a href="https://policies.google.com/technologies/partner-sites?hl=zh-TW" target="_blank" rel="noopener">Google 如何處理資料</a>。您可在此瀏覽器停用本站的流量統計；停用不影響 ETF 工具。</p>
+    <button type="button" id="analyticsChoice" disabled>統計設定未載入</button>
+  </details>
 </footer>
 
 </div><!-- /pages -->
