@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-03 15:20",
+  "updated": "2026-11-03 21:48",
   "quote_date": "2026-11-03",
   "quote_time": "2026-11-03",
   "market_state": "closed",
@@ -10389,6 +10389,10 @@
       "quote_src": "TPEX_OTC",
       "close_confirmed": true,
       "div_frequency": "季配",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "",
+      "div_todo": true,
       "yld_source": "none",
       "yld_label": "無配息紀錄"
     },
@@ -10605,11 +10609,12 @@
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
       "div_frequency": "季配",
-      "yld_source": "none",
-      "yld_label": "無配息紀錄",
-      "div_category": "",
       "div_months": [],
-      "div_todo": true
+      "div_avg_per_share": null,
+      "div_category": "",
+      "div_todo": true,
+      "yld_source": "none",
+      "yld_label": "無配息紀錄"
     },
     {
       "code": "009831",
