@@ -84,6 +84,18 @@
       "ex_dividend_date": "2026-10-19",
       "amount": 0.73,
       "amount_source": "TWSE 公告（事實發生日 115/10/12）每受益權單位實際配發金額 0.73 元（2026-10-13 查證）；最後買進日 10/16、發放日 11/06。官方行事曆已收錄時以官方為準"
+    },
+    "009823": {
+      "code": "009823",
+      "name": "群益S&P500",
+      "ex_dividend_date": "2026-11-04",
+      "amount": 0.054,
+      "amount_source": "TPEx ETF InfoHub 官方配息清單（2026-11-03 核實；尚未發放）",
+      "pay_date": "2026-11-30",
+      "source_url": "https://info.tpex.org.tw/api/etfExDiv",
+      "source_sha256": "aef6884b0ddc0a8b674e7d45ba4a190e9478a68eacee5e499d769d27a4a5f043",
+      "profile_url": "https://info.tpex.org.tw/api/etfProduct?lang=zh-tw&query=009823",
+      "profile_sha256": "604fa1c30c680d9084121fcb9393f5196f6a2e4f3ad11c70e9d84d2920dd24cc"
     }
   }
 }

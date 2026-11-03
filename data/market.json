@@ -10674,6 +10674,18 @@
       "amount_source": "TWSE × FinMind 核實"
     },
     {
+      "code": "009823",
+      "name": "群益S&P500",
+      "iso_date": "2026-11-04",
+      "day": "4",
+      "mon": "11月",
+      "amt": 0.054,
+      "soon": true,
+      "days_until": 1,
+      "source": "manual",
+      "amount_source": "manual"
+    },
+    {
       "code": "00940",
       "name": "元大台灣價值高息",
       "iso_date": "2026-11-10",
