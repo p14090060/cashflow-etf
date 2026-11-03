@@ -9,7 +9,8 @@ flush、fsync → os.replace。保證範圍是「單一檔案」：任一步失�
 契約（validate_*）：必要欄位缺值或型別不符就 DataInvalid；可選欄位可以缺省或 null，
 但存在且非 null 時必須符合型別（數值須有限）。不把錯誤字串轉成數值、不把未知值補 0。
 """
-import json, math, os, re, tempfile
+import datetime, json, math, os, re, tempfile
+from decimal import Decimal
 from pathlib import Path
 
 
@@ -146,6 +147,109 @@ _QUOTE_SRCS   = ("MIS", "TWSE_MI_INDEX", "TPEX_OTC", "yfinance")
 _OFFICIAL_SRCS = ("TWSE_MI_INDEX", "TPEX_OTC")
 
 
+# ── 殖利率排行比較資料（yield_basis，可選；存在就須完全自洽，分子與比率都重算核對）──
+YIELD_SOURCE_TWSE, YIELD_SOURCE_TPEX = "TWSE ETFortune", "TPEx ETF InfoHub"
+_YIELD_METHODS = ("trailing_12m", "annualized_estimate")
+_YIELD_KEYS = {"method", "as_of", "window_start", "listing_date", "source_sha256", "frequency", "periods_per_year", "annual_cash", "events", "price", "rate"}
+_YIELD_EVENT_KEYS = {"ex_date", "pay_date", "amount", "source", "source_name", "future"}
+_YIELD_PER_YEAR = {"月配": 12, "雙月配": 6, "季配": 4, "半年配": 2, "年配": 1}
+_DEC_TEXT_RE = re.compile(r"\d+(?:\.\d+)?")
+
+
+def _yield_dec(code, v):
+    if not isinstance(v, str) or not _DEC_TEXT_RE.fullmatch(v) or Decimal(v) <= 0:
+        raise DataInvalid(f"{code} yield_basis 金額無效：{v!r}")
+    return Decimal(v)
+
+
+def yield_window_start(as_of):
+    """近12月窗口起日（含）：as_of 的前一年隔天。2/29 退到 2/28。"""
+    try:
+        prior = as_of.replace(year=as_of.year - 1)
+    except ValueError:
+        prior = as_of.replace(year=as_of.year - 1, day=28)
+    return prior + datetime.timedelta(days=1)
+
+
+def yield_is_new(listing_date, as_of):
+    """以上市日判定：上市滿一年前都是新上市（估算），不看歷史長短推得的 new_listing。"""
+    return listing_date >= yield_window_start(as_of)
+
+
+def check_yield_basis(code, b, price):
+    bad = lambda why: DataInvalid(f"{code} yield_basis {why}")
+    if not isinstance(b, dict) or set(b) - {"unit_changes"} != _YIELD_KEYS:
+        raise bad("欄位不符")
+    if b["method"] not in _YIELD_METHODS:
+        raise bad(f"方法無效：{b['method']!r}")
+    if not _is_date(b["as_of"]) or not _is_date(b["listing_date"]):
+        raise bad("日期無效")
+    as_of, listing = datetime.date.fromisoformat(b["as_of"]), datetime.date.fromisoformat(b["listing_date"])
+    if b["as_of"] > datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date().isoformat():
+        raise bad(f"資料日在未來：{b['as_of']}")
+    if b["window_start"] != yield_window_start(as_of).isoformat():
+        raise bad(f"窗口不是一年：{b['window_start']!r}／{b['as_of']}")
+    if listing > as_of or (b["method"] == "annualized_estimate") is not yield_is_new(listing, as_of):
+        raise bad(f"方法與上市日不符：{b['method']}／{b['listing_date']}")
+    if not isinstance(b["source_sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", b["source_sha256"]):
+        raise bad("來源原文 hash 無效")
+    if not _fin(price) or price <= 0 or not _fin(b["price"]) or b["price"] != price:
+        raise bad(f"價格與該檔不符：{b['price']!r}／{price!r}")
+    per = b["periods_per_year"]
+    if b["frequency"] is None:
+        if per is not None:
+            raise bad("頻率與次數不符")
+    elif isinstance(b["frequency"], bool) or not isinstance(b["frequency"], str) \
+            or isinstance(per, bool) or _YIELD_PER_YEAR.get(b["frequency"]) != per:
+        raise bad("頻率與次數不符")
+    changes = b.get("unit_changes", [])
+    if "unit_changes" in b and (not isinstance(changes, list) or not changes or not all(
+            isinstance(c, dict) and set(c) == {"date", "ratio", "source"} and _is_date(c["date"])
+            and isinstance(c["source"], str) and c["source"] for c in changes)):
+        raise bad("單位變更紀錄無效")
+    ev = b["events"]
+    if not isinstance(ev, list) or not ev:
+        raise bad("沒有配息事件")
+    latest = (as_of + datetime.timedelta(days=366)).isoformat()
+    dates, total = [], Decimal(0)
+    for x in ev:
+        if not isinstance(x, dict) or not _YIELD_EVENT_KEYS <= set(x) or not set(x) <= _YIELD_EVENT_KEYS | {"raw_amount"}:
+            raise bad("事件欄位不符")
+        if not _is_date(x["ex_date"]) or not _is_date(x["pay_date"]) or x["pay_date"] < x["ex_date"]:
+            raise bad("事件日期無效")
+        if x["ex_date"] < b["window_start"] or x["ex_date"] > latest or x["future"] is not (x["ex_date"] > b["as_of"]):
+            raise bad("事件超出窗口或未來標記不符")
+        if x["source"] not in (YIELD_SOURCE_TWSE, YIELD_SOURCE_TPEX) or not isinstance(x["source_name"], str):
+            raise bad("事件來源無效")
+        amount = _yield_dec(code, x["amount"])
+        total += amount
+        ratio = Decimal(1)
+        for c in changes:
+            if x["ex_date"] < c["date"]:
+                ratio *= _yield_dec(code, c["ratio"])
+        if "raw_amount" in x:
+            if ratio == 1 or abs(_yield_dec(code, x["raw_amount"]) / ratio - amount) > Decimal("1e-12"):
+                raise bad("換算金額與原公告不符")
+        elif ratio != 1:
+            raise bad("單位變更前的事件沒有保留原公告金額")
+        dates.append(x["ex_date"])
+    if dates != sorted(set(dates)):
+        raise bad("事件日期重複或未排序")
+    if b["method"] == "trailing_12m":
+        expected = total
+        if any(x["future"] for x in ev):
+            raise bad("近12月不得含未來事件")
+    else:
+        if not per or len(ev) > per:
+            raise bad("年化估算期數無效")
+        expected = total / len(ev) * per
+    annual = _yield_dec(code, b["annual_cash"])
+    if abs(annual - expected) > Decimal("1e-12"):
+        raise bad(f"分子與事件不符：{annual}／{expected}")
+    if not _fin(b["rate"]) or b["rate"] <= 0 or abs(b["rate"] - float(annual / Decimal(str(price)) * 100)) > 1e-9:
+        raise bad(f"比率與分子價格不符：{b['rate']!r}")
+
+
 def _check_etf_common(e):
     code = e.get("code") if isinstance(e, dict) else None
     if not isinstance(code, str) or not code:
@@ -160,6 +264,8 @@ def _check_etf_common(e):
     _opt_num_list(code, e, "ret_months")
     _opt_str(code, e, "signal")
     _opt_str(code, e, "div_next", date=True)
+    if e.get("yield_basis") is not None:
+        check_yield_basis(code, e["yield_basis"], e.get("price"))
     return code
 
 

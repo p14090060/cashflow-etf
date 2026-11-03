@@ -213,6 +213,7 @@ function renderRank() {
   }).join('');
 
   applyRankFind(false);   // 每 30 秒重畫一次，把使用者的搜尋高亮補回來（不重新捲動）
+  if (typeof renderYieldRank === 'function') renderYieldRank();   // 成交量名次要用本次 _rankSorted
 }
 
 function _rankEsc(s) {

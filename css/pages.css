@@ -267,3 +267,20 @@
     .rank-yld  { width:68px; white-space:nowrap; }
     .rank-flow { margin-left:2px; padding:0 1px; }
   }
+
+  /* 殖利率排行（工具頁）：卡片沿用 .rank-row，第二層改四欄 */
+  .yr-cols       { display:grid; grid-template-columns:62px 92px 72px minmax(62px,1fr); align-items:center; padding-left:36px; gap:0; }
+  .rank-hdr-sub.yr-cols { padding-left:36px; font-size:12px; }
+  .yr-c          { text-align:center; }
+  .yr-r          { text-align:right; }
+  .yr-state      { margin:6px 12px; font-size:12px; color:var(--dim); }
+  .yr-freq       { font-size:15px; color:var(--num-accent); }
+  .yr-rate       { font-size:18px; font-weight:700; color:var(--num-accent); text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .yr-vol        { font-size:16px; color:var(--bright); text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .yr-basis-cell { text-align:right; }
+  .yr-label      { display:inline-block; border-radius:4px; padding:2px 5px; font-size:11px; line-height:1.5; border:1px solid var(--border); color:var(--dim); white-space:nowrap; }
+  .yr-label.estimate { color:var(--warn); border-color:rgba(var(--rgb-warn),.4); background:rgba(var(--rgb-warn),.06); }
+  .yr-label.trailing { color:var(--cheap); border-color:rgba(var(--rgb-cheap),.35); }
+  .yr-basis      { margin-top:8px; }
+  .yr-events     { margin:6px 0; padding-left:18px; font-size:13px; color:var(--dim); line-height:1.5; }
+  @media (max-width:360px) { .yr-cols { grid-template-columns:54px 82px 62px minmax(56px,1fr); padding-left:8px; } .rank-hdr-sub.yr-cols { padding-left:8px; } }

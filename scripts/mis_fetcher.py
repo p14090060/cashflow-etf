@@ -14,6 +14,7 @@ from daily_check import no_distribution_note   # D-053：與 D-052 TG 告警同�
 import official_frequency as _official_policy     # D-068：官方政策證據的單一驗證規則
 
 sys.path.append(str(Path(__file__).resolve().parent))
+from yield_comparison import refresh_market_entry as _refresh_yield_basis
 from json_safe import atomic_write_json, validate_market, validate_market_policy, INSUFFICIENT_HISTORY, confirmed_market_close   # noqa: E402
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
@@ -909,6 +910,7 @@ def main():
                 "source_url":     _st["source"]["url"],
             }
 
+        _refresh_yield_basis(e, today)   # 同一分子配本輪最新價格；不查來源
         etfs_out.append(e)
 
     # ── 大盤（獨立判斷：個股有當日報價不代表大盤也是）──

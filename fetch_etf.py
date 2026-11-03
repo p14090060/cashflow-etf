@@ -6,6 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parent / "scripts"))
 from json_safe import (atomic_write_json, nullify_nonfinite, validate_base, validate_base_policy, validate_dividend_info,   # noqa: E402
                        validate_pool_cache, validate_excluded_products)
 import product_policy as _policy   # noqa: E402
+import yield_comparison as _yield_cmp   # noqa: E402  殖利率排行比較資料（不影響 yld／訊號）
 import official_frequency as _official   # noqa: E402  D-068：官方政策證據／待公告解除的單一驗證規則
 
 # Windows 本機主控台常是 cp950，print() 遇到 ✓/⚠ 等符號會 UnicodeEncodeError 整支腳本崩潰
@@ -1623,6 +1624,7 @@ except PoolIncomplete as _pi:
 EMEGA_AUM = fetch_emega_aum()
 
 results = []
+_HIST_SPLITS = {}   # 本輪歷史實際回報的拆分日；沒有歷史的檔不在表內（＝無法確認單位變更）
 for code, name in ALL_ETFS:
     curated = code in CURATED_CODES
     ticker_code = code + (".TWO" if code in TWO_CODES else SUFFIX)
@@ -1641,6 +1643,8 @@ for code, name in ALL_ETFS:
         v = hist["Volume"].dropna()
         if len(c) < 5:
             raise ValueError("insufficient clean data")
+        _HIST_SPLITS[code] = ([d.date() for d, r in hist["Stock Splits"].items() if r and r != 1]
+                              if "Stock Splits" in hist.columns else None)
         price_date = c.index[-1].date().isoformat()     # yfinance 最後一筆的日期（第三方，非收盤證明）
         price_prev = round(float(c.iloc[-2]), 2)        # 同一序列的前一筆收盤（yfinance 價格算漲跌用）
 
@@ -1918,6 +1922,21 @@ output = {
     "calendar": calendar,
     "twse_price_check_date": _TWSE_PRICE_DATE,   # None 代表本次 TWSE 官方核對來源抓取失敗
 }
+
+# 殖利率排行比較資料：本輪最多 2 個整批請求；任何失敗都不影響 _base 其他內容
+try:
+    _yield_today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date()
+    try:
+        _yield_prev = {e["code"]: e.get("yield_basis") for e in json.loads(OUT_BASE.read_text(encoding="utf-8")).get("etfs", [])}
+    except Exception:
+        _yield_prev = {}
+    _yield_src, _yield_reqs = _yield_cmp.fetch_sources(_yield_today)
+    _yield_sum = _yield_cmp.attach(results, _yield_src, _yield_prev, _yield_cmp.trusted_frequencies(_DIV_META), SPLIT_RECORDS, _HIST_SPLITS, ISIN_LISTING_DATE, _yield_today)
+    print("[YIELD] 請求 %d、新算 %d、沿用 %d、不可比較 %d" % (_yield_reqs, _yield_sum["fresh"], _yield_sum["kept"], len(_yield_sum["not_comparable"])))
+except Exception as e:
+    for _r in results:
+        _r.pop("yield_basis", None)
+    print(f"[YIELD] 比較資料本輪略過：{type(e).__name__}: {e}")
 
 OUT_BASE.parent.mkdir(parents=True, exist_ok=True)
 # 非關鍵欄位（既有語意可為 null）的 NaN／Infinity 轉 null；必要欄位不合法 → 不寫檔、exit 1，原檔不動

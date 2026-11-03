@@ -7,8 +7,9 @@ TWSE 公告以替身回應（查無／失敗／明確公告），不連網。TG 
 mis_fetcher.main()（休市時鐘，不連 MIS）。
 用法：python tests/test_automatic_policy_recovery.py [--out 證據目錄]
 """
-import contextlib, copy, datetime, hashlib, importlib.util, io, json, os, shutil, socket, subprocess, sys, tempfile
+import contextlib, copy, datetime, hashlib, importlib.util, io, json, os, shutil, socket, subprocess, sys, tempfile, urllib.error, urllib.request
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -35,6 +36,18 @@ except (ImportError, AttributeError):
 for k in list(os.environ):
     if k.startswith(("TELEGRAM", "TG_", "FINMIND", "HEALTHCHECK", "GITHUB")):
         os.environ.pop(k)
+# 本測試之後 daily_check 新增的補查（official_yield_check、official_frequency._get）走 urllib：
+# 在本層就回來源失敗，與真實斷線同一條路徑；socket 封鎖與 NET 斷言照舊，任何漏網連線仍會 FAIL
+OPENER_DENIED = []
+
+
+class _OfflineOpener:
+    def open(self, req, *a, **k):
+        OPENER_DENIED.append(getattr(req, "full_url", str(req)))
+        raise urllib.error.URLError("offline fixture")
+
+
+urllib.request.build_opener = lambda *a, **k: _OfflineOpener()
 os.environ["GIT_ALLOW_PROTOCOL"] = "file"
 
 
@@ -59,6 +72,12 @@ SITCA_URL9 = "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0
 SITCA_URL8 = "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202608"
 
 
+PRE_ADOPTION = "9f065718"   # dividend_info 148 筆、24 檔皆未採用；這是 D-071 原始驗收的輸入
+PRE_ADOPTION_FILES = ("data/dividend_info.json", "data/market.json", "data/_base.json", "data/daily_state.json", "data/dividend_calendar.json")
+CANDIDATE_FILES = ("scripts/official_frequency.py", "scripts/daily_check.py", "scripts/mis_fetcher.py", "fetch_etf.py",
+                   "scripts/json_safe.py", "scripts/yield_comparison.py")   # 未 commit 時 archive 不含這些，要整組帶齊
+
+
 def git(cwd, *a, check=True):
     r = subprocess.run(["git", "-c", "core.autocrlf=false", *a], cwd=cwd, capture_output=True)
     if check and r.returncode:
@@ -73,7 +92,12 @@ def make_repo(tag, market_mut=None, info_mut=None):
     arc = subprocess.run(["git", "-c", "safe.directory=" + str(ROOT).replace("\\", "/"), "archive", "HEAD"], cwd=ROOT, capture_output=True, check=True).stdout
     import tarfile
     tarfile.open(fileobj=io.BytesIO(arc)).extractall(src)
-    for f in ("scripts/official_frequency.py", "scripts/daily_check.py", "scripts/mis_fetcher.py", "fetch_etf.py"):
+    # 情境輸入固定在 24 檔尚未採用前的已存版本；HEAD 的 data 已採用過，再跑就沒有東西可採用、也沒有東西可 commit；商品排除清單是之後才有的，沿用 HEAD
+    pre = subprocess.run(["git", "-c", "safe.directory=" + str(ROOT).replace("\\", "/"), "archive", PRE_ADOPTION, *PRE_ADOPTION_FILES], cwd=ROOT, capture_output=True, check=True).stdout
+    tarfile.open(fileobj=io.BytesIO(pre)).extractall(src)
+    pool = json.loads((src / "data" / "etf_pool_cache.json").read_text(encoding="utf-8"))   # 該版本之後才有的類型證據沿用 HEAD，seen 撥回情境時鐘，否則判 future-etf-evidence
+    (src / "data" / "etf_pool_cache.json").write_text(json.dumps([dict(x, seen="2026-10-23") for x in pool], ensure_ascii=False), encoding="utf-8")
+    for f in CANDIDATE_FILES:
         shutil.copyfile(ROOT / f, src / f)
     m = json.loads((src / "data" / "market.json").read_text(encoding="utf-8"))
     m["updated"] = datetime.datetime.fromtimestamp(T0, TZ).strftime("%Y-%m-%d %H:%M")
@@ -119,12 +143,29 @@ def load_daily(r, tag):
     return d, of
 
 
+def freeze_clock(d, now):
+    """daily_check 的過期守門員直接讀牆鐘，不經 _now；情境時間固定後要一起固定，否則日後重跑一律在守門員就 return。
+    牆鐘固定在 T0（本測試當初就是在 T0 當天跑的），多輪時間只走 _now，與原驗收語意相同。"""
+    class FrozenDatetime(datetime.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime.datetime.fromtimestamp(T0, tz)
+
+    class FrozenDate(datetime.date):
+        @classmethod
+        def today(cls):
+            return datetime.datetime.fromtimestamp(T0, TZ).date()
+
+    d.datetime = SimpleNamespace(datetime=FrozenDatetime, date=FrozenDate, timezone=datetime.timezone, timedelta=datetime.timedelta)
+    d._now = lambda: now
+
+
 def daily(r, tag, now, sitca=sitca_ok, twse=twse_none, tg_ok=True, mode="defer"):
     """真 daily_check：defer 模式準備訊息；回傳 (rc, prepared, log, sent, twse_calls)。"""
     d, of = load_daily(r, tag)
     sent, calls = [], []
     d.notify = lambda m: (sent.append(m), tg_ok)[1]
-    d._now = lambda: now
+    freeze_clock(d, now)
     tw = lambda code, get=None: (calls.append(code), twse(code))[1]
     prep = TMP / ("prep_%s.json" % tag)
     with patch.object(of, "_get_sitca", sitca), patch.object(of, "resolve_frequency", tw), \
@@ -156,7 +197,7 @@ def publish(r, msg):
 def send(r, tag, prep_doc, tg_ok=True, publish_ok="true", before=None, now=None):
     d, _ = load_daily(r, tag)
     if now is not None:
-        d._now = lambda: now
+        freeze_clock(d, now)
     sent = []
     d.notify = lambda m: (sent.append(m), tg_ok)[1]
     prep = TMP / ("send_%s.json" % tag)
@@ -171,7 +212,7 @@ def send(r, tag, prep_doc, tg_ok=True, publish_ok="true", before=None, now=None)
 
 
 def run_mis(r, tag, now=datetime.datetime(2026, 10, 24, 10, 0, tzinfo=TZ)):
-    for m in ("mis_fetcher",):
+    for m in ("mis_fetcher", "yield_comparison", "json_safe"):   # 不沿用上一個暫存 repo 已載入的模組
         sys.modules.pop(m, None)
     sys.path.insert(0, str(r / "scripts"))
     try:
@@ -445,7 +486,7 @@ fn = next(n for n in ast.parse(fsrc).body if isinstance(n, ast.FunctionDef) and 
 tmpdi = TMP / "fetch_di.json"
 tmpdi.write_text(json.dumps({"etfs": {"00661": dict(BAD661, _todo=False), "00999": {"frequency": "年配", "_todo": False},
                                       "00998": dict(info2["etfs"]["00661"], _todo=False)}}, ensure_ascii=False), encoding="utf-8")
-ns = {"OUT_DIV": tmpdi, "json": json, "_policy_source_problem": OFm.policy_source_problem}
+ns = {"OUT_DIV": tmpdi, "json": json, "_official": OFm}   # 該函式之後改經 _official.known_policy 判定
 exec(compile(ast.Module(body=[fn], type_ignores=[]), "fetch_load_confirmed", "exec"), ns)
 conf = ns["_load_confirmed_freq"]()
 check("R1-F2c fetch_etf._load_confirmed_freq（實際函式）：壞新來源（即使 _todo:false）不當已確認；無新來源欄位的既有已核靜態政策照常採用",
@@ -594,7 +635,7 @@ check("E-5 無官方來源（不在 SITCA、TWSE 查無）→ 不寫 dividend_in
       not any(c in ni for c in NOSRC), [c for c in NOSRC if c in ni])
 
 check("NET 全程零連線（socket／DNS／curl_cffi 原生）", not NET, NET[:5])
-(OUT / "RESULTS.json").write_text(json.dumps({"results": results}, ensure_ascii=False, indent=1), encoding="utf-8")
+(OUT / "RESULTS.json").write_text(json.dumps({"opener_denied": sorted(set(OPENER_DENIED)), "results": results}, ensure_ascii=False, indent=1), encoding="utf-8")
 fails = [x for x in results if not x["ok"]]
 print("\nTOTAL %d  PASS %d  FAIL %d  out=%s" % (len(results), len(results) - len(fails), len(fails), OUT))
 shutil.rmtree(TMP, ignore_errors=True)

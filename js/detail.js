@@ -140,8 +140,15 @@ function _dtOverviewHtml(e) {
     + _dtRow('RSI', _dtNum(e.rsi, 0))
     + _dtRow('量比', _dtNum(e.vol_ratio, 2))
     + _dtRow('熱度', _dtNum(e.heat, 0))
-    + _dtRow('殖利率', _dtEsc(_dtYld(e)))
+    + _dtYieldRows(e)
     + '<div class="dt-note">訊號依價格與均線等指標計算，為狀態描述，非買賣建議。</div>';
+}
+
+// 兩種口徑分開列：既有殖利率（成交量榜、試算沿用）與殖利率排行的年化配息率，算法不同，不共用名稱
+function _dtYieldRows(e) {
+  const yv = typeof yieldView === 'function' ? yieldView(e) : null;
+  return _dtRow(yv ? '殖利率（原算法）' : '殖利率', _dtEsc(_dtYld(e)))
+    + (yv ? _dtRow('年化配息率（' + yv.label + '）', '<span data-yield-rate>' + _dtEsc(yv.text) + '</span>') : '');
 }
 
 function _dtDivHtml(e) {
@@ -158,7 +165,7 @@ function _dtDivHtml(e) {
         + _dtRow('除息日', _dtEsc(dateTxt) + ' <span class="dt-tag">' + _dtEsc(dv.label) + '</span>')
         + _dtRow('金額', (dv.amount != null ? '<b>' + dv.amount + ' 元／股</b>' : '—')
             + '<div class="dt-sub">' + _dtEsc(dv.amtNote) + '</div>')
-        + _dtRow('殖利率', _dtEsc(_dtYld(e)))
+        + _dtYieldRows(e)
         + _dtNoDistHtml(e);
   if ('div_months' in e) {
     const m = e.div_months;
@@ -170,6 +177,7 @@ function _dtDivHtml(e) {
   }
   if ('div_category' in e) h += _dtRow('分類', _dtEsc(e.div_category || '--'));
   if (!('div_months' in e)) h += '<div class="dt-note">此檔未建立配息分類資料</div>';
+  if (typeof yieldBasisHtml === 'function') h += yieldBasisHtml(e);
   return h;
 }
 

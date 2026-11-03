@@ -57,17 +57,17 @@ def click_at(sel):
       const y=(Math.max(r.top, sb)+r.bottom)/2; const hit=document.elementFromPoint(r.left+r.width/2, y); if(!hit) return null; hit.click();
       return hit.className||hit.tagName})()""" % json.dumps(sel))
 
-# ════════ TC：三張功能卡 ════════
+# ════════ TC：四張功能卡（2026-11-03 PO 指定新增殖利率排行）════════
 home()
 h0 = hlen()
 ev("switchPage('tools'); true"); wait_ms(250)
 cards = ev("""[...document.querySelectorAll('#page-tools .tool-card')].map(b=>({tag:b.tagName, h:b.getBoundingClientRect().height,
   t:b.querySelector('b').textContent, d:b.querySelector('.tc-text > span').textContent, ic:!!b.querySelector('.tc-ic'), ar:(b.querySelector('.tc-arrow')||{}).textContent}))""")
-check('TC-1 恰好 3 張卡、順序與 PO 文案', [c['t'] for c in cards] == ['成交量排行', '配息日曆', '主動式 ETF 持股異動']
-      and [c['d'] for c in cards] == ['查看 ETF 成交量排行', '查看近期 ETF 除息與配息日期', '看基金最近加碼、減碼哪些持股']
+check('TC-1 恰好 4 張卡、順序與 PO 文案', [c['t'] for c in cards] == ['成交量排行', '殖利率排行', '配息日曆', '主動式 ETF 持股異動']
+      and [c['d'] for c in cards] == ['查看 ETF 成交量排行', '查看 ETF 年化配息率排行', '查看近期 ETF 除息與配息日期', '看基金最近加碼、減碼哪些持股']
       and not any('看今天' in c['d'] for c in cards), cards)   # D5／D6：舊文案「看今天哪些 ETF 成交最活躍」復活即 FAIL
 check('TC-1 整張卡是 button、icon＋›、高度 ≥ 72px', all(c['tag'] == 'BUTTON' and c['ic'] and c['ar'] == '›' and c['h'] >= 72 for c in cards), cards)
-check('TC-1 無 YouTube／計算機／更多', ev("""(()=>{const t=document.getElementById('page-tools').innerText; return !/YouTube|計算機|更多/.test(t) && document.querySelectorAll('#page-tools button').length===3})()""") is True)
+check('TC-1 無 YouTube／計算機／更多', ev("""(()=>{const t=document.getElementById('page-tools').innerText; return !/YouTube|計算機|更多/.test(t) && document.querySelectorAll('#page-tools button').length===4})()""") is True)
 check('TC-1 底部導覽進工具：history.length 不變、stack []', hlen() == h0 and st()['base'] == 'tools' and st()['stack'] == [])
 
 for cid, page, tool in (('toolRank', 'page-rank', 'rank'), ('toolDiv', 'page-div', 'div')):

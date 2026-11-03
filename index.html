@@ -41,7 +41,7 @@
 <title>ETF 存股雷達 v2</title>
 <link rel="stylesheet" href="css/base.css?v=20261010he">
 <link rel="stylesheet" href="css/components.css?v=20261009vp">
-<link rel="stylesheet" href="css/pages.css?v=20261009vr">
+<link rel="stylesheet" href="css/pages.css?v=20261103yr1">
 <link rel="stylesheet" href="css/category.css?v=20261009vr">
 <link rel="stylesheet" href="css/watch.css?v=20261008a">
 </head>
@@ -312,6 +312,9 @@
       <button class="tool-card" type="button" id="toolRank" onclick="switchPage('rank')">
         <span class="tc-ic" aria-hidden="true">📊</span><span class="tc-text"><b>成交量排行</b><span>查看 ETF 成交量排行</span></span><span class="tc-arrow" aria-hidden="true">›</span>
       </button>
+      <button class="tool-card" type="button" id="toolYield" onclick="switchPage('yield')">
+        <span class="tc-ic" aria-hidden="true">💧</span><span class="tc-text"><b>殖利率排行</b><span>查看 ETF 年化配息率排行</span></span><span class="tc-arrow" aria-hidden="true">›</span>
+      </button>
       <button class="tool-card" type="button" id="toolDiv" onclick="switchPage('div')">
         <span class="tc-ic" aria-hidden="true">📅</span><span class="tc-text"><b>配息日曆</b><span>查看近期 ETF 除息與配息日期</span></span><span class="tc-arrow" aria-hidden="true">›</span>
       </button>
@@ -373,6 +376,45 @@
     <div id="rankRows"></div>
   </div>
 
+  <!-- 工具 → 殖利率排行：與成交量排行並列的獨立頁 -->
+  <div class="page" id="page-yield">
+    <div class="rank-sticky">
+      <div class="rank-top">
+        <div class="rank-title">殖利率排行</div>
+        <button class="rank-ic" id="yieldFindBtn" type="button" aria-expanded="false" aria-controls="yieldFindBox"
+                aria-label="在排行中找 ETF" onclick="yieldToggleFind()">🔍</button>
+        <button class="rank-ic" id="yieldInfoBtn" type="button" aria-expanded="false" aria-controls="yieldInfo"
+                aria-label="排行說明" onclick="yieldToggleInfo()">ⓘ</button>
+      </div>
+      <div class="rank-findbox" id="yieldFindBox" hidden>
+        <div class="rank-find">
+          <input id="yieldFind" type="search" placeholder="在排行中找 ETF"
+                 autocomplete="off" oninput="findInYield()" onkeydown="if(event.key==='Enter')findInYield()">
+          <button id="yieldFindClear" onclick="clearYieldFind()" aria-label="清除" hidden>✕</button>
+        </div>
+        <div class="rank-find-msg" id="yieldFindMsg"></div>
+      </div>
+      <div class="rank-info" id="yieldInfo" hidden>
+        <div class="rank-info-total">共 <span id="yieldTotal">-</span> 支，最多 100 名</div>
+        <div class="rank-info-total">滿一年以近12月已除息金額合計計算；新上市（上市未滿一年）以已公告金額年化估算，數字前標 ~。官方來源失敗時沿用前次資料，來源日超過 14 天下榜。點卡片看計算依據。</div>
+        <div class="rank-caveat">⚠ 配息率高<b>不代表報酬高，也不保證未來配息</b></div>
+      </div>
+      <div class="rank-hdr">
+        <div class="rank-hdr-main">
+          <div style="width:34px">#</div>
+          <div style="flex:1">ETF</div>
+          <div style="font-family:var(--mono);min-width:44px;text-align:right;margin-right:8px">參考價格</div>
+          <div>狀態</div>
+        </div>
+        <div class="rank-hdr-sub yr-cols">
+          <div>配息方式</div><div class="yr-c">年化配息率</div><div class="yr-c">成交量名次</div><div class="yr-r">計算基礎</div>
+        </div>
+      </div>
+    </div>
+    <div id="yieldState" class="yr-state" role="status"></div>
+    <div id="yieldRows"></div>
+  </div>
+
 <footer class="site-footer">
   本站 ETF 配息資料來源：🏛️ <a href="https://openapi.twse.com.tw" target="_blank" rel="noopener">TWSE OpenAPI</a>（政府開放資料，data.gov.tw/license）｜📊 各投信公告（手動更新）<br>
   完整配息行事曆請參考 TWSE 官方：<a href="https://www.twse.com.tw/zh/ETFortune/dividendCalendar" target="_blank" rel="noopener">twse.com.tw/zh/ETFortune/dividendCalendar</a>
@@ -418,20 +460,21 @@
 
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
-<script src="js/nav.js?v=20261006e"></script>
+<script src="js/nav.js?v=20261103yr1"></script>
 <script src="js/flow.js?v=20261010fd"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261007t"></script>
 <script src="js/trading-calendar.js?v=20261013ut1"></script>
 <script src="js/render.js?v=20261029hp1"></script>
-<script src="js/rank.js?v=20261102r100"></script>
+<script src="js/rank.js?v=20261103yr1"></script>
+<script src="js/yield-rank.js?v=20261103yr1"></script>
 <script src="js/search.js?v=20261009c8"></script>
 <script src="js/watch-store.js?v=20261005x"></script>
 <script src="js/category-rules.js?v=20261005x"></script>
 <script src="js/category.js?v=20261007d"></script>
-<script src="js/detail.js?v=20261015dd1"></script>
+<script src="js/detail.js?v=20261103yr1"></script>
 <script src="js/watch.js?v=20261013ut1"></script>
-<script src="js/router.js?v=20261006e"></script>
+<script src="js/router.js?v=20261103yr1"></script>
 <script src="js/boot.js?v=20261027rf1"></script>
 
 </body>
