@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-04 09:29",
+  "updated": "2026-11-04 15:21",
   "note": "加減碼以兩份公開 PCF 快照相減推估，不等同基金實際成交；各投信 PCF 公告日不同（實測落後行情 1~2 天），資料日以每檔的 data_date 為準",
   "etfs": {
     "00406A": {
@@ -404,30 +404,36 @@
     "00410A": {
       "name": "主動永豐科技趨勢",
       "issuer": "永豐",
-      "holdings": 28,
-      "data_date": "2026-11-02",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 27,
+      "data_date": "2026-11-03",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
-      "last_change_date": "2026-10-29",
-      "flow_from": "2026-10-28",
-      "flow_to": "2026-10-29",
-      "price_date": "20261029",
+      "flow_from": "2026-11-02",
+      "flow_to": "2026-11-03",
+      "price_date": "20261103",
       "no_price": [],
       "scale_pct": null,
-      "buy": 18603000.0,
-      "sell": 0,
-      "changed": 1,
+      "buy": 0,
+      "sell": -68825000.0,
+      "changed": 2,
       "flow": [
         {
-          "code": "2408",
-          "name": "南亞科",
-          "delta_shares": 39000,
-          "amount": 18603000.0
+          "code": "1560",
+          "name": "中砂",
+          "delta_shares": -50000,
+          "amount": -38900000.0
+        },
+        {
+          "code": "3665",
+          "name": "貿聯-KY",
+          "delta_shares": -19000,
+          "amount": -29925000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-11-03"
     },
     "00407A": {
       "name": "主動凱基台灣",
@@ -479,9 +485,9 @@
       "name": "主動台新龍頭成長",
       "issuer": "台新",
       "holdings": 30,
-      "data_date": "2026-11-03",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-11-04",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
@@ -520,30 +526,36 @@
     "00987A": {
       "name": "主動台新優勢成長",
       "issuer": "台新",
-      "holdings": 27,
-      "data_date": "2026-11-03",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 26,
+      "data_date": "2026-11-04",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
-      "last_change_date": "2026-11-03",
-      "flow_from": "2026-11-02",
-      "flow_to": "2026-11-03",
-      "price_date": "20261103",
+      "flow_from": "2026-11-03",
+      "flow_to": "2026-11-04",
+      "price_date": "20261104",
       "no_price": [],
       "scale_pct": null,
-      "buy": 20698000.0,
-      "sell": 0,
-      "changed": 1,
+      "buy": 16080000.0,
+      "sell": -41922500.0,
+      "changed": 2,
       "flow": [
         {
-          "code": "1815",
-          "name": "富喬",
-          "delta_shares": 158000,
-          "amount": 20698000.0
+          "code": "3455",
+          "name": "由田",
+          "delta_shares": -205000,
+          "amount": -41922500.0
+        },
+        {
+          "code": "6515",
+          "name": "穎崴",
+          "delta_shares": 4000,
+          "amount": 16080000.0
         }
-      ]
+      ],
+      "last_change_date": "2026-11-04"
     },
     "00415A": {
       "name": "主動群益核心50",
@@ -800,29 +812,34 @@
     "00997A": {
       "name": "主動群益美國增長",
       "issuer": "群益",
-      "holdings": 48,
-      "data_date": "2026-11-02",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 47,
+      "data_date": "2026-11-03",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
-      "last_change_date": "2026-10-30",
-      "flow_from": "2026-10-29",
-      "flow_to": "2026-10-30",
-      "price_date": "20261030",
+      "flow_from": "2026-11-02",
+      "flow_to": "2026-11-03",
+      "price_date": "20261103",
       "no_price": [
         {
-          "code": "MRVL US",
-          "name": "Marvell Technology Inc",
-          "delta_shares": -21136
+          "code": "LITE US",
+          "name": "魯門特姆控股公司",
+          "delta_shares": -6863
+        },
+        {
+          "code": "009150 KS",
+          "name": "三星電機",
+          "delta_shares": -4612
         }
       ],
       "scale_pct": null,
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": []
+      "flow": [],
+      "last_change_date": "2026-11-03"
     },
     "00405A": {
       "name": "主動富邦台灣龍耀",
@@ -1215,11 +1232,12 @@
       "issuer": "復華",
       "holdings": 54,
       "data_date": "2026-11-03",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-10-01",
       "anomaly": null,
+      "last_change_date": "2026-11-03",
       "flow_from": "2026-11-02",
       "flow_to": "2026-11-03",
       "price_date": "20261103",
@@ -1244,16 +1262,15 @@
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": [],
-      "last_change_date": "2026-11-03"
+      "flow": []
     },
     "00986D": {
       "name": "主動復華金融債息",
       "issuer": "復華",
       "holdings": 1,
-      "data_date": "2026-11-02",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-11-03",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-10-30",
       "anomaly": null,
@@ -1273,11 +1290,12 @@
       "issuer": "復華",
       "holdings": 50,
       "data_date": "2026-11-03",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-23",
       "anomaly": null,
+      "last_change_date": "2026-11-03",
       "flow_from": "2026-11-02",
       "flow_to": "2026-11-03",
       "price_date": "20261103",
@@ -1332,8 +1350,7 @@
       "buy": 0,
       "sell": 0,
       "changed": 0,
-      "flow": [],
-      "last_change_date": "2026-11-03"
+      "flow": []
     },
     "00984A": {
       "name": "主動安聯台灣高息",
@@ -1803,9 +1820,9 @@
       "name": "主動安聯美國科技",
       "issuer": "安聯",
       "holdings": 49,
-      "data_date": "2026-11-02",
-      "advanced": false,
-      "reason": "not_updated",
+      "data_date": "2026-11-03",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
@@ -2012,44 +2029,112 @@
     "00990A": {
       "name": "主動元大AI新經濟",
       "issuer": "元大",
-      "holdings": 39,
-      "data_date": "2026-11-02",
-      "advanced": false,
-      "reason": "not_updated",
+      "holdings": 38,
+      "data_date": "2026-11-03",
+      "advanced": true,
+      "reason": "ok",
       "fetched": true,
       "first_seen": "2026-09-24",
       "anomaly": null,
-      "last_change_date": "2026-11-02",
-      "flow_from": "2026-10-30",
-      "flow_to": "2026-11-02",
-      "price_date": "20261102",
+      "flow_from": "2026-11-02",
+      "flow_to": "2026-11-03",
+      "price_date": "20261103",
       "no_price": [
         {
-          "code": "SEI US",
-          "name": "SOLARIS ENERGY INFRASTRUCTUR",
-          "delta_shares": 109400
+          "code": "RBRK US",
+          "name": "RUBRIK INC-A",
+          "delta_shares": -140800
         },
         {
-          "code": "TSLA US",
-          "name": "TESLA INC",
-          "delta_shares": 12080
+          "code": "SMTC US",
+          "name": "SEMTECH CORP",
+          "delta_shares": -108300
+        },
+        {
+          "code": "GOOGL US",
+          "name": "ALPHABET INC-CL A",
+          "delta_shares": 99480
+        },
+        {
+          "code": "OKTA US",
+          "name": "OKTA INC",
+          "delta_shares": -82600
+        },
+        {
+          "code": "HWM US",
+          "name": "HOWMET AEROSPACE INC",
+          "delta_shares": 65100
+        },
+        {
+          "code": "TWST US",
+          "name": "TWIST BIOSCIENCE CORP",
+          "delta_shares": -50100
+        },
+        {
+          "code": "AVGO US",
+          "name": "BROADCOM INC",
+          "delta_shares": 43040
+        },
+        {
+          "code": "DDOG US",
+          "name": "DATADOG INC - CLASS A",
+          "delta_shares": -42800
+        },
+        {
+          "code": "CLS US",
+          "name": "CELESTICA INC",
+          "delta_shares": -37680
+        },
+        {
+          "code": "AMZN US",
+          "name": "AMAZON.COM INC",
+          "delta_shares": 37640
+        },
+        {
+          "code": "GE US",
+          "name": "GENERAL ELECTRIC",
+          "delta_shares": 29280
         },
         {
           "code": "LITE US",
           "name": "LUMENTUM HOLDINGS INC",
-          "delta_shares": -9200
+          "delta_shares": -27000
+        },
+        {
+          "code": "NET US",
+          "name": "CLOUDFLARE INC - CLASS A",
+          "delta_shares": -17440
+        },
+        {
+          "code": "TSLA US",
+          "name": "TESLA INC",
+          "delta_shares": 6840
         },
         {
           "code": "LLY US",
           "name": "ELI LILLY & CO",
-          "delta_shares": 6800
+          "delta_shares": 1960
         }
       ],
       "scale_pct": null,
       "buy": 0,
-      "sell": 0,
-      "changed": 0,
-      "flow": []
+      "sell": -153100000.0,
+      "changed": 2,
+      "flow": [
+        {
+          "code": "2308",
+          "name": "台達電",
+          "delta_shares": -70000,
+          "amount": -88900000.0
+        },
+        {
+          "code": "8046",
+          "name": "南電",
+          "delta_shares": -60000,
+          "amount": -64200000.0
+        }
+      ],
+      "last_change_date": "2026-11-03"
     },
     "00401A": {
       "name": "主動摩根台灣鑫收",
@@ -2114,8 +2199,8 @@
       "issuer": "摩根",
       "holdings": 66,
       "data_date": "2026-11-03",
-      "advanced": true,
-      "reason": "ok",
+      "advanced": false,
+      "reason": "not_updated",
       "fetched": true,
       "first_seen": "2026-09-29",
       "anomaly": null,
