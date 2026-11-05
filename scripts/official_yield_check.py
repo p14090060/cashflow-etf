@@ -70,23 +70,38 @@ def diagnose(code, name, today, request=None):
             if p['dividend']:
                 raise ValueError('official summary and historical list conflict')
             return {'status':'no_record', 'detail':'櫃買同基金身分已核，自上市起官方配息清單與商品摘要均無紀錄；不等於永久不配息或已確認0%', 'attempts':attempts}
-        positive, future, seen = [], [], set()
+        positive, future, pending_amount, seen = [], [], [], set()
         for row in rows:
             if not isinstance(row, dict) or row.get('stockNo') != code or not same_name(row.get('stockName')):
                 raise ValueError('historical dividend identity mismatch')
             date = _date(row.get('divDate'))
             amount = row.get('amount')
+            if date < start or date in seen:
+                raise ValueError('official dividend date invalid or duplicate')
+            seen.add(date)
+            # The official list can announce an ex-date before publishing its
+            # cash amount. This is neither a failed query nor a zero payment.
+            # Validate identity/date first; only the exact official empty string
+            # gets this status. Missing, null and malformed values still fail.
+            if amount == '' and isinstance(amount, str):
+                pay_date = _date(row.get('inDate'))
+                if pay_date < date or date > today + dt.timedelta(days=366):
+                    raise ValueError('official pending payment date invalid')
+                pending_amount.append({'date': date.isoformat(), 'pay_date': pay_date.isoformat()})
+                continue
             if isinstance(amount,str) and re.fullmatch(r'\d+(?:\.\d+)?', amount):
                 amount=float(amount)
-            if isinstance(amount,bool) or not isinstance(amount,(int,float)) or not math.isfinite(amount) or amount < 0 or date < start or date in seen:
+            if isinstance(amount,bool) or not isinstance(amount,(int,float)) or not math.isfinite(amount) or amount < 0:
                 raise ValueError('official dividend amount/date invalid or duplicate')
-            seen.add(date)
             if amount > 0:
                 (future if date > today else positive).append({'date':date.isoformat(),'amount':amount})
         if positive:
             return {'status':'positive', 'detail':'櫃買已核到同基金正額配息，但目前殖利率未讀入，需查資料計算路徑', 'payments':positive, 'attempts':attempts}
         if future:
             return {'status':'future', 'detail':'櫃買已核到正額配息公告，除息日尚未到；不冒算已領配息殖利率', 'payments':future, 'attempts':attempts}
+        if pending_amount:
+            return {'status':'amount_pending', 'detail':'櫃買同基金已公告除息及發放日期，金額欄仍空白；保留未知、不填0、不當成來源故障，下輪續查',
+                    'pending_announcements': pending_amount, 'attempts': attempts}
         return {'status':'zero_record', 'detail':'櫃買同基金官方歷史金額均為0；不據此填入已確認0%殖利率', 'attempts':attempts}
     except Exception as ex:
         return {'status':'error', 'detail':'櫃買查證未完成（'+type(ex).__name__+'），不是官方查無；保留資料，下輪續查', 'attempts':attempts}

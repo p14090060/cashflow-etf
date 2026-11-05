@@ -539,7 +539,7 @@ def fetch_taishin(date_obj, specific=False):
 
 
 # ══════════════════════════════════════════════════════════════
-# Adapter：中國信託投信（www.ctbcinvestments.com.tw）
+# Adapter：中國信託投信（www.ctbcinvestments.com）
 #   Vue SPA，資料走 JSON API，但要先換 token：
 #     1. POST /API/home/AuthToken  token=www.ctbcinvestments.com（寫死的初始值）
 #        → 回 Data.token（真 token，約 115 字元）
@@ -549,7 +549,7 @@ def fetch_taishin(date_obj, specific=False):
 #   資料日用「淨值日期」，不是「公告日」（公告日是次一營業日）
 #   FID 是投信內部代碼，可由 /API/etf/ETFCNOList 取得
 # ══════════════════════════════════════════════════════════════
-CTBC_API   = "https://www.ctbcinvestments.com.tw/API/"
+CTBC_API   = "https://www.ctbcinvestments.com/API/"
 CTBC_FUNDS = {
     "00406A": ("E0038", "主動中信台灣收益"),
     "00983A": ("E0034", "主動中信ARK創新"),
@@ -557,13 +557,35 @@ CTBC_FUNDS = {
 }
 
 
+def _ctbc_read(req, timeout):
+    """Same public official API only; never forward its token across a redirect."""
+    parsed = urllib.parse.urlsplit(req.full_url)
+    if (parsed.scheme != "https" or parsed.netloc != "www.ctbcinvestments.com" or
+            parsed.fragment or req.get_method() != "POST" or
+            parsed.path not in ("/API/home/AuthToken", "/API/etf/Buyback")):
+        raise ValueError("unexpected CTBC public route")
+
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *args, **kwargs):
+            return None
+
+    op = urllib.request.build_opener(NoRedirect(), urllib.request.HTTPSHandler(
+        context=ssl.create_default_context()))
+    with op.open(req, timeout=timeout) as response:
+        if response.status != 200 or response.geturl() != req.full_url:
+            raise ValueError("unexpected CTBC response destination")
+        raw = response.read(2_500_001)
+    if len(raw) > 2_500_000:
+        raise ValueError("CTBC response too large")
+    return json.loads(raw.decode("utf-8"))
+
+
 def _ctbc_token():
     body = json.dumps({"token": "www.ctbcinvestments.com"}).encode()
     req = urllib.request.Request(
         CTBC_API + "home/AuthToken?token=www.ctbcinvestments.com", data=body,
         headers={"User-Agent": UA, "Content-Type": "application/json; charset=utf-8"})
-    with urllib.request.urlopen(req, timeout=20, context=_SSL) as r:
-        return json.loads(r.read().decode("utf-8"))["Data"]["token"]
+    return _ctbc_read(req, 20)["Data"]["token"]
 
 
 def fetch_ctbc(date_obj, specific=False):
@@ -581,17 +603,24 @@ def fetch_ctbc(date_obj, specific=False):
         try:
             req = urllib.request.Request(url, data=body, headers={
                 "User-Agent": UA, "Content-Type": "application/json; charset=utf-8"})
-            d = json.loads(urllib.request.urlopen(req, timeout=25, context=_SSL)
-                           .read().decode("utf-8"))
+            d = _ctbc_read(req, 25)
         except Exception as e:
             print(f"[中信] {ticker} 失敗: {e}")
             continue
-        if d.get("ResultCode") != 0 or not d.get("Data"):
-            print(f"[中信] {ticker} 回應異常: {str(d.get('ResultMsg'))[:40]}")
+        if not isinstance(d, dict) or d.get("ResultCode") != 0 or not isinstance(d.get("Data"), dict):
+            print(f"[中信] {ticker} 回應異常，保留前值")
             continue
 
         data = d["Data"]
-        head = (data.get("Data") or [{}])[0]
+        heads = data.get("Data")
+        if not isinstance(heads, list) or len(heads) != 1 or not isinstance(heads[0], dict):
+            print(f"[中信] {ticker} 回應缺同基金表頭，保留前值")
+            continue
+        head = heads[0]
+        if (head.get("ETF_ID") != ticker or head.get("FID") != fid or
+                re.sub(r"\s+", "", str(head.get("FundName", ""))) != re.sub(r"\s+", "", name)):
+            print(f"[中信] {ticker} 回應基金身分不符，保留前值")
+            continue
         # 用淨值日期，不是公告日——公告日是次一營業日
         raw = str(head.get("淨值日期") or head.get("每受益權單位淨資產價值DATE") or "")
         m = re.search(r"(\d{4})[/-](\d{2})[/-](\d{2})", raw)

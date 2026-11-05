@@ -714,13 +714,13 @@ def check_unverified_otc_yields(etfs, state, now, resolver=None, limit=4):
             continue
         try:
             r = resolver(c, eligible[c].get('name',''), today)
-            if not isinstance(r,dict) or r.get('status') not in ('error','no_record','positive','future','zero_record'):
+            if not isinstance(r,dict) or r.get('status') not in ('error','no_record','positive','future','zero_record','amount_pending'):
                 raise ValueError('invalid official diagnosis')
         except Exception:
             r = {'status':'error','detail':'官方殖利率查證未完成，下輪續查；不是查無','attempts':[]}
         result[c] = r
         st['yield_recheck'][c] = now
-        st['yield_status'][c] = {'error':1,'no_record':2,'positive':3,'future':4,'zero_record':5}[r['status']]
+        st['yield_status'][c] = {'error':1,'no_record':2,'positive':3,'future':4,'zero_record':5,'amount_pending':6}[r['status']]
         if r['status'] == 'error':
             if r.get('attempts'):
                 st['yield_error_first'].setdefault(c, now)
@@ -994,7 +994,7 @@ def main():
                 note_entries.append(f"• {e['code']} {e.get('name','')}：{note}（官方公告，屬正常）")
             elif e['code'] in yield_checks:
                 result = yield_checks[e['code']]
-                if result['status'] in ('no_record','future','zero_record'):
+                if result['status'] in ('no_record','future','zero_record','amount_pending'):
                     note_entries.append(f"• {e['code']} {e.get('name','')}：{result['detail']}；殖利率暫未核實，系統持續查證")
                 elif result['status'] == 'positive':
                     warn.append('官方有正額配息，但殖利率未讀入')
@@ -1029,7 +1029,7 @@ def main():
             if ok is True:                       # 直接模式：確認送達才寫回執；延後模式（notify＝收集）由 --send-prepared 處理
                 _apply_ack(state, ACK)
                 save_json(DAILY_STATE, state)
-    elif any(r['status'] in ('error','queued') for r in yield_checks.values()):
+    elif any(r['status'] in ('error','queued','amount_pending') for r in yield_checks.values()):
         print('[PENDING] 官方殖利率查證尚未完成，留待下輪；本輪無需即時通知，不宣稱全部恢復')
     else:
         print("[OK] 所有監控 ETF 資料正常，TOP 100 無新進")
