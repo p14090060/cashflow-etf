@@ -542,6 +542,10 @@ def validate_dividend_info(obj):
             why = official_frequency.policy_source_problem(code, d)
             if why:
                 raise DataInvalid(f"dividend_info.{code}.policy_source 無效：{why}")
+        if 'tpex_calendar' in d:
+            import official_frequency
+            if official_frequency.stored_tpex_calendar(code, d) is None:
+                raise DataInvalid(f"dividend_info.{code}.tpex_calendar 無效")
     _check_calendar("dividend_info.json", obj.get("calendar"))
 
 
@@ -560,6 +564,11 @@ def validate_dividend_calendar(obj):
         _opt_str(w, d, "ex_dividend_date", date=True)
         _opt_str(w, d, "code")
         _opt_str(w, d, "amount_source")
+        if d.get("amount_source") == "TPEx" or 'tpex_evidence' in d:
+            import official_frequency
+            problem = official_frequency.tpex_calendar_problem(code, d)
+            if problem:
+                raise DataInvalid(f"{w}: {problem}")
 
 
 def validate_known_codes(obj):

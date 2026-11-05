@@ -234,7 +234,7 @@ def _pending_dates():
     return pending
 
 
-def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
+def check_stale_pending(info_map=None, cal_map=None, state=None, today=None, otc_codes=None, otc_checks=None):
     """_YLD_PENDING 是人工維護的清單（2026-09-23 就發現有 8 支滿 1 歲、最久 2.2 年沒人回頭查）。
     所有待公告都依額度輪替查證；STALE_PENDING_DAYS 只控制未解提醒，不延後查證。
     D-068：先用既有可信的 TWSE 配息日曆（dividend_calendar.json）查證：
@@ -252,6 +252,8 @@ def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
     cal_map = cal_map or {}
     state = state if state is not None else {}
     today = today or datetime.date.today()
+    otc_codes = set(otc_codes or ())
+    otc_checks = otc_checks or {}
     num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
     rech = {c: v for c, v in (state.get("pending_recheck") or {}).items() if isinstance(c, str) and num(v)}
     notif = {c: v for c, v in (state.get("pending_notified") or {}).items() if isinstance(c, str) and num(v)}
@@ -273,6 +275,32 @@ def check_stale_pending(info_map=None, cal_map=None, state=None, today=None):
     for i, (code, since, days) in enumerate(stale):
         if i >= PENDING_CHECK_LIMIT:
             deferred.append(code)
+            continue
+        if code in otc_codes:
+            entry = cal_map.get(code)
+            record = official_frequency.tpex_pending_resolution(code, entry, since.isoformat())
+            if record is not None:
+                meta = dict(info_map.get(code) or {})
+                meta["name"] = entry["name"]      # 同代號、已核官方簡稱，避免舊暱稱破壞證據讀回
+                meta["pending_resolution"] = record
+                info_map[code] = meta
+                rech[code] = now
+                resolved.append(code)
+                notes.append(f"• {code}：已核到 TPEx 官方配息公告（除息 {record['ex_dividend_date']}、每單位 {record['amount']}），"
+                             "解除待公告（以發布核驗後為準；未宣稱已發放、殖利率未改）")
+                continue
+            result = otc_checks.get(code, {"status": "queued", "detail": "TPEx 查證尚未排到"})
+            if result["status"] != "queued":
+                rech[code] = now
+            if result["status"] not in ("no_record", "zero_record"):
+                print(f"[PENDING-TPEX] {code} {result['status']}：未取得可解除紀錄，不提醒PO代查")
+                if result["status"] == "queued":
+                    deferred.append(code)
+                continue
+            if days > STALE_PENDING_DAYS and now - notif.get(code, 0) >= REMIND_DAYS * 86400:
+                ACK.setdefault("pending_notified", []).append(code)
+                out.append((days, f"• {code}：已 {days} 天未人工複查（上次 {since}）；"
+                            f"本輪已自動核對TPEx同基金身分及歷史清單：{result['detail']}"))
             continue
         status, detail = official_frequency.pending_announcement(code, since, cal_map.get(code))
         source = "TWSE 配息日曆（dividend_calendar.json）"
@@ -690,15 +718,18 @@ def policy_help_lines(due, result, state, names):
     return out
 
 
-def check_unverified_otc_yields(etfs, state, now, resolver=None, limit=4):
+def check_unverified_otc_yields(etfs, state, now, resolver=None, limit=4, pending_codes=None, tracked_codes=None):
     """Mature OTC missing yields: bounded official checks, not immediate PO homework.
 
     Numeric state only; transient errors get a separate engineering-source alert
     after3 actual attempts spanning24h, delivery-acknowledged14-day cooldown.
     """
     keys = ('yield_recheck', 'yield_status', 'yield_error_first', 'yield_error_rounds', 'yield_error_notified')
-    eligible = {e['code']:e for e in etfs if e.get('otc') is True and not e.get('new_listing') and not e.get('yld_pending')
-                and e.get('yld') == 0 and (e.get('div_freq') or e.get('div_frequency')) not in ('不配息', '不明', '?', '', None)}
+    pending_codes = set(pending_codes or ())
+    tracked_codes = set(tracked_codes or ())
+    eligible = {e['code']:e for e in etfs if e.get('otc') is True and
+                (e['code'] in pending_codes or (e['code'] in tracked_codes and e.get('yld') == 0) or (not e.get('new_listing') and not e.get('yld_pending')
+                 and e.get('yld') == 0 and (e.get('div_freq') or e.get('div_frequency')) not in ('不配息', '不明', '?', '', None)))}
     if not eligible and not any(k in state for k in keys):
         return {}, []
     import official_yield_check
@@ -833,7 +864,51 @@ def main():
         state.pop(k, None)
     policy_due = update_policy_state(state, recovery, now_ts)
     hist_due   = update_history_state(state, etfs, hist_checks, now_ts, hist_at)
-    yield_checks, yield_source_due = check_unverified_otc_yields(etfs, state, now_ts)
+    pending_dates = _pending_dates()
+    pending_codes = {c for c, since in pending_dates.items()
+                     if official_frequency.pending_resolution_problem(c, info_map.get(c), since) is not None} if isinstance(pending_dates, dict) else set()
+    stored_tpex = {c: entry for c, meta in info_map.items()
+                   if (entry := official_frequency.stored_tpex_calendar(c, meta)) is not None}
+    yield_checks, yield_source_due = check_unverified_otc_yields(
+        policy_etfs, state, now_ts, pending_codes=pending_codes, tracked_codes=set(stored_tpex))
+    # The profile/history queries above already contain the raw hashes. Reuse
+    # them, never query again just to turn a diagnosis into an adopted record.
+    import official_yield_check
+    today_tpex = datetime.datetime.fromtimestamp(now_ts, tz8).date()
+    names = {e['code']: e.get('name', '') for e in policy_etfs}
+    tpex_adopted = []
+    for code, entry in stored_tpex.items():
+        if code in names and not cal_map.get(code):
+            cal_map[code] = entry
+            tpex_adopted.append(code)
+    for code, result in yield_checks.items():
+        entry = official_yield_check.calendar_candidate(code, names.get(code, ''), result, today_tpex)
+        if entry is None:
+            continue
+        old = cal_map.get(code) or {}
+        if (old.get('ex_dividend_date') == entry['ex_dividend_date'] and
+                old.get('amount') not in (None, 0, entry['amount'])):
+            print(f"[TPEX-CONFLICT] {code} 同日金額與候選不同，保留既有資料、不自動覆蓋")
+            continue
+        try:
+            old_date = datetime.date.fromisoformat(old.get('ex_dividend_date'))
+        except (TypeError, ValueError):
+            old_date = None
+        if old_date is not None and old_date > datetime.date.fromisoformat(entry['ex_dividend_date']):
+            continue                             # 保留所有合法較新日期（包含原TWSE列），不向舊公告倒退
+        if old != entry:
+            cal_map[code] = entry
+            tpex_adopted.append(code)
+            meta = dict(info_map.get(code) or {})
+            meta['name'], meta['tpex_calendar'] = entry['name'], entry
+            info_map[code] = meta
+    if tpex_adopted:
+        div_cal = div_cal if isinstance(div_cal, dict) else {}
+        div_cal['etfs'] = cal_map
+        save_json(DIV_CAL, div_cal)
+        div_info['etfs'] = info_map
+        save_json(DIV_INFO, div_info)
+        print('[AUTO-TPEX] verified calendar candidates: ' + ','.join(tpex_adopted))
     yld_prev   = state.get("yld_prev", {})
     vol_streak = state.get("zero_vol_streak", {})
 
@@ -915,6 +990,14 @@ def main():
         cal        = cal_map.get(code)
         info       = info_map.get(code, {})
         stored_avg = info.get("avg_dividend_per_share")
+        if cal and (cal.get('amount_source') == 'TPEx' or 'tpex_evidence' in cal):
+            try:
+                ex = datetime.date.fromisoformat(cal['ex_dividend_date'])
+                if (official_frequency.tpex_calendar_problem(code, cal) is not None or
+                        not today_tpex - datetime.timedelta(days=365) <= ex <= today_tpex):
+                    cal = None
+            except (KeyError, ValueError, TypeError):
+                cal = None
         if cal and stored_avg and stored_avg > 0:
             official_amt = cal.get("amount") or 0
             if official_amt > 0:
@@ -923,7 +1006,7 @@ def main():
                     info_map[code]["avg_dividend_per_share"] = official_amt
                     updated.append(
                         f"• {code} {name}：avg {stored_avg}→{official_amt}"
-                        f"（TWSE官方公告，差{diff*100:.0f}%）"
+                        f"（{'TPEx' if cal.get('amount_source') == 'TPEx' else 'TWSE'}官方公告，差{diff*100:.0f}%）"
                     )
 
     # ── 儲存自動更新 ──
@@ -933,7 +1016,9 @@ def main():
         print(f"[AUTO-FIX] 更新 {len(updated)} 支 avg")
 
     # ── _YLD_PENDING 逾期：先查證再決定通知（D-068）──
-    stale, pending_resolved, pending_notes, _ = check_stale_pending(info_map, cal_map, state)
+    stale, pending_resolved, pending_notes, _ = check_stale_pending(
+        info_map, cal_map, state, today=today_tpex,
+        otc_codes={e['code'] for e in policy_etfs if e.get('otc') is True}, otc_checks=yield_checks)
     if pending_resolved:
         div_info["etfs"] = info_map
         save_json(DIV_INFO, div_info)
@@ -1006,7 +1091,12 @@ def main():
                 if result['status'] in ('no_record','future','zero_record','amount_pending'):
                     note_entries.append(f"• {e['code']} {e.get('name','')}：{result['detail']}；殖利率暫未核實，系統持續查證")
                 elif result['status'] == 'positive':
-                    warn.append('官方有正額配息，但殖利率未讀入')
+                    entry = cal_map.get(e['code'])
+                    if official_frequency.tpex_calendar_problem(e['code'], entry) is None:
+                        note_entries.append(f"• {e['code']} {e.get('name','')}：已採用TPEx正額配息紀錄"
+                                            f"（除息 {entry['ex_dividend_date']}）；未宣稱已發放，殖利率依原規則處理")
+                    else:
+                        warn.append('官方有正額配息，但候選尚未通過採用核對')
                 # queued/error are not a completed no-data result; retry independently
                 # of TOP100 entry, with separately rate-limited source-failure reporting.
             else:

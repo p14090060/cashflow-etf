@@ -333,10 +333,20 @@ def calc_yield_with_source(code: str, price: float,
     # 官方金額 None／缺鍵＝本次未取得官方金額（例 fetch_dividend_calendar「所有來源查無金額」），不代表官方尚未公告；
     # 也不是 0：不做官方推算，往下走歷史平均／無資料；不拿 manual 預估代替。
     cal = div_cal_etfs.get(code)
+    if cal and (cal.get("amount_source") == "TPEx" or 'tpex_evidence' in cal):
+        if _official_policy.tpex_calendar_problem(code, cal) is not None:
+            cal = None
+        elif _official_policy.known_policy(code, info) not in FREQ_MAP:
+            return 0.0, "none", "TPEx 金額已公告，配息政策未核實，不年化"
+        else:
+            ex = datetime.date.fromisoformat(cal["ex_dividend_date"])
+            today = tw_now().date()
+            if not today - datetime.timedelta(days=365) <= ex <= today:
+                cal = None                     # 未來／過舊公告不冒充已發生的配息
     if cal and cal.get("amount") is not None:
         annual = cal["amount"] * multiplier
         yld    = round(annual / price * 100, 2)
-        return yld, "official", "TWSE 官方公告推算"
+        return yld, "official", ("TPEx 官方公告推算（未宣稱已發放）" if cal.get("amount_source") == "TPEx" else "TWSE 官方公告推算")
 
     # 優先 2：歷史平均
     avg = info.get("avg_dividend_per_share") or 0
@@ -392,6 +402,8 @@ def build_calendar(div_info_cal: list, div_cal_etfs: dict,
 
     # 1. TWSE 官方公告
     for code, d in div_cal_etfs.items():
+        if (d.get("amount_source") == "TPEx" or 'tpex_evidence' in d) and _official_policy.tpex_calendar_problem(code, d) is not None:
+            continue
         try:
             ex_date = datetime.date.fromisoformat(d["ex_dividend_date"])
         except (ValueError, KeyError):
@@ -606,6 +618,9 @@ def main():
     # 讀官方公告（若尚未建立則 fallback 空 dict）
     div_cal      = load_json(DIV_CAL) or {}
     div_cal_etfs = div_cal.get("etfs", {})
+    div_cal_etfs = {code: row for code, row in div_cal_etfs.items()
+                    if not (row.get('amount_source') == 'TPEx' or 'tpex_evidence' in row)
+                    or _official_policy.tpex_calendar_problem(code, row) is None}
     if div_cal_etfs:
         print(f"[DIV_CAL] 載入官方公告 {len(div_cal_etfs)} 支")
 

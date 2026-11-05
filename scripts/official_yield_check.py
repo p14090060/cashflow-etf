@@ -15,6 +15,10 @@ import urllib.request
 HOST = 'https://info.tpex.org.tw'
 
 
+def _now():
+    return dt.datetime.now(dt.timezone(dt.timedelta(hours=8)))
+
+
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *a, **k):
         return None
@@ -70,7 +74,7 @@ def diagnose(code, name, today, request=None):
             if p['dividend']:
                 raise ValueError('official summary and historical list conflict')
             return {'status':'no_record', 'detail':'櫃買同基金身分已核，自上市起官方配息清單與商品摘要均無紀錄；不等於永久不配息或已確認0%', 'attempts':attempts}
-        positive, future, pending_amount, seen = [], [], [], set()
+        positive, future, pending_amount, records, seen = [], [], [], [], set()
         for row in rows:
             if not isinstance(row, dict) or row.get('stockNo') != code or not same_name(row.get('stockName')):
                 raise ValueError('historical dividend identity mismatch')
@@ -95,13 +99,47 @@ def diagnose(code, name, today, request=None):
                 raise ValueError('official dividend amount/date invalid or duplicate')
             if amount > 0:
                 (future if date > today else positive).append({'date':date.isoformat(),'amount':amount})
+                pay = _date(row['inDate']) if row.get('inDate') not in (None, '') else None
+                if pay is not None and pay < date:
+                    raise ValueError('official payment date before ex-date')
+                records.append({'ex_dividend_date': date.isoformat(), 'amount': amount,
+                                'pay_date': pay.isoformat() if pay else None})
+        proof = {'identity': {'code': code, 'name': p['shortName'], 'full_name': p['name'],
+                  'issuer': p['issuer'], 'listing_date': start.isoformat(),
+                  'url': attempts[0]['url'], 'sha256': attempts[0]['sha256']},
+                 'url': attempts[1]['url'], 'sha256': attempts[1]['sha256'],
+                 'request_params': dict(attempts[1]['params']), 'checked_at': _now().isoformat(),
+                 'records': records}
         if positive:
-            return {'status':'positive', 'detail':'櫃買已核到同基金正額配息，但目前殖利率未讀入，需查資料計算路徑', 'payments':positive, 'attempts':attempts}
+            return {'status':'positive', 'detail':'櫃買已核到同基金正額配息，但目前殖利率未讀入，需查資料計算路徑', 'payments':positive, 'attempts':attempts, 'official_proof': proof}
         if future:
-            return {'status':'future', 'detail':'櫃買已核到正額配息公告，除息日尚未到；不冒算已領配息殖利率', 'payments':future, 'attempts':attempts}
+            return {'status':'future', 'detail':'櫃買已核到正額配息公告，除息日尚未到；不冒算已領配息殖利率', 'payments':future, 'attempts':attempts, 'official_proof': proof}
         if pending_amount:
             return {'status':'amount_pending', 'detail':'櫃買同基金已公告除息及發放日期，金額欄仍空白；保留未知、不填0、不當成來源故障，下輪續查',
                     'pending_announcements': pending_amount, 'attempts': attempts}
         return {'status':'zero_record', 'detail':'櫃買同基金官方歷史金額均為0；不據此填入已確認0%殖利率', 'attempts':attempts}
     except Exception as ex:
         return {'status':'error', 'detail':'櫃買查證未完成（'+type(ex).__name__+'），不是官方查無；保留資料，下輪續查', 'attempts':attempts}
+
+
+def calendar_candidate(code, name, result, today):
+    """Reuse the two already-read originals; no new requests or publication."""
+    import official_frequency as policy
+    try:
+        if result.get('status') not in ('positive', 'future'):
+            return None
+        p = result['official_proof']
+        checked = dt.datetime.fromisoformat(p['checked_at'])
+        if checked.date() != today:
+            return None
+        rows = p['records']
+        upcoming = [r for r in rows if today <= dt.date.fromisoformat(r['ex_dividend_date']) <= today + dt.timedelta(days=366)]
+        past = [r for r in rows if dt.date.fromisoformat(r['ex_dividend_date']) < today]
+        selected = min(upcoming, key=lambda r: r['ex_dividend_date']) if upcoming else max(past, key=lambda r: r['ex_dividend_date'])
+        evidence = {k: p[k] for k in ('identity', 'url', 'sha256', 'request_params', 'checked_at')}
+        evidence['pay_date'] = selected['pay_date']
+        entry = {'code': code, 'name': name, 'ex_dividend_date': selected['ex_dividend_date'],
+                 'amount': selected['amount'], 'amount_source': 'TPEx', 'tpex_evidence': evidence}
+        return entry if policy.tpex_calendar_problem(code, entry) is None else None
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return None

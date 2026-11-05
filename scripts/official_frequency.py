@@ -500,6 +500,66 @@ def _tpex_resolution_problem(code, meta, since):
 
 
 # ── D-071：全體未知配息政策的自動查證（TWSE 公告＋投信投顧公會 SITCA ETF 基本資料表）──
+def tpex_calendar_problem(code, entry):
+    """A new TPEx calendar row must carry the same exact identity/hash proof.
+
+    Reuse the reviewed TPEx evidence validator with listing as the lower bound;
+    the temporary wrapper is never persisted as a fake pending period.
+    """
+    try:
+        if (not isinstance(entry, dict) or entry.get('code') != code or
+                entry.get('amount_source') != 'TPEx' or not isinstance(entry.get('name'), str)):
+            return 'TPEx calendar identity invalid'
+        proof = entry['tpex_evidence']
+        if not isinstance(proof, dict) or set(proof) != {'identity', 'url', 'sha256', 'request_params', 'checked_at', 'pay_date'}:
+            return 'TPEx calendar proof format invalid'
+        checked = datetime.datetime.fromisoformat(proof['checked_at'])
+        if datetime.date.fromisoformat(entry['ex_dividend_date']) > checked.date() + datetime.timedelta(days=366):
+            return 'TPEx calendar announcement too far in the future'
+        record = dict(proof, status='announced', code=code,
+                      pending_since=proof['identity']['listing_date'],
+                      ex_dividend_date=entry['ex_dividend_date'], amount=entry['amount'],
+                      amount_source='TPEx', source='TPEx ETF InfoHub 配息清單（etfExDiv）')
+        return _tpex_resolution_problem(code, {'name': entry['name'], 'pending_resolution': record}, None)
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return 'TPEx calendar proof invalid'
+
+
+def tpex_pending_resolution(code, entry, since):
+    """Bind an already verified calendar candidate to the real pending period."""
+    if tpex_calendar_problem(code, entry) is not None:
+        return None
+    record = dict(entry['tpex_evidence'], status='announced', code=code,
+                  pending_since=str(since), ex_dividend_date=entry['ex_dividend_date'],
+                  amount=entry['amount'], amount_source='TPEx',
+                  source='TPEx ETF InfoHub 配息清單（etfExDiv）')
+    meta = {'name': entry['name'], 'pending_resolution': record}
+    return record if pending_resolution_problem(code, meta, str(since)) is None else None
+
+
+def stored_tpex_calendar(code, meta):
+    """Recover a verified row after the existing daily calendar writer resets it."""
+    import copy
+    try:
+        if not isinstance(meta, dict):
+            return None
+        if 'tpex_calendar' in meta:
+            entry = meta['tpex_calendar']
+            if (tpex_calendar_problem(code, entry) is not None or
+                    _norm(meta.get('name')) != _norm(entry['name'])):
+                return None
+            return copy.deepcopy(entry)
+        r = meta.get('pending_resolution', {})
+        if r.get('source') != 'TPEx ETF InfoHub 配息清單（etfExDiv）' or pending_resolution_problem(code, meta) is not None:
+            return None
+        entry = {'code': code, 'name': meta['name'], 'ex_dividend_date': r['ex_dividend_date'],
+                 'amount': r['amount'], 'amount_source': 'TPEx',
+                 'tpex_evidence': {k: r[k] for k in ('identity', 'url', 'sha256', 'request_params', 'checked_at', 'pay_date')}}
+        return entry if tpex_calendar_problem(code, entry) is None else None
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return None
+
+
 # 支援來源（只有這些，不宣稱查遍所有發行人官網）：
 #   1. SITCA「ETF基本資料」月報 www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=YYYYMM
 #      整張表一次讀取（每輪最多 SITCA_MONTHS 個月份請求），涵蓋全部商品，不佔逐檔查詢額度。
