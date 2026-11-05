@@ -250,6 +250,73 @@ def check_yield_basis(code, b, price):
         raise bad(f"比率與分子價格不符：{b['rate']!r}")
 
 
+def yield_verification_problem(row, *, base_price=False):
+    """Optional legacy high-yield proof. It preserves the existing average-times-frequency formula."""
+    p = row.get("yield_verification")
+    if p is None:
+        return "missing proof"
+    try:
+        keys = {"format", "code", "source", "url", "sha256", "checked_at", "query_date",
+                "baseline_price", "frequency", "method", "payments", "annual_cash", "rate"}
+        if not isinstance(p, dict) or set(p) != keys:
+            return "proof fields"
+        if p["format"] != "twse-legacy-yield-v1" or p["source"] != "TWSE" or p["code"] != row.get("code"):
+            return "proof identity"
+        if not isinstance(p["code"], str) or not re.fullmatch(r"[0-9]{4,6}[A-Z]?", p["code"]):
+            return "code"
+        if not isinstance(p["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", p["sha256"]):
+            return "hash"
+        if not _is_date(p["query_date"]):
+            return "query date"
+        query = datetime.date.fromisoformat(p["query_date"])
+        checked = datetime.datetime.fromisoformat(p["checked_at"])
+        if checked.utcoffset() is None or checked > datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=5):
+            return "checked time"
+        if abs((checked.date() - query).days) > 1:
+            return "query time"
+        start = (query - datetime.timedelta(days=730)).strftime("%Y%m%d")
+        expected = "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList?stkNo=" + p["code"] + "&startDate=" + start
+        if p["url"] != expected:
+            return "source URL"
+        for key in ("baseline_price", "annual_cash", "rate"):
+            if not _fin(p[key]) or p[key] <= 0:
+                return key
+        if p["rate"] <= 20 or row.get("yld_verified") is not True or row.get("yld") != p["rate"]:
+            return "yield binding"
+        if row.get("div_freq", row.get("div_frequency")) != p["frequency"]:
+            return "frequency binding"
+        if base_price and row.get("price") != p["baseline_price"]:
+            return "baseline price"
+        payments = p["payments"]
+        if not isinstance(payments, list) or not 1 <= len(payments) <= 60:
+            return "payments"
+        dates, cash = [], []
+        for item in payments:
+            if not isinstance(item, dict) or set(item) != {"date", "amount"} or not _is_date(item["date"]) or not _fin(item["amount"]) or item["amount"] <= 0:
+                return "payment"
+            d = datetime.date.fromisoformat(item["date"])
+            if not query - datetime.timedelta(days=730) <= d <= query:
+                return "payment period"
+            dates.append(item["date"])
+            cash.append(item["amount"])
+        if dates != sorted(set(dates), reverse=True):
+            return "payment order"
+        n = {"月配": 12, "雙月配": 6, "季配": 4, "半年配": 2, "年配": 1}.get(p["frequency"], 0)
+        if n:
+            if p["method"] != "frequency_average" or len(cash) > n:
+                return "method"
+            annual = sum(cash) / len(cash) * n
+        else:
+            if p["method"] != "trailing_sum" or any(datetime.date.fromisoformat(d) < query - datetime.timedelta(days=365) for d in dates):
+                return "trailing period"
+            annual = sum(cash)
+        if not math.isclose(annual, p["annual_cash"], rel_tol=0, abs_tol=1e-9) or round(annual / p["baseline_price"] * 100, 1) != p["rate"]:
+            return "calculation"
+    except (ValueError, TypeError, KeyError, OverflowError):
+        return "malformed proof"
+    return None
+
+
 def _check_etf_common(e):
     code = e.get("code") if isinstance(e, dict) else None
     if not isinstance(code, str) or not code:
@@ -266,6 +333,10 @@ def _check_etf_common(e):
     _opt_str(code, e, "div_next", date=True)
     if e.get("yield_basis") is not None:
         check_yield_basis(code, e["yield_basis"], e.get("price"))
+    if "yield_verification" in e:
+        problem = yield_verification_problem(e)
+        if problem:
+            raise DataInvalid(f"{code} yield_verification: {problem}")
     return code
 
 
@@ -435,6 +506,10 @@ def validate_base(obj):
         raise DataInvalid("_base.json etfs 為空")
     for e in etfs:
         code = _check_etf_common(e)
+        if "yield_verification" in e:
+            problem = yield_verification_problem(e, base_price=True)
+            if problem:
+                raise DataInvalid(f"{code} yield_verification: {problem}")
         if e.get("indicator_status") is None:
             for k in _BASE_NUM_REQUIRED:
                 _req_num(code, e, k, 0)

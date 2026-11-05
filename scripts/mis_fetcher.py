@@ -15,7 +15,7 @@ import official_frequency as _official_policy     # D-068：官方政策證據�
 
 sys.path.append(str(Path(__file__).resolve().parent))
 from yield_comparison import refresh_market_entry as _refresh_yield_basis
-from json_safe import atomic_write_json, validate_market, validate_market_policy, INSUFFICIENT_HISTORY, confirmed_market_close   # noqa: E402
+from json_safe import atomic_write_json, validate_market, validate_market_policy, INSUFFICIENT_HISTORY, confirmed_market_close, yield_verification_problem   # noqa: E402
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
 try:
@@ -880,7 +880,8 @@ def main():
         # 殖利率：_base.json 有合理值（fetch_etf.py 用 TWSE 多筆平均算的）→ 直接沿用
         # 不靠 mis_fetcher 的 "單筆×頻率" 反算，那樣對變動配息 ETF 會嚴重失真
         base_yld = b.get("yld") or 0
-        if 0 < base_yld <= 20:
+        verified_high = base_yld > 20 and yield_verification_problem(b, base_price=True) is None
+        if 0 < base_yld <= 20 or verified_high:
             # dividend_info.json 的 _todo:False 代表已人工核實，升格為 verified
             div_confirmed = not div_etfs.get(code, {}).get("_todo", True)
             is_verified   = b.get("yld_verified", False) or div_confirmed
@@ -891,6 +892,9 @@ def main():
                                  if b.get("yld_verified") else
                                  "dividend_info 人工核實" if div_confirmed else
                                  "fetch_etf 計算")
+            if verified_high:
+                proof = b["yield_verification"]
+                e["yld_label"] = f"TWSE 官方金額年化推算（{len(proof['payments'])}筆，查證 {proof['query_date']}）"
         else:
             # Fallback：_base.json 沒有 yld 才用 Plan C（官方公告 → 歷史平均）
             yld, yld_src, yld_lbl = calc_yield_with_source(

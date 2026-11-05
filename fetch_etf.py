@@ -976,10 +976,22 @@ def _parse_roc_date(s):
         pass
     return ""
 
+_YLD_PROOFS = {}
+
+
+def _high_yield_fields(code, price, frequency, rate, verified):
+    from json_safe import yield_verification_problem
+    proof = _YLD_PROOFS.get(code)
+    row = {"code": code, "price": price, "div_freq": frequency, "yld": rate,
+           "yld_verified": verified, "yield_verification": proof}
+    return {"yield_verification": proof} if proof and yield_verification_problem(row, base_price=True) is None else {}
+
+
 def fetch_twse_etfortune_yld(code, price, div_freq):
     """從 TWSE ETFortune 官方網頁解析歷史配息，依頻率取最近 N 次加總算年化殖利率。
     解析 HTML 表格（與 fetch_dividend_calendar.py 同一套做法），無需 JSON API。
     """
+    _YLD_PROOFS.pop(code, None)
     if div_freq == "不配息" or price <= 0:
         return 0.0
     try:
@@ -987,13 +999,13 @@ def fetch_twse_etfortune_yld(code, price, div_freq):
         import ssl, urllib.request as _ur2
         start = (datetime.now() - timedelta(days=730)).strftime('%Y%m%d')
         ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode    = ssl.CERT_NONE
         url = (f"https://www.twse.com.tw/rwd/zh/ETFortune/dividendList"
                f"?stkNo={code}&startDate={start}")
         req = _ur2.Request(url, headers={"User-Agent": "ETF-fetcher/1.0"})
         with _ur2.urlopen(req, timeout=10, context=ctx) as r:
-            html = r.read().decode("utf-8")
+            raw = r.read()
+            final_url = r.geturl() if hasattr(r, "geturl") else None
+            html = raw.decode("utf-8")
 
         # 解析 HTML 表格（與 fetch_dividend_calendar.py 同套 regex）
         tr_re = re.compile(r'<tr[^>]*>(.*?)</tr>', re.DOTALL | re.IGNORECASE)
@@ -1034,7 +1046,28 @@ def fetch_twse_etfortune_yld(code, price, div_freq):
             annual = sum(amt for date, amt in payments if date >= one_year_ago)
 
         if annual > 0:
-            return round(annual / price * 100, 1)
+            rate = round(annual / price * 100, 1)
+            if rate > 20 and final_url == url:
+                # Reuse this response, but require the reviewed six-column/table parser
+                # before carrying a high value across writers. No additional request.
+                try:
+                    import hashlib
+                    good, bad = _official.parse_dividend_list(raw, code)
+                    parsed = sorted([(x["ex_dividend_date"].isoformat(), x["amount"]) for x in good], reverse=True)
+                    if not bad and parsed == payments:
+                        chosen = recent if n else [(d, a) for d, a in payments if d >= one_year_ago]
+                        _YLD_PROOFS[code] = {
+                            "format": "twse-legacy-yield-v1", "code": code, "source": "TWSE",
+                            "url": url, "sha256": hashlib.sha256(raw).hexdigest(),
+                            "checked_at": datetime.now(__import__('datetime').timezone(__import__('datetime').timedelta(hours=8))).isoformat(),
+                            "query_date": datetime.now().date().isoformat(), "baseline_price": price,
+                            "frequency": div_freq, "method": "frequency_average" if n else "trailing_sum",
+                            "payments": [{"date": d, "amount": a} for d, a in chosen],
+                            "annual_cash": annual, "rate": rate,
+                        }
+                except (ValueError, TypeError, KeyError):
+                    pass
+            return rate
     except Exception:
         pass
     return 0.0
@@ -1783,6 +1816,7 @@ for code, name in ALL_ETFS:
             "low52": safe(low52), "high52": safe(high52),
             "rsi": safe(rsi),
             "yld": safe(yld), "yld_verified": yld_verified, "yld_pending": yld_pending, "days": div_days,
+            **_high_yield_fields(code, safe(price), div_freq, safe(yld), yld_verified),
             "est": div_est, "div_next": div_next,
             "signal": signal, "maD": safe(maD),
             "ret5d": safe(ret5d), "ret1m": safe(ret1m),
