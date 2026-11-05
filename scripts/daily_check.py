@@ -775,13 +775,25 @@ def main():
     info_map = div_info.get("etfs", {})
     cal_map  = (div_cal or {}).get("etfs", {})
 
+    # 新基金先出現在本輪_base，market要等後面的MIS才更新；政策盤點不能漏掉它。
+    # 僅查證對象取新基線，原市場監控／TOP100仍用實際market，不假造盤中資料。
+    hist_checks, hist_at = load_history_checks()
+    base_path = ROOT / "data" / "_base.json"
+    current_base = load(base_path)
+    policy_rows = {e["code"]: e for e in etfs}
+    if isinstance(current_base, dict):
+        for row in current_base.get("etfs", []):
+            if isinstance(row, dict) and isinstance(row.get("code"), str):
+                policy_rows[row["code"]] = dict(row)
+    policy_etfs = list(policy_rows.values())
+
     # D-071（安全版整合）：全體未知政策（不限 TOP100／新進）先自動查證；合格就同輪寫入候選，經原 Gate 發布採用。
     import official_frequency
     now_ts = _now()
     tz8 = datetime.timezone(datetime.timedelta(hours=8))
     policy_state = load(DAILY_STATE) or {}
     recovery = official_frequency.recover_policies(
-        etfs, info_map, _num_map(policy_state.get("frequency_recovery")),
+        policy_etfs, info_map, _num_map(policy_state.get("frequency_recovery")),
         datetime.datetime.fromtimestamp(now_ts, tz8).date(), datetime.datetime.fromtimestamp(now_ts, tz8).isoformat())
     for c, s in sorted(recovery["status"].items()):
         print("[POLICY] %s %s %s" % (c, official_frequency.STATUS_TEXT[s], recovery["detail"].get(c, "")))
@@ -792,9 +804,6 @@ def main():
         print("[AUTO-RECOVERY] official policy adopted: " + ",".join(recovery["adopted"]))
     # Propagate verified static policy to this run's baseline, without changing
     # any quote, yield, date, signal or unrelated product field.
-    hist_checks, hist_at = load_history_checks()     # R1：在下面回填政策改寫 _base 之前，比對 fetch 原基線指紋
-    base_path = ROOT / "data" / "_base.json"
-    current_base = load(base_path)
     if isinstance(current_base, dict):
         changed = False
         for row in current_base.get("etfs", []):
@@ -1008,7 +1017,7 @@ def main():
             problem_entries.append(
                 f"• {e['code']} {e.get('name','')}：{'、'.join(warn)}"
             )
-    lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in etfs}))
+    lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in policy_etfs}))
     lines.extend(history_help_lines(hist_due, state, hist_checks, {e.get("code"): e.get("name", "") for e in etfs}))
     if yield_source_due:
         lines.append('🔧 殖利率官方來源持續未完成（至少3次、跨24小時；不是宣稱官方查無）')

@@ -481,6 +481,7 @@ def fetch_kgi(date_obj, specific=False):
 TSIT_TAISHIN_FUNDS = {
     "00986A": "主動台新龍頭成長",
     "00987A": "主動台新優勢成長",
+    "00416A": "主動台新臺灣中小",
 }
 
 
@@ -504,6 +505,16 @@ def fetch_taishin(date_obj, specific=False):
         except Exception as e:
             print(f"[台新] {ticker} 失敗: {e}")
             continue
+
+        if ticker == "00416A":
+            # A newly listed fund must not inherit the site's default PCF if
+            # the selector was ignored. Bind both the hidden ID and fund title.
+            ids = re.findall(r'<input\b[^>]*\bname="ETF_ID"[^>]*\bvalue="([^"]+)"', page, re.I)
+            titles = [re.sub(r"\s+", "", _html.unescape(re.sub(r"<[^>]+>", "", title)))
+                      for title in re.findall(r"<h4\b[^>]*>(.*?)</h4>", page, re.S | re.I)]
+            if ids != [ticker] or titles.count("台新臺灣中小主動式ETF基金(00416A)") != 1:
+                print(f"[台新] {ticker} 回應基金身分未核實，保留前值")
+                continue
 
         # DATA_DATE 只是把我們送進去的值原樣回傳，不是真的資料日；
         # 真正的最新資料日在 MAX_DATE。取兩者較早的那個才正確。
