@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-05 13:50",
+  "updated": "2026-11-05 15:27",
   "quote_date": "2026-11-05",
   "quote_time": "2026-11-05 13:30",
   "market_state": "stale",
@@ -17,7 +17,7 @@
     "change_pt": -1374.19,
     "change_pct": -3.2,
     "quote_date": "2026-11-05",
-    "is_live": true,
+    "is_live": false,
     "close_confirmed": false,
     "mis_time": "13:33"
   },
