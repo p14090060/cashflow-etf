@@ -824,10 +824,227 @@ def recover_policies(etfs, info_map, last_try, today, now_iso, twse_resolver=Non
             status[code] = CONFLICT if kind == "identity_conflict" else NO_RESULT
             detail[code] = "%s；TWSE 公告無明確政策（%s）" % (detail.get(code) or "SITCA 無明確分類", r.get("reason", ""))
             completed.append(code)
-    return {"status": status, "detail": detail, "checked": checked, "adopted": adopted, "completed": completed,
+    return {"statement": st, "status": status, "detail": detail, "checked": checked, "adopted": adopted, "completed": completed,
             "twse_tried": twse_tried, "conflicts_known": conflicts_known,
             "sitca": {"ok": st is not None, "report_month": st and st["report_month"], "updated": st and st["updated"],
                       "sha256": st and st["sha256"], "attempts": sitca_attempts}}
+
+
+def distribution_url_parts(url, code=None, *, legacy=False):
+    """Exact existing TWSE distribution notice route; reject ambiguous query keys."""
+    try:
+        p = urllib.parse.urlsplit(url)
+        q = urllib.parse.parse_qsl(p.query, keep_blank_values=True, strict_parsing=True)
+        d = dict(q)
+        if (p.scheme != "https" or p.netloc != "www.twse.com.tw" or p.fragment or
+                p.path != "/zh/ETFortune/announcement" or len(q) != 5 or
+                set(d) != {"company", "date", "seq", "fund", "type"} or d["type"] not in (("distribution", "all") if legacy else ("distribution",)) or
+                not re.fullmatch(r"A[0-9]{5}", d["company"]) or not re.fullmatch(r"[0-9]{4,6}[A-Z]?", d["fund"]) or
+                not re.fullmatch(r"[1-9][0-9]{0,5}", d["seq"]) or not re.fullmatch(r"[0-9]{8}", d["date"]) or
+                (code is not None and d["fund"] != code)):
+            return None
+        datetime.datetime.strptime(d["date"], "%Y%m%d")
+        return d
+    except (TypeError, ValueError, KeyError):
+        return None
+
+
+def distribution_status_problem(code, st):
+    """Persisted current-period decision format, including pre-existing records."""
+    try:
+        if not isinstance(st, dict) or st.get("status") != "no_distribution_this_period" or st.get("code") != code:
+            return "decision identity"
+        if any(not isinstance(st.get(k), str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", st[k]) for k in ("valuation_date", "announced_date", "valid_until")):
+            return "decision dates"
+        val, ann, until = (datetime.date.fromisoformat(st[k]) for k in ("valuation_date", "announced_date", "valid_until"))
+        if not val <= ann <= val + datetime.timedelta(days=31) or not ann <= until < datetime.date(val.year + 1, 9, 30):
+            return "decision period"
+        src = st["source"]
+        p = distribution_url_parts(src.get("url"), code, legacy=True)
+        if not isinstance(src.get("name"), str) or not src["name"].strip() or p is None or p["date"] != ann.strftime("%Y%m%d"):
+            return "decision source"
+        if "sha256" in src and (not isinstance(src["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", src["sha256"])):
+            return "decision hash"
+    except (KeyError, ValueError, TypeError, AttributeError):
+        return "malformed decision"
+    return None
+
+
+class DecisionNotApplicable(ValueError):
+    """An identified, readable announcement contains no applicable no-pay decision."""
+
+
+def parse_distribution_decision(body, code, full_name, frequency, url, today):
+    """Only actual subject/section 1 decisions, never generic contract section 8."""
+    p = distribution_url_parts(url, code)
+    if p is None or not isinstance(full_name, str) or not full_name:
+        raise ValueError("notice identity unavailable")
+    articles = re.findall(r"<article\b[^>]*>(.*?)</article>", body.decode("utf-8", errors="strict"), re.S | re.I)
+    if len(articles) != 1:
+        raise ValueError("notice article missing or ambiguous")
+    rows = Rows(); rows.feed(articles[0])
+    subjects = [r[1] for r in rows.rows if len(r) == 2 and r[0] == "主旨"]
+    if len(subjects) != 1:
+        raise ValueError("notice subject missing")
+    subject = subjects[0]
+    identity = lambda x: _norm(x).replace("證券投資信託", "")
+    if identity(full_name) not in identity(subject):
+        raise ValueError("notice full fund name mismatched")
+    facts = [r[i + 1] for r in rows.rows for i, c in enumerate(r[:-1]) if c == "事實發生日"]
+    ann = datetime.datetime.strptime(p["date"], "%Y%m%d").date()
+    if len(facts) != 1 or facts[0] != "%d/%02d/%02d" % (ann.year - 1911, ann.month, ann.day):
+        raise ValueError("notice fact date mismatch")
+    descriptions = [r[1] for r in rows.rows if len(r) == 2 and r[0] == "說明"]
+    if len(descriptions) != 1:
+        raise ValueError("notice description missing")
+    first = re.search(r"^1[.．](.*?)2[.．]現金收益公布日期", descriptions[0])
+    if first is None:
+        raise ValueError("notice section 1 missing")
+    decision = subject + first[1]
+    if not re.search(r"評價結果(?:決定(?:本基金)?(?:本次將|當次收益)?(?:不予分配(?:收益)?|收益不予分配)|不進行收益分配之發放)", decision):
+        raise DecisionNotApplicable("no explicit current-period decision")
+    dates = set()
+    for y, m, d in re.findall(r"(?<![0-9])([0-9]{3})年([0-9]{1,2})月([0-9]{1,2})日", decision):
+        dates.add(datetime.date(int(y) + 1911, int(m), int(d)))
+    for y, m, d in re.findall(r"(?<![0-9])([0-9]{3})/([0-9]{2})/([0-9]{2})(?![0-9])", decision):
+        dates.add(datetime.date(int(y) + 1911, int(m), int(d)))
+    if len(dates) != 1:
+        raise ValueError("valuation date missing or ambiguous")
+    val = dates.pop()
+    months = {"月配": 1, "雙月配": 2, "季配": 3, "半年配": 6, "年配": 12}.get(frequency)
+    if months is None or not val <= ann <= today or ann > val + datetime.timedelta(days=31):
+        raise ValueError("decision dates/frequency invalid")
+    import calendar
+    month_index = val.year * 12 + val.month - 1 + months
+    year, month = divmod(month_index, 12); month += 1
+    next_val = datetime.date(year, month, min(val.day, calendar.monthrange(year, month)[1]))
+    until = min(next_val - datetime.timedelta(days=1), datetime.date(val.year + 1, 9, 29))
+    record = {"status": "no_distribution_this_period", "code": code, "valuation_date": val.isoformat(),
+              "announced_date": ann.isoformat(), "valid_until": until.isoformat(),
+              "source": {"name": "TWSE ETFortune 官方收益分配決議", "url": url, "sha256": hashlib.sha256(body).hexdigest()}}
+    if distribution_status_problem(code, record):
+        raise ValueError("decision invalid")
+    if today > until:
+        raise DecisionNotApplicable("decision expired")
+    return record
+
+
+def recover_distribution_decisions(etfs, info_map, state, statement, today, now_ts, get=None):
+    """Two index pages + at most four queued documents, six requests/run, no retry.
+    Cursor advances by actual page length (the source ignores requested max/fund).
+    All persistent state remains numeric maps under the existing daily contract.
+    """
+    import html, math
+    get = get or _get
+    names = {e["code"]: e.get("name", "") for e in etfs if isinstance(e.get("code"), str) and not e["code"].endswith(EXCLUDED_SUFFIX)}
+    fields = ("distribution_scan", "distribution_queue_date", "distribution_queue_company", "distribution_queue_seq",
+              "distribution_checked", "distribution_checked_date", "distribution_checked_seq")
+    maps = {}
+    for field in fields:
+        raw = state.get(field)
+        clean = {}
+        for key, value in (raw.items() if isinstance(raw, dict) else []):
+            if not isinstance(key, str) or isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+                continue
+            cap = 2**48 - 1 if field == "distribution_scan" and key == "head" else 99999999
+            if field != "distribution_checked" and (value != int(value) or value > cap):
+                continue
+            if field.endswith("_date"):
+                try: datetime.datetime.strptime(str(int(value)), "%Y%m%d")
+                except ValueError: continue
+            clean[key] = value
+        maps[field] = clean
+        state[field] = maps[field]
+    cursor = maps["distribution_scan"].get("offset", 0)
+    cursor = int(cursor) if isinstance(cursor, (int, float)) and not isinstance(cursor, bool) and 0 <= cursor <= 100000 else 0
+    attempts, adopted = [], []
+    def read(url):
+        try:
+            body = get(url)
+            if not isinstance(body, bytes) or len(body) > 2_000_000:
+                raise ValueError("invalid response body")
+            attempts.append({"url": url, "status": "received", "sha256": hashlib.sha256(body).hexdigest()})
+            return body
+        except Exception as ex:
+            attempts.append({"url": url, "status": "failed", "reason": type(ex).__name__})
+            return None
+    head_count = 0
+    for page in range(2):
+        offset = 0 if page == 0 else max(head_count, cursor)
+        url = BASE + "/zh/ETFortune/announcementList?" + urllib.parse.urlencode({"offset": offset, "type": "distribution"})
+        body = read(url)
+        if body is None: break
+        links = []
+        try:
+            text = body.decode("utf-8", errors="strict")
+        except UnicodeError:
+            attempts[-1].update(status="failed", reason="UnicodeError")
+            break
+        for href in re.findall(r'href=[\"\']([^\"\']+)[\"\']', text, re.I):
+            target = urllib.parse.urljoin(BASE, html.unescape(href))
+            p = distribution_url_parts(target)
+            if p and target not in links: links.append(target)
+        if not links:
+            cursor = head_count
+            break
+        if page == 0:
+            head_count = len(links)
+            # A new head restarts the backlog immediately behind it, so a burst
+            # of >one page of new notices cannot fall between head and old cursor.
+            fingerprint = int(hashlib.sha256("\n".join(links).encode()).hexdigest()[:12], 16)
+            if maps["distribution_scan"].get("head") != fingerprint:
+                cursor = head_count
+            maps["distribution_scan"]["head"] = fingerprint
+        for target in links:
+            p = distribution_url_parts(target); code = p["fund"]
+            if code not in names or p["date"] > today.strftime("%Y%m%d"): continue
+            date, seq = int(p["date"]), int(p["seq"])
+            if (maps["distribution_queue_date"].get(code, 0), maps["distribution_queue_seq"].get(code, 0)) <= (date, seq):
+                maps["distribution_queue_date"][code] = date
+                maps["distribution_queue_seq"][code] = seq
+                maps["distribution_queue_company"][code] = int(p["company"][1:])
+        if page == 1:
+            cursor = offset + len(links)
+    maps["distribution_scan"]["offset"] = cursor
+    due = [c for c in maps["distribution_queue_date"] if c in names and
+           1 <= maps["distribution_queue_seq"].get(c, 0) <= 999999 and
+           1 <= maps["distribution_queue_company"].get(c, 0) <= 99999 and
+           (maps["distribution_checked_date"].get(c), maps["distribution_checked_seq"].get(c)) !=
+           (maps["distribution_queue_date"][c], maps["distribution_queue_seq"].get(c))]
+    for code in sorted(due, key=lambda c: (maps["distribution_checked"].get(c, 0), c))[:4]:
+        try:
+            date = str(int(maps["distribution_queue_date"][code])); seq = str(int(maps["distribution_queue_seq"][code]))
+            company = "A%05d" % maps["distribution_queue_company"][code]
+        except (ValueError, TypeError, KeyError): continue
+        url = BASE + "/zh/ETFortune/announcement?" + urllib.parse.urlencode({"company": company, "date": date, "seq": seq, "fund": code, "type": "distribution"})
+        if distribution_url_parts(url, code) is None: continue
+        maps["distribution_checked"][code] = now_ts
+        body = read(url)
+        if body is None: continue                 # retry in a later fair rotation, no immediate help request
+        try:
+            meta = info_map.get(code) or {}
+            full_name, frequency = None, known_policy(code, meta)
+            if statement:
+                s, _, detail = sitca_policy(code, names[code], statement, today)
+                if s == "verified": full_name = detail["full_name"]
+            if full_name is None and policy_source_problem(code, meta) is None:
+                full_name = meta["policy_source"]["full_name"]
+            if not full_name or frequency is None:
+                continue                         # identity not obtained; leave queued for a later round
+            record = parse_distribution_decision(body, code, full_name, frequency, url, today)
+        except DecisionNotApplicable:
+            record = None
+        except (ValueError, TypeError, KeyError, UnicodeError):
+            continue                             # malformed/temporary source is not a completed judgement
+        maps["distribution_checked_date"][code] = int(date)
+        maps["distribution_checked_seq"][code] = int(seq)
+        if record is not None:
+            old = meta.get("distribution_status")
+            if distribution_status_problem(code, old) is None and old["valuation_date"] > record["valuation_date"]:
+                continue
+            meta = dict(meta); meta["distribution_status"] = record; info_map[code] = meta
+            adopted.append(code)
+    return {"adopted": adopted, "attempts": attempts, "offset": cursor, "queued": len(due)}
 
 
 # ── 10/26 補修：逾期待公告的 TWSE 歷史配息清單查證（日曆只含未來除息，已除息的公告會漏掉）──

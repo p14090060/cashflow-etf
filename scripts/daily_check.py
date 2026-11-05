@@ -393,6 +393,10 @@ def no_distribution_note(code: str, info: dict, cal: dict, today: datetime.date)
     st = (info or {}).get("distribution_status")
     if st is None:
         return None, None
+    import official_frequency
+    problem = official_frequency.distribution_status_problem(code, st)
+    if problem:
+        return None, problem
     if not isinstance(st, dict) or st.get("status") != NO_DIST:
         return None, "不分配紀錄格式不符"
     if st.get("code") != code:
@@ -860,6 +864,13 @@ def main():
 
     # ── 載入跨日狀態 ──
     state      = load(DAILY_STATE) or {}
+    decisions = official_frequency.recover_distribution_decisions(
+        policy_etfs, info_map, state, recovery.get("statement"),
+        datetime.datetime.fromtimestamp(now_ts, tz8).date(), now_ts)
+    print("[DISTRIBUTION] " + json.dumps(decisions, ensure_ascii=False))
+    if decisions["adopted"]:
+        div_info["etfs"] = info_map
+        save_json(DIV_INFO, div_info)
     for k in ("frequency_unresolved", "frequency_notified"):      # D-068 R1 F4 舊欄位（未曾正式發布）由 D-071 狀態取代
         state.pop(k, None)
     policy_due = update_policy_state(state, recovery, now_ts)

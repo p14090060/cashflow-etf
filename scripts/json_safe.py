@@ -621,6 +621,11 @@ def validate_dividend_info(obj):
             import official_frequency
             if official_frequency.stored_tpex_calendar(code, d) is None:
                 raise DataInvalid(f"dividend_info.{code}.tpex_calendar 無效")
+        if 'distribution_status' in d:
+            import official_frequency
+            why = official_frequency.distribution_status_problem(code, d['distribution_status'])
+            if why:
+                raise DataInvalid(f"dividend_info.{code}.distribution_status 無效：{why}")
     _check_calendar("dividend_info.json", obj.get("calendar"))
 
 
