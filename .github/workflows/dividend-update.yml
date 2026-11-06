@@ -9,8 +9,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: dividend-update
+  group: fetch-etf-data
   cancel-in-progress: false
+  queue: max
 
 jobs:
   fetch-dividend:
