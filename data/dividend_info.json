@@ -2766,7 +2766,7 @@
       "code": "00713",
       "name": "台灣高息低波",
       "amt": 1.25,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
@@ -2776,7 +2776,7 @@
       "code": "00929",
       "name": "復華台灣科技優息",
       "amt": 0.38,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
@@ -2786,7 +2786,7 @@
       "code": "00850",
       "name": "元大ESG永續",
       "amt": 0.85,
-      "soon": false,
+      "soon": true,
       "source": "yfinance"
     },
     {
