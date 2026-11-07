@@ -7,7 +7,7 @@ import ast, datetime, hashlib, json, math, os, re, sys, time, urllib.parse, urll
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent))
-from json_safe import atomic_write_json, VALIDATORS, validate_pool_cache   # noqa: E402
+from json_safe import atomic_write_json, VALIDATORS, validate_pool_cache, DataInvalid, check_non_equity_status   # noqa: E402
 import product_policy   # noqa: E402
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
@@ -138,8 +138,25 @@ def check_active_flow() -> list:
     except ValueError:
         base = datetime.date.today()      # 抓不到就退回今天，寧可誤報也不要漏報
 
+    # 非股票狀態（00986D）：只有通過同一套嚴格判定才採信，落後監控改看官方真正的 as_of，
+    # 不用舊股票 data_date；本輪沒取得（fetched:false）仍照一般失敗門檻告警
+    non_equity = {}
+    for code, e in etfs.items():
+        if "non_equity_status" not in e:
+            continue
+        try:
+            check_non_equity_status("active_flow." + code, code, e["non_equity_status"], str(data.get("updated") or "")[:10])
+            non_equity[code] = e["non_equity_status"]["as_of"]
+            if e.get("fetched") is True:
+                print(f"[ACTIVE] {code} 官方非股票資料已取得（資料日 {non_equity[code]}），不適用股票 Flow")
+        except DataInvalid as ex:
+            issues.append(f"• {code} {e.get('name','')}：非股票狀態無法驗證，未採用（{ex}）")
+
     dates = {}
     for code, e in etfs.items():
+        if code in non_equity:
+            dates[code] = datetime.date.fromisoformat(non_equity[code])
+            continue
         try:
             dates[code] = datetime.date.fromisoformat(str(e.get("data_date")))
         except (TypeError, ValueError):
@@ -176,8 +193,8 @@ def check_active_flow() -> list:
     # ── B. 廣角網：資料日一直前進，卻很久沒記錄到任何換股 ──
     # 用 first_seen 扣掉「才剛開始追蹤」的，否則新接的投信會整批誤報。
     for code, e in sorted(etfs.items()):
-        if e.get("fetched") is False or code not in dates:
-            continue                      # 沒抓到的另有 kept 檢查負責
+        if e.get("fetched") is False or code not in dates or code in non_equity:
+            continue                      # 沒抓到的另有 kept 檢查負責；非股票部位沒有「換股」可言
         if (base - dates[code]).days > ACTIVE_STALE_ONE:
             continue                      # 資料本來就停更，上面已經報過
         try:

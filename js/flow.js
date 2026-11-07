@@ -319,6 +319,40 @@ function flowRecolor() {
 }
 document.addEventListener('etf:themechange', flowRecolor);
 
+// 非股票部位狀態（00986D，PO 2026-11-07）：與 json_safe.check_non_equity_status 同一套判定，無效就當沒有
+const _NE_FUNDS = { '00986D': 'ETF25' };
+function _flowNonEquity(code, e, updated) {
+  const s = e && e.non_equity_status;
+  if (!s || typeof s !== 'object' || !_NE_FUNDS[code]) return null;
+  const keys = Object.keys(s).sort().join(',');
+  const day = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(v + 'T00:00:00Z'))
+    && new Date(Date.parse(v + 'T00:00:00Z')).toISOString().slice(0, 10) === v;
+  const src = s.source || {};
+  const ok = keys === 'as_of,code,format,sections,source,status' && s.format === 'non-equity-pcf/v1' && s.code === code
+    && s.status === 'not_applicable' && JSON.stringify(s.sections) === '["futures","bonds","funds"]'
+    && day(s.as_of) && typeof updated === 'string' && s.as_of <= updated.slice(0, 10)
+    && Object.keys(src).sort().join(',') === 'sha256,url'
+    && src.url === 'https://www.fhtrust.com.tw/api/assetsExcel/' + _NE_FUNDS[code] + '/' + s.as_of.replace(/-/g, '')
+    && typeof src.sha256 === 'string' && /^[0-9a-f]{64}$/.test(src.sha256);
+  return ok ? s : null;
+}
+
+// 有效非股票狀態：不畫舊股票 treemap／買賣合計／持股數，只講官方資料日與不適用股票 Flow
+function _flowRenderNonEquity(box, e, s) {
+  document.getElementById('flowMeta').textContent = '官方持股為期貨、債券與基金部位';
+  document.getElementById('flowBuy').textContent = '—';
+  document.getElementById('flowSell').textContent = '—';
+  document.getElementById('flowCover').textContent =
+    '資料來源：' + e.issuer + '投信官網持股檔　官方資料日 ' + s.as_of;
+  document.getElementById('flowTip').textContent = e.fetched === true
+    ? 'ℹ 官方非股票資料已取得（' + s.as_of + '）：沒有可採的股票或正數基金單位，不適用股票持股異動'
+    : '⚠ 本次自動抓取未取得新資料，以下沿用先前保存的狀態（官方資料日 ' + s.as_of + '）';
+  document.getElementById('flowForeign').innerHTML = '';
+  document.getElementById('flowNote').hidden = true;
+  _tmEmpty(box, e.name + ' 目前持有期貨、債券與基金部位，沒有股票可比較<br>'
+    + '（官方資料日 ' + s.as_of + '，不適用股票持股異動）');
+}
+
 function renderFlow(code) {
   if (code) _flowSel = code;
   const box = document.getElementById('treemap');
@@ -345,6 +379,8 @@ function renderFlow(code) {
     _flowChipIntoView();
     _flowQSync();
     document.getElementById('flowSelName').textContent = e.name || _flowSel;
+    const ne = _flowNonEquity(_flowSel, e, d.updated);
+    if (ne) { _flowRenderNonEquity(box, e, ne); return; }
 
     const span = (e.flow_from && e.flow_to) ? e.flow_from + ' → ' + e.flow_to : '';
     document.getElementById('flowMeta').textContent =

@@ -706,6 +706,39 @@ def validate_excluded_products(obj):
         raise DataInvalid(str(e))
 
 
+# ── 非股票部位狀態（PO 2026-11-07 核准，只限 00986D）：官方持股檔只有期貨／債券／基金且無可採正數持股時，
+#    以此狀態取代「沒抓到」。帶欄位就必須完全有效，不能被當未知欄位略過。
+NON_EQUITY_FORMAT = "non-equity-pcf/v1"
+NON_EQUITY_FUNDS = {"00986D": "ETF25"}          # 代號 → 復華內部碼（決定唯一允許的官方網址）
+NON_EQUITY_SECTIONS = ["futures", "bonds", "funds"]
+
+
+def check_non_equity_status(where, code, st, checked_on):
+    """st 是否為 code 的有效非股票狀態；checked_on＝該份輸出的實際查證日（YYYY-MM-DD 字串）。無效 → DataInvalid。"""
+    if code not in NON_EQUITY_FUNDS:
+        raise DataInvalid(f"{where} 不是允許非股票狀態的基金")
+    if not isinstance(st, dict) or set(st) != {"format", "code", "status", "as_of", "sections", "source"}:
+        raise DataInvalid(f"{where}.non_equity_status 欄位不符")
+    if st["format"] != NON_EQUITY_FORMAT or st["code"] != code or st["status"] != "not_applicable" \
+            or st["sections"] != NON_EQUITY_SECTIONS:
+        raise DataInvalid(f"{where}.non_equity_status 常數不符")
+    if not _is_date(st["as_of"]) or not _is_date(checked_on) or st["as_of"] > checked_on:
+        raise DataInvalid(f"{where}.non_equity_status 資料日無效或晚於查證日：{st['as_of']!r}／{checked_on!r}")
+    src = st["source"]
+    if not isinstance(src, dict) or set(src) != {"url", "sha256"}:
+        raise DataInvalid(f"{where}.non_equity_status.source 欄位不符")
+    want = "https://www.fhtrust.com.tw/api/assetsExcel/%s/%s" % (NON_EQUITY_FUNDS[code], st["as_of"].replace("-", ""))
+    if src["url"] != want:
+        raise DataInvalid(f"{where}.non_equity_status 來源網址不符：{src['url']!r}")
+    if not isinstance(src["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", src["sha256"]):
+        raise DataInvalid(f"{where}.non_equity_status 原文 hash 無效")
+
+
+def _check_non_equity(where, code, e, stamp):
+    if "non_equity_status" in e:
+        check_non_equity_status(where, code, e["non_equity_status"], stamp[:10] if isinstance(stamp, str) else None)
+
+
 def validate_active_flow(obj):
     """active_flow.json（flow.js treemap 以 amount 算面積、buy／sell 顯示合計）：
     每檔 name 字串；buy／sell／scale_pct 有限或 null；holdings／changed 為整數或 null；
@@ -716,6 +749,9 @@ def validate_active_flow(obj):
     for code, e in obj["etfs"].items():
         w = "active_flow." + code
         _opt_str(w, e, "name")
+        _check_non_equity(w, code, e, obj["updated"])
+        if "non_equity_status" in e and e.get("fetched") is True and (e.get("advanced") is not False or e.get("reason") != "not_applicable"):
+            raise DataInvalid(f"{w} 非股票狀態本輪取得時不得計股票 Flow")
         for k in ("buy", "sell", "scale_pct"):
             _opt_num(w, e, k)
         for k in ("holdings", "changed"):
@@ -743,6 +779,7 @@ def validate_active_snapshot(obj):
     for code, e in obj["etfs"].items():
         w = "_active_snapshot." + code
         _opt_str(w, e, "data_date", date=True)
+        _check_non_equity(w, code, e, obj.get("fetched"))
         h = e.get("holdings")
         if not isinstance(h, dict):
             raise DataInvalid(f"{w}.holdings 不是物件：{type(h).__name__}")
