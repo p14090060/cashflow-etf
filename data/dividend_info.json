@@ -1537,6 +1537,19 @@
         "pending_since": "2026-07-21",
         "source": "TWSE ETFortune 配息清單（dividendList，逐檔歷史）",
         "checked_at": "2026-10-27T18:13:51.138336+08:00"
+      },
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00408A",
+        "frequency": "季配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "主動第一金優股息",
+        "full_name": "第一金台股趨勢優股息主動式ETF基金",
+        "classification": "不分級別/分配(季配)",
+        "checked_at": "2026-11-08T07:01:29.734856+08:00"
       }
     },
     "00406A": {
@@ -1953,7 +1966,20 @@
       "category": "高股息",
       "avg_dividend_per_share": 0.5,
       "_todo": true,
-      "_source": "2026-10-13 雙源查證頻率：中國信託投信簡式公開說明書（Pros_00995A.pdf，刊印 114 年 11 月）收益分配「季配息（收益評價日為每年 3、6、9、12 月最後日曆日）」、MoneyDJ basic0004 配息頻率「季配」。本次配息金額與日期未取得官方公告，未填；months 無歷史不推定，維持 _todo"
+      "_source": "2026-10-13 雙源查證頻率：中國信託投信簡式公開說明書（Pros_00995A.pdf，刊印 114 年 11 月）收益分配「季配息（收益評價日為每年 3、6、9、12 月最後日曆日）」、MoneyDJ basic0004 配息頻率「季配」。本次配息金額與日期未取得官方公告，未填；months 無歷史不推定，維持 _todo",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00995A",
+        "frequency": "季配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "主動中信台灣卓越",
+        "full_name": "中國信託台灣卓越成長主動式ETF基金",
+        "classification": "不分級別/分配(季配)",
+        "checked_at": "2026-11-08T07:01:29.734856+08:00"
+      }
     },
     "00996A": {
       "name": "主動兆豐台灣豐收",
@@ -1964,7 +1990,20 @@
       "category": "高股息",
       "avg_dividend_per_share": 0.73,
       "_todo": true,
-      "_source": "2026-10-12 雙源查證頻率：兆豐投信官網產品頁 etf_product.aspx?id=23 收益分配「季配息」、MoneyDJ basic0004 配息頻率「季配」。首次配息：TWSE 公告（事實發生日 115/10/12）每受益權單位實際配發金額 0.73 元，除息 2026-10-19、發放 11/06（2026-10-13 查證）。months 僅一次除息不足推定，維持 _todo"
+      "_source": "2026-10-12 雙源查證頻率：兆豐投信官網產品頁 etf_product.aspx?id=23 收益分配「季配息」、MoneyDJ basic0004 配息頻率「季配」。首次配息：TWSE 公告（事實發生日 115/10/12）每受益權單位實際配發金額 0.73 元，除息 2026-10-19、發放 11/06（2026-10-13 查證）。months 僅一次除息不足推定，維持 _todo",
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00996A",
+        "frequency": "季配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "主動兆豐台灣豐收",
+        "full_name": "兆豐台灣豐收主動式 ETF基金",
+        "classification": "不分級別/分配(季配)",
+        "checked_at": "2026-11-08T07:01:29.734856+08:00"
+      }
     },
     "00851": {
       "name": "台新全球AI",
