@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-07 14:38",
+  "updated": "2026-11-08 14:44",
   "quote_date": "2026-11-06",
   "quote_time": "2026-11-06",
   "market_state": "holiday",
@@ -434,7 +434,7 @@
       "yld": 2.0,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 3.88,
       "div_next": "2026-11-16",
       "signal": "dear",
@@ -676,7 +676,7 @@
       "yld": 7.8,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 1.01,
       "div_next": "2026-11-18",
       "signal": "dear",
@@ -778,7 +778,7 @@
       "yld": 4.67,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
+      "days": 2,
       "est": 0.06,
       "div_next": "2026-11-07",
       "signal": "dear",
@@ -944,7 +944,7 @@
       "yld": 10.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 11,
+      "days": 10,
       "est": 0.38,
       "div_next": "2026-11-21",
       "signal": "fair",
@@ -1118,7 +1118,7 @@
       "yld": 4.1,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 13,
+      "days": 12,
       "est": 0.85,
       "div_next": "2026-11-21",
       "signal": "dear",
@@ -8423,7 +8423,7 @@
       "yld": 8.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 17,
+      "days": 16,
       "est": 0.81,
       "div_next": "2026-11-23",
       "signal": "fair",
@@ -8543,7 +8543,7 @@
       "yld": 5.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 0.23,
       "div_next": "2026-11-18",
       "signal": "fair",
@@ -8897,7 +8897,7 @@
       "yld": 6.5,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 9,
+      "days": 8,
       "est": 0.16,
       "div_next": "2026-11-16",
       "signal": "fair",
@@ -15969,7 +15969,7 @@
       "mon": "11月",
       "amt": 0.06,
       "soon": true,
-      "days_until": 3,
+      "days_until": 2,
       "source": "official",
       "amount_source": "TWSE × FinMind 核實"
     },
@@ -15981,7 +15981,7 @@
       "mon": "11月",
       "amt": 0.16,
       "soon": true,
-      "days_until": 9,
+      "days_until": 8,
       "source": "official",
       "amount_source": "FinMind（估算）"
     },
@@ -15993,7 +15993,7 @@
       "mon": "11月",
       "amt": 3.88,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "MoneyDJ"
     },
@@ -16005,7 +16005,7 @@
       "mon": "11月",
       "amt": 1.01,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "FinMind（估算）"
     },
@@ -16017,7 +16017,7 @@
       "mon": "11月",
       "amt": 0.23,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "FinMind（估算）"
     },
@@ -16029,7 +16029,7 @@
       "mon": "11月",
       "amt": 0.38,
       "soon": true,
-      "days_until": 11,
+      "days_until": 10,
       "source": "official",
       "amount_source": "FinMind（估算）"
     },
@@ -16041,7 +16041,7 @@
       "mon": "11月",
       "amt": 0.85,
       "soon": true,
-      "days_until": 13,
+      "days_until": 12,
       "source": "official",
       "amount_source": "FinMind（估算）"
     },
@@ -16052,7 +16052,7 @@
       "mon": "11月",
       "amt": 1.25,
       "soon": true,
-      "days_until": 14,
+      "days_until": 13,
       "source": "estimate"
     },
     {
@@ -16063,7 +16063,7 @@
       "mon": "11月",
       "amt": 0.25,
       "soon": false,
-      "days_until": 17,
+      "days_until": 16,
       "source": "official",
       "amount_source": "official"
     },
@@ -16074,7 +16074,7 @@
       "mon": "11月",
       "amt": 0.77,
       "soon": false,
-      "days_until": 17,
+      "days_until": 16,
       "source": "estimate"
     },
     {
@@ -16084,7 +16084,7 @@
       "mon": "12月",
       "amt": 1.1,
       "soon": false,
-      "days_until": 39,
+      "days_until": 38,
       "source": "estimate"
     },
     {
@@ -16094,7 +16094,7 @@
       "mon": "12月",
       "amt": 0.63,
       "soon": false,
-      "days_until": 39,
+      "days_until": 38,
       "source": "estimate"
     },
     {
@@ -16104,7 +16104,7 @@
       "mon": "1月",
       "amt": 2.75,
       "soon": false,
-      "days_until": 70,
+      "days_until": 69,
       "source": "estimate"
     },
     {
@@ -16114,7 +16114,7 @@
       "mon": "1月",
       "amt": 0.6,
       "soon": false,
-      "days_until": 75,
+      "days_until": 74,
       "source": "estimate"
     },
     {
@@ -16124,7 +16124,7 @@
       "mon": "1月",
       "amt": 1.72,
       "soon": false,
-      "days_until": 76,
+      "days_until": 75,
       "source": "estimate"
     }
   ],
