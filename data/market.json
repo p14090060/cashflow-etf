@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-09 13:50",
+  "updated": "2026-11-09 15:15",
   "quote_date": "2026-11-09",
   "quote_time": "2026-11-09 13:30",
   "market_state": "stale",
@@ -17,7 +17,7 @@
     "change_pt": 1960.06,
     "change_pct": 4.94,
     "quote_date": "2026-11-09",
-    "is_live": true,
+    "is_live": false,
     "close_confirmed": false,
     "mis_time": "13:33"
   },
@@ -15799,7 +15799,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 90,
-      "est": 0.054,
+      "est": 0.3,
       "div_next": null,
       "signal": "fair",
       "maD": -1.3,
