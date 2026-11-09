@@ -1,5 +1,5 @@
 {
-  "fetched": "2026-11-07 08:26",
+  "fetched": "2026-11-09 09:26",
   "etfs": {
     "00981A": {
       "name": "主動統一台股增長",
@@ -4587,13 +4587,13 @@
           "name": "精測",
           "shares": 2000
         },
-        "3264": {
-          "name": "欣銓",
-          "shares": 23000
-        },
         "6526": {
           "name": "達發",
           "shares": 6000
+        },
+        "3264": {
+          "name": "欣銓",
+          "shares": 23000
         },
         "2382": {
           "name": "廣達",
@@ -5647,15 +5647,19 @@
     "00989A": {
       "name": "主動摩根美國科技",
       "issuer": "摩根",
-      "data_date": "2026-11-05",
+      "data_date": "2026-11-06",
       "holdings": {
+        "NVDA": {
+          "name": "NVIDIA CORP",
+          "shares": 6740
+        },
         "META": {
           "name": "META PLATFORMS INC-CLASS A",
           "shares": 2034
         },
-        "NVDA": {
-          "name": "NVIDIA CORP",
-          "shares": 6740
+        "MSFT": {
+          "name": "MICROSOFT CORP",
+          "shares": 2022
         },
         "CRWD": {
           "name": "CROWDSTRIKE HOLDINGS INC - A",
@@ -5665,21 +5669,21 @@
           "name": "TAKE-TWO INTERACTIVE SOFTWRE",
           "shares": 4602
         },
-        "CRM": {
-          "name": "SALESFORCE INC",
-          "shares": 4392
-        },
-        "MSFT": {
-          "name": "MICROSOFT CORP",
-          "shares": 1790
-        },
         "AVGO": {
           "name": "BROADCOM INC",
           "shares": 3241
         },
+        "AMD": {
+          "name": "ADVANCED MICRO DEVICES",
+          "shares": 2105
+        },
         "PANW": {
           "name": "PALO ALTO NETWORKS INC",
           "shares": 3000
+        },
+        "CRM": {
+          "name": "SALESFORCE INC",
+          "shares": 4392
         },
         "TSLA": {
           "name": "TESLA INC",
@@ -5688,10 +5692,6 @@
         "SHOP": {
           "name": "SHOPIFY INC - CLASS A",
           "shares": 6103
-        },
-        "AMD": {
-          "name": "ADVANCED MICRO DEVICES",
-          "shares": 1968
         },
         "SNOW": {
           "name": "SNOWFLAKE INC-CLASS A",
@@ -5705,6 +5705,10 @@
           "name": "ALPHABET INC-CL C",
           "shares": 2256
         },
+        "AMZN": {
+          "name": "AMAZON.COM INC",
+          "shares": 2437
+        },
         "ASML": {
           "name": "ASML HOLDING NV-NY REG SHS",
           "shares": 430
@@ -5712,6 +5716,10 @@
         "TWLO": {
           "name": "TWILIO INC - A",
           "shares": 2842
+        },
+        "LRCX": {
+          "name": "LAM RESEARCH CORP",
+          "shares": 2604
         },
         "HUBS": {
           "name": "HUBSPOT INC",
@@ -5721,61 +5729,53 @@
           "name": "ZOOM COMMUNICATIONS INC",
           "shares": 5670
         },
-        "LRCX": {
-          "name": "LAM RESEARCH CORP",
-          "shares": 2604
-        },
         "TXN": {
           "name": "TEXAS INSTRUMENTS INC",
           "shares": 1731
+        },
+        "U": {
+          "name": "UNITY SOFTWARE INC",
+          "shares": 9095
         },
         "HOOD": {
           "name": "ROBINHOOD MARKETS INC - A",
           "shares": 5668
         },
-        "ACN": {
-          "name": "ACCENTURE PLC-CL A",
-          "shares": 1601
-        },
-        "ADBE": {
-          "name": "ADOBE INC",
-          "shares": 1684
-        },
         "INTC": {
           "name": "INTEL CORP",
           "shares": 7794
         },
-        "TEAM": {
-          "name": "ATLASSIAN CORP PLC-CLASS A",
-          "shares": 2182
+        "ACN": {
+          "name": "ACCENTURE PLC-CL A",
+          "shares": 1601
         },
         "MPWR": {
           "name": "MONOLITHIC POWER SYSTEMS INC",
           "shares": 346
         },
-        "RIVN": {
-          "name": "RIVIAN AUTOMOTIVE INC-A",
-          "shares": 28278
+        "ADBE": {
+          "name": "ADOBE INC",
+          "shares": 1684
         },
         "TEM": {
           "name": "TEMPUS AI INC",
           "shares": 5266
         },
-        "AMZN": {
-          "name": "AMAZON.COM INC",
-          "shares": 1374
+        "RIVN": {
+          "name": "RIVIAN AUTOMOTIVE INC-A",
+          "shares": 28278
         },
         "PLTR": {
           "name": "PALANTIR TECHNOLOGIES INC-A",
           "shares": 2257
         },
-        "U": {
-          "name": "UNITY SOFTWARE INC",
-          "shares": 7110
-        },
         "ADI": {
           "name": "ANALOG DEVICES INC",
           "shares": 935
+        },
+        "TEAM": {
+          "name": "ATLASSIAN CORP PLC-CLASS A",
+          "shares": 2182
         },
         "VEEV": {
           "name": "VEEVA SYSTEMS INC-CLASS A",
@@ -5793,53 +5793,49 @@
           "name": "CADENCE DESIGN SYS INC",
           "shares": 916
         },
-        "DOCN": {
-          "name": "DIGITALOCEAN HOLDINGS INC",
-          "shares": 3882
-        },
         "LITE": {
           "name": "LUMENTUM HOLDINGS INC",
           "shares": 515
-        },
-        "DDOG": {
-          "name": "DATADOG INC - CLASS A",
-          "shares": 1490
         },
         "TSM": {
           "name": "TAIWAN SEMICONDUCTOR-SP ADR",
           "shares": 725
         },
-        "ROK": {
-          "name": "ROCKWELL AUTOMATION INC",
-          "shares": 631
-        },
-        "WRBY": {
-          "name": "WARBY PARKER INC-CLASS A",
-          "shares": 9116
-        },
-        "ESTC": {
-          "name": "ELASTIC NV",
-          "shares": 2746
+        "DDOG": {
+          "name": "DATADOG INC - CLASS A",
+          "shares": 1490
         },
         "SPCX": {
           "name": "SPACE EXPLORATION TECHN-CL A",
           "shares": 1866
         },
-        "GWRE": {
-          "name": "GUIDEWIRE SOFTWARE INC",
-          "shares": 1315
+        "ROK": {
+          "name": "ROCKWELL AUTOMATION INC",
+          "shares": 631
+        },
+        "ESTC": {
+          "name": "ELASTIC NV",
+          "shares": 2746
+        },
+        "WRBY": {
+          "name": "WARBY PARKER INC-CLASS A",
+          "shares": 9116
         },
         "OKTA": {
           "name": "OKTA INC",
           "shares": 1281
         },
-        "LMND": {
-          "name": "LEMONADE INC",
-          "shares": 5199
+        "GWRE": {
+          "name": "GUIDEWIRE SOFTWARE INC",
+          "shares": 1315
         },
         "CIEN": {
           "name": "CIENA CORP",
           "shares": 868
+        },
+        "LMND": {
+          "name": "LEMONADE INC",
+          "shares": 5199
         },
         "MDB": {
           "name": "MONGODB INC",
@@ -5849,10 +5845,6 @@
           "name": "10X GENOMICS INC-CLASS A",
           "shares": 3403
         },
-        "XYZ": {
-          "name": "BLOCK INC",
-          "shares": 2152
-        },
         "CRDO": {
           "name": "CREDO TECHNOLOGY GROUP HOLDI",
           "shares": 1556
@@ -5861,17 +5853,13 @@
           "name": "ASTERA LABS INC",
           "shares": 965
         },
+        "XYZ": {
+          "name": "BLOCK INC",
+          "shares": 2152
+        },
         "MTSI": {
           "name": "MACOM TECHNOLOGY SOLUTIONS H",
           "shares": 757
-        },
-        "BE": {
-          "name": "BLOOM ENERGY CORP- A",
-          "shares": 854
-        },
-        "TWST": {
-          "name": "TWIST BIOSCIENCE CORP",
-          "shares": 1124
         },
         "MU": {
           "name": "MICRON TECHNOLOGY INC",
@@ -5885,6 +5873,10 @@
           "name": "ENTEGRIS INC",
           "shares": 1071
         },
+        "TWST": {
+          "name": "TWIST BIOSCIENCE CORP",
+          "shares": 1124
+        },
         "SWKS": {
           "name": "SKYWORKS SOLUTIONS INC",
           "shares": 1254
@@ -5893,13 +5885,13 @@
           "name": "SANDISK CORP-W/I",
           "shares": 117
         },
-        "WDAY": {
-          "name": "WORKDAY INC-CLASS A",
-          "shares": 471
-        },
         "NU": {
           "name": "NU HOLDINGS LTD/CAYMAN ISL-A",
           "shares": 7564
+        },
+        "WDAY": {
+          "name": "WORKDAY INC-CLASS A",
+          "shares": 471
         },
         "VICR": {
           "name": "VICOR CORP",
@@ -6552,6 +6544,21 @@
         "TLTW US": {
           "name": "iShares TLT Premium Income+",
           "shares": 25100
+        }
+      },
+      "non_equity_status": {
+        "format": "non-equity-pcf/v1",
+        "code": "00986D",
+        "status": "not_applicable",
+        "as_of": "2026-11-05",
+        "sections": [
+          "futures",
+          "bonds",
+          "funds"
+        ],
+        "source": {
+          "url": "https://www.fhtrust.com.tw/api/assetsExcel/ETF25/20261105",
+          "sha256": "08774353e85e8a35a3e20043f029528d4a72205d0af4a99abb0f3c1c93648572"
         }
       }
     },

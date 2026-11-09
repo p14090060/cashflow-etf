@@ -2769,16 +2769,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-11-07",
-      "mon": "11月",
-      "day": "7",
-      "code": "00940",
-      "name": "元大台灣價值高息",
-      "amt": 0.06,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-11-16",
       "mon": "11月",
       "day": "16",
@@ -2835,6 +2825,16 @@
       "code": "006201",
       "name": "元大富櫃50",
       "amt": 0.77,
+      "soon": true,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2026-12-07",
+      "mon": "12月",
+      "day": "7",
+      "code": "00940",
+      "name": "元大台灣價值高息",
+      "amt": 0.06,
       "soon": false,
       "source": "yfinance"
     },
