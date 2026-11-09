@@ -25,9 +25,13 @@ from json_safe import DataInvalid, YIELD_SOURCE_TPEX, YIELD_SOURCE_TWSE, check_y
 FREQ_PER_YEAR = {"月配": 12, "雙月配": 6, "季配": 4, "半年配": 2, "年配": 1}
 MAX_BASIS_AGE_DAYS = 14                # 來源連續失敗時沿用的上限：超過就不能再稱「近12月」
 RECORD_DATE_MARGIN_DAYS = 31           # SPLIT_RECORDS 部分日期是月初約略值：只用來判定「窗口附近可能有變更」，不拿來換算
-# 已核實的單位變更 {code: [{"date": 生效日, "ratio": "比例字串", "source": 官方依據}]}。目前沒有已存官方原件可核實，所以是空的：
-# 窗口內有拆分的基金一律不可比較，要進榜先查到官方生效日再補。
-VERIFIED_UNIT_CHANGES = {}
+# 已核實的單位變更；只使用官方生效日，未核實的其他拆分仍不可比較。
+# 0052：TWSE 2025/10/09時程與11/25結果公告；原文／SHA256保存在yield-0052-split/2026-11-08。
+VERIFIED_UNIT_CHANGES = {"0052": [{
+    "date": "2025-11-26", "ratio": "7",
+    "source": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00010&date=20251009&fund=0052&seq=1&type=other"
+              "#sha256=be8332864915d2ec9e6fba68efc3c7e8aff7e52448bc1b5082cacb9ec14d6e86",
+}]}
 TWSE_URL = "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList"
 TPEX_URL = "https://info.tpex.org.tw/api/etfExDiv"
 _TWSE_HEADER = ["證券代號", "證券簡稱", "除息交易日", "收益分配基準日", "收益分配發放日", "收益分配金額(每1受益權益單位)"]
