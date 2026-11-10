@@ -2768,27 +2768,66 @@
     },
     "00901": {
       "name": "永豐智能車供應鏈",
-      "frequency": "不明",
+      "frequency": "年配",
       "months": [],
       "category": "高股息",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00901",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "永豐智能車供應鏈",
+        "full_name": "永豐台灣智能車供應鏈ETF基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-11-10T09:22:12.844922+08:00"
+      }
     },
     "00949": {
       "name": "復華日本龍頭",
-      "frequency": "不明",
+      "frequency": "年配",
       "months": [],
       "category": "高股息",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00949",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "復華日本龍頭",
+        "full_name": "復華日本護城河優勢龍頭企業ETF基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-11-10T09:22:12.844922+08:00"
+      }
     },
     "00951": {
       "name": "台新日本半導體",
-      "frequency": "不明",
+      "frequency": "年配",
       "months": [],
       "category": "高股息",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "policy_source": {
+        "kind": "sitca_etf_statement",
+        "code": "00951",
+        "frequency": "年配",
+        "report_month": "202609",
+        "report_updated": "2026-10-15",
+        "url": "https://www.sitca.org.tw/ROC/SITCA_ETF/etf_statement2.aspx?txtR1=0&txtYM=202609",
+        "sha256": "0bf78c00b33fca72dbea3670c4c17c3c6addfd2bb69a74bdc21c6694851dfebf",
+        "short_name": "台新日本半導體",
+        "full_name": "台新日本半導體ETF基金",
+        "classification": "不分級別/分配(年配)",
+        "checked_at": "2026-11-10T09:22:12.844922+08:00"
+      }
     }
   },
   "calendar": [
