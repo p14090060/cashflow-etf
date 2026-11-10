@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-10 15:39",
+  "updated": "2026-11-10 15:47",
   "quote_date": "2026-11-10",
   "quote_time": "2026-11-10",
   "market_state": "closed",
@@ -15637,7 +15637,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 90,
-      "est": 0.054,
+      "est": 0.3,
       "div_next": null,
       "signal": "dear",
       "maD": 0.8,
@@ -16108,7 +16108,7 @@
       "soon": true,
       "days_until": 7,
       "source": "official",
-      "amount_source": "FinMind（估算）"
+      "amount_source": "MoneyDJ"
     },
     {
       "code": "00929",
