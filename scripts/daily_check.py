@@ -7,7 +7,7 @@ import ast, datetime, hashlib, json, math, os, re, sys, time, urllib.parse, urll
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent))
-from json_safe import atomic_write_json, VALIDATORS, validate_pool_cache, DataInvalid, check_non_equity_status   # noqa: E402
+from json_safe import atomic_write_json, VALIDATORS, validate_pool_cache, DataInvalid, check_non_equity_status, check_non_equity_changes   # noqa: E402
 import product_policy   # noqa: E402
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
@@ -142,11 +142,16 @@ def check_active_flow() -> list:
     # 不用舊股票 data_date；本輪沒取得（fetched:false）仍照一般失敗門檻告警
     non_equity = {}
     for code, e in etfs.items():
-        if "non_equity_status" not in e:
+        if "non_equity_status" not in e and "non_equity_changes" not in e:
             continue
         try:
-            check_non_equity_status("active_flow." + code, code, e["non_equity_status"], str(data.get("updated") or "")[:10])
-            non_equity[code] = e["non_equity_status"]["as_of"]
+            day = str(data.get("updated") or "")[:10]
+            if "non_equity_status" in e:
+                check_non_equity_status("active_flow." + code, code, e["non_equity_status"], day)
+            if "non_equity_changes" in e:
+                check_non_equity_changes("active_flow." + code, code, e["non_equity_changes"], day)
+            non_equity[code] = max(x for x in ((e.get("non_equity_status") or {}).get("as_of"),
+                                               (e.get("non_equity_changes") or {}).get("to")) if x)
             if e.get("fetched") is True:
                 print(f"[ACTIVE] {code} 官方非股票資料已取得（資料日 {non_equity[code]}），不適用股票 Flow")
         except DataInvalid as ex:

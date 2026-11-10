@@ -734,9 +734,101 @@ def check_non_equity_status(where, code, st, checked_on):
         raise DataInvalid(f"{where}.non_equity_status 原文 hash 無效")
 
 
+# ── 00986D 三區部位（快照 non_equity_positions）與增減（active_flow non_equity_changes）──
+#    單位：期貨「口」contracts、債券原幣「面額」face＋currency、基金「單位」units；一律非負整數（不收 bool／字串／浮點）。
+#    增減只列有變動的列；不換算金額、不稱買賣。
+NE_POSITIONS_FORMAT = "non-equity-positions/v1"
+NE_CHANGES_FORMAT = "non-equity-changes/v1"
+NE_ROW_KEYS = {"futures": ("contracts",), "bonds": ("currency", "face"), "funds": ("units",)}
+NE_QTY = {"futures": "contracts", "bonds": "face", "funds": "units"}
+
+
+def _ne_int(v):
+    return isinstance(v, int) and not isinstance(v, bool)
+
+
+def _ne_source(where, code, as_of, src):
+    if not isinstance(src, dict) or set(src) != {"url", "sha256"}:
+        raise DataInvalid(f"{where}.source 欄位不符")
+    want = "https://www.fhtrust.com.tw/api/assetsExcel/%s/%s" % (NON_EQUITY_FUNDS[code], as_of.replace("-", ""))
+    if src["url"] != want or not isinstance(src["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", src["sha256"]):
+        raise DataInvalid(f"{where}.source 網址或 hash 不符")
+
+
+def _ne_head(where, code, d, keys, checked_on, day_key):
+    if code not in NON_EQUITY_FUNDS:
+        raise DataInvalid(f"{where} 不是允許非股票部位的基金")
+    if not isinstance(d, dict) or set(d) != keys:
+        raise DataInvalid(f"{where} 欄位不符")
+    if d["code"] != code:
+        raise DataInvalid(f"{where} 代號不符")
+    if not _is_date(d[day_key]) or not _is_date(checked_on) or d[day_key] > checked_on:
+        raise DataInvalid(f"{where} 資料日無效或晚於查證日：{d[day_key]!r}／{checked_on!r}")
+    _ne_source(where, code, d[day_key], d["source"])
+
+
+def check_non_equity_positions(where, code, p, checked_on):
+    where += ".non_equity_positions"
+    _ne_head(where, code, p, {"format", "code", "as_of", "source", "futures", "bonds", "funds"}, checked_on, "as_of")
+    if p["format"] != NE_POSITIONS_FORMAT:
+        raise DataInvalid(f"{where} 格式不符")
+    for sec, extra in NE_ROW_KEYS.items():
+        rows = p[sec]
+        if not isinstance(rows, list):
+            raise DataInvalid(f"{where}.{sec} 不是陣列")
+        seen = set()
+        for r in rows:
+            if not isinstance(r, dict) or set(r) != {"code", "name", *extra} or not isinstance(r["code"], str) or not r["code"] \
+                    or not isinstance(r["name"], str) or r["code"] in seen:
+                raise DataInvalid(f"{where}.{sec} 列無效或代碼重複：{r!r}")
+            seen.add(r["code"])
+            if not _ne_int(r[NE_QTY[sec]]) or r[NE_QTY[sec]] < 0:
+                raise DataInvalid(f"{where}.{sec}.{r['code']} 數量無效")
+            if sec == "bonds" and (not isinstance(r["currency"], str) or not re.fullmatch(r"[A-Z]{3}", r["currency"])):
+                raise DataInvalid(f"{where}.bonds.{r['code']} 幣別無效")
+    if not any(r["face"] > 0 for r in p["bonds"]):
+        raise DataInvalid(f"{where} 沒有正額債券部位")
+
+
+def check_non_equity_changes(where, code, c, checked_on):
+    where += ".non_equity_changes"
+    _ne_head(where, code, c, {"format", "code", "status", "from", "to", "source", "futures", "bonds", "funds"}, checked_on, "to")
+    if c["format"] != NE_CHANGES_FORMAT or c["status"] not in ("baseline", "compared"):
+        raise DataInvalid(f"{where} 格式或狀態不符")
+    for sec in NE_ROW_KEYS:                     # 任何狀態三區都必須是陣列（null／{}／""／false／0 都拒）
+        if not isinstance(c[sec], list):
+            raise DataInvalid(f"{where}.{sec} 不是陣列：{c[sec]!r}")
+    if c["status"] == "baseline":
+        if c["from"] is not None or any(c[s] != [] for s in NE_ROW_KEYS):
+            raise DataInvalid(f"{where} 基準不得帶前值或增減")
+        return
+    if not _is_date(c["from"]) or c["from"] >= c["to"]:
+        raise DataInvalid(f"{where} 比較區間無效：{c['from']!r} → {c['to']!r}")
+    for sec in NE_ROW_KEYS:
+        rows, seen = c[sec], set()
+        if not isinstance(rows, list):
+            raise DataInvalid(f"{where}.{sec} 不是陣列")
+        for r in rows:
+            keys = {"code", "name", "before", "after", "delta"} | ({"currency"} if sec == "bonds" else set())
+            if not isinstance(r, dict) or set(r) != keys or not isinstance(r["code"], str) or not r["code"] \
+                    or not isinstance(r["name"], str) or r["code"] in seen:
+                raise DataInvalid(f"{where}.{sec} 列無效或代碼重複：{r!r}")
+            seen.add(r["code"])
+            if not all(_ne_int(r[k]) for k in ("before", "after", "delta")) or r["before"] < 0 or r["after"] < 0 \
+                    or r["delta"] != r["after"] - r["before"] or r["delta"] == 0:
+                raise DataInvalid(f"{where}.{sec}.{r['code']} 前後值／差額無效")
+            if sec == "bonds" and (not isinstance(r["currency"], str) or not re.fullmatch(r"[A-Z]{3}", r["currency"])):
+                raise DataInvalid(f"{where}.bonds.{r['code']} 幣別無效")
+
+
 def _check_non_equity(where, code, e, stamp):
+    day = stamp[:10] if isinstance(stamp, str) else None
     if "non_equity_status" in e:
-        check_non_equity_status(where, code, e["non_equity_status"], stamp[:10] if isinstance(stamp, str) else None)
+        check_non_equity_status(where, code, e["non_equity_status"], day)
+    if "non_equity_positions" in e:
+        check_non_equity_positions(where, code, e["non_equity_positions"], day)
+    if "non_equity_changes" in e:
+        check_non_equity_changes(where, code, e["non_equity_changes"], day)
 
 
 def validate_active_flow(obj):
@@ -750,7 +842,10 @@ def validate_active_flow(obj):
         w = "active_flow." + code
         _opt_str(w, e, "name")
         _check_non_equity(w, code, e, obj["updated"])
-        if "non_equity_status" in e and e.get("fetched") is True and (e.get("advanced") is not False or e.get("reason") != "not_applicable"):
+        if "non_equity_positions" in e:
+            raise DataInvalid(f"{w} 部位只放快照，active_flow 只放增減")
+        if ("non_equity_status" in e or "non_equity_changes" in e) and e.get("fetched") is True \
+                and (e.get("advanced") is not False or e.get("reason") != "not_applicable"):
             raise DataInvalid(f"{w} 非股票狀態本輪取得時不得計股票 Flow")
         for k in ("buy", "sell", "scale_pct"):
             _opt_num(w, e, k)
@@ -780,6 +875,8 @@ def validate_active_snapshot(obj):
         w = "_active_snapshot." + code
         _opt_str(w, e, "data_date", date=True)
         _check_non_equity(w, code, e, obj.get("fetched"))
+        if "non_equity_changes" in e:
+            raise DataInvalid(f"{w} 增減只放 active_flow，快照只放部位")
         h = e.get("holdings")
         if not isinstance(h, dict):
             raise DataInvalid(f"{w}.holdings 不是物件：{type(h).__name__}")

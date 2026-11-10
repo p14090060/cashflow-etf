@@ -34,6 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import mega_feed   # 00996A 交接檔 contract／驗證／交易日（只讀，不寫正式資料）
 from json_safe import DataInvalid, NON_EQUITY_FORMAT, NON_EQUITY_FUNDS, NON_EQUITY_SECTIONS, check_non_equity_status
+from json_safe import NE_POSITIONS_FORMAT, NE_CHANGES_FORMAT, NE_QTY, check_non_equity_positions, check_non_equity_changes
 
 # Windows cp950 主控台印 emoji 會 UnicodeEncodeError，比照其他腳本加防呆
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -894,7 +895,13 @@ _INT = re.compile(r"\d{1,3}(?:,\d{3})*|\d+")
 
 
 def fuhwa_non_equity(ticker, rows, url, blob, checked_on):
-    """回傳有效非股票狀態；有正數基金單位（可採持股）→ None（沿原行為）；格式不符 → ValueError。"""
+    """回傳有效非股票狀態；有正數基金單位 → None；格式不符 → ValueError。（前案契約，給既有呼叫端）"""
+    return fuhwa_positions(ticker, rows, url, blob, checked_on)[1]
+
+
+def fuhwa_positions(ticker, rows, url, blob, checked_on):
+    """官方 XLSX 三區部位 → (positions, status 或 None)。基金單位全為 0 才另附前案 non_equity_status。
+    格式、身分、日期、表頭、單位、數值、重複代碼任一處不符 → ValueError（壞檔或缺段不能當 0）。"""
     rows = [[c.strip() for c in r] for r in rows if any(c.strip() for c in r)]
     full = _NE_FULL_NAME[ticker]
     if not rows or not rows[0][0].startswith(full) or len(rows[0]) != 1 \
@@ -918,24 +925,32 @@ def fuhwa_non_equity(ticker, rows, url, blob, checked_on):
     f, b, u = pos["futures"][0], pos["bonds"][0], pos["funds"][0]
     if not (f == 8 < b < u):
         raise ValueError("三段順序不符")
+    num = lambda v: int(v.replace(",", ""))
+    futures, bonds, funds = [], [], []
     for r in rows[f + 1:b]:
         if len(r) != 5 or not r[0] or not _INT.fullmatch(r[2]):
             raise ValueError("期貨列格式不符")
-    bonds = 0
+        futures.append({"code": r[0], "name": r[1], "contracts": num(r[2])})
     for r in rows[b + 1:u]:
         m = re.fullmatch(r"\(([A-Z]{3})\)(" + _INT.pattern + ")", r[2]) if len(r) == 7 else None
         if not m or not re.fullmatch(r"[A-Z]{2}[A-Z0-9]{9}\d", r[0]):
             raise ValueError("債券列格式不符")
-        bonds += int(m.group(2).replace(",", "")) > 0
-    if not bonds:
+        bonds.append({"code": r[0], "name": r[1], "currency": m.group(1), "face": num(m.group(2))})
+    if not any(x["face"] > 0 for x in bonds):
         raise ValueError("沒有正額債券部位")
-    units = []
     for r in rows[u + 1:]:
         if len(r) != 5 or not r[0] or not _INT.fullmatch(r[2]):
             raise ValueError("基金列格式不符")
-        units.append(int(r[2].replace(",", "")))
-    if any(units):
-        return None                     # 有可採的正數基金單位：不是本狀態，沿原 adapter 行為
+        funds.append({"code": r[0], "name": r[1], "units": num(r[2])})
+    source = {"url": url, "sha256": hashlib.sha256(blob).hexdigest()}
+    positions = {"format": NE_POSITIONS_FORMAT, "code": ticker, "as_of": as_of, "source": source,
+                 "futures": futures, "bonds": bonds, "funds": funds}
+    try:
+        check_non_equity_positions(ticker, ticker, positions, checked_on)   # 重複代碼、數值、網址、未來日期
+    except DataInvalid as e:
+        raise ValueError(str(e))
+    if any(x["units"] for x in funds):
+        return positions, None          # 有正數基金單位：仍取三區部位，但不是前案「全無持股」狀態
     st = {"format": NON_EQUITY_FORMAT, "code": ticker, "status": "not_applicable", "as_of": as_of,
           "sections": list(NON_EQUITY_SECTIONS),
           "source": {"url": url, "sha256": hashlib.sha256(blob).hexdigest()}}
@@ -943,7 +958,7 @@ def fuhwa_non_equity(ticker, rows, url, blob, checked_on):
         check_non_equity_status(ticker, ticker, st, checked_on)
     except DataInvalid as e:
         raise ValueError(str(e))
-    return st
+    return positions, st
 
 
 def fetch_fuhwa(date_obj, specific=False):
@@ -1037,16 +1052,21 @@ def fetch_fuhwa(date_obj, specific=False):
             if share:
                 holdings[code] = {"name": r[1].strip(), "shares": share}
 
-        if not holdings and ticker in NON_EQUITY_FUNDS:
+        if ticker in NON_EQUITY_FUNDS:
+            # 三區格式完整有效 → 一律走部位模式（含基金正數單位），不進股票 holdings／Flow
             try:
-                st = fuhwa_non_equity(ticker, rows, url, blob, datetime.datetime.now(
+                pos, st = fuhwa_positions(ticker, rows, url, blob, datetime.datetime.now(
                     datetime.timezone(datetime.timedelta(hours=8))).date().isoformat())
             except ValueError as e:
-                print(f"[復華] {ticker} {name}：官方檔非預期格式（{e}），本輪不採用")
+                # 三區驗證失敗＝本輪未取得。不可因舊股票 parser 仍讀得到列就改走股票路徑：
+                # 那會清掉既有部位基準、以 fetched:true 冒充成功（X R1 F1）。沿用既有紀錄，fetched:false。
+                print(f"[復華] {ticker} {name}：官方檔非預期格式（{e}），本輪不採用（不退回股票路徑）")
                 continue
-            if st:
-                out[ticker] = {"name": name, "issuer": "復華", "non_equity_status": st}
-                print(f"[復華] {ticker} {name}：官方非股票部位（期貨／債券／基金），資料日 {st['as_of']}，不適用股票 Flow")
+            else:
+                out[ticker] = dict({"name": name, "issuer": "復華", "non_equity_positions": pos},
+                                   **({"non_equity_status": st} if st else {}))
+                print(f"[復華] {ticker} {name}：官方三區部位（期貨 {len(pos['futures'])}／債券 {len(pos['bonds'])}／"
+                      f"基金 {len(pos['funds'])}），資料日 {pos['as_of']}，不適用股票 Flow")
                 continue
         if not holdings:
             # 別靜默跳過——講清楚是「沒有可用持股」還是「解析失敗」
@@ -1981,23 +2001,69 @@ def _mega_date_guard(etfs, prev):
     return prev, no_basis
 
 
+def _ne_stored(code, prev_raw, old_out):
+    """已存的非股票紀錄（狀態、部位、增減）各自的 (資料日, 原件 hash)。"""
+    o, p = old_out.get(code) or {}, prev_raw.get(code) or {}
+    out = []
+    for x, day in ((o.get("non_equity_status"), "as_of"), (p.get("non_equity_status"), "as_of"),
+                   (p.get("non_equity_positions"), "as_of"), (o.get("non_equity_changes"), "to")):
+        if isinstance(x, dict) and isinstance(x.get(day), str):
+            out.append((x[day], (x.get("source") or {}).get("sha256")))
+    return out
+
+
+def _ne_compare(before, after):
+    """兩份完整三區部位相減。沒有前一份、或同代碼幣別不同（不能相減）→ 只建基準。
+    新列前值 0、消失列後值 0；期貨不同合約就是不同列。只列有變動的列。"""
+    head = {"format": NE_CHANGES_FORMAT, "code": after["code"], "to": after["as_of"], "source": after["source"]}
+    base = dict(head, status="baseline", **{"from": None, "futures": [], "bonds": [], "funds": []})
+    if not before or before.get("format") != NE_POSITIONS_FORMAT:
+        return base
+    out = dict(head, status="compared", **{"from": before["as_of"]})
+    for sec, qty in NE_QTY.items():
+        b = {r["code"]: r for r in before[sec]}
+        a = {r["code"]: r for r in after[sec]}
+        rows = []
+        for c in sorted(set(b) | set(a)):
+            x, y = b.get(c), a.get(c)
+            if sec == "bonds" and x and y and x["currency"] != y["currency"]:
+                print(f"[NE] {after['code']} 債券 {c} 幣別 {x['currency']}→{y['currency']}，不相減，改建基準")
+                return base
+            r = {"code": c, "name": (y or x)["name"], "before": x[qty] if x else 0, "after": y[qty] if y else 0}
+            r["delta"] = r["after"] - r["before"]
+            if sec == "bonds":
+                r["currency"] = (y or x)["currency"]
+            if r["delta"]:
+                rows.append(r)
+        out[sec] = rows
+    return out
+
+
 def _non_equity_decide(non_equity, prev_raw, old_out):
-    """本輪非股票結果能不能覆蓋已存狀態。回傳 ({code: 採用的狀態}, {code: 不採用時的告警或 None})。
-    日期倒退不覆蓋較新已核狀態；同日內容（hash）不同 → 保留原狀態並告警，不偽造新日期。"""
+    """本輪非股票結果能不能覆蓋已存紀錄。回傳 ({code: (狀態或 None, 部位或 None, 增減或 None)}, {code: 不採用時的告警或 None})。
+    日期倒退不覆蓋較新紀錄；同日同原件 → 冪等（沿用已算好的增減）；同日內容（hash）不同 → 保留原紀錄並告警，不偽造新日期。"""
     accept, reject = {}, {}
     for code, info in non_equity.items():
-        st = info["non_equity_status"]
-        known = [x for x in ((old_out.get(code) or {}).get("non_equity_status"), (prev_raw.get(code) or {}).get("non_equity_status"))
-                 if isinstance(x, dict) and isinstance(x.get("as_of"), str)]
-        last = max(known, key=lambda x: x["as_of"]) if known else None
-        if last and st["as_of"] < last["as_of"]:
-            print(f"[NE] {code} 官方檔資料日 {st['as_of']} 早於已存 {last['as_of']}，日期倒退不採用")
+        st, pos = info.get("non_equity_status"), info.get("non_equity_positions")
+        cur = pos or st
+        known = _ne_stored(code, prev_raw, old_out)
+        last = max(known) if known else None
+        if last and cur["as_of"] < last[0]:
+            print(f"[NE] {code} 官方檔資料日 {cur['as_of']} 早於已存 {last[0]}，日期倒退不採用")
             reject[code] = None
-        elif last and st["as_of"] == last["as_of"] and st["source"]["sha256"] != (last.get("source") or {}).get("sha256"):
-            print(f"[NE] {code} 同一資料日 {st['as_of']} 官方檔內容不同，保留已存狀態")
-            reject[code] = f"同一資料日 {st['as_of']} 官方非股票檔內容前後不一致，保留先前狀態待查"
+        elif any(d == cur["as_of"] and h != cur["source"]["sha256"] for d, h in known):
+            print(f"[NE] {code} 同一資料日 {cur['as_of']} 官方檔內容不同，保留已存紀錄")
+            reject[code] = f"同一資料日 {cur['as_of']} 官方非股票檔內容前後不一致，保留先前狀態待查"
         else:
-            accept[code] = st
+            changes = None
+            if pos:
+                prev_pos = (prev_raw.get(code) or {}).get("non_equity_positions")
+                old_chg = (old_out.get(code) or {}).get("non_equity_changes")
+                if prev_pos and prev_pos.get("as_of") == pos["as_of"] and old_chg and old_chg.get("to") == pos["as_of"]:
+                    changes = old_chg                      # 同日同原件重跑：不重算
+                else:
+                    changes = _ne_compare(prev_pos if prev_pos and prev_pos.get("as_of", "") < pos["as_of"] else None, pos)
+            accept[code] = (st, pos, changes)
     return accept, reject
 
 
@@ -2031,7 +2097,7 @@ def main():
             _v["dup"] = list(_d)
 
     # 非股票狀態先分流：它沒有股票 holdings，進 build_flow 會被算成全數賣出
-    non_equity = {c: etfs.pop(c) for c in list(etfs) if "non_equity_status" in etfs[c]}
+    non_equity = {c: etfs.pop(c) for c in list(etfs) if "non_equity_status" in etfs[c] or "non_equity_positions" in etfs[c]}
 
     if not etfs and not non_equity:
         print("[ABORT] 所有 adapter 都沒抓到資料，保留既有檔案不覆蓋")
@@ -2055,8 +2121,8 @@ def main():
     prev, no_basis = _mega_date_guard(etfs, prev)
     # 非股票期間之後又出現股票持股：前一份不可比，只建新基準，不跨期拿舊股票快照算買賣
     # 但新股票資料日必須嚴格晚於最後有效非股票 as_of：較早或同日的股票檔不能當成狀態恢復，保留已存狀態與歷史
-    for c in [c for c in etfs if "non_equity_status" in ((prev or {}).get("etfs") or {}).get(c, {})]:
-        last = prev["etfs"][c]["non_equity_status"].get("as_of") or ""
+    for c in [c for c in etfs if {"non_equity_status", "non_equity_positions"} & set(((prev or {}).get("etfs") or {}).get(c, {}))]:
+        last = max(d for d, _ in _ne_stored(c, prev["etfs"], {}) or [("", None)])
         dd = etfs[c].get("data_date") or ""
         if not dd or dd <= last:
             non_equity[c] = etfs.pop(c)
@@ -2191,9 +2257,15 @@ def main():
                                     "first_seen": None, "buy": 0, "sell": 0, "changed": 0, "flow": []}
         if code in ne_accept:
             # 舊股票欄位（data_date、holdings、flow…）原樣保留作歷史，不改成新部位日期
-            out_etfs[code] = dict(old, name=info["name"], issuer=info["issuer"], fetched=True, advanced=False,
-                                  reason="not_applicable", anomaly=None, non_equity_status=ne_accept[code],
-                                  first_seen=old.get("first_seen") or ne_accept[code]["as_of"])
+            st, pos, chg = ne_accept[code]
+            row = dict(old, name=info["name"], issuer=info["issuer"], fetched=True, advanced=False,
+                       reason="not_applicable", anomaly=None, first_seen=old.get("first_seen") or (pos or st)["as_of"])
+            for k, v in (("non_equity_status", st), ("non_equity_changes", chg)):
+                if v:
+                    row[k] = v
+                else:
+                    row.pop(k, None)
+            out_etfs[code] = row
         else:
             out_etfs[code] = dict(old, fetched=False, anomaly=ne_reject[code] or old.get("anomaly"))
 
@@ -2208,10 +2280,15 @@ def main():
     # 這次沒抓到的投信要保留舊快照，否則下次會沒有可比對的基準
     merged = dict((prev or {}).get("etfs") or {})
     merged.update(etfs)
-    for code, st in ne_accept.items():
-        base = merged.get(code) or prev_raw.get(code) or {"name": non_equity[code]["name"], "issuer": "復華",
-                                                          "data_date": None, "holdings": {}}
-        merged[code] = dict(base, non_equity_status=st)
+    for code, (st, pos, _) in ne_accept.items():
+        base = dict(merged.get(code) or prev_raw.get(code) or {"name": non_equity[code]["name"], "issuer": "復華",
+                                                               "data_date": None, "holdings": {}})
+        for k, v in (("non_equity_status", st), ("non_equity_positions", pos)):
+            if v:
+                base[k] = v
+            else:
+                base.pop(k, None)
+        merged[code] = base
     with open(SNAPSHOT, "w", encoding="utf-8") as f:
         json.dump({"fetched": snapshot["fetched"], "etfs": merged},
                   f, ensure_ascii=False, indent=2)
