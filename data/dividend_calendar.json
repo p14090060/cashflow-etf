@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-11-10",
+    "last_updated": "2026-11-11",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -46,7 +46,7 @@
       "name": "兆豐永續高息等權",
       "ex_dividend_date": "2026-11-17",
       "amount": 0.23,
-      "amount_source": "MoneyDJ"
+      "amount_source": "TWSE × FinMind 核實"
     },
     "00936": {
       "code": "00936",
@@ -55,12 +55,33 @@
       "amount": 0.16,
       "amount_source": "FinMind（估算）"
     },
-    "00940": {
-      "code": "00940",
-      "name": "元大台灣價值高息",
-      "ex_dividend_date": "2026-11-10",
-      "amount": 0.06,
-      "amount_source": "TWSE × FinMind 核實"
+    "009823": {
+      "code": "009823",
+      "name": "群益S&P500",
+      "ex_dividend_date": "2026-11-04",
+      "amount": 0.054,
+      "amount_source": "TPEx",
+      "tpex_evidence": {
+        "identity": {
+          "code": "009823",
+          "name": "群益 S&P500",
+          "full_name": "群益標普500ETF證券投資信託基金",
+          "issuer": "群益投信",
+          "listing_date": "2026-06-25",
+          "url": "https://info.tpex.org.tw/api/etfProduct?lang=zh-tw&query=009823",
+          "sha256": "604fa1c30c680d9084121fcb9393f5196f6a2e4f3ad11c70e9d84d2920dd24cc"
+        },
+        "url": "https://info.tpex.org.tw/api/etfExDiv",
+        "sha256": "aef6884b0ddc0a8b674e7d45ba4a190e9478a68eacee5e499d769d27a4a5f043",
+        "request_params": {
+          "stkNo": "009823",
+          "startDate": "20260625",
+          "endDate": "20261103",
+          "lang": "zh-tw"
+        },
+        "checked_at": "2026-11-03T16:15:28.234442+08:00",
+        "pay_date": "2026-11-30"
+      }
     }
   }
 }
