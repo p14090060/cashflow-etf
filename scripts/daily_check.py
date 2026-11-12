@@ -389,6 +389,108 @@ def check_new_in_top100(etfs: list) -> list:
     return [code_map[c] for c in new_codes if c in code_map]
 
 
+# ── CLOSE_TOP100_RECOVERY（2026-11-12）：收盤成交量前 100 名（＝網站排行，scripts/close_top100.py）全部查缺值 ──
+# 取代上面 heat 排序、只看新進、首次初始化跳過的舊名單（check_new_in_top100 留作舊流程對照，不再呼叫）。
+# daily_state 數值契約：close_top100_rank {代號: 名次}；close_top100_meta {trade_day: YYYYMMDD, checked_at, size, origin(1 market/2 base),
+#   waiting}；close_top100_sha {0..4: 來源檔 sha256 分段}；top100_issue_kind {代號: 位元}；top100_issue_day {代號: 上次計輪交易日}；
+#   top100_issue_first／top100_issue_rounds／top100_issue_notified（同 D-071：≥3 輪、跨 24h、送達後 14 天冷卻）。
+# 一個交易日最多計一輪（同快照、同日重跑都不增輪）；收盤未確認／休市／不完整 → 不計、不記為查核成功。
+# 政策未知交給 recover_policies（本輪已以榜內優先）、歷史不足交給 update_history_state、上櫃殖利率交給 check_unverified_otc_yields，
+# 各自有門檻；這裡只計「沒有自動來源可查」的缺口（覆蓋不足）與上櫃官方已完成判讀仍查無的殖利率。
+TOP_POLICY, TOP_YIELD, TOP_RETURN = 1, 2, 4
+TOP_KIND_TEXT = {TOP_POLICY: "配息政策不明", TOP_YIELD: "殖利率依據（官方配息金額／日期）缺", TOP_RETURN: "近1年報酬缺（非新上市、非已知歷史不足）"}
+TOP_KEYS = ("top100_issue_kind", "top100_issue_day", "top100_issue_first", "top100_issue_rounds", "top100_issue_notified")
+
+
+def _day_int(iso):
+    return int(iso.replace("-", ""))
+
+
+def record_close_board(state, board, now):
+    """保存可追溯紀錄；回傳 True＝這是新的交易日（可計輪）。同交易日重跑不覆寫第一份紀錄。"""
+    import close_top100
+    meta = _num_map(state.get("close_top100_meta"))
+    if meta.get("trade_day") == _day_int(board["trade_day"]):
+        return False
+    state["close_top100_rank"] = {c: i + 1 for i, c in enumerate(board["codes"])}
+    state["close_top100_meta"] = {"trade_day": _day_int(board["trade_day"]), "checked_at": now, "size": board["size"],
+                                  "origin": 1 if board["origin"] == "market" else 2, "waiting": len(board["waiting"])}
+    state["close_top100_sha"] = close_top100.digest_ints(board["source_sha256"] or "0" * 64)
+    return True
+
+
+def top100_issues(board, rows, info_map, cal_map, recovery, yield_checks, today):
+    """榜內每檔的缺值位元與說明。正常狀態（新上市未滿一年、已確認不配息、本期不分配、已公告日期金額未定、待公告）不算。"""
+    import official_frequency
+    out = {}
+    for code in board["codes"]:
+        e = rows.get(code) or board["rows"][code]
+        meta = info_map.get(code)
+        freq = official_frequency.known_policy(code, meta) or e.get("div_freq") or e.get("div_frequency")
+        bits, why = 0, []
+        if freq in official_frequency.UNKNOWN:
+            bits |= TOP_POLICY
+            why.append("政策：" + official_frequency.STATUS_TEXT.get(recovery["status"].get(code), "本輪未列入查證")
+                       + ("；" + recovery["detail"][code] if recovery["detail"].get(code) else ""))
+        yld = e.get("yld")
+        if not (isinstance(yld, (int, float)) and yld > 0) and freq not in official_frequency.UNKNOWN + ("不配息",) \
+                and not e.get("new_listing") and not e.get("yld_pending"):
+            note, _ = no_distribution_note(code, meta, cal_map.get(code), today)
+            yc = (yield_checks.get(code) or {}).get("status")
+            if note is None and yc not in ("positive", "future", "zero_record", "amount_pending", "error", "queued"):
+                bits |= TOP_YIELD
+                why.append("殖利率：" + ((yield_checks[code].get("detail") or "上櫃官方查證查無") if yc == "no_record"
+                                       else "上市殖利率沒有已支援的自動官方來源（覆蓋不足，不是官方查無）"))
+        if e.get("ret1y") is None and not e.get("new_listing") and not _hist_insufficient(e):
+            bits |= TOP_RETURN
+            why.append("報酬：沒有自動查證來源（覆蓋不足）")
+        if bits:
+            out[code] = (bits, why)
+    return out
+
+
+def update_top100_state(state, board, issues, new_day, now):
+    """跨輪狀態；只在新交易日計輪。政策位元由 D-071 門檻處理，這裡不重複計輪。回傳達門檻代號。"""
+    st = {k: _num_map(state.get(k)) for k in TOP_KEYS}
+    tracked = {c for c, (bits, _) in issues.items() if bits & ~TOP_POLICY}
+    for k in TOP_KEYS:
+        st[k] = {c: v for c, v in st[k].items() if c in tracked}          # 已恢復或離榜者清除，不再重報
+    day = _day_int(board["trade_day"])
+    for c in sorted(tracked):
+        bits = issues[c][0] & ~TOP_POLICY
+        if st["top100_issue_kind"].get(c) not in (None, bits):
+            for k in TOP_KEYS[1:4]:
+                st[k].pop(c, None)                                         # 缺口種類變了：重新起算
+        st["top100_issue_kind"][c] = bits
+        if new_day and st["top100_issue_day"].get(c, 0) < day:
+            st["top100_issue_day"][c] = day
+            st["top100_issue_first"].setdefault(c, now)
+            st["top100_issue_rounds"][c] = st["top100_issue_rounds"].get(c, 0) + 1
+    state.update(st)
+    due = [c for c in tracked if st["top100_issue_rounds"].get(c, 0) >= POLICY_HELP_ROUNDS
+           and now - st["top100_issue_first"].get(c, now) >= POLICY_HELP_SECONDS
+           and now - st["top100_issue_notified"].get(c, 0) >= POLICY_REMIND_DAYS * 86400]
+    return sorted(due, key=lambda c: (board["codes"].index(c), c))
+
+
+def top100_help_lines(due, board, issues, rows, state):
+    if not due:
+        return []
+    out = ["🔎 收盤成交量前 100 名缺值，自動查證已跨 %d 個交易日、24 小時以上仍未解（%d 檔）" % (POLICY_HELP_ROUNDS, len(due)),
+           "交易日 %s 收盤榜（與網站排行同規則）。各檔列實際查過的來源與結果；「覆蓋不足」指本系統沒有該項的自動官方來源，"
+           "不是宣稱所有官方都查無，也不是要求你代查。" % board["trade_day"]]
+    for c in due:
+        e = rows.get(c) or board["rows"][c]
+        keep = "現存：配息頻率 %s、殖利率 %s、近1年報酬 %s" % (e.get("div_freq") or e.get("div_frequency") or "不明",
+                                                       e.get("yld"), e.get("ret1y"))
+        bits = issues[c][0] & ~TOP_POLICY
+        out.append("• 第 %d 名 %s %s：缺 %s；%s；%s（%d 輪）" % (
+            board["codes"].index(c) + 1, c, e.get("name", ""), "、".join(t for b, t in TOP_KIND_TEXT.items() if bits & b),
+            "；".join(w for w in issues[c][1] if not w.startswith("政策：")), keep, state["top100_issue_rounds"][c]))
+    ACK.setdefault("top100_issue_notified", []).extend(due)
+    return out
+
+
 NO_DIST = "no_distribution_this_period"
 
 
@@ -606,7 +708,7 @@ POLICY_HELP_ROUNDS  = 3
 POLICY_HELP_SECONDS = 24 * 3600
 POLICY_REMIND_DAYS  = 14
 POLICY_HELP_MAX     = 15
-POLICY_KEYS = ("frequency_recovery", "policy_status", "policy_first", "policy_rounds", "policy_notified")
+POLICY_KEYS = ("frequency_recovery", "policy_status", "policy_first", "policy_rounds", "policy_notified", "policy_round_day")
 
 
 def _num_map(v):
@@ -614,22 +716,29 @@ def _num_map(v):
             and not isinstance(x, bool) and math.isfinite(x)} if isinstance(v, dict) else {}
 
 
-def update_policy_state(state, result, now):
-    """依本輪查證結果更新跨輪狀態；回傳達求助門檻的代號（未在 POLICY_REMIND_DAYS 內確認送達過）。"""
+def update_policy_state(state, result, now, day_codes=(), round_day=None):
+    """依本輪查證結果更新跨輪狀態；回傳達求助門檻的代號（未在 POLICY_REMIND_DAYS 內確認送達過）。
+    CLOSE_TOP100 R1（F2）：收盤榜（已確認或暫定）上的代號，完成判讀輪數以「榜的交易日」去重——同一交易日重跑
+    （0h／1h／25h、重播同份證據）只計一次；policy_round_day 記上次計輪的交易日（YYYYMMDD）。榜外代號照舊。"""
     import official_frequency as of
     st = {k: _num_map(state.get(k)) for k in POLICY_KEYS}
     for c in result["twse_tried"]:
         st["frequency_recovery"][c] = now
     tracked = set(result["status"])
-    for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
+    for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified", "policy_round_day"):
         st[k] = {c: v for c, v in st[k].items() if c in tracked}        # 已不再未知／衝突者清除
+    day_codes = set(day_codes or ())
     for c, s in result["status"].items():
         if s == of.ADOPTED:
-            for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified"):
+            for k in ("policy_status", "policy_first", "policy_rounds", "policy_notified", "policy_round_day"):
                 st[k].pop(c, None)
             continue
         st["policy_status"][c] = s                   # 照實記錄本輪狀態（排隊／暫時失敗不沿用舊的無解）
         if c in result["completed"]:
+            if c in day_codes:
+                if round_day is None or st["policy_round_day"].get(c, 0) >= round_day:
+                    continue                         # 同一收盤交易日已計過（或無有效交易日）：狀態照實更新，不增輪
+                st["policy_round_day"][c] = round_day
             st["policy_first"].setdefault(c, now)
             st["policy_rounds"][c] = st["policy_rounds"].get(c, 0) + 1
     state.update(st)
@@ -723,7 +832,7 @@ def history_help_lines(due, state, checks, names):
     return out
 
 
-def policy_help_lines(due, result, state, names):
+def policy_help_lines(due, result, state, names, board=None):
     """達門檻的彙整求助（工程摘要）：列已查來源／輪數／時間／缺口，不要求 PO 代查官網。列出者才要求送達回執。"""
     import official_frequency as of
     if not due:
@@ -732,11 +841,13 @@ def policy_help_lines(due, result, state, names):
     shown = due[:POLICY_HELP_MAX]
     sitca = result["sitca"]
     out = ["🔎 配息政策自動查證仍無解（%d 檔；已跨 %d 輪、24 小時以上）" % (len(due), POLICY_HELP_ROUNDS),
-           "支援的自動來源只有投信投顧公會 ETF 基本資料月報（本輪 %s，更新 %s）與 TWSE ETFortune 政策公告；"
-           "其他發行人網站未自動支援，不代表所有官方皆查無。每檔列本輪實際讀過的來源" % (sitca.get("report_month") or "未取得", sitca.get("updated") or "—")]
+           "支援的自動來源只有投信投顧公會 ETF 基本資料月報（本輪 %s，更新 %s）、TWSE ETFortune 政策公告，"
+           "以及兩個發行人入口（復華 ETF 商品頁［目前僅 00418A］、玉山專頁連出的簡式公開說明書）；"
+           "其他發行人網站未自動支援（覆蓋不足），不代表所有官方皆查無。每檔列本輪實際讀過的來源" % (sitca.get("report_month") or "未取得", sitca.get("updated") or "—")]
+    rank = {c: i + 1 for i, c in enumerate(board["codes"])} if board else {}
     for c in shown:
-        out.append("• %s %s：%s；本輪已查 %s；%s（完成判讀 %d 輪，首次 %s）" % (
-            c, names.get(c, ""), of.STATUS_TEXT[state["policy_status"][c]], "＋".join(result["checked"].get(c) or []),
+        out.append("• %s%s %s：%s；本輪已查 %s；%s（完成判讀 %d 輪，首次 %s）" % (
+            ("收盤 %s 第 %d 名 " % (board["trade_day"], rank[c])) if c in rank else "", c, names.get(c, ""), of.STATUS_TEXT[state["policy_status"][c]], "＋".join(result["checked"].get(c) or []),
             result["detail"].get(c, ""), state["policy_rounds"][c], fmt(state["policy_first"][c])))
     if len(due) > len(shown):
         out.append("…其餘 %d 檔下輪接續列出" % (len(due) - len(shown)))
@@ -744,7 +855,7 @@ def policy_help_lines(due, result, state, names):
     return out
 
 
-def check_unverified_otc_yields(etfs, state, now, resolver=None, limit=4, pending_codes=None, tracked_codes=None):
+def check_unverified_otc_yields(etfs, state, now, resolver=None, limit=4, pending_codes=None, tracked_codes=None, priority=None):
     """Mature OTC missing yields: bounded official checks, not immediate PO homework.
 
     Numeric state only; transient errors get a separate engineering-source alert
@@ -763,7 +874,8 @@ def check_unverified_otc_yields(etfs, state, now, resolver=None, limit=4, pendin
     st = {k:{c:v for c,v in _num_map(state.get(k)).items() if c in eligible} for k in keys}
     today = datetime.datetime.fromtimestamp(now, datetime.timezone(datetime.timedelta(hours=8))).date()
     result, due = {}, []
-    codes = sorted(eligible, key=lambda c:(st['yield_recheck'].get(c,0), c))
+    import official_frequency
+    codes = official_frequency.prioritized(list(eligible), st['yield_recheck'], priority, limit)   # CLOSE_TOP100：榜內優先、榜外保底一格
     for i,c in enumerate(codes):
         if i >= limit:
             result[c] = {'status':'queued','detail':'本輪官方殖利率查證額度已滿，排隊下輪；未完成判讀'}
@@ -844,6 +956,20 @@ def main():
                 policy_rows[row["code"]] = dict(row)
     policy_etfs = list(policy_rows.values())
 
+    # CLOSE_TOP100：收盤成交量前 100 名（＝網站排行）。只讀 market／_base，在任何回填改寫 _base 之前判定。
+    import close_top100
+    board, board_why, round_board = close_top100.closing_board(ROOT)   # board＝已確認；round_board＝已確認或暫定（只供優先／去重）
+    top_codes = set(round_board["codes"]) if round_board else set()
+    round_day = _day_int(round_board["trade_day"]) if round_board else None
+    if board:
+        print("[TOP100] 收盤榜 %s（來源 %s，%d 檔，未就緒 %s，來源 sha256 %s）：%s" % (
+            board["trade_day"], board["origin"], board["size"], ",".join(board["waiting"]) or "無",
+            board["source_sha256"], ",".join(board["codes"])))
+    else:
+        print("[TOP100] 本輪沒有已確認的收盤榜，不記為查核成功：%s" % board_why)
+        if round_board:
+            print("[TOP100] 暫定榜 %s（%d 檔，僅供補查優先次序；不寫紀錄、不計完成）" % (round_board["trade_day"], round_board["size"]))
+
     # D-071（安全版整合）：全體未知政策（不限 TOP100／新進）先自動查證；合格就同輪寫入候選，經原 Gate 發布採用。
     import official_frequency
     now_ts = _now()
@@ -851,7 +977,8 @@ def main():
     policy_state = load(DAILY_STATE) or {}
     recovery = official_frequency.recover_policies(
         policy_etfs, info_map, _num_map(policy_state.get("frequency_recovery")),
-        datetime.datetime.fromtimestamp(now_ts, tz8).date(), datetime.datetime.fromtimestamp(now_ts, tz8).isoformat())
+        datetime.datetime.fromtimestamp(now_ts, tz8).date(), datetime.datetime.fromtimestamp(now_ts, tz8).isoformat(),
+        priority=top_codes)
     for c, s in sorted(recovery["status"].items()):
         print("[POLICY] %s %s %s" % (c, official_frequency.STATUS_TEXT[s], recovery["detail"].get(c, "")))
     print("[POLICY] SITCA %s" % json.dumps(recovery["sitca"], ensure_ascii=False))
@@ -895,7 +1022,7 @@ def main():
         save_json(DIV_INFO, div_info)
     for k in ("frequency_unresolved", "frequency_notified"):      # D-068 R1 F4 舊欄位（未曾正式發布）由 D-071 狀態取代
         state.pop(k, None)
-    policy_due = update_policy_state(state, recovery, now_ts)
+    policy_due = update_policy_state(state, recovery, now_ts, top_codes, round_day)
     hist_due   = update_history_state(state, etfs, hist_checks, now_ts, hist_at)
     pending_dates = _pending_dates()
     pending_codes = {c for c, since in pending_dates.items()
@@ -903,7 +1030,7 @@ def main():
     stored_tpex = {c: entry for c, meta in info_map.items()
                    if (entry := official_frequency.stored_tpex_calendar(c, meta)) is not None}
     yield_checks, yield_source_due = check_unverified_otc_yields(
-        policy_etfs, state, now_ts, pending_codes=pending_codes, tracked_codes=set(stored_tpex))
+        policy_etfs, state, now_ts, pending_codes=pending_codes, tracked_codes=set(stored_tpex), priority=top_codes)
     # The profile/history queries above already contain the raw hashes. Reuse
     # them, never query again just to turn a diagnosis into an adopted record.
     import official_yield_check
@@ -1062,21 +1189,26 @@ def main():
                     row["yld_pending"] = False
             save_json(ROOT / "data" / "_base.json", cur_base)
 
+    # ── CLOSE_TOP100：收盤榜全部查缺值（不只新進；首次也查）──
+    new_entries, top_due, top_issues, top_rows = [], [], {}, {e["code"]: e for e in policy_etfs if isinstance(e.get("code"), str)}
+    if board:
+        new_day = record_close_board(state, board, now_ts)
+        top_issues = top100_issues(board, top_rows, info_map, cal_map, recovery, yield_checks, today_tpex)
+        top_due = update_top100_state(state, board, top_issues, new_day, now_ts)
+        for c, (bits, why) in sorted(top_issues.items(), key=lambda x: board["codes"].index(x[0])):
+            print("[TOP100] 第 %d 名 %s 缺值 %d：%s" % (board["codes"].index(c) + 1, c, bits, "；".join(why)))
+        if not new_day:
+            print("[TOP100] 交易日 %s 已查核過：本輪照常查證，但不重複計輪" % board["trade_day"])
+        known = load(KNOWN_CODES)
+        save_json(KNOWN_CODES, sorted(board["codes"]))
+        if isinstance(known, list):                       # 新進只用於「說明」訊息；檢查本身涵蓋全榜
+            new_entries = [top_rows.get(c) or board["rows"][c] for c in board["codes"] if c not in set(known)]
+
     # ── 儲存跨日狀態 ──
     state["yld_prev"]        = yld_prev
     state["zero_vol_streak"] = vol_streak
     save_json(DAILY_STATE, state)
 
-    # ── TOP 100 新進偵測 ──
-    new_entries = check_new_in_top100(etfs)
-    # A queued lookup is not an acknowledged/handled issue. Keep deferred
-    # entrants eligible so a later exhausted lookup can still raise its alert.
-    deferred_codes = {c for c, s in recovery["status"].items() if s != official_frequency.ADOPTED}
-    deferred_codes.update(c for c,r in yield_checks.items() if r['status'] in ('error','queued'))
-    if deferred_codes:
-        known = load(KNOWN_CODES)
-        if isinstance(known, list):
-            save_json(KNOWN_CODES, [code for code in known if code not in deferred_codes])
 
     # ── 主動式 ETF 持股資料健康檢查 ──
     active_issues = check_active_flow()
@@ -1132,16 +1264,14 @@ def main():
                         warn.append('官方有正額配息，但候選尚未通過採用核對')
                 # queued/error are not a completed no-data result; retry independently
                 # of TOP100 entry, with separately rate-limited source-failure reporting.
-            else:
-                warn.append("殖利率查無" + (f"（{why}）" if why else ""))
-        if not ret1y and not is_new and not _hist_insufficient(e):
-            warn.append("報酬率查無")
+            # CLOSE_TOP100：殖利率／報酬查無不再第一次就通知，改由全榜跨輪門檻（top100_help_lines）彙整
         if warn:
             problem_entries.append(
                 f"• {e['code']} {e.get('name','')}：{'、'.join(warn)}"
             )
-    lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in policy_etfs}))
+    lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in policy_etfs}, board))
     lines.extend(history_help_lines(hist_due, state, hist_checks, {e.get("code"): e.get("name", "") for e in etfs}))
+    lines.extend(top100_help_lines(top_due, board, top_issues, top_rows, state))
     if yield_source_due:
         lines.append('🔧 殖利率官方來源持續未完成（至少3次、跨24小時；不是宣稱官方查無）')
         lines.extend('• %s %s：%s' % (c, next((e.get('name','') for e in etfs if e['code']==c),c), yield_checks[c]['detail']) for c in yield_source_due)

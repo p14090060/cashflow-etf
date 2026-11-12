@@ -683,6 +683,294 @@ def sitca_policy(code, name, st, today):
                               "short_name": rows[0][0], "full_name": rows[0][1], "classification": rows[0][2]}
 
 
+# ── CLOSE_TOP100_RECOVERY（2026-11-12）：兩個已驗明的發行人政策入口（只此兩種，不泛化到其他網站）──
+#   fuhwa_etf_page   ：復華 ETF 商品頁 https://www.fhtrust.com.tw/ETF/etf_detail/ETFnn（代號→頁碼只認下表，表外＝未支援）。
+#                      身分＝頁首 <span class="text-en-9-bold">代號</span><span class="pl-2 text-9-medium">簡稱</span> 恰好一組、
+#                      簡稱＝商品名稱、h1 完整名稱；政策＝「基本資料」表格「收益分配」那一格，只認「否」→ 不配息
+#                      （「是」沒有頻率 → 無明確政策）。導覽選單／下拉清單／標題／基金特色文案都不當證據。
+#   esun_sprospectus ：玉山 ETF 專頁 https://www.esunam.com/act/etf_<代號>/ 連出的 assets/pdf/<代號>_sProspectus.pdf。
+#                      身分＝專頁 <title> 含代號與名稱 N、該專頁恰有一個同代號簡式公開說明書連結；PDF「基金名稱」＝玉山＋N＋證券投資信託基金；
+#                      政策＝簡式公開說明書基本資料表「存續期間」欄之後、「計價幣別」欄之前那一格的完整值（季配息等）。
+#                      PDF 文字以標準庫 zlib 解析（FlateDecode／ObjStm／Identity-H＋ToUnicode），不依賴外部工具或套件。
+#   兩者都保存原件 sha256、來源日期（復華：頁面淨值日期；玉山：刊印日期）、完整政策欄原文與身分；金額／月份不從這裡推。
+ISSUER_KIND = "issuer_policy_page"
+# R1（F3）：精確身分表。首次解析與讀回都對同一張表核對：同代號的入口、頁碼、完整基金名稱、簡稱（＝商品名稱）、
+# 玉山專頁標題名稱。表外代號＝未支援（覆蓋不足）。新增一檔須先以官方原件核實這幾項再加表，不以任意字串拼接通過。
+ISSUER_FUNDS = {
+    "00418A": {"issuer": "fuhwa", "page": "ETF27", "full_name": "復華台灣新星主動式ETF基金", "short_name": "主動復華台灣新星"},
+    "00413A": {"issuer": "esun", "title_name": "臺灣關鍵科技主動式ETF",
+               "full_name": "玉山臺灣關鍵科技主動式ETF證券投資信託基金", "short_name": "主動玉山關鍵科技"},
+}
+FUHWA_ETF_PAGES = {c: f["page"] for c, f in ISSUER_FUNDS.items() if f["issuer"] == "fuhwa"}
+FUHWA_HOST, ESUN_HOST = "www.fhtrust.com.tw", "www.esunam.com"
+ESUN_CELL = {"月配息": "月配", "雙月配息": "雙月配", "季配息": "季配", "半年配息": "半年配", "年配息": "年配", "不配息": "不配息"}
+_ISSUER_KEYS = {"kind", "issuer", "code", "frequency", "url", "sha256", "source_date", "checked_at", "full_name", "short_name", "statement"}
+
+
+def fuhwa_url(code):
+    page = FUHWA_ETF_PAGES.get(code)
+    return "https://%s/ETF/etf_detail/%s" % (FUHWA_HOST, page) if page else None
+
+
+def esun_urls(code):
+    return "https://%s/act/etf_%s/" % (ESUN_HOST, code), "https://%s/act/etf_%s/assets/pdf/%s_sProspectus.pdf" % (ESUN_HOST, code, code)
+
+
+def issuer_entry(code, name):
+    """此代號是否有已支援的發行人入口：('fuhwa'|'esun', url) 或 None（未支援＝覆蓋不足，不是查無）。"""
+    if not isinstance(code, str) or not re.fullmatch(r"[0-9]{4,6}[A-Z]?", code):
+        return None
+    f = ISSUER_FUNDS.get(code)
+    if f is None:
+        return None                                   # 表外代號＝未支援（覆蓋不足）；名稱不符由解析／讀回核對拒用
+    return (f["issuer"], fuhwa_url(code)) if f["issuer"] == "fuhwa" else (f["issuer"], esun_urls(code)[0])
+
+
+def _issuer_get(url, host):
+    request = urllib.request.Request(url, headers={"User-Agent": "ETF-policy-recovery/1.0"})
+    with urllib.request.build_opener(NoRedirect).open(request, timeout=10) as response:
+        final = urllib.parse.urlsplit(response.url)
+        if response.status != 200 or final.scheme != "https" or final.hostname != host:
+            raise ValueError("issuer source returned an unexpected status or destination")
+        body = response.read(3_000_001)
+        if len(body) > 3_000_000:
+            raise ValueError("issuer response exceeds evidence size limit")
+        return body
+
+
+def _tag_text(html_text, pattern):
+    import html as _html
+    return [re.sub(r"\s+", "", _html.unescape(re.sub(r"<!--.*?-->|<[^>]+>", "", m))) for m in re.findall(pattern, html_text, re.S)]
+
+
+def parse_fuhwa_page(code, short_name, url, body):
+    """→ (frequency 或 None, 欄位原文, 完整名稱, 來源日期)；身分或格式不符 → ValueError。"""
+    if url != fuhwa_url(code) or not isinstance(body, bytes) or body[:5] == b"%PDF-":
+        raise ValueError("fuhwa page url／format not exact")
+    t = body.decode("utf-8", errors="strict")
+    heads = re.findall(r'<span class="text-en-9-bold">\s*([0-9A-Z]{4,8})\s*</span>\s*<span class="pl-2 text-9-medium">\s*([^<]{1,40}?)\s*</span>', t)
+    if len(heads) != 1 or heads[0][0] != code or _norm(heads[0][1]) != _norm(short_name) \
+            or _norm(heads[0][1]) != _norm(ISSUER_FUNDS.get(code, {}).get("short_name")):
+        raise ValueError("fuhwa page identity (code／short name) missing or mismatched")
+    full = _tag_text(t, r'<h1 class="fundState-name heading-1">(.*?)</h1>')
+    if len(full) != 1 or full[0] != ISSUER_FUNDS.get(code, {}).get("full_name"):
+        raise ValueError("fuhwa page full fund name missing")
+    dates = re.findall(r'<div class="fundState-date[^"]*">\s*(\d{4})/(\d{2})/(\d{2})\s*</div>', t)
+    if len(set(dates)) != 1:
+        raise ValueError("fuhwa page source date missing or ambiguous")
+    src_date = datetime.date(*map(int, dates[0])).isoformat()
+    cells = re.findall(r'<th class="fundInformationTable-head">\s*收益分配(?:<!--v-if-->)?\s*</th>\s*'
+                       r'<td class="fundInformationTable-content[^"]*">(.*?)</td>', t, re.S)
+    vals = [re.sub(r"\s+", "", re.sub(r"<!--.*?-->|<[^>]+>", "", c, flags=re.S)) for c in cells]
+    if len(vals) != 1:
+        raise ValueError("fuhwa page 收益分配 field missing or duplicated")
+    return ("不配息" if vals[0] == "否" else None), "收益分配：" + vals[0], full[0], src_date
+
+
+def parse_esun_landing(code, url, body):
+    """→ (pdf_url, 名稱 N)。"""
+    landing, pdf = esun_urls(code)
+    if url != landing or not isinstance(body, bytes) or body[:5] == b"%PDF-":
+        raise ValueError("esun landing url／format not exact")
+    t = body.decode("utf-8", errors="strict")
+    titles = _tag_text(t, r"<title>(.*?)</title>")
+    m = re.fullmatch(r"玉山投信%s(.+?ETF)(?:｜.*)?" % re.escape(code), titles[0]) if len(titles) == 1 else None
+    if not m:
+        raise ValueError("esun landing title identity missing or mismatched")
+    links = set(re.findall(r'href="([^"]*_sProspectus\.pdf)"', t))
+    if links != {"assets/pdf/%s_sProspectus.pdf" % code}:
+        raise ValueError("esun landing simplified prospectus link missing or ambiguous")
+    if m.group(1) != ISSUER_FUNDS.get(code, {}).get("title_name"):
+        raise ValueError("esun landing title name is not the registered fund")
+    return pdf, m.group(1)
+
+
+def pdf_text(blob):
+    """最小 PDF 文字抽取（標準庫）：只支援本入口實際格式；不支援／損壞的結構一律在此邊界轉成 ValueError（R1 F4），不猜。"""
+    import zlib
+    try:
+        return _pdf_text(blob)
+    except ValueError:
+        raise
+    except (zlib.error, KeyError, AttributeError, IndexError, TypeError, UnicodeError, OverflowError) as ex:
+        raise ValueError("PDF structure unsupported or corrupt（%s）" % type(ex).__name__)
+
+
+def _pdf_text(blob):
+    import zlib
+    if not isinstance(blob, bytes) or not blob.startswith(b"%PDF-") or b"/Encrypt" in blob:
+        raise ValueError("not an unencrypted PDF")
+    objs = {int(m.group(1)): m.group(2) for m in re.finditer(rb"(\d+) 0 obj(.*?)endobj", blob, re.S)}
+
+    def stream(body):
+        i = body.find(b"stream")
+        if i < 0:
+            raise ValueError("PDF object has no stream")
+        s = body[i + 6:]
+        s = s[2:] if s[:2] == b"\r\n" else s[1:]
+        raw = s[:s.rfind(b"endstream")]
+        filt = re.findall(rb"/Filter\s*/(\w+)", body[:i])
+        if filt == [b"FlateDecode"]:
+            return zlib.decompress(raw)
+        if not filt:
+            return raw
+        raise ValueError("unsupported PDF filter")
+    for body in list(objs.values()):
+        if b"/ObjStm" in body[:300]:
+            d, first = stream(body), int(re.search(rb"/First (\d+)", body).group(1))
+            hdr = list(map(int, d[:first].split()))
+            for k in range(0, len(hdr), 2):
+                end = hdr[k + 3] if k + 3 < len(hdr) else len(d) - first
+                objs.setdefault(hdr[k], d[first + hdr[k + 1]:first + end])
+
+    def cmap(n):
+        d, m = stream(objs[n]).decode("latin1"), {}
+        for blk in re.findall(r"beginbfchar(.*?)endbfchar", d, re.S):
+            for a, u in re.findall(r"<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>", blk):
+                m[int(a, 16)] = bytes.fromhex(u).decode("utf-16-be")
+        for blk in re.findall(r"beginbfrange(.*?)endbfrange", d, re.S):
+            for a, z, u, arr in re.findall(r"<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*(?:<([0-9A-Fa-f]+)>|\[([^\]]*)\])", blk):
+                lo, hi = int(a, 16), int(z, 16)
+                if u:
+                    for k in range(lo, hi + 1):
+                        m[k] = chr(int(u, 16) + k - lo)
+                else:
+                    for k, x in zip(range(lo, hi + 1), re.findall(r"<([0-9A-Fa-f]+)>", arr)):
+                        m[k] = bytes.fromhex(x).decode("utf-16-be")
+        return m
+    pages_obj = [n for n, b in sorted(objs.items()) if re.search(rb"/Type\s*/Pages\b", b)]
+    if len(pages_obj) != 1:
+        raise ValueError("PDF page tree not supported")
+    kids = [int(x) for x in re.findall(rb"(\d+) 0 R", re.search(rb"/Kids\s*\[(.*?)\]", objs[pages_obj[0]], re.S).group(1))]
+    out = []
+    tok = re.compile(r"/(F\d+)\s+[\d.]+\s+Tf|\[(.*?)\]\s*TJ|\(((?:\\.|[^\\)])*)\)\s*Tj|<([0-9A-Fa-f]*)>\s*Tj|(T\*|Td|TD|Tm|ET)\b", re.S)
+    for p in kids:
+        page = objs[p]
+        fonts = {k.decode(): int(v) for k, v in re.findall(rb"/(F\d+) (\d+) 0 R", page)}
+        maps = {}
+        for k, v in fonts.items():
+            tu = re.search(rb"/ToUnicode (\d+) 0 R", objs[v])
+            if re.search(rb"/Subtype\s*/Type0", objs[v]) and not tu:
+                raise ValueError("composite font without ToUnicode")
+            maps[k] = cmap(int(tu.group(1))) if tu else None
+        cur, text = None, []
+        for t in tok.finditer(stream(objs[int(re.search(rb"/Contents (\d+) 0 R", page).group(1))]).decode("latin1")):
+            if t.group(1):
+                cur = t.group(1)
+                continue
+            if t.group(5):
+                text.append("\n")
+                continue
+            if t.group(2) is not None:
+                parts = re.findall(r"<([0-9A-Fa-f]*)>|\(((?:\\.|[^\\)])*)\)", t.group(2))
+            elif t.group(3) is not None:
+                parts = [("", t.group(3))]
+            else:
+                parts = [(t.group(4), "")]
+            m = maps.get(cur)
+            for hx, lit in parts:
+                raw = bytes.fromhex(hx) if hx else re.sub(r"\\(.)", r"\1", lit).encode("latin1")
+                if m is None:
+                    text.append(raw.decode("cp1252", errors="replace"))
+                else:
+                    text.append("".join(m.get(raw[i] * 256 + raw[i + 1], "�") for i in range(0, len(raw) - 1, 2)))
+        out.append("".join(text))
+    return "\n".join(out)
+
+
+def parse_esun_sprospectus(code, name_n, url, blob):
+    """→ (frequency, 欄位原文, 完整名稱, 刊印日期)。"""
+    if url != esun_urls(code)[1]:
+        raise ValueError("esun prospectus url not exact")
+    flat = re.sub(r"\s+", "", pdf_text(blob))
+    full = "玉山" + _norm(name_n) + "證券投資信託基金"
+    if full != ISSUER_FUNDS.get(code, {}).get("full_name"):
+        raise ValueError("esun fund name is not the registered fund")
+    if "基金名稱" + full not in flat or "簡式公開說明書" not in flat:
+        raise ValueError("simplified prospectus does not name the landing-page fund")
+    dm = re.findall(r"刊印日期：(\d{4})年(\d{1,2})月(\d{1,2})日", flat)
+    if len(set(dm)) != 1:
+        raise ValueError("simplified prospectus print date missing or ambiguous")
+    head = flat.split("壹、基本資料", 1)
+    if len(head) != 2 or "貳、" not in head[1]:
+        raise ValueError("simplified prospectus basic-data section missing")
+    sec = head[1].split("貳、", 1)[0]
+    cells = re.findall(r"存續期間不定期限[^一-鿿]{0,12}(月配息|雙月配息|季配息|半年配息|年配息|不配息)計價幣別", sec)
+    if len(cells) != 1 or sec.count("配息計價幣別") != 1:
+        raise ValueError("simplified prospectus distribution cell missing or ambiguous")
+    return ESUN_CELL[cells[0]], "基本資料：" + cells[0], full, datetime.date(*map(int, dm[0])).isoformat()
+
+
+def resolve_issuer_policy(code, name, now_iso, get=None):
+    """發行人入口一次查證。回傳 {status: verified／no_policy／failed／rejected／unsupported, frequency, source, detail, label}。
+    failed（連線／403／逾時）與 rejected（格式或身分不符）都不算完成判讀。"""
+    entry = issuer_entry(code, name)
+    if entry is None:
+        return {"status": "unsupported", "detail": "沒有已支援的發行人入口（覆蓋不足，不是查無）"}
+    issuer, url = entry
+    get = get or _issuer_get
+    label = "復華商品頁" if issuer == "fuhwa" else "玉山簡式公開說明書"
+    try:
+        if issuer == "fuhwa":
+            body = get(url, FUHWA_HOST)
+        else:
+            landing = get(url, ESUN_HOST)
+    except Exception as ex:
+        return {"status": "failed", "label": label, "detail": "%s讀取失敗（%s，下輪重試）" % (label, type(ex).__name__)}
+    try:
+        if issuer == "fuhwa":
+            freq, stmt, full, sdate = parse_fuhwa_page(code, name, url, body)
+            src = {"url": url, "sha256": hashlib.sha256(body).hexdigest()}
+        else:
+            pdf_url, n = parse_esun_landing(code, url, landing)
+            try:
+                blob = get(pdf_url, ESUN_HOST)
+            except Exception as ex:
+                return {"status": "failed", "label": label, "detail": "%s讀取失敗（%s，下輪重試）" % (label, type(ex).__name__)}
+            freq, stmt, full, sdate = parse_esun_sprospectus(code, n, pdf_url, blob)
+            src = {"url": pdf_url, "sha256": hashlib.sha256(blob).hexdigest(), "landing_url": url,
+                   "landing_sha256": hashlib.sha256(landing).hexdigest()}
+    except (ValueError, UnicodeError, KeyError, AttributeError, IndexError, TypeError) as ex:
+        return {"status": "rejected", "label": label, "detail": "%s格式／身分不符（%s），未算完成" % (label, str(ex)[:80])}
+    if freq is None:
+        return {"status": "no_policy", "label": label, "detail": "%s「%s」不是明確頻率" % (label, stmt)}
+    source = dict(src, kind=ISSUER_KIND, issuer=issuer, code=code, frequency=freq, source_date=sdate, checked_at=now_iso,
+                  full_name=full, short_name=name, statement=stmt)
+    if policy_source_problem(code, {"frequency": freq, "policy_source": dict(source)}) is not None:
+        return {"status": "rejected", "label": label, "detail": "%s採用紀錄自我核對失敗" % label}
+    return {"status": "verified", "label": label, "frequency": freq, "source": source, "detail": "%s：%s" % (label, stmt)}
+
+
+def issuer_source_problem(code, ps):
+    """issuer_policy_page 採用紀錄讀回核對（不重抓原件）：入口、網址、身分、欄位原文與頻率的對應都要精確。"""
+    issuer = ps.get("issuer")
+    keys = _ISSUER_KEYS | ({"landing_url", "landing_sha256"} if issuer == "esun" else set())
+    if set(ps) != keys:
+        return "issuer policy_source fields invalid"
+    if ps.get("code") != code or not all(isinstance(ps.get(k), str) and ps[k] for k in keys):
+        return "issuer policy_source code／field types invalid"
+    if not all(re.fullmatch(r"[0-9a-f]{64}", ps[k]) for k in ("sha256", "landing_sha256") if k in ps):
+        return "issuer policy_source sha256 invalid"
+    f = ISSUER_FUNDS.get(code)
+    if f is None or f["issuer"] != issuer or ps["full_name"] != f["full_name"] or ps["short_name"] != f["short_name"]:
+        return "issuer policy_source identity is not the registered fund for this code"
+    if issuer == "fuhwa":
+        if ps["url"] != fuhwa_url(code) or ps["statement"] != "收益分配：否" or ps["frequency"] != "不配息":
+            return "fuhwa policy_source url／statement invalid"
+    elif issuer == "esun":
+        landing, pdf = esun_urls(code)
+        cell = ps["statement"][len("基本資料："):] if ps["statement"].startswith("基本資料：") else None
+        if ps["url"] != pdf or ps["landing_url"] != landing or ESUN_CELL.get(cell) != ps["frequency"]:
+            return "esun policy_source url／statement invalid"
+    else:
+        return "issuer policy_source issuer unknown"
+    sdate = datetime.date.fromisoformat(ps["source_date"])
+    checked = datetime.datetime.fromisoformat(ps["checked_at"])
+    if checked.tzinfo is None or sdate > checked.astimezone(datetime.timezone(datetime.timedelta(hours=8))).date():
+        return "issuer policy_source source_date after checked_at (future source)"
+    return None
+
+
 def policy_source_problem(code, meta):
     """D-071 policy_source（SITCA 採用紀錄）讀回核對；None＝有效、'absent'＝沒有該欄位。壞型別不崩潰。"""
     try:
@@ -691,6 +979,9 @@ def policy_source_problem(code, meta):
         ps = meta.get("policy_source")
         if ps is None:
             return "absent"
+        if isinstance(ps, dict) and ps.get("kind") == ISSUER_KIND:
+            return issuer_source_problem(code, ps) if ps.get("frequency") == meta.get("frequency") \
+                else "policy_source frequency mismatch"
         if not isinstance(ps, dict) or ps.get("kind") != "sitca_etf_statement" or ps.get("code") != code:
             return "policy_source kind／code invalid"
         if ps.get("frequency") not in POLICY_VALUES or ps.get("frequency") != meta.get("frequency"):
@@ -736,7 +1027,20 @@ def _adopt(info_map, code, name, frequency, source):
     return meta
 
 
-def recover_policies(etfs, info_map, last_try, today, now_iso, twse_resolver=None, sitca_get=None, limit=4):
+def prioritized(codes, last_try, priority, limit):
+    """CLOSE_TOP100：收盤榜內優先，但只要榜外也有待查，每輪至少留一格給最久沒查的榜外（不讓既有輪替永久餓死）。
+    回傳完整次序；前 limit 個是本輪要查的。"""
+    base = sorted(codes, key=lambda c: (last_try.get(c, 0), c))
+    priority = set(priority or ())
+    top, rest = [c for c in base if c in priority], [c for c in base if c not in priority]
+    if not top or not rest or limit < 2:
+        return top + rest
+    head = top[:limit - 1] + rest[:1]
+    return head + [c for c in base if c not in head]
+
+
+def recover_policies(etfs, info_map, last_try, today, now_iso, twse_resolver=None, sitca_get=None, limit=4,
+                     priority=None, issuer_resolver=None):
     """每輪盤點全部未知政策（不限 TOP100）。SITCA 月報一次讀全表；SITCA 未解決的（缺值、身分不符、與已知政策衝突）
     依「最久沒查」輪替 TWSE 公告當替代來源，每輪最多 limit 檔（其餘排隊）。只寫 info_map 中原本未知（或證據失效）的條目；
     已知政策不覆蓋。completed＝本輪所有適用來源都實際讀完（未查／失敗不算）。checked＝本輪實際讀過的來源。
@@ -783,8 +1087,32 @@ def recover_policies(etfs, info_map, last_try, today, now_iso, twse_resolver=Non
             continue
         detail[code] = d
         pending.append((code, "identity_conflict" if s == "conflict" else "unknown", None, None))
+    # CLOSE_TOP100：已驗明的發行人入口（復華商品頁／玉山簡式公開說明書）。只對政策未知、且有入口的代號；
+    # 與 TWSE 同額度上限（另計），榜內優先。失敗／格式不符 → 不算完成（incomplete），仍續查 TWSE 但不累積求助輪數。
+    issuer_resolver = issuer_resolver or resolve_issuer_policy
+    incomplete = set()
+    cand = [c for c, k, _, _ in pending if k == "unknown" and issuer_entry(c, names.get(c)) is not None]
+    order = prioritized(cand, last_try, priority, limit)
+    for i, code in enumerate(order):
+        if i >= limit:
+            incomplete.add(code)
+            detail[code] = (detail.get(code) or "") + "；發行人入口排隊（本輪額度已用完）"
+            continue
+        r = issuer_resolver(code, names.get(code), now_iso)
+        if r.get("status") == "verified":
+            _adopt(info_map, code, names[code], r["frequency"], r["source"])
+            status[code], detail[code] = ADOPTED, r["detail"]
+            checked.setdefault(code, []).append(r["label"])
+            adopted.append(code)
+            pending = [x for x in pending if x[0] != code]
+            continue
+        if r.get("status") == "no_policy":
+            checked.setdefault(code, []).append(r["label"])
+        else:
+            incomplete.add(code)
+        detail[code] = (detail.get(code) or "") + "；" + r.get("detail", "")
     kinds = {c: (k, known, sf) for c, k, known, sf in pending}
-    for i, code in enumerate(sorted(kinds, key=lambda c: (last_try.get(c, 0), c))):
+    for i, code in enumerate(prioritized(list(kinds), last_try, priority, limit)):
         kind, known, sitca_freq = kinds[code]
         if i >= limit:
             if status.get(code) != TEMP_FAIL:
@@ -820,6 +1148,9 @@ def recover_policies(etfs, info_map, last_try, today, now_iso, twse_resolver=Non
             adopted.append(code)
         elif status.get(code) == TEMP_FAIL:
             detail[code] = (detail.get(code) or "") + "；TWSE 公告無明確政策（SITCA 未取得，未算完成）"
+        elif code in incomplete:
+            status[code] = TEMP_FAIL
+            detail[code] = "%s；TWSE 公告無明確政策（發行人入口未完成判讀，未算完成）" % (detail.get(code) or "")
         else:
             status[code] = CONFLICT if kind == "identity_conflict" else NO_RESULT
             detail[code] = "%s；TWSE 公告無明確政策（%s）" % (detail.get(code) or "SITCA 無明確分類", r.get("reason", ""))
