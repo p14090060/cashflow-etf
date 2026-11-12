@@ -2675,8 +2675,9 @@
         "announced_date": "2026-11-02",
         "valid_until": "2027-09-29",
         "source": {
-          "name": "TWSE ETFortune官方公告",
-          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00026&date=20261102&seq=1&fund=009800&type=distribution"
+          "name": "TWSE ETFortune 官方收益分配決議",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00026&date=20261102&seq=1&fund=009800&type=distribution",
+          "sha256": "d4f761a9eb31d4cb8a6008b0dda6b0ce15c20a034a92661c6580cb6ca1aa2297"
         }
       }
     },
