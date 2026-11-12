@@ -1,15 +1,15 @@
 {
-  "updated": "2026-11-12 12:40",
+  "updated": "2026-11-12 12:50",
   "quote_date": "2026-11-12",
   "quote_time": "2026-11-12 12:41",
-  "market_state": "live",
+  "market_state": "stale",
   "close_confirmed": {
     "etfs": 0,
     "traded": 0,
     "no_trade": 0,
     "total": 201
   },
-  "is_closed": false,
+  "is_closed": true,
   "is_holiday": false,
   "last_trading_time": null,
   "market": {
@@ -17,7 +17,7 @@
     "change_pt": -694.96,
     "change_pct": -1.57,
     "quote_date": "2026-11-12",
-    "is_live": true,
+    "is_live": false,
     "close_confirmed": false,
     "mis_time": "12:40"
   },
