@@ -846,7 +846,47 @@ FUHWA_FUNDS = {
     "00998A": ("ETF24", "主動復華金融股息"),
     "00986D": ("ETF25", "主動復華金融債息"),
     "00409A": ("ETF26", "主動復華全球50"),
+    "00418A": ("ETF27", "主動復華台灣新星"),      # 2026-11-13 NEW_ACTIVE_HOLDINGS：嚴格驗證（見 FUHWA_STRICT）
 }
+
+# NEW_ACTIVE_HOLDINGS（2026-11-13）：新接的復華股票型只走嚴格解析，任何一項不符 → 本輪不採用（交既有 KEEP、fetched:false）。
+# 標題列＝完整基金名＋（證劵代碼：代號）、唯一「日期:」列且＝下載網址日期、唯一精確表頭、每一列都必須是有效股票列。
+# 既有四檔維持原解析（不在本單範圍）。
+FUHWA_STRICT = {"00418A": "復華台灣新星主動式ETF基金"}
+_FUHWA_HEAD = ["證券代號", "證券名稱", "股數", "金額", "權重(%)"]
+
+
+def _fuhwa_stock_strict(ticker, rows, url):
+    """→ (data_date, holdings)；不符 → ValueError。"""
+    if not rows or rows[0] != ["%s（證劵代碼：%s）" % (FUHWA_STRICT[ticker], ticker)]:
+        raise ValueError("基金身分列不符")
+    dates = [re.fullmatch(r"日期:\s*(\d{4})/(\d{2})/(\d{2})", r[0]) for r in rows if len(r) == 1 and r[0].startswith("日期")]
+    if len(dates) != 1 or not dates[0]:
+        raise ValueError("資料日缺少或重複")
+    dd = "%s-%s-%s" % dates[0].groups()
+    try:
+        datetime.date.fromisoformat(dd)            # R1 F1：2026-02-30 等不存在的日期在此拒用
+    except ValueError:
+        raise ValueError("資料日 %s 不是有效日期" % dd)
+    if url.rsplit("/", 1)[-1] != dd.replace("-", ""):
+        raise ValueError("資料日 %s 與下載網址日期不符" % dd)
+    if dd > datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date().isoformat():
+        raise ValueError("資料日在未來")
+    heads = [i for i, r in enumerate(rows) if r == _FUHWA_HEAD]
+    if len(heads) != 1 or any(r and r[0] in ("證券代號", "股票代號") for i, r in enumerate(rows) if i != heads[0]):
+        raise ValueError("持股表頭缺少、重複或欄位不符")
+    holdings = _Holdings()
+    for r in rows[heads[0] + 1:]:
+        if len(r) != 5 or not (re.fullmatch(r"\d{4,6}[A-Z]?", r[0]) or _BBG.fullmatch(r[0])) or not r[1].strip() \
+                or not re.fullmatch(r"\d{1,3}(?:,\d{3})*", r[2]) or r[0] in holdings:
+            raise ValueError("持股列格式不符：%r" % (r,))
+        share = int(r[2].replace(",", ""))
+        if share <= 0:
+            raise ValueError("持股股數非正：%r" % (r,))
+        holdings[r[0]] = {"name": r[1].strip(), "shares": share}
+    if not holdings:
+        raise ValueError("沒有持股列")
+    return dd, holdings
 
 # 海外股票的彭博代碼：「TICKER 市場別」，市場別固定兩個大寫字母
 #   NVDA US / 6981 JP / 000660 KS / AV/ LN（英傑華，ticker 裡有斜線）
@@ -1025,6 +1065,17 @@ def fetch_fuhwa(date_obj, specific=False):
             rows = _xlsx_rows(blob)
         except Exception as e:
             print(f"[復華] {ticker} 失敗: {e}")
+            continue
+
+        if ticker in FUHWA_STRICT:
+            try:
+                data_date, holdings = _fuhwa_stock_strict(ticker, rows, url)
+            except ValueError as e:
+                print(f"[復華] {ticker} {name}：官方檔非預期格式（{e}），本輪不採用")
+                continue
+            out[ticker] = {"name": name, "issuer": "復華", "data_date": data_date, "holdings": holdings}
+            print(f"[復華] {ticker} {name}：{len(holdings)} 檔（嚴格驗證），資料日 {data_date}")
+            time.sleep(1)
             continue
 
         data_date = None
@@ -1769,10 +1820,129 @@ def fetch_ab(date_obj, specific=False):
     return out
 
 
+# ══════════════════════════════════════════════════════════════
+# Adapter：玉山投信（www.esunam.com，Angular SPA；NEW_ACTIVE_HOLDINGS 2026-11-13）
+#   POST /ETFAPI/GetFundTradeInfo  {"FundNo":"54"}（最新）或 {"FundNo":"54","Date":"YYYY-MM-DDT00:00:00"}（指定 PCF 日）
+#   來源：/ETF/trad-info 頁 main.js 的 fundService（GetETFFundTypes → GetETFFundSelectList{TypeID:5542} → GetFundTradeInfo）。
+#   ⚠ 公告日≠資料日：CPcfdate 是 PCF 公告日（當天），持股的資料日是 CNavDt（前一交易日淨值日）。一律以回傳 CNavDt 為準。
+#   持股在 DynamicTableData 中 TableTitle＝「股票」那張，Columns 精確為 股票代號／股票名稱／股數／權重(%)；股數是整檔基金股數。
+#   身分：CFundId、CFullName、CFundShortName 都必須等於下表；指定日期查詢時回傳 CPcfdate 也必須等於所問日期。
+# ══════════════════════════════════════════════════════════════
+ESUN_API = "https://www.esunam.com/ETFAPI/GetFundTradeInfo"
+ESUN_FUNDS = {"00413A": ("54", "主動玉山關鍵科技", "玉山臺灣關鍵科技主動式ETF")}
+_ESUN_COLS = ["股票代號", "股票名稱", "股數", "權重(%)"]
+# R1 F2：玉山專用傳輸。預設驗證 TLS（CERT_REQUIRED＋hostname 檢查、系統信任庫），不共用 _SSL（那是其他來源的既有設定，不在本單範圍）；
+# 任何轉址一律拒用（不跟隨、不送往別站），回應網址必須精確等於 ESUN_API。失敗 → 本輪不採用（既有 KEEP），不降級、不重試。
+_ESUN_SSL = ssl.create_default_context()
+
+
+class _EsunNoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, "玉山來源轉址拒用（→ %s）" % newurl, headers, fp)
+
+
+def _esun_post(payload):
+    req = urllib.request.Request(ESUN_API, data=json.dumps(payload).encode(), headers={
+        "User-Agent": UA, "Content-Type": "application/json", "Referer": "https://www.esunam.com/ETF/trad-info"})
+    opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=_ESUN_SSL), _EsunNoRedirect())
+    with opener.open(req, timeout=25) as r:
+        if r.status != 200 or r.geturl() != ESUN_API:
+            raise ValueError("玉山回應狀態或來源不符：%s %s" % (r.status, r.geturl()))
+        body = r.read(2_000_001)
+    if len(body) > 2_000_000:
+        raise ValueError("回應過大")
+    return body
+
+
+def parse_esun(ticker, body, asked=None):
+    """玉山 GetFundTradeInfo 回應 → {name, issuer, data_date, holdings}；不符 → ValueError（不猜）。"""
+    fund_no, short, full = ESUN_FUNDS[ticker]
+    d = json.loads(body.decode("utf-8"))
+    e = d.get("Entries") if isinstance(d, dict) else None
+    if not isinstance(e, dict) or d.get("StatusCode") != 0:
+        raise ValueError("查無資料或狀態碼非 0")
+    if e.get("CFundId") != fund_no or e.get("CFullName") != full or e.get("CFundShortName") != short:
+        raise ValueError("基金身分不符：%r／%r／%r" % (e.get("CFundId"), e.get("CFullName"), e.get("CFundShortName")))
+    m_nav = re.fullmatch(r"(\d{4}-\d{2}-\d{2})T00:00:00", str(e.get("CNavDt")))
+    m_pcf = re.fullmatch(r"(\d{4}-\d{2}-\d{2})T00:00:00", str(e.get("CPcfdate")))
+    if not (m_nav and m_pcf):
+        raise ValueError("資料日／公告日格式不符")
+    dd, pcf = m_nav.group(1), m_pcf.group(1)
+    datetime.date.fromisoformat(dd); datetime.date.fromisoformat(pcf)
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date().isoformat()
+    if not dd < pcf or pcf > today:
+        raise ValueError("資料日 %s／公告日 %s 不合理" % (dd, pcf))
+    if asked and pcf != asked:
+        raise ValueError("回傳公告日 %s 不是所查 %s" % (pcf, asked))
+    tables = [t for t in (e.get("DynamicTableData") or []) if isinstance(t, dict) and t.get("TableTitle") == "股票"]
+    if len(tables) != 1 or [c.get("Name") for c in tables[0].get("Columns") or []] != _ESUN_COLS:
+        raise ValueError("股票表缺少、重複或欄位不符")
+    holdings = _Holdings()
+    for r in tables[0].get("Rows") or []:
+        if not (isinstance(r, list) and len(r) == 4 and all(isinstance(x, str) for x in r)) \
+                or not (re.fullmatch(r"\d{4,6}[A-Z]?", r[0]) or _BBG.fullmatch(r[0])) or not r[1].strip() \
+                or not re.fullmatch(r"\d{1,3}(?:,\d{3})*", r[2]) or r[0] in holdings:
+            raise ValueError("持股列格式不符：%r" % (r,))
+        share = int(r[2].replace(",", ""))
+        if share <= 0:
+            raise ValueError("持股股數非正：%r" % (r,))
+        holdings[r[0]] = {"name": r[1].strip(), "shares": share}
+    if not holdings:
+        raise ValueError("股票表沒有持股列")
+    return {"name": short, "issuer": "玉山", "data_date": dd, "holdings": holdings}
+
+
+def fetch_esun(date_obj, specific=False):
+    out = {}
+    for ticker, (fund_no, short, _full) in ESUN_FUNDS.items():
+        payload = {"FundNo": fund_no}
+        asked = date_obj.isoformat() if specific else None
+        if asked:
+            payload["Date"] = asked + "T00:00:00"
+        try:
+            body = _esun_post(payload)
+        except Exception as e:
+            print(f"[玉山] {ticker} 失敗: {e}")
+            continue
+        try:
+            out[ticker] = parse_esun(ticker, body, asked)
+        except (ValueError, UnicodeError, KeyError, TypeError, AttributeError) as e:
+            print(f"[玉山] {ticker} {short}：官方回應非預期（{e}），本輪不採用")
+            continue
+        print(f"[玉山] {ticker} {short}：{len(out[ticker]['holdings'])} 檔，資料日 {out[ticker]['data_date']}")
+    return out
+
+
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
             fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz,
             fetch_fsitc, fetch_mega, fetch_yuanta, fetch_jpm, fetch_cathay,
-            fetch_ab]
+            fetch_ab, fetch_esun]
+
+# NEW_ACTIVE_HOLDINGS：新接兩檔的日期保護（既有其他檔維持原行為）
+STRICT_DATE_GUARD = ("00418A", "00413A")
+
+
+def _new_holdings_guard(etfs, prev):
+    """inc < 快照日 → 日期倒退，本輪不採用；inc ＝ 快照日但股數不同 → 同日矛盾，不覆蓋快照、保留並告警。
+    回傳 {代號: anomaly 文字或 None}（被拿掉的代號）。"""
+    dropped = {}
+    prev_etfs = (prev or {}).get("etfs") or {}
+    for code in STRICT_DATE_GUARD:
+        if code not in etfs:
+            continue
+        inc, before = etfs[code].get("data_date"), prev_etfs.get(code) or {}
+        cur = before.get("data_date")
+        if not (inc and cur):
+            continue
+        if inc < cur:
+            print(f"[NEW] {code} 資料日 {inc} 早於快照 {cur}，日期倒退 → 本輪不採用")
+            etfs.pop(code)
+            dropped[code] = None
+        elif inc == cur and _shares(before.get("holdings")) != _shares(etfs[code].get("holdings")):
+            print(f"[NEW] {code} 同一資料日 {inc} 官方持股內容不同 → 保留原快照，不覆蓋")
+            etfs.pop(code)
+            dropped[code] = f"{code} 同一資料日 {inc} 官方持股內容前後不一致，保留先前快照待查（未計 Flow）"
+    return dropped
 
 
 # ══════════════════════════════════════════════════════════════
@@ -2126,6 +2296,7 @@ def main():
     prev, tsit_initialized = _tsit_date_guard(etfs, prev)
     # 兆豐（00996A incident）：PCF／商品頁／feed 三種來源共用同一道日期保護，見 _mega_date_guard
     prev, no_basis = _mega_date_guard(etfs, prev)
+    new_dropped = _new_holdings_guard(etfs, prev)
     # 非股票期間之後又出現股票持股：前一份不可比，只建新基準，不跨期拿舊股票快照算買賣
     # 但新股票資料日必須嚴格晚於最後有效非股票 as_of：較早或同日的股票檔不能當成狀態恢復，保留已存狀態與歷史
     for c in [c for c in etfs if {"non_equity_status", "non_equity_positions"} & set(((prev or {}).get("etfs") or {}).get(c, {}))]:
@@ -2205,6 +2376,9 @@ def main():
                                   (prev_etfs.get(code) or {}).get("holdings") or {}))
             print(f"[KEEP] {code} {old.get('name','')}：本次未抓到，沿用上次資料"
                   f"（資料日 {old.get('data_date')}）")
+    for code, why in new_dropped.items():          # 新接兩檔：同日矛盾留下 anomaly（daily_check 會發 TG）；倒退只沿用
+        if code in out_etfs and why:
+            out_etfs[code]["anomaly"] = why
 
     for code, info in etfs.items():
         f = flows.get(code) or {"advanced": False, "reason": "no_basis"}
