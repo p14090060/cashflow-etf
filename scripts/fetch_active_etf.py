@@ -920,9 +920,10 @@ def fuhwa_positions(ticker, rows, url, blob, checked_on):
             or not all(len(r) == 1 and re.fullmatch(r"[\d,]+(?:\.\d+)?", r[0]) for i, r in enumerate(nav) if i % 2):
         raise ValueError("淨值區塊格式不符")
     pos = {k: [i for i, r in enumerate(rows) if r == h] for k, h in _NE_HEADERS.items()}
-    if any(len(v) != 1 for v in pos.values()):
+    if any(len(pos[s]) != 1 for s in ("futures", "bonds")) or len(pos["funds"]) > 1:
         raise ValueError("三段表頭缺少或重複")
-    f, b, u = pos["futures"][0], pos["bonds"][0], pos["funds"][0]
+    funds_provided = bool(pos["funds"])
+    f, b, u = pos["futures"][0], pos["bonds"][0], pos["funds"][0] if funds_provided else len(rows)
     if not (f == 8 < b < u):
         raise ValueError("三段順序不符")
     num = lambda v: int(v.replace(",", ""))
@@ -938,18 +939,20 @@ def fuhwa_positions(ticker, rows, url, blob, checked_on):
         bonds.append({"code": r[0], "name": r[1], "currency": m.group(1), "face": num(m.group(2))})
     if not any(x["face"] > 0 for x in bonds):
         raise ValueError("沒有正額債券部位")
-    for r in rows[u + 1:]:
+    for r in rows[u + 1:] if funds_provided else []:
         if len(r) != 5 or not r[0] or not _INT.fullmatch(r[2]):
             raise ValueError("基金列格式不符")
         funds.append({"code": r[0], "name": r[1], "units": num(r[2])})
+    if not funds_provided:
+        funds = None                            # 未提供不等於零，禁止產生基金清空差額
     source = {"url": url, "sha256": hashlib.sha256(blob).hexdigest()}
-    positions = {"format": NE_POSITIONS_FORMAT, "code": ticker, "as_of": as_of, "source": source,
+    positions = {"format": NE_POSITIONS_FORMAT if funds_provided else "non-equity-positions/v2", "code": ticker, "as_of": as_of, "source": source,
                  "futures": futures, "bonds": bonds, "funds": funds}
     try:
         check_non_equity_positions(ticker, ticker, positions, checked_on)   # 重複代碼、數值、網址、未來日期
     except DataInvalid as e:
         raise ValueError(str(e))
-    if any(x["units"] for x in funds):
+    if funds is None or any(x["units"] for x in funds):
         return positions, None          # 有正數基金單位：仍取三區部位，但不是前案「全無持股」狀態
     st = {"format": NON_EQUITY_FORMAT, "code": ticker, "status": "not_applicable", "as_of": as_of,
           "sections": list(NON_EQUITY_SECTIONS),
@@ -1066,7 +1069,7 @@ def fetch_fuhwa(date_obj, specific=False):
                 out[ticker] = dict({"name": name, "issuer": "復華", "non_equity_positions": pos},
                                    **({"non_equity_status": st} if st else {}))
                 print(f"[復華] {ticker} {name}：官方三區部位（期貨 {len(pos['futures'])}／債券 {len(pos['bonds'])}／"
-                      f"基金 {len(pos['funds'])}），資料日 {pos['as_of']}，不適用股票 Flow")
+                      f"基金 {len(pos['funds']) if pos['funds'] is not None else '未提供'}），資料日 {pos['as_of']}，不適用股票 Flow")
                 continue
         if not holdings:
             # 別靜默跳過——講清楚是「沒有可用持股」還是「解析失敗」
@@ -2015,12 +2018,16 @@ def _ne_stored(code, prev_raw, old_out):
 def _ne_compare(before, after):
     """兩份完整三區部位相減。沒有前一份、或同代碼幣別不同（不能相減）→ 只建基準。
     新列前值 0、消失列後值 0；期貨不同合約就是不同列。只列有變動的列。"""
-    head = {"format": NE_CHANGES_FORMAT, "code": after["code"], "to": after["as_of"], "source": after["source"]}
-    base = dict(head, status="baseline", **{"from": None, "futures": [], "bonds": [], "funds": []})
-    if not before or before.get("format") != NE_POSITIONS_FORMAT:
+    partial = after["funds"] is None or (before is not None and before.get("funds") is None)
+    head = {"format": "non-equity-changes/v2" if partial else NE_CHANGES_FORMAT, "code": after["code"], "to": after["as_of"], "source": after["source"]}
+    base = dict(head, status="baseline", **{"from": None, "futures": [], "bonds": [], "funds": None if partial else []})
+    if not before or before.get("format") not in (NE_POSITIONS_FORMAT, "non-equity-positions/v2"):
         return base
     out = dict(head, status="compared", **{"from": before["as_of"]})
     for sec, qty in NE_QTY.items():
+        if partial and sec == "funds":
+            out[sec] = None
+            continue
         b = {r["code"]: r for r in before[sec]}
         a = {r["code"]: r for r in after[sec]}
         rows = []

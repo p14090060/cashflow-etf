@@ -363,14 +363,17 @@ function _flowNeChanges(code, e, updated) {
     && new Date(Date.parse(v + 'T00:00:00Z')).toISOString().slice(0, 10) === v;
   const int = v => typeof v === 'number' && Number.isInteger(v);
   const src = c.source || {};
-  if (Object.keys(c).sort().join(',') !== 'bonds,code,format,from,funds,futures,source,status,to' || c.format !== 'non-equity-changes/v1'
+  const partial = c.format === 'non-equity-changes/v2';
+  if (Object.keys(c).sort().join(',') !== 'bonds,code,format,from,funds,futures,source,status,to' || !['non-equity-changes/v1', 'non-equity-changes/v2'].includes(c.format)
       || c.code !== code || !day(c.to) || typeof updated !== 'string' || c.to > updated.slice(0, 10)
       || Object.keys(src).sort().join(',') !== 'sha256,url'
       || src.url !== 'https://www.fhtrust.com.tw/api/assetsExcel/' + _NE_FUNDS[code] + '/' + c.to.replace(/-/g, '')
       || typeof src.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(src.sha256)) return null;
-  if (c.status === 'baseline') return (c.from === null && _NE_SEC.every(([k]) => Array.isArray(c[k]) && !c[k].length)) ? c : null;
+  if (partial && c.funds !== null) return null;
+  if (c.status === 'baseline') return (c.from === null && _NE_SEC.every(([k]) => partial && k === 'funds' ? c[k] === null : Array.isArray(c[k]) && !c[k].length)) ? c : null;
   if (c.status !== 'compared' || !day(c.from) || c.from >= c.to) return null;
   for (const [k] of _NE_SEC) {
+    if (partial && k === 'funds') continue;
     if (!Array.isArray(c[k])) return null;
     const seen = new Set();
     for (const r of c[k]) {
@@ -388,24 +391,26 @@ function _flowNeChanges(code, e, updated) {
 // 三區條列：前後官方資料日、代碼／名稱、前值→後值、差額與單位。只講部位增減，不稱買賣、不算金額
 function _flowRenderNeChanges(box, e, c) {
   const esc = _flowQEsc, n = v => v.toLocaleString();
-  document.getElementById('flowMeta').textContent = '官方持股為期貨、債券與基金部位';
+  document.getElementById('flowMeta').textContent = c.funds === null ? '官方期貨與債券部位；基金單位未提供或缺比較基準' : '官方持股為期貨、債券與基金部位';
   document.getElementById('flowBuy').textContent = '—';
   document.getElementById('flowSell').textContent = '—';
   document.getElementById('flowCover').textContent = '資料來源：' + e.issuer + '投信官網持股檔　官方資料日 '
     + (c.from ? c.from + ' → ' : '') + c.to;
-  const total = _NE_SEC.reduce((s, [k]) => s + c[k].length, 0);
+  const total = _NE_SEC.reduce((s, [k]) => s + (Array.isArray(c[k]) ? c[k].length : 0), 0);
   const tips = [];
   if (e.fetched !== true) tips.push('⚠ 本次自動抓取未取得新資料，以下沿用先前保存的部位增減（官方資料日 ' + c.to + '）');
   if (c.status === 'baseline') tips.push('ℹ 建立基準（官方資料日 ' + c.to + '），尚無可比較前值');
-  else if (!total) tips.push('ℹ ' + c.from + ' → ' + c.to + ' 公告部位數量相同');
+  else if (!total) tips.push('ℹ ' + c.from + ' → ' + c.to + ' 已取得且可比較的部位數量相同');
   else tips.push('ℹ ' + c.from + ' → ' + c.to + ' 部位數量增減 ' + total + ' 列');
+  if (c.funds === null) tips.push('基金單位未提供或缺比較基準，不當成零、不推算清空');
   document.getElementById('flowTip').textContent = tips.join('　');
   const note = document.getElementById('flowNote');
   note.hidden = false;
   note.innerHTML = '⚠ 以下為兩份官方持股檔的<b>部位數量差</b>，不是確認的買進／賣出，也不代表經理人主動加碼或減碼；'
     + '申購贖回、債券到期、期貨轉倉、公司行動都可能造成增減。期貨不同月份合約分列，不併計。';
-  document.getElementById('flowForeign').innerHTML = c.status === 'compared' && total ? _NE_SEC.map(([k, title, unit]) => {
+  document.getElementById('flowForeign').innerHTML = c.status === 'compared' && (total || c.funds === null) ? _NE_SEC.map(([k, title, unit]) => {
     const rows = c[k];
+    if (rows === null) return '<details class="np-wrap ne-sec" data-sec="funds"><summary class="np-hd">基金單位無法比較</summary><div class="np-list">本期或前期官方檔未提供基金區段，不視為零部位。</div></details>';
     const body = rows.length ? rows.map(r => {
       const u = k === 'bonds' ? ' ' + esc(r.currency) : ' ' + unit;
       const clr = r.delta > 0 ? 'var(--vivid-up)' : 'var(--vivid-dn)';
@@ -421,7 +426,7 @@ function _flowRenderNeChanges(box, e, c) {
   }).join('') : '';
   _tmEmpty(box, e.name + ' 持有期貨、債券與基金部位，不適用股票持股異動<br>'
     + (c.status === 'baseline' ? '（官方資料日 ' + c.to + '：建立基準，尚無可比較前值）'
-       : !total ? '（' + c.from + ' → ' + c.to + '：公告部位數量相同）' : '（部位增減見下方條列）'));
+       : !total ? '（' + c.from + ' → ' + c.to + '：已取得且可比較的部位數量相同）' : '（部位增減見下方條列）'));
 }
 
 function renderFlow(code) {

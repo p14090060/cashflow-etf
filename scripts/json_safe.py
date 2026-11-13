@@ -770,10 +770,15 @@ def _ne_head(where, code, d, keys, checked_on, day_key):
 def check_non_equity_positions(where, code, p, checked_on):
     where += ".non_equity_positions"
     _ne_head(where, code, p, {"format", "code", "as_of", "source", "futures", "bonds", "funds"}, checked_on, "as_of")
-    if p["format"] != NE_POSITIONS_FORMAT:
+    if p["format"] not in (NE_POSITIONS_FORMAT, "non-equity-positions/v2"):
         raise DataInvalid(f"{where} 格式不符")
+    partial = p["format"] == "non-equity-positions/v2"
+    if partial and p["funds"] is not None:
+        raise DataInvalid(f"{where} v2基金區段必須明確為未提供")
     for sec, extra in NE_ROW_KEYS.items():
         rows = p[sec]
+        if partial and sec == "funds":
+            continue
         if not isinstance(rows, list):
             raise DataInvalid(f"{where}.{sec} 不是陣列")
         seen = set()
@@ -793,18 +798,25 @@ def check_non_equity_positions(where, code, p, checked_on):
 def check_non_equity_changes(where, code, c, checked_on):
     where += ".non_equity_changes"
     _ne_head(where, code, c, {"format", "code", "status", "from", "to", "source", "futures", "bonds", "funds"}, checked_on, "to")
-    if c["format"] != NE_CHANGES_FORMAT or c["status"] not in ("baseline", "compared"):
+    if c["format"] not in (NE_CHANGES_FORMAT, "non-equity-changes/v2") or c["status"] not in ("baseline", "compared"):
         raise DataInvalid(f"{where} 格式或狀態不符")
+    partial = c["format"] == "non-equity-changes/v2"
+    if partial and c["funds"] is not None:
+        raise DataInvalid(f"{where} v2基金區段不可冒稱已比較")
     for sec in NE_ROW_KEYS:                     # 任何狀態三區都必須是陣列（null／{}／""／false／0 都拒）
+        if partial and sec == "funds":
+            continue
         if not isinstance(c[sec], list):
             raise DataInvalid(f"{where}.{sec} 不是陣列：{c[sec]!r}")
     if c["status"] == "baseline":
-        if c["from"] is not None or any(c[s] != [] for s in NE_ROW_KEYS):
+        if c["from"] is not None or any(c[s] != [] for s in NE_ROW_KEYS if not (partial and s == "funds")):
             raise DataInvalid(f"{where} 基準不得帶前值或增減")
         return
     if not _is_date(c["from"]) or c["from"] >= c["to"]:
         raise DataInvalid(f"{where} 比較區間無效：{c['from']!r} → {c['to']!r}")
     for sec in NE_ROW_KEYS:
+        if partial and sec == "funds":
+            continue
         rows, seen = c[sec], set()
         if not isinstance(rows, list):
             raise DataInvalid(f"{where}.{sec} 不是陣列")
