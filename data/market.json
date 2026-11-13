@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-13 13:50",
+  "updated": "2026-11-13 15:24",
   "quote_date": "2026-11-13",
   "quote_time": "2026-11-13 13:30",
   "market_state": "stale",
@@ -17,7 +17,7 @@
     "change_pt": 583.25,
     "change_pct": 1.35,
     "quote_date": "2026-11-13",
-    "is_live": true,
+    "is_live": false,
     "close_confirmed": false,
     "mis_time": "13:33"
   },
@@ -15461,8 +15461,8 @@
       "yld": 0.0,
       "yld_verified": false,
       "yld_pending": false,
-      "days": 3,
-      "est": 0.6,
+      "days": 90,
+      "est": 0.3,
       "div_next": null,
       "signal": "fair",
       "maD": -4.8,
@@ -15833,7 +15833,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 90,
-      "est": 0.054,
+      "est": 0.3,
       "div_next": null,
       "signal": "dear",
       "maD": 1.0,
@@ -16371,18 +16371,6 @@
       "days_until": 3,
       "source": "official",
       "amount_source": "TWSE × FinMind 核實"
-    },
-    {
-      "code": "009807",
-      "name": "台新標普科技精選",
-      "iso_date": "2026-11-16",
-      "day": "16",
-      "mon": "11月",
-      "amt": 0.6,
-      "soon": true,
-      "days_until": 3,
-      "source": "official",
-      "amount_source": "TPEx"
     },
     {
       "code": "006208",
