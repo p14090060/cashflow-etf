@@ -35,7 +35,7 @@
         11
       ],
       "category": "高股息",
-      "avg_dividend_per_share": 1.01,
+      "avg_dividend_per_share": 1.25,
       "_todo": false
     },
     "00919": {
@@ -2605,6 +2605,34 @@
         "full_name": "台新全球傘型基金之標普科技精選 ETF 基金",
         "classification": "不分級別/分配(年配)",
         "checked_at": "2026-10-23T00:36:05.363258+08:00"
+      },
+      "tpex_calendar": {
+        "code": "009807",
+        "name": "台新標普科技精選",
+        "ex_dividend_date": "2026-11-16",
+        "amount": 0.6,
+        "amount_source": "TPEx",
+        "tpex_evidence": {
+          "identity": {
+            "code": "009807",
+            "name": "台新標普科技精選",
+            "full_name": "台新全球傘型證券投資信託基金之台新標普科技精選ETF證券投資信託基金(基金之配息來源可能為收益平準金)",
+            "issuer": "台新投信",
+            "listing_date": "2025-05-28",
+            "url": "https://info.tpex.org.tw/api/etfProduct?lang=zh-tw&query=009807",
+            "sha256": "79b65b4d93a8d5f14e1e248e89e51a8ab65b14154ef4e60ce1e7c7a5afdd5e70"
+          },
+          "url": "https://info.tpex.org.tw/api/etfExDiv",
+          "sha256": "00bd953fe24e4d71f91d18e362b5fbd9fb916cf00b6226e215a19ab8e02187d9",
+          "request_params": {
+            "stkNo": "009807",
+            "startDate": "20250528",
+            "endDate": "20261113",
+            "lang": "zh-tw"
+          },
+          "checked_at": "2026-11-13T09:29:36.324118+08:00",
+          "pay_date": "2026-12-04"
+        }
       }
     },
     "00415A": {

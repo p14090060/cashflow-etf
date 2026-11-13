@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-11-12",
+    "last_updated": "2026-11-13",
     "sources": "TWSE ETFortune → TWSE per-ETF → FinMind → MoneyDJ",
     "source_url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList",
     "license": "政府開放資料 (data.gov.tw/license)"
@@ -38,8 +38,8 @@
       "code": "00878",
       "name": "國泰永續高股息",
       "ex_dividend_date": "2026-11-17",
-      "amount": 1.01,
-      "amount_source": "FinMind（估算）"
+      "amount": 1.25,
+      "amount_source": "TWSE × FinMind 核實"
     },
     "00932": {
       "code": "00932",
@@ -54,6 +54,62 @@
       "ex_dividend_date": "2026-11-16",
       "amount": 0.16,
       "amount_source": "TWSE × FinMind 核實"
+    },
+    "009823": {
+      "code": "009823",
+      "name": "群益S&P500",
+      "ex_dividend_date": "2026-11-04",
+      "amount": 0.054,
+      "amount_source": "TPEx",
+      "tpex_evidence": {
+        "identity": {
+          "code": "009823",
+          "name": "群益 S&P500",
+          "full_name": "群益標普500ETF證券投資信託基金",
+          "issuer": "群益投信",
+          "listing_date": "2026-06-25",
+          "url": "https://info.tpex.org.tw/api/etfProduct?lang=zh-tw&query=009823",
+          "sha256": "604fa1c30c680d9084121fcb9393f5196f6a2e4f3ad11c70e9d84d2920dd24cc"
+        },
+        "url": "https://info.tpex.org.tw/api/etfExDiv",
+        "sha256": "aef6884b0ddc0a8b674e7d45ba4a190e9478a68eacee5e499d769d27a4a5f043",
+        "request_params": {
+          "stkNo": "009823",
+          "startDate": "20260625",
+          "endDate": "20261103",
+          "lang": "zh-tw"
+        },
+        "checked_at": "2026-11-03T16:15:28.234442+08:00",
+        "pay_date": "2026-11-30"
+      }
+    },
+    "009807": {
+      "code": "009807",
+      "name": "台新標普科技精選",
+      "ex_dividend_date": "2026-11-16",
+      "amount": 0.6,
+      "amount_source": "TPEx",
+      "tpex_evidence": {
+        "identity": {
+          "code": "009807",
+          "name": "台新標普科技精選",
+          "full_name": "台新全球傘型證券投資信託基金之台新標普科技精選ETF證券投資信託基金(基金之配息來源可能為收益平準金)",
+          "issuer": "台新投信",
+          "listing_date": "2025-05-28",
+          "url": "https://info.tpex.org.tw/api/etfProduct?lang=zh-tw&query=009807",
+          "sha256": "79b65b4d93a8d5f14e1e248e89e51a8ab65b14154ef4e60ce1e7c7a5afdd5e70"
+        },
+        "url": "https://info.tpex.org.tw/api/etfExDiv",
+        "sha256": "00bd953fe24e4d71f91d18e362b5fbd9fb916cf00b6226e215a19ab8e02187d9",
+        "request_params": {
+          "stkNo": "009807",
+          "startDate": "20250528",
+          "endDate": "20261113",
+          "lang": "zh-tw"
+        },
+        "checked_at": "2026-11-13T09:29:36.324118+08:00",
+        "pay_date": "2026-12-04"
+      }
     }
   }
 }
