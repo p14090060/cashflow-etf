@@ -1204,6 +1204,15 @@ def main():
         if isinstance(known, list):                       # 新進只用於「說明」訊息；檢查本身涵蓋全榜
             new_entries = [top_rows.get(c) or board["rows"][c] for c in board["codes"] if c not in set(known)]
 
+    # Whole official active universe, not just old adapters or TOP100. This is
+    # monitoring only: no qualification changes, new prices or extra requests.
+    import active_holdings_coverage
+    active_coverage, active_coverage_lines = active_holdings_coverage.check(ROOT, state)
+    if active_coverage.get('due'):
+        ACK.setdefault('active_gap_notified', []).extend(active_coverage['due'][:15])
+    if active_coverage.get('integrity_due'):              # R1 F1：送達＋回執保存後才啟動 14 天冷卻
+        ACK.setdefault('active_integrity_notified', []).append('monitor')
+
     # ── 儲存跨日狀態 ──
     state["yld_prev"]        = yld_prev
     state["zero_vol_streak"] = vol_streak
@@ -1269,6 +1278,7 @@ def main():
             problem_entries.append(
                 f"• {e['code']} {e.get('name','')}：{'、'.join(warn)}"
             )
+    lines.extend(active_coverage_lines)
     lines.extend(policy_help_lines(policy_due, recovery, state, {e.get("code"): e.get("name", "") for e in policy_etfs}, board))
     lines.extend(history_help_lines(hist_due, state, hist_checks, {e.get("code"): e.get("name", "") for e in etfs}))
     lines.extend(top100_help_lines(top_due, board, top_issues, top_rows, state))
@@ -1293,6 +1303,8 @@ def main():
                 save_json(DAILY_STATE, state)
     elif any(r['status'] in ('error','queued','amount_pending') for r in yield_checks.values()):
         print('[PENDING] 官方殖利率查證尚未完成，留待下輪；本輪無需即時通知，不宣稱全部恢復')
+    elif not active_coverage['complete'] or any(active_coverage['counts'].get(s, 0) for s in ('missing_adapter','missing_output','missing_display_rows')):
+        print('[PENDING] 主動ETF完整覆蓋尚未完成；已列工程追蹤，不宣稱全正常')
     else:
         print("[OK] 所有監控 ETF 資料正常，TOP 100 無新進")
 

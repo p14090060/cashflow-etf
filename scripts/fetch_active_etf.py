@@ -1154,7 +1154,130 @@ ALLIANZ_FUNDS = {
     "00984A": ("E0001", "主動安聯台灣高息"),
     "00993A": ("E0002", "主動安聯台灣"),
     "00402A": ("E0003", "主動安聯美國科技"),
+    "00412A": ("E0004", "主動安聯亞半導體"),
 }
+
+
+def _allianz_new_holdings(ticker, payload, today, expected_fund="E0004"):
+    """Strict first registration; existing Allianz readers keep their contract."""
+    if not re.fullmatch(r"\d{4,6}[A-Z]?", ticker) or not re.fullmatch(r"E\d{4}",expected_fund) or not isinstance(payload, dict) or type(payload.get("StatusCode")) is not int or payload["StatusCode"] != 0:
+        raise ValueError("安聯新基金回應狀態不符")
+    e = payload.get("Entries")
+    if not isinstance(e, dict) or e.get("FundID") != expected_fund:
+        raise ValueError("安聯基金身分不符")
+    data = e.get("Data")
+    asset = data.get("FundAsset") if isinstance(data, dict) else None
+    if not isinstance(asset, dict):
+        raise ValueError("安聯基金日期缺少")
+    nav, pcf = asset.get("NavDate"), asset.get("PCFDate")
+    if not all(isinstance(x, str) and re.fullmatch(r"\d{4}/\d{2}/\d{2}", x) for x in (nav, pcf)):
+        raise ValueError("安聯日期格式不符")
+    day = datetime.date.fromisoformat(nav.replace("/", "-"))
+    publication = datetime.date.fromisoformat(pcf.replace("/", "-"))
+    if day > today or day > publication:
+        raise ValueError("安聯資料日不合理")
+    tables = data.get("Table")
+    if not isinstance(tables, list):
+        raise ValueError("安聯持股表缺少")
+    stocks = [t for t in tables if isinstance(t, dict) and str(t.get("TableTitle", "")).startswith("股票 (")]
+    columns = ["序號", "股票代號", "股票名稱", "股數", "權重(%)"]
+    if len(stocks) != 1 or not isinstance(stocks[0].get("Columns"), list) or [c.get("Name") if isinstance(c, dict) else None for c in stocks[0]["Columns"]] != columns:
+        raise ValueError("安聯持股欄位不符")
+    rows = stocks[0].get("Rows")
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("安聯持股列缺少")
+    holdings = _Holdings()
+    for i, row in enumerate(rows, 1):
+        if not isinstance(row, list) or len(row) != 5 or not all(isinstance(x, str) for x in row):
+            raise ValueError("安聯持股列格式不符")
+        ordinal, code, name, amount, _weight = row
+        if ordinal != str(i) or not (re.fullmatch(r"\d{4,6}[A-Z]?", code) or _BBG.fullmatch(code) or re.fullmatch(r"\d{6} C2", code)) or not name.strip() or code in holdings or not re.fullmatch(r"(?:0|[1-9]\d{0,2}(?:,\d{3})*|[1-9]\d*)", amount):
+            raise ValueError("安聯持股代號或整數股數不符")
+        shares = int(amount.replace(",", ""))
+        if shares <= 0:
+            raise ValueError("安聯股數非正")
+        holdings[code] = {"name": name.strip(), "shares": shares}
+    return day.isoformat(), holdings
+
+
+class _AllianzNoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url,code,"安聯來源轉址拒用",headers,fp)
+
+
+def _allianz_verified_session():
+    import http.cookiejar
+    jar=http.cookiejar.CookieJar()
+    op=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar),
+        urllib.request.HTTPSHandler(context=ssl.create_default_context()),_AllianzNoRedirect())
+    op.addheaders=[('User-Agent',UA)]
+    url=ALLIANZ_API+'AntiForgery/GetAntiForgeryToken'
+    with op.open(url,timeout=20) as resp:
+        if resp.status!=200 or resp.geturl()!=url:raise ValueError('安聯來源回應不符')
+        resp.read(2000001)
+    token=next((cookie.value for cookie in jar if cookie.name.upper().endswith('XSRF-TOKEN')),None)
+    if not token:raise ValueError('安聯防偽憑證未取得')
+    return op,token
+
+
+def _allianz_verified_post(op,token,path,payload):
+    if path not in ('Category/GetFundDropdownOptions','Fund/GetFundAssets'):raise ValueError('安聯查詢路徑不符')
+    url=ALLIANZ_API+path
+    req=urllib.request.Request(url,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json','X-XSRF-TOKEN':token,'Referer':'https://etf.allianzgi.com.tw/'})
+    with op.open(req,timeout=25) as resp:
+        if resp.status!=200 or resp.geturl()!=url:raise ValueError('安聯回應來源不符')
+        body=resp.read(2000001)
+    if len(body)>2000000:raise ValueError('安聯回應過大')
+    return json.loads(body)
+
+
+AUTO_DISCOVERED_CODES = set()
+
+
+ALLIANZ_NEW_QUOTA = 2      # 每輪「未知新商品」探索上限（與已採用動態成員的例行更新分開計）
+
+
+def fetch_allianz_discovered(date_obj,specific=False):
+    """Bounded auto-onboarding + R1 F2 continued updates for new Allianz ETFs of the verified same schema.
+    Official ISIN identity + LIVE official fund directory must match every run; never guess or reuse stored IDs.
+    Requests per run (no retries): 0 if nothing to do; otherwise 1 token GET + 1 directory POST
+    + 1 asset POST per persisted dynamic member present in this run's official list (M)
+    + at most ALLIANZ_NEW_QUOTA asset POSTs for unknown new codes.  Total max = 2 + M + 2.
+    """
+    if specific:return {}
+    import active_holdings_coverage as coverage
+    listed=coverage.current_rows(ROOT,'主動安聯') or {}
+    members=[listed[c] for c in sorted(coverage.dynamic_members(ROOT)) if c in listed and c not in ALLIANZ_FUNDS]
+    candidates=coverage.discovery_candidates(ROOT,'主動安聯',set(ALLIANZ_FUNDS)|{r['code'] for r in members})
+    if not candidates and not members:return {}
+    out={};report={'run':coverage.run_key(),'checked_at':time.time(),'attempted':[],'candidates':[r['code'] for r in candidates],
+                   'members':[r['code'] for r in members],'updated':[],'adopted':[],'unresolved':{}}
+    today=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date()
+    try:
+        op,token=_allianz_verified_session()
+        directory=_allianz_verified_post(op,token,'Category/GetFundDropdownOptions',{'TypeID':-1})
+        if type(directory.get('StatusCode')) is not int or directory['StatusCode']!=0 or not isinstance(directory.get('Entries'),list):raise ValueError('安聯官方基金清單不符')
+
+        def one(row,kind):
+            code,name=row['code'],row['name']
+            matches=[e for e in directory['Entries'] if isinstance(e,dict) and e.get('SecuritiesCode')==code]
+            if len(matches)!=1 or matches[0].get('FundShortName')!=name or not isinstance(matches[0].get('FundFullName'),str) or not matches[0]['FundFullName'].startswith('安聯') or not re.fullmatch(r'E\d{4}',str(matches[0].get('FundNo',''))):
+                report['unresolved'][code]='官方基金清單身分未對上';return
+            fid=matches[0]['FundNo']                    # 每輪取自即時官方目錄，不用任何記憶 ID
+            try:
+                payload=_allianz_verified_post(op,token,'Fund/GetFundAssets',{'FundID':fid})
+                dd,holdings=_allianz_new_holdings(code,payload,today,expected_fund=fid)
+                out[code]={'name':name,'issuer':'安聯','data_date':dd,'holdings':holdings};report[kind].append(code);AUTO_DISCOVERED_CODES.add(code)
+            except Exception as exc:report['unresolved'][code]=str(exc)[:200]
+
+        for row in members:one(row,'updated')            # 已採用成員：每檔 1 次持股查詢，不佔新探索額度
+        for row in candidates[:ALLIANZ_NEW_QUOTA]:
+            report['attempted'].append(row['code']);one(row,'adopted')
+        for row in candidates[ALLIANZ_NEW_QUOTA:]:report['unresolved'][row['code']]='本輪自動接線額度已滿，下輪續查'
+    except Exception as exc:report['error']=str(exc)[:200]
+    coverage.atomic(ROOT/'logs/active_discovery_allianz.json',report)
+    print('[ACTIVE-DISCOVERY] '+json.dumps(report,ensure_ascii=False))
+    return out
 
 
 def fetch_allianz(date_obj, specific=False):
@@ -1177,7 +1300,17 @@ def fetch_allianz(date_obj, specific=False):
         return {}
 
     out = {}
+    verified = None
     for ticker, (fid, name) in ALLIANZ_FUNDS.items():
+        if ticker == "00412A":
+            try:
+                if verified is None:verified=_allianz_verified_session()
+                d=_allianz_verified_post(*verified,'Fund/GetFundAssets',{'FundID':fid})
+                dd,hs=_allianz_new_holdings(ticker,d,datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date())
+                out[ticker]={'name':name,'issuer':'安聯','data_date':dd,'holdings':hs}
+                print(f"[安聯] {ticker} {name}：{len(hs)} 檔（嚴格驗證），資料日 {dd}")
+            except Exception as exc:print(f"[安聯] {ticker} 官方來源未採用: {exc}")
+            continue
         req = urllib.request.Request(
             ALLIANZ_API + "Fund/GetFundAssets",
             data=json.dumps({"FundID": fid}).encode(),
@@ -1916,10 +2049,10 @@ def fetch_esun(date_obj, specific=False):
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
             fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz,
             fetch_fsitc, fetch_mega, fetch_yuanta, fetch_jpm, fetch_cathay,
-            fetch_ab, fetch_esun]
+            fetch_ab, fetch_esun, fetch_allianz_discovered]
 
 # NEW_ACTIVE_HOLDINGS：新接兩檔的日期保護（既有其他檔維持原行為）
-STRICT_DATE_GUARD = ("00418A", "00413A")
+STRICT_DATE_GUARD = ("00418A", "00413A", "00412A")
 
 
 def _new_holdings_guard(etfs, prev):
@@ -1927,7 +2060,7 @@ def _new_holdings_guard(etfs, prev):
     回傳 {代號: anomaly 文字或 None}（被拿掉的代號）。"""
     dropped = {}
     prev_etfs = (prev or {}).get("etfs") or {}
-    for code in STRICT_DATE_GUARD:
+    for code in tuple(STRICT_DATE_GUARD)+tuple(sorted(AUTO_DISCOVERED_CODES)):
         if code not in etfs:
             continue
         inc, before = etfs[code].get("data_date"), prev_etfs.get(code) or {}

@@ -621,6 +621,14 @@ def _isin_etf_pool(str_mode):
     )
     with _ur.urlopen(req, timeout=20, context=ctx) as r:
         html = r.read().decode('ms950', errors='ignore')
+    # Reuse the official response before eligibility/ranking filters: new active
+    # ETFs must remain visible to coverage monitoring even without a quote/adapter.
+    try:
+        import active_holdings_coverage as _active_coverage
+        _active_coverage.capture_market(Path(__file__).resolve().parent / 'logs' / 'active_universe.json',
+                                        _run_id(), str_mode, isin_sections(html).get('ETF', ''))
+    except Exception as exc:
+        print('[ACTIVE-COVERAGE] 官方名單記錄未完成（不冒稱已全池查核）：%s' % exc)
     return parse_isin_pool_typed(html, 'strMode=%s' % str_mode)
 
 
