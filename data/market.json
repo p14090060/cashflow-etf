@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-16 15:26",
+  "updated": "2026-11-16 23:09",
   "quote_date": "2026-11-16",
   "quote_time": "2026-11-16",
   "market_state": "stale",
@@ -10104,8 +10104,10 @@
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
       "div_frequency": "年配",
-      "div_months": [],
-      "div_avg_per_share": null,
+      "div_months": [
+        11
+      ],
+      "div_avg_per_share": 3.02,
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
@@ -10183,8 +10185,10 @@
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
       "div_frequency": "年配",
-      "div_months": [],
-      "div_avg_per_share": null,
+      "div_months": [
+        11
+      ],
+      "div_avg_per_share": 2.0,
       "div_category": "高股息",
       "div_todo": true,
       "yld_source": "verified",
