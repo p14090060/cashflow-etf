@@ -2835,6 +2835,19 @@
         "full_name": "復華日本護城河優勢龍頭企業ETF基金",
         "classification": "不分級別/分配(年配)",
         "checked_at": "2026-11-10T09:22:12.844922+08:00"
+      },
+      "pending_resolution": {
+        "ex_dividend_date": "2026-11-18",
+        "amount": 3.02,
+        "amount_source": "TWSE",
+        "pay_date": "2026-12-14",
+        "url": "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList?stkNo=00949&startDate=20260924",
+        "sha256": "18f61e424f4b6da57abe97fee3952d6c770c6fdb6a20f754db35105f5d1227f1",
+        "status": "announced",
+        "code": "00949",
+        "pending_since": "2026-09-23",
+        "source": "TWSE ETFortune 配息清單（dividendList，逐檔歷史）",
+        "checked_at": "2026-11-16T15:26:06.516883+08:00"
       }
     },
     "00951": {
@@ -2876,16 +2889,6 @@
     }
   },
   "calendar": [
-    {
-      "iso_date": "2026-11-16",
-      "mon": "11月",
-      "day": "16",
-      "code": "006208",
-      "name": "富邦台50",
-      "amt": 4.75,
-      "soon": true,
-      "source": "yfinance"
-    },
     {
       "iso_date": "2026-11-18",
       "mon": "11月",
