@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-16 13:50",
+  "updated": "2026-11-16 15:22",
   "quote_date": "2026-11-16",
   "quote_time": "2026-11-16 13:30",
   "market_state": "stale",
@@ -17,7 +17,7 @@
     "change_pt": -2635.04,
     "change_pct": -6.03,
     "quote_date": "2026-11-16",
-    "is_live": true,
+    "is_live": false,
     "close_confirmed": false,
     "mis_time": "13:33"
   },
@@ -9352,7 +9352,7 @@
       "yld": 4.7,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 19,
+      "days": 15,
       "est": 0.15,
       "div_next": "2026-12-03",
       "signal": "dear",
@@ -15459,8 +15459,8 @@
       "yld": 3.7,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 0,
-      "est": 0.6,
+      "days": 90,
+      "est": 0.3,
       "div_next": null,
       "signal": "hot",
       "maD": -10.7,
@@ -15831,7 +15831,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 90,
-      "est": 0.054,
+      "est": 0.3,
       "div_next": null,
       "signal": "fair",
       "maD": 0.2,
@@ -16371,18 +16371,6 @@
       "amount_source": "TWSE × FinMind 核實"
     },
     {
-      "code": "009807",
-      "name": "台新標普科技精選",
-      "iso_date": "2026-11-16",
-      "day": "16",
-      "mon": "11月",
-      "amt": 0.6,
-      "soon": true,
-      "days_until": 0,
-      "source": "official",
-      "amount_source": "TPEx"
-    },
-    {
       "code": "006208",
       "name": "富邦台50",
       "iso_date": "2026-11-17",
@@ -16392,7 +16380,7 @@
       "soon": true,
       "days_until": 1,
       "source": "official",
-      "amount_source": "MoneyDJ"
+      "amount_source": "TWSE × FinMind 核實"
     },
     {
       "code": "00878",
@@ -16428,7 +16416,7 @@
       "soon": true,
       "days_until": 2,
       "source": "official",
-      "amount_source": "FinMind（估算）"
+      "amount_source": "TWSE × FinMind 核實"
     },
     {
       "code": "00850",
@@ -16473,6 +16461,18 @@
       "soon": true,
       "days_until": 8,
       "source": "estimate"
+    },
+    {
+      "code": "00939",
+      "name": "統一台灣高息動能",
+      "iso_date": "2026-12-01",
+      "day": "1",
+      "mon": "12月",
+      "amt": 0,
+      "soon": false,
+      "days_until": 15,
+      "source": "official",
+      "amount_source": "official"
     },
     {
       "code": "00940",
