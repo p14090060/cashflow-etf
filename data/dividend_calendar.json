@@ -110,6 +110,202 @@
         "checked_at": "2026-11-03T16:15:28.234442+08:00",
         "pay_date": "2026-11-30"
       }
+    },
+    "00690": {
+      "code": "00690",
+      "name": "兆豐藍籌30",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 2.0,
+      "amount_source": "TWSE"
+    },
+    "00692": {
+      "code": "00692",
+      "name": "富邦公司治理",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 1.721,
+      "amount_source": "TWSE"
+    },
+    "00730": {
+      "code": "00730",
+      "name": "富邦臺灣優質高息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.11,
+      "amount_source": "TWSE"
+    },
+    "00891": {
+      "code": "00891",
+      "name": "中信關鍵半導體",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 1.55,
+      "amount_source": "TWSE"
+    },
+    "00892": {
+      "code": "00892",
+      "name": "富邦台灣半導體",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 4.0,
+      "amount_source": "TWSE"
+    },
+    "00894": {
+      "code": "00894",
+      "name": "中信小資高價30",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 1.0,
+      "amount_source": "TWSE"
+    },
+    "00900": {
+      "code": "00900",
+      "name": "富邦特選高股息30",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.075,
+      "amount_source": "TWSE"
+    },
+    "00934": {
+      "code": "00934",
+      "name": "中信成長高股息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.5,
+      "amount_source": "TWSE"
+    },
+    "00938": {
+      "code": "00938",
+      "name": "凱基優選30",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.35,
+      "amount_source": "TWSE"
+    },
+    "00943": {
+      "code": "00943",
+      "name": "兆豐電子高息等權",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.35,
+      "amount_source": "TWSE"
+    },
+    "00944": {
+      "code": "00944",
+      "name": "野村趨勢動能高息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.109,
+      "amount_source": "TWSE"
+    },
+    "00952": {
+      "code": "00952",
+      "name": "凱基台灣AI50",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.12,
+      "amount_source": "TWSE"
+    },
+    "00961": {
+      "code": "00961",
+      "name": "FT臺灣永續高息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.09,
+      "amount_source": "TWSE"
+    },
+    "00963": {
+      "code": "00963",
+      "name": "中信全球高股息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.1,
+      "amount_source": "TWSE"
+    },
+    "00964": {
+      "code": "00964",
+      "name": "中信亞太高股息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.2,
+      "amount_source": "TWSE"
+    },
+    "009808": {
+      "code": "009808",
+      "name": "華南永昌優選50",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.76,
+      "amount_source": "TWSE"
+    },
+    "00980A": {
+      "code": "00980A",
+      "name": "主動野村臺灣優選",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.688,
+      "amount_source": "TWSE"
+    },
+    "00982A": {
+      "code": "00982A",
+      "name": "主動群益台灣強棒",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.78,
+      "amount_source": "TWSE"
+    },
+    "00982D": {
+      "code": "00982D",
+      "name": "主動富邦動態入息",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.052,
+      "amount_source": "TWSE"
+    },
+    "00983D": {
+      "code": "00983D",
+      "name": "主動富邦複合收益",
+      "ex_dividend_date": "2026-11-17",
+      "amount": 0.061,
+      "amount_source": "TWSE"
+    },
+    "00731": {
+      "code": "00731",
+      "name": "復華富時高息低波",
+      "ex_dividend_date": "2026-11-18",
+      "amount": 1.828,
+      "amount_source": "TWSE"
+    },
+    "00949": {
+      "code": "00949",
+      "name": "復華日本龍頭",
+      "ex_dividend_date": "2026-11-18",
+      "amount": 3.02,
+      "amount_source": "TWSE"
+    },
+    "0051": {
+      "code": "0051",
+      "name": "元大中型100",
+      "ex_dividend_date": "2026-11-20",
+      "amount": null,
+      "amount_source": null
+    },
+    "0055": {
+      "code": "0055",
+      "name": "元大MSCI金融",
+      "ex_dividend_date": "2026-11-20",
+      "amount": null,
+      "amount_source": null
+    },
+    "00771": {
+      "code": "00771",
+      "name": "元大US高息特別股",
+      "ex_dividend_date": "2026-11-20",
+      "amount": null,
+      "amount_source": null
+    },
+    "00901": {
+      "code": "00901",
+      "name": "永豐智能車供應鏈",
+      "ex_dividend_date": "2026-11-24",
+      "amount": null,
+      "amount_source": null
+    },
+    "00984D": {
+      "code": "00984D",
+      "name": "主動聯博全球非投",
+      "ex_dividend_date": "2026-12-01",
+      "amount": null,
+      "amount_source": null
+    },
+    "00406A": {
+      "code": "00406A",
+      "name": "主動中信台灣收益",
+      "ex_dividend_date": "2026-12-02",
+      "amount": null,
+      "amount_source": null
     }
   }
 }
