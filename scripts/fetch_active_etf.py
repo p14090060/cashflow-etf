@@ -2349,6 +2349,29 @@ def _ne_compare(before, after):
     return out
 
 
+def _ne_same_positions(before, after):
+    """Same validated positions, independent of XLSX packaging or row order.
+
+    Retain the first original and computed comparison; never treat missing funds
+    as zero, or quantities/currencies as interchangeable.
+    """
+    if not isinstance(before, dict) or not isinstance(after, dict):
+        return False
+    try:
+        code = after["code"]
+        for p in (before, after):
+            check_non_equity_positions(code, code, p, after["as_of"])
+        def canonical(p):
+            out = {k: v for k, v in p.items() if k != "source"}
+            for sec in NE_QTY:
+                if out[sec] is not None:
+                    out[sec] = sorted(out[sec], key=lambda r: r["code"])
+            return out
+        return canonical(before) == canonical(after)
+    except (DataInvalid, KeyError, TypeError, ValueError):
+        return False
+
+
 def _non_equity_decide(non_equity, prev_raw, old_out):
     """本輪非股票結果能不能覆蓋已存紀錄。回傳 ({code: (狀態或 None, 部位或 None, 增減或 None)}, {code: 不採用時的告警或 None})。
     日期倒退不覆蓋較新紀錄；同日同原件 → 冪等（沿用已算好的增減）；同日內容（hash）不同 → 保留原紀錄並告警，不偽造新日期。"""
@@ -2362,6 +2385,16 @@ def _non_equity_decide(non_equity, prev_raw, old_out):
             print(f"[NE] {code} 官方檔資料日 {cur['as_of']} 早於已存 {last[0]}，日期倒退不採用")
             reject[code] = None
         elif any(d == cur["as_of"] and h != cur["source"]["sha256"] for d, h in known):
+            saved = (prev_raw.get(code) or {}).get("non_equity_positions")
+            # All stored same-day records must still refer to that first original.
+            # A raw file hash change alone is not a position revision.
+            if _ne_same_positions(saved, pos) and all(
+                    h == saved["source"]["sha256"] for d, h in known if d == cur["as_of"]):
+                old_st = (prev_raw.get(code) or {}).get("non_equity_status") or (old_out.get(code) or {}).get("non_equity_status")
+                old_chg = (old_out.get(code) or {}).get("non_equity_changes")
+                accept[code] = (old_st, saved, old_chg)
+                print(f"[NE] {code} 同日原件 hash 不同但已核三區部位相同，保留原基準及增減")
+                continue
             print(f"[NE] {code} 同一資料日 {cur['as_of']} 官方檔內容不同，保留已存紀錄")
             reject[code] = f"同一資料日 {cur['as_of']} 官方非股票檔內容前後不一致，保留先前狀態待查"
         else:

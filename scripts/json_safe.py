@@ -496,6 +496,43 @@ def _check_insufficient_history(code, e):
     _check_insufficient_nulls(code, e)
 
 
+# 00662 R1（2026-11-17 1拆5 incident）：價格／歷史單位待確認。只有一個合法狀態值；該狀態下依混合單位歷史算出的
+# 指標／訊號必須「存在且為 null」。_base 的必要數值（_BASE_NUM_REQUIRED）仍須是有限數值（契約不放寬，前端不讀 _base），
+# market（前端唯一讀的檔）所有歷史指標全部 null。不借用 insufficient_history，兩狀態不可並存。
+# 移除標記＝恢復：無 price_unit_status 時不得殘留 price_unit_break，其餘照一般 ETF 規則驗。
+PRICE_UNIT_UNVERIFIED = "unverified"
+PRICE_UNIT_BASE_NULL = ("signal", "maD", "rsi", "ret5d", "ret1m", "ret1y", "vol_ratio", "heat", "score_cont")
+PRICE_UNIT_MARKET_NULL = ("ma60", "ma20", "low52", "high52", "rsi", "maD", "signal", "ret5d", "ret1m", "ret1y",
+                          "avg_vol", "vol_ratio", "heat", "score_cont")
+
+
+def _check_price_unit(code, e, market):
+    has_status, has_break = "price_unit_status" in e, "price_unit_break" in e
+    if not has_status:
+        if has_break:
+            raise DataInvalid(f"{code} 沒有 price_unit_status 卻殘留 price_unit_break")
+        return
+    if e["price_unit_status"] != PRICE_UNIT_UNVERIFIED:
+        raise DataInvalid(f"{code} price_unit_status 無效：{e['price_unit_status']!r}")
+    if e.get("indicator_status") is not None:
+        raise DataInvalid(f"{code} price_unit_status 不可與 indicator_status 並存")
+    if not market and not has_break:
+        raise DataInvalid(f"{code} 單位待確認但缺 price_unit_break 鍵（無斷點須明寫 null）")
+    brk = e.get("price_unit_break")
+    if brk is not None:
+        if not _is_date(brk):
+            raise DataInvalid(f"{code} price_unit_break 日期無效：{brk!r}")
+        pd_ = e.get("price_date") if _is_date(e.get("price_date")) else e.get("quote_date")
+        if _is_date(pd_) and brk > pd_:
+            raise DataInvalid(f"{code} price_unit_break {brk} 晚於價格日 {pd_}")
+    keys = PRICE_UNIT_MARKET_NULL if market else PRICE_UNIT_BASE_NULL
+    missing = [k for k in keys if k not in e]
+    bad = [k for k in keys if k in e and e[k] is not None]
+    rm = e.get("ret_months", "<缺>")
+    if missing or bad or not (isinstance(rm, list) and len(rm) == 6 and all(x is None for x in rm)):
+        raise DataInvalid(f"{code} 單位待確認但指標／訊號不是如實 null：缺鍵 {missing}、非 null {bad}、ret_months {rm!r}")
+
+
 def validate_base(obj):
     """_base.json：etfs 非空；每檔必要數值有限；新欄位（price_date／price_prev／official_close）可缺省，
     存在就須合法；market 三個數值有限。"""
@@ -517,6 +554,7 @@ def validate_base(obj):
         _check_official(code, e.get("official_close"))
         if e.get("indicator_status") is not None:
             _check_insufficient_history(code, e)
+        _check_price_unit(code, e, market=False)
     _check_market_block("_base.json", obj.get("market"))
     _check_calendar("_base.json", obj.get("calendar"))
     v = obj.get("twse_price_check_date")
@@ -553,6 +591,7 @@ def validate_market(obj):
             if e["indicator_status"] != INSUFFICIENT_HISTORY or not _is_date(e.get("listing_date")):
                 raise DataInvalid(f"{code} indicator_status／listing_date 無效")
             _check_insufficient_nulls(code, e)
+        _check_price_unit(code, e, market=True)
     if not isinstance(obj.get("updated"), str):
         raise DataInvalid("updated 無效")
     _opt_str("market.json", obj, "quote_date", date=True)

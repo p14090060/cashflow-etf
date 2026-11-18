@@ -3,6 +3,11 @@
 // ⚠ 一律用傳統 <script> 載入，不要加 type="module"：
 //   HTML 裡有 15 個行內 onclick 需要這些函式掛在 window 上。
 
+// ── 00662 R1：價格／歷史單位待確認（market price_unit_status＝unverified）──
+// 訊號已如實 null，不可 fallback 成「偏貴」；顯示中性「待確認」。其他商品（含既有 null 訊號）行為不變。
+function unitPending(e) { return !!e && e.price_unit_status === 'unverified'; }
+const UNIT_PENDING_LABEL = '待確認', UNIT_PENDING_CLS = 'sig-pending';
+
 // ── Mini bar chart（全域，排行頁、Detail、自選卡共用）──────────────────
 // 台股語意（PO 硬規格，D1 全站）：漲＝紅、跌＝綠、0＝中性色、缺值＝灰。不得改成美股漲綠跌紅。
 // opts.token：用 --up／--dn token（自選卡）；未指定時沿用原本排行頁的色值，只修正 0 的顏色。

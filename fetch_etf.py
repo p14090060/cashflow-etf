@@ -8,6 +8,7 @@ from json_safe import (atomic_write_json, nullify_nonfinite, validate_base, vali
 import product_policy as _policy   # noqa: E402
 import yield_comparison as _yield_cmp   # noqa: E402  殖利率排行比較資料（不影響 yld／訊號）
 import official_frequency as _official   # noqa: E402  D-068：官方政策證據／待公告解除的單一驗證規則
+import price_unit as _price_unit   # noqa: E402  00662 incident：歷史單位不一致 → 指標／訊號如實 null（待確認）
 
 # Windows 本機主控台常是 cp950，print() 遇到 ✓/⚠ 等符號會 UnicodeEncodeError 整支腳本崩潰
 # （GitHub Actions 的 Ubuntu 預設 UTF-8 不受影響，但本機手動執行會中招，2026-07-08 發現）
@@ -1838,6 +1839,18 @@ for code, name in ALL_ETFS:
             "price_date": price_date, "price_prev": safe(price_prev),
             "official_close": (_TPEX_OFFICIAL_ROWS if code in TWO_CODES else _TWSE_OFFICIAL_ROWS).get(code),
         })
+        # 2026-11-17 00662：一年日線混了拆分前後兩種單位（或現價與歷史單位不同）→ 依歷史的指標／訊號不可信，
+        # 如實 null 並標 price_unit_status（待確認）；不按日期除比例、不猜逐列單位、不動價格與殖利率
+        _vcol = hist["Volume"] if "Volume" in hist.columns else None
+        _unit_rows = [(d.date(), float(x), float(_vcol[d]) if _vcol is not None and d in _vcol.index else 0.0)
+                      for d, x in hist["Close"].items() if x == x]
+        _unit_bad, _unit_brk = _price_unit.base_problem(code, _unit_rows, price, ma60,
+                                                         as_of=(f"{_TWSE_PRICE_DATE[:4]}-{_TWSE_PRICE_DATE[4:6]}-{_TWSE_PRICE_DATE[6:]}"
+                                                                if _TWSE_PRICE_DATE else price_date))
+        if _unit_bad:
+            _price_unit.apply_base(results[-1], _unit_bad, _unit_brk)
+            signal = None
+            print(f"[UNIT] {code} {name}：歷史價格單位不一致（斷點 {_unit_brk or '現價對歷史'}）→ 指標／訊號待確認，不輸出")
         tag = "精選" if curated else "自動"
         print(f"[{tag}] {code} {name}  {price}  sig={signal}  vol={avg_vol:.0f}")
 

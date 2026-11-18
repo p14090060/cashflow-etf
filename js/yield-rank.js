@@ -114,7 +114,7 @@ function renderYieldRank() {
         <div class="rank-no ${cls}">${rank}</div>
         <div class="rank-etf"><div class="rank-code">${code}</div><div class="rank-name">${name}</div></div>
         <div class="rank-price">${e.price}</div>
-        <div class="rank-sig ${SIG_CLS[e.signal] || ''}">${SIG_LABEL[e.signal] || '--'}</div>
+        <div class="rank-sig ${unitPending(e) ? UNIT_PENDING_CLS : (SIG_CLS[e.signal] || '')}">${unitPending(e) ? UNIT_PENDING_LABEL : (SIG_LABEL[e.signal] || '--')}</div>
       </div>
       <div class="rank-sub yr-cols">
         <div class="yr-freq">${esc(e.div_frequency || e.div_freq || '不明')}</div>

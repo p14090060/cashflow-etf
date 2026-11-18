@@ -55,6 +55,12 @@
     border:1px solid var(--sig-bond); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
+  /* 00662 R1：價格／歷史單位待確認——中性次要色，不借用五態任何一色（不是買賣判斷） */
+  .sig-pending {
+    background:var(--sig-backing); color:var(--dim);
+    border:1px dashed var(--dim); border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
   .sig-hot {
     background:var(--sig-backing); color:var(--sig-hot);
     border:1px solid var(--sig-hot); border-radius:6px;

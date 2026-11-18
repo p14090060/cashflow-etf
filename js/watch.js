@@ -68,8 +68,9 @@ const Watch = (function () {
     return label + '<span class="mini-bars wc-bars" role="img" aria-label="' + esc(aria) + '">' + miniBars(m, { token: true }) + '</span>';
   }
   function tagsHtml(e) {
-    const sig = (typeof _DT_SIG !== 'undefined' && _DT_SIG[e.signal]) || '';
-    const cls = (typeof _DT_SIG_CLS !== 'undefined' && _DT_SIG_CLS[e.signal]) || '';
+    const pend = typeof unitPending === 'function' && unitPending(e);
+    const sig = pend ? UNIT_PENDING_LABEL : (typeof _DT_SIG !== 'undefined' && _DT_SIG[e.signal]) || '';
+    const cls = pend ? UNIT_PENDING_CLS : (typeof _DT_SIG_CLS !== 'undefined' && _DT_SIG_CLS[e.signal]) || '';
     const cat = (typeof catClassify === 'function') ? (catDefOf(catClassify(e)) || {}).label : '';
     const parts = [];
     if (sig) parts.push('<span class="' + cls + '">' + esc(sig) + '</span>');

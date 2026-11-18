@@ -15,6 +15,7 @@ import official_frequency as _official_policy     # D-068：官方政策證據�
 
 sys.path.append(str(Path(__file__).resolve().parent))
 from yield_comparison import refresh_market_entry as _refresh_yield_basis
+import price_unit as _price_unit   # 00662 incident：最終價格與歷史單位不一致 → 指標／訊號如實 null（待確認）
 from json_safe import atomic_write_json, validate_market, validate_market_policy, INSUFFICIENT_HISTORY, confirmed_market_close, yield_verification_problem   # noqa: E402
 
 # Windows 本機主控台常是 cp950，print() 遇到 emoji/特殊符號會 UnicodeEncodeError 整支腳本崩潰
@@ -522,6 +523,9 @@ def verify_output(data=None):
         # D-044：歷史不足的 ETF 沒有訊號可驗（signal 必須是 null，由 validate_market 把關）
         if e.get("indicator_status") == INSUFFICIENT_HISTORY:
             continue
+        # 價格／歷史單位待確認：指標與訊號已如實 null，不重算（重算會把混合單位的假便宜算回來）
+        if e.get("price_unit_status") == _price_unit.UNVERIFIED:
+            continue
 
         # signal 不符 → 直接用正確值覆蓋（資料本身足夠重算，不需人工）
         expected = calc_signal(
@@ -820,6 +824,11 @@ def main():
             _reference(e, b, off)
         e["close_confirmed"] = e["close_status"] is not None
 
+        # D-044: unknown volume must not delete required explicit-null indicators.
+        # All quote paths (MIS, official close, previous quote) share this contract.
+        if e.get("indicator_status") == INSUFFICIENT_HISTORY:
+            e["vol_ratio"], e["heat"] = None, None
+
         # 疊上配息靜態資料
         d = div_etfs.get(code, {})
         if d:
@@ -854,8 +863,12 @@ def main():
         _ma60 = e.get("ma60") or 0
         _price = e.get("price") or 0
         _insufficient = e.get("indicator_status") == INSUFFICIENT_HISTORY
+        # 00662（2026-11-17）：最終價格與基線歷史單位不一致（基線已標待確認，或已核官方事件代號的現價對基線 60MA／價格差 ≥1.8 倍）
+        _unit_bad = not _insufficient and _price_unit.market_problem(e, b, today_iso)
+        if _unit_bad:
+            print(f"[UNIT] {code}：價格與歷史單位不一致（現價 {_price}、基線 60MA {b.get('ma60')}、基線價 {b.get('price')}）→ 指標／訊號待確認")
         # D-044：歷史不足 → 不判便宜／合理／偏貴，maD／報酬維持 null（不拿面額或少量資料推）
-        e["signal"] = None if _insufficient else calc_signal(
+        e["signal"] = None if (_insufficient or _unit_bad) else calc_signal(
             _price,
             e.get("ma20",      0),
             _ma60,
@@ -869,13 +882,15 @@ def main():
             e.get("code",     ""),
         )
         # maD 依最終價格重算（原本只在缺欄位時補寫，MIS 價格下會留著基線價格算的值）
-        if _ma60 > 0 and not _insufficient:
+        if _ma60 > 0 and not _insufficient and not _unit_bad:
             e["maD"] = round((_price - _ma60) / _ma60 * 100, 1)
         e.pop("premium", None)   # 移除 NAV 相關欄位
 
         # 新上市 ETF：用最終價格和 NT$10 面額重算 ret1y，確保與顯示價格一致
         if e.get("new_listing") and _price > 0 and not _insufficient:
             e["ret1y"] = round((_price - 10.0) / 10.0 * 100, 1)
+        if _unit_bad:
+            _price_unit.apply_market(e)
 
         # 殖利率：_base.json 有合理值（fetch_etf.py 用 TWSE 多筆平均算的）→ 直接沿用
         # 不靠 mis_fetcher 的 "單筆×頻率" 反算，那樣對變動配息 ETF 會嚴重失真

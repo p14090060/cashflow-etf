@@ -6,12 +6,20 @@ scripts/fetch_dividend_calendar.py
 - 三源全無且距除息日 ≤ 7 天 → TG 通知
 - amount=null 代表真正查無，前端顯示「待公告」
 輸出 data/dividend_calendar.json
+
+收錄母體（2026-11-17 漏收修補）：本輪有效 data/_base.json 的 ETF 全池（與 mis_fetcher 同一套商品政策：
+K 尾碼／ETN／無合格 ETF 類型證據一律不收），主動／被動同規則；不再用固定 20 檔白名單。
+- 新覆蓋商品只採 TWSE bulk 官方公告：日期照列，官方正額才採，空白／無法判讀 → null（不填 0、不用別期補）。
+- 逐檔補查（TWSE per-ETF／FinMind／MoneyDJ）與 TG 告警只限 SUPPLEMENT_CODES（原 20 檔），不因擴池放大。
+- 同代號同除息日官方金額矛盾 → null 並告警，不挑其中一筆；保留前值只限同一除息日（不跨期沿用）。
+- _base／商品政策讀不到 → 保留現有檔案不寫；bulk 部分月份失敗 → 本輪沒抓到的既有未過期公告保留。
 """
 import json, sys, ssl, os, datetime, re, time, urllib.request, urllib.parse
 from pathlib import Path
 
 ROOT     = Path(__file__).parent.parent
 OUT      = ROOT / "data" / "dividend_calendar.json"
+BASE     = ROOT / "data" / "_base.json"
 BASE_URL = "https://www.twse.com.tw/rwd/zh/ETFortune/dividendList"
 HEADERS  = {"User-Agent": "ETF-dividend-fetcher/1.0 (github.com/p14090060/cashflow-etf)"}
 
@@ -20,7 +28,8 @@ TG_TOKEN      = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT_ID    = os.environ.get("TELEGRAM_CHAT_ID", "")
 ALERT_DAYS    = 7   # 距除息日 ≤ N 天且查無金額 → 發 TG
 
-LAZY_WATCHLIST = {
+# 逐檔補查名單（原 LAZY_WATCHLIST）：只決定誰可以多打 per-ETF／FinMind／MoneyDJ 與 TG 告警，不是收錄白名單
+SUPPLEMENT_CODES = LAZY_WATCHLIST = {
     '0050', '0056', '006208', '00878', '00919', '00929', '00940', '00939',
     '00936', '00930', '00932', '00713', '00701', '00850', '00757',
     '00646', '00662', '00679B', '00687B', '00772B',
@@ -96,14 +105,44 @@ def _parse_twse_html(html: str) -> list:
         try:
             amount = float(cells[5].replace(",", ""))
         except (ValueError, IndexError):
-            amount = 0.0
+            amount = None                      # 空白／無法判讀＝金額未定，不是 0
+        if amount is not None and not (amount > 0 and amount == amount and amount != float("inf")):
+            amount = None                      # 只有官方正額才採用
         results.append({"code": code, "name": cells[1], "ex_dividend_date": ex_date, "amount": amount})
     return results
 
 
-def fetch_twse_bulk() -> list:
+# bulk 月份「成功」＝確認是本程式支援的官方配息清單（R1 F2）：HTTP 200 的維護頁／登入頁／改版或損壞頁面
+# 不是「完整的空清單」，必須計為該月份失敗（沿既有 partial 保留）。合法空結果＝官方表頭完整、tbody 沒有任何資料列。
+_REPORT_TABLE_RE = re.compile(r'<table[^>]*\bid="myTable"[^>]*>(.*?)</table>', re.DOTALL | re.IGNORECASE)
+_THEAD_RE = re.compile(r'<thead[^>]*>(.*?)</thead>', re.DOTALL | re.IGNORECASE)
+_TBODY_RE = re.compile(r'<tbody[^>]*>(.*?)</tbody>', re.DOTALL | re.IGNORECASE)
+_REPORT_HEAD = ("證券代號", "證券簡稱", "除息交易日", "收益分配基準日", "收益分配發放日", "收益分配金額")
+
+
+def _parse_twse_report(html: str):
+    """回傳 (rows, None)＝確認為官方清單（rows 可為空＝合法空結果）；(None, 原因)＝不是可用的官方報表。"""
+    tables = _REPORT_TABLE_RE.findall(html)
+    if len(tables) != 1:
+        return None, f"找不到唯一的官方配息表（myTable×{len(tables)}）"
+    head, body = _THEAD_RE.search(tables[0]), _TBODY_RE.search(tables[0])
+    if not head or not body:
+        return None, "官方配息表缺 thead／tbody"
+    cols = [strip_tags(m.group(1)) for m in TD_RE.finditer(head.group(1))]
+    if len(cols) < 6 or any(not c.startswith(want) for c, want in zip(cols, _REPORT_HEAD)):
+        return None, f"官方配息表欄位不符：{cols[:6]}"
+    trs = TR_RE.findall(body.group(1))
+    rows = _parse_twse_html(body.group(1))
+    if len(rows) != len(trs):
+        return None, f"官方配息表有 {len(trs) - len(rows)} 列無法判讀（共 {len(trs)} 列）"
+    return rows, None
+
+
+def fetch_twse_bulk(status=None) -> list:
+    """status（dict，選填）：寫入 {"failed": 失敗月份數}，供 main 判斷本輪清單是否完整。"""
     today = datetime.date.today()
     all_rows = []
+    failed = 0
     d = today.replace(day=1)
     for _ in range(3):
         ds = d.strftime("%Y%m%d")
@@ -112,12 +151,17 @@ def fetch_twse_bulk() -> list:
             req = urllib.request.Request(f"{BASE_URL}?date={ds}", headers=HEADERS)
             with urllib.request.urlopen(req, timeout=15, context=ssl_ctx()) as r:
                 html = r.read().decode("utf-8")
-            rows = _parse_twse_html(html)
+            rows, why = _parse_twse_report(html)
+            if rows is None:
+                raise ValueError(f"回應不是可用的官方配息清單（{why}）")
             print(f"[TWSE] 解析 {len(rows)} 筆")
             all_rows.extend(rows)
         except Exception as e:
             print(f"[TWSE] ⚠ {ds} 失敗：{e}", file=sys.stderr)
+            failed += 1
         d = (d.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
+    if status is not None:
+        status["failed"] = failed
     return all_rows
 
 
@@ -132,7 +176,7 @@ def fetch_twse_per_etf(code: str, today_str: str) -> float:
         with urllib.request.urlopen(req, timeout=15, context=ssl_ctx()) as r:
             html = r.read().decode("utf-8")
         rows = _parse_twse_html(html)
-        future = [r for r in rows if r["ex_dividend_date"] >= today_str and r["amount"] > 0]
+        future = [r for r in rows if r["ex_dividend_date"] >= today_str and (r["amount"] or 0) > 0]
         if future:
             future.sort(key=lambda x: x["ex_dividend_date"])
             return future[0]["amount"]
@@ -260,6 +304,30 @@ def fetch_moneydj_dividend(code: str, ex_date_str: str) -> float:
     return 0.0
 
 
+# ── 收錄母體：本輪有效 _base.json 全池 ─────────────────────────────
+
+def load_pool(today):
+    """回傳 (合格代號集合, 被政策拿掉的 [(代號, 原因)])；_base 無效、商品政策讀不到、有未核實的拿掉原因
+    或母體為空 → (None, 原因)。與 mis_fetcher 同一套政策與安全語意：只有 K 尾碼／排除清單可逐檔拿掉。"""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from json_safe import load_strict, validate_base
+        import product_policy
+        base = load_strict(BASE)
+        validate_base(base)
+        listed = product_policy.listed_codes()
+        evidence = product_policy.load_etf_evidence(as_of=today, listed=listed)
+        keep, dropped = product_policy.split_etfs(base["etfs"], listed, evidence)
+    except Exception as e:
+        return None, f"{type(e).__name__}: {e}"
+    # R1 F1：與 MIS 相同的安全語意——只有已核實的不收錄商品（K 尾碼、排除清單）可以拿掉；
+    # 缺證據／證據日期異常等未核實原因或空母體 → 本輪不能更新（不縮池發布、不刪既有公告、不推定退市）
+    unverified = [(c, r) for c, r in dropped if r not in ("suffix-K", "excluded-list")]
+    if unverified or not keep:
+        return None, f"{len(unverified)} 檔沒有有效的 ETF 類型證據 {unverified[:10]}" if unverified else "合格母體為空"
+    return {e["code"] for e in keep}, dropped
+
+
 # ── Main ────────────────────────────────────────────────────────────
 
 def main():
@@ -267,36 +335,60 @@ def main():
     today_str = today.isoformat()
     print(f"[DIV-CAL] 除息行事曆抓取 ({today_str})")
 
+    # Step 0: 收錄母體＝本輪有效 _base.json 全池（不再用固定 20 檔）
+    pool, dropped = load_pool(today)
+    if pool is None:
+        print(f"::warning::[DIV-CAL] 無法確認收錄母體（_base.json／商品政策／類型證據：{dropped}），保留現有檔案、本輪不請求不寫", file=sys.stderr)
+        sys.exit(0)
+    print(f"[DIV-CAL] 收錄母體：_base.json 合格 ETF {len(pool)} 檔（政策拿掉 {len(dropped)} 檔）")
+
     # Step 1: TWSE bulk
-    all_rows = fetch_twse_bulk()
+    bulk_status: dict = {}
+    all_rows = fetch_twse_bulk(bulk_status)
     if not all_rows:
         print("[DIV-CAL] ⚠ 無任何資料，保留現有檔案", file=sys.stderr)
         sys.exit(0)
 
-    # 篩選 LAZY_WATCHLIST + 未來日期；同代號取最近未來日期
-    candidates: dict = {}
+    # 篩選全池 + 未來日期；同代號取最近未來日期
+    max_future = (today + datetime.timedelta(days=730)).isoformat()
+    by_date: dict = {}
     for row in all_rows:
         code = row["code"]
-        if code not in LAZY_WATCHLIST:
+        if code not in pool:
             continue
         iso = row["ex_dividend_date"]
         if iso < today_str:
             continue
-        max_future = (today + datetime.timedelta(days=730)).isoformat()
         if iso > max_future:
             print(f"[SKIP] {code} 除息日 {iso} 疑似 ROC 日期解析錯誤（超過2年），略過")
             continue
-        if code not in candidates or iso < candidates[code]["ex_dividend_date"]:
-            candidates[code] = {
-                **row,
-                "amount_source": "TWSE" if row["amount"] > 0 else None,
-            }
+        by_date.setdefault(code, {}).setdefault(iso, []).append(row)
+
+    candidates: dict = {}
+    conflicts: set = set()      # 同代號同除息日官方金額矛盾：不挑、不補查、不保留前值
+    for code, dates in by_date.items():
+        iso  = min(dates)
+        rows = dates[iso]
+        amounts = sorted({r["amount"] for r in rows if r["amount"] is not None})
+        if len(amounts) > 1:
+            conflicts.add(code)
+            print(f"::warning::[CONFLICT] {code} 除息日 {iso} 官方金額矛盾 {amounts}，不挑其中一筆，金額 null")
+            amount = None
+        else:
+            amount = amounts[0] if amounts else None
+        candidates[code] = {
+            **rows[0],
+            "amount":        amount,
+            "amount_source": "TWSE" if amount is not None else None,
+        }
 
     # Step 2: 距除息日 ≤ 14 天 → 強制雙源查詢（TWSE × FinMind）
+    # 只限補查名單（原 20 檔）：擴池不增加逐檔請求與 TG 告警；新覆蓋商品等 bulk 自然更新
     DUAL_DAYS = 14
     dual_targets = [
         c for c, d in candidates.items()
-        if (datetime.date.fromisoformat(d["ex_dividend_date"]) - today).days <= DUAL_DAYS
+        if c in SUPPLEMENT_CODES and c not in conflicts
+        and (datetime.date.fromisoformat(d["ex_dividend_date"]) - today).days <= DUAL_DAYS
     ]
 
     alerts = []
@@ -368,29 +460,47 @@ def main():
 
     # 套用人工確認值（僅在自動源查無時補入）
     for code, override in _MANUAL_OVERRIDE.items():
-        if code in candidates and candidates[code].get("amount") is None:
+        if code in candidates and code not in conflicts and candidates[code].get("amount") is None:
             candidates[code].update(override)
             print(f"  [MANUAL] {code} 自動源查無，套用人工確認值 {override['amount']}")
 
-    # 保留前值：若本次查無（null）但舊檔已有有效金額，不倒退覆蓋
-    # 避免第二次執行因 TWSE 回傳空值而把已知正確金額洗掉
+    # 保留前值：若本次查無（null）但舊檔「同一除息日」已有有效金額，不倒退覆蓋
+    # 避免第二次執行因 TWSE 回傳空值而把已知正確金額洗掉；不同除息日＝另一期，不跨期沿用舊金額
     if OUT.exists():
         try:
             old_data = json.load(open(OUT, encoding="utf-8"))
             old_etfs = old_data.get("etfs", {})
             for code, entry in candidates.items():
-                if entry.get("amount") is None:
+                if entry.get("amount") is None and code not in conflicts:
                     old = old_etfs.get(code, {})
                     old_amt = old.get("amount")
-                    if old_amt is not None and old_amt > 0:
+                    valid = isinstance(old_amt, (int, float)) and not isinstance(old_amt, bool) and old_amt > 0
+                    if old.get("ex_dividend_date") != entry["ex_dividend_date"]:
+                        if valid:
+                            print(f"  [NO-CARRY] {code} 舊金額 {old_amt} 屬 {old.get('ex_dividend_date')}，"
+                                  f"不帶到新除息日 {entry['ex_dividend_date']}")
+                        continue
+                    if valid:
                         entry["amount"]        = old_amt
                         entry["amount_source"] = (old.get("amount_source") or "") + "（保留前值）"
                         print(f"  [KEEP] {code} 本次查無，保留前值 {old_amt}")
+            # bulk 有月份抓取失敗：本輪清單可能不完整 → 既有未過期公告（仍在母體內）不被新清單洗掉
+            if bulk_status.get("failed"):
+                for code, old in old_etfs.items():
+                    if code not in pool or not isinstance(old, dict):
+                        continue
+                    old_iso = old.get("ex_dividend_date")
+                    if not isinstance(old_iso, str) or not (today_str <= old_iso <= max_future):
+                        continue
+                    new = candidates.get(code)
+                    if new is None or old_iso < new["ex_dividend_date"]:
+                        candidates[code] = old
+                        print(f"  [KEEP-PARTIAL] {code} bulk 有 {bulk_status['failed']} 個月份失敗，保留既有公告 {old_iso}")
         except Exception as e:
             print(f"  [KEEP] 讀取舊檔失敗: {e}", file=sys.stderr)
 
     # 印出結果
-    print(f"\n[DIV-CAL] LAZY_WATCHLIST 有公告：{len(candidates)} 支")
+    print(f"\n[DIV-CAL] 全池有公告：{len(candidates)} 支")
     for code, d in sorted(candidates.items(), key=lambda x: x[1]["ex_dividend_date"]):
         amt = d.get("amount")
         amt_str = f"{amt:.4f} 元" if amt is not None else "待公告"
