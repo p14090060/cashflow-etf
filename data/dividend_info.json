@@ -184,7 +184,7 @@
         11
       ],
       "category": "ESG",
-      "avg_dividend_per_share": 0.85,
+      "avg_dividend_per_share": 1.0,
       "_todo": false
     },
     "00981A": {
@@ -1511,7 +1511,19 @@
       ],
       "category": "海外",
       "avg_dividend_per_share": null,
-      "_todo": true
+      "_todo": true,
+      "distribution_status": {
+        "status": "no_distribution_this_period",
+        "code": "009824",
+        "valuation_date": "2026-11-17",
+        "announced_date": "2026-11-18",
+        "valid_until": "2027-02-16",
+        "source": {
+          "name": "TWSE ETFortune 官方收益分配決議",
+          "url": "https://www.twse.com.tw/zh/ETFortune/announcement?company=A00016&date=20261118&seq=1&fund=009824&type=distribution",
+          "sha256": "e24690bdb4c2c3751447d446e32ea31978a04aef090ea096f0202e4f7d26cc5e"
+        }
+      }
     },
     "00408A": {
       "name": "主動第一金優股息",
@@ -2902,16 +2914,6 @@
   },
   "calendar": [
     {
-      "iso_date": "2026-11-18",
-      "mon": "11月",
-      "day": "18",
-      "code": "00878",
-      "name": "國泰永續高息",
-      "amt": 1.01,
-      "soon": true,
-      "source": "yfinance"
-    },
-    {
       "iso_date": "2026-11-21",
       "mon": "11月",
       "day": "21",
@@ -3008,6 +3010,16 @@
       "code": "0056",
       "name": "元大高股息",
       "amt": 1.72,
+      "soon": false,
+      "source": "yfinance"
+    },
+    {
+      "iso_date": "2027-02-17",
+      "mon": "2月",
+      "day": "17",
+      "code": "00878",
+      "name": "國泰永續高息",
+      "amt": 1.25,
       "soon": false,
       "source": "yfinance"
     }
