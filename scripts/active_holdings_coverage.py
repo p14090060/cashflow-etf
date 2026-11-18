@@ -8,6 +8,11 @@ from pathlib import Path
 from html import unescape
 
 FORMAT='active-holdings-universe/v1'
+
+def is_active_bond(code):
+    # Security-code suffix identifies active bonds; scope only, never eligibility.
+    return isinstance(code,str) and re.fullmatch(r'\d{5}D',code) is not None
+
 STATE_KEYS=('active_gap_rounds','active_gap_first','active_gap_last','active_gap_run','active_gap_notified')
 # R1 F1：完整性監控本身失效（名單縮水、單市場、舊輸出…）的受控追蹤。單一鍵 'monitor'，沿 daily_state {鍵: 數值} 契約。
 INTEGRITY_KEYS=('active_integrity_rounds','active_integrity_first','active_integrity_last','active_integrity_run','active_integrity_reason','active_integrity_notified')
@@ -102,7 +107,7 @@ def discovery_candidates(root,prefix,known,*,now=None):
     """Only current, two-market official inventory may drive a known adapter."""
     rows=current_rows(root,prefix,now=now)
     if rows is None:return []
-    out=[r for code,r in rows.items() if code not in known]
+    out=[r for code,r in rows.items() if code not in known and not is_active_bond(code)]
     try:last=json.loads((Path(root)/'data/daily_state.json').read_text(encoding='utf-8')).get('active_discovery_last',{})
     except (OSError,ValueError,AttributeError):last={}
     return sorted(out,key=lambda r:(last.get(r['code'],0),r['code']))
@@ -149,7 +154,7 @@ def _evaluate(inventory,flow,writer_source,state,*,key,now,today):
             except (ValueError,TypeError,KeyError):result['reason']='官方上市日無效';return result
             if code in entries:result['reason']='官方兩市場代號衝突';return result
             entries[code]=row
-    if not entries or set(state.get('active_coverage_status') or {})-set(entries):
+    if not entries or {c for c in (state.get('active_coverage_status') or {}) if not is_active_bond(c)}-set(entries):
         result['reason']='官方主動名單為空或少了已追蹤代號，不認完整';return result
     if not isinstance(flow,dict) or not isinstance(flow.get('etfs'),dict):
         result['reason']='持股輸出未取得';return result
@@ -159,6 +164,14 @@ def _evaluate(inventory,flow,writer_source,state,*,key,now,today):
         if not 0<=now-stamp<=7200 or stamp<start-60:raise ValueError()
     except (KeyError,TypeError,ValueError):
         result['reason']='持股輸出不是本輪新結果';return result
+    # PO 2026-11-19: active bonds stay in the universe, outside holdings-change scope.
+    # Migrate only after complete, fresh inventory/output checks pass.
+    entries={c:r for c,r in entries.items() if not is_active_bond(c)}
+    for sk in STATE_KEYS+('active_coverage_status','active_coverage_listing','active_coverage_checked'):
+        values=state.get(sk)
+        if isinstance(values,dict):
+            for c in list(values):
+                if is_active_bond(c):values.pop(c)
     registered=registrations(writer_source)
     dyn=state.get(DYNAMIC_KEY)
     if isinstance(dyn,dict):registered.update({c:DYNAMIC_KEY for c in dyn if isinstance(c,str)})

@@ -183,10 +183,10 @@ function renderRank() {
     const _tag  = getEtfTag(e.code, e.name);
     const tagHtml = _tag ? `<div class="rank-tag" style="color:${_tag.color};border-color:${_tag.border};background:${_tag.bg}">${_tag.label}</div>` : '';
     // CP6c（PHASE5_PLAN §3.5）：整列 → Detail（覆蓋整列的 .rank-hit 按鈕）；列內「持股異動 ›」→ Active Flow（獨立按鈕，兩者是兄弟、不巢狀）。
-    // 「持股異動 ›」只要有 Active Flow 資料就顯示（沿用既有判定 _flowData.etfs[code]）——近期沒換股≠沒有資料（Gate 決策 B），
+    // 「持股異動 ›」只在股票型有 Active Flow 資料時顯示（沿用既有判定 _flowData.etfs[code]）——近期沒換股≠沒有資料（Gate 決策 B），
     // 不再用最近 7 天有無換檔決定入口在不在。點擊由 #rankRows 的 delegated handler 分流，一次只走一條。
     const fe       = _flowData && _flowData.etfs && _flowData.etfs[e.code];
-    const hasFlow  = !!fe;
+    const hasFlow  = !!fe && _flowInScope(e.code);
     const code     = _rankEsc(e.code), name = _rankEsc(e.name);
     const flowHtml = hasFlow
                    ? `<button type="button" class="rank-flow" aria-label="查看 ${code} 持股異動">持股異動</button>` : '';

@@ -7,6 +7,8 @@ let _rankSorted = [];   // 排行頁當前榜單，搜尋定位用
 
 // loading / ok / failed：成分 Tab 只在 ok 時出現，loading 與 failed 都不顯示
 let _flowStatus = 'loading';
+// Holdings-change scope only. General product data are retained.
+function _flowInScope(code) { return !/^\d{5}D$/.test(code); }
 
 function fetchFlow() {
   // 先試同源相對路徑（GitHub Pages 上最新、本機開檔也能測），失敗再退 raw
@@ -98,7 +100,7 @@ function _flowQSync() {
 }
 function _flowQItems() {
   const all = (_flowData && _flowData.etfs) || {};
-  return Object.keys(all).map(c => {
+  return Object.keys(all).filter(_flowInScope).map(c => {
     const etf = (typeof ETFS !== 'undefined' && ETFS) ? ETFS.find(e => e.code === c) : null;
     return { code: c, name: all[c].name || (etf && etf.name) || '' };
   });
@@ -438,11 +440,11 @@ function renderFlow(code) {
     if (!d) { _tmEmpty(box, '持股異動資料載入失敗'); return; }
 
     const all = d.etfs || {};
-    const codes = Object.keys(all).sort();
+    const codes = Object.keys(all).filter(_flowInScope).sort();
     if (!codes.length) { _tmEmpty(box, '目前沒有可用的主動式 ETF 資料'); return; }
 
     // 預設選異動金額最大的那檔，最有得看
-    if (!_flowSel || !all[_flowSel]) {
+    if (!_flowSel || !codes.includes(_flowSel)) {
       _flowSel = codes.slice().sort((a, b) =>
         (Math.abs(all[b].buy) + Math.abs(all[b].sell)) - (Math.abs(all[a].buy) + Math.abs(all[a].sell)))[0];
     }

@@ -111,7 +111,8 @@ def check_active_flow() -> list:
     if not data:
         return ["• active_flow.json 讀取失敗或不存在"]
 
-    etfs = data.get("etfs") or {}
+    from active_holdings_coverage import is_active_bond
+    etfs = {c: e for c, e in (data.get("etfs") or {}).items() if not is_active_bond(c)}
     # 只算「本次真的抓到」的。輸出會保留抓不到的 ETF（fetched:false）避免它從畫面
     # 消失，所以 len(etfs) 只增不減——拿總數當警戒線的話，全部投信掛掉也不會叫。
     live = [c for c, e in etfs.items() if e.get("fetched") is not False]

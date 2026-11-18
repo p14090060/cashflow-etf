@@ -172,7 +172,7 @@
     <div class="cat-flow" id="page-check">
   
       <div class="flow-head" id="flowHead">
-        <div class="flow-title">主動式 ETF 持股異動</div>
+        <div class="flow-title">主動式 ETF 持股異動<small style="display:block;font-size:12px;font-weight:normal;color:var(--dim)">不含主動式債券</small></div>
         <!-- PO Change #3（PHASE5_PLAN §8.4）：快速找 ETF；四條入口共用此節點 -->
         <button type="button" class="flow-q-btn" id="flowQBtn" aria-expanded="false" aria-controls="flowQBox"
                 aria-label="在主動式 ETF 中搜尋" onclick="flowQToggle()" disabled>🔍</button>
@@ -320,7 +320,7 @@
         <span class="tc-ic" aria-hidden="true">📅</span><span class="tc-text"><b>配息日曆</b><span>查看近期 ETF 除息與配息日期</span></span><span class="tc-arrow" aria-hidden="true">›</span>
       </button>
       <button class="tool-card" type="button" id="toolFlow" onclick="switchPage('check')">
-        <span class="tc-ic" aria-hidden="true">🔄</span><span class="tc-text"><b>主動式 ETF 持股異動</b><span>看基金最近加碼、減碼哪些持股</span></span><span class="tc-arrow" aria-hidden="true">›</span>
+        <span class="tc-ic" aria-hidden="true">🔄</span><span class="tc-text"><b>主動式 ETF 持股異動</b><span>看基金最近加碼、減碼哪些持股</span><small>不含主動式債券</small></span><span class="tc-arrow" aria-hidden="true">›</span>
       </button>
     </div>
   </div>
@@ -468,18 +468,18 @@
 <!-- 順序即相依順序，不可調動；一律傳統 script，不要 type="module" -->
 <script src="js/state.js?v=20261006a"></script>
 <script src="js/nav.js?v=20261103yr1"></script>
-<script src="js/flow.js?v=20261113ns1"></script>
+<script src="js/flow.js?v=20261119eq2"></script>
 <script src="js/archived-check.js?v=20261005x"></script>
 <script src="js/format.js?v=20261118pu1"></script>
 <script src="js/trading-calendar.js?v=20261013ut1"></script>
 <script src="js/render.js?v=20261118pu1"></script>
-<script src="js/rank.js?v=20261118pu1"></script>
+<script src="js/rank.js?v=20261119eq2"></script>
 <script src="js/yield-rank.js?v=20261118pu1"></script>
 <script src="js/search.js?v=20261009c8"></script>
 <script src="js/watch-store.js?v=20261005x"></script>
 <script src="js/category-rules.js?v=20261005x"></script>
 <script src="js/category.js?v=20261007d"></script>
-<script src="js/detail.js?v=20261118pu1"></script>
+<script src="js/detail.js?v=20261119eq2"></script>
 <script src="js/watch.js?v=20261118pu1"></script>
 <script src="js/router.js?v=20261103yr1"></script>
 <script src="js/boot.js?v=20261027rf1"></script>

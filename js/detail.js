@@ -257,7 +257,7 @@ function _dtHoldingsHtml(fe) {
   notes.forEach(n => { h += '<div class="dt-note">⚠ ' + _dtEsc(n) + '</div>'; });
   if (hasAmt) h += '<div class="dt-note">金額為兩份 PCF 快照相減的推估值，不等同基金實際成交。</div>';
   if (np.length) h += '<div class="dt-note">另有 ' + np.length + ' 檔海外持股異動，無台股報價無法換算金額，完整清單見主動頁。</div>';
-  h += '<button class="gs-flow-btn" onclick="detailGoFlow(\'' + _dtEsc(fe.code || _curEtfCode) + '\')">查看完整持股異動 ›</button>';
+  if (_flowInScope(fe.code || _curEtfCode)) h += '<button class="gs-flow-btn" onclick="detailGoFlow(\'' + _dtEsc(fe.code || _curEtfCode) + '\')">查看完整持股異動 ›</button>';
   return h;
 }
 
@@ -467,6 +467,7 @@ function detailTab(k) {
 }
 
 function detailGoFlow(code) {
+  if (!_flowInScope(code)) return;
   _dtSaveUi(true);   // 進 Flow 前把這一層的分頁／捲動／張數寫定，Back 回來依此還原
   gsClear();
   openFlow(code);
