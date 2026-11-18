@@ -1,10 +1,8 @@
 """
 scripts/intraday_notify.py
-盤中固定時間點發送 LAZY_WATCHLIST 便宜訊號快照。
-由 update-data.yml 每 10 分鐘呼叫，腳本自行判斷是否在通知時間點。
-
-台北通知時間：09:10, 10:00, 11:00, 12:00, 13:00
-對應 UTC：    01:10, 02:00, 03:00, 04:00, 05:00
+便宜訊號 TG 已依 PO 2026-11-18 要求停用。
+保留 update-data.yml 的既有呼叫介面，空通知時段讓腳本正常略過；
+行情更新與其他資料／故障通知的設定不變。
 """
 import json, os, sys, urllib.request, datetime
 from pathlib import Path
@@ -12,15 +10,8 @@ from pathlib import Path
 ROOT   = Path(__file__).parent.parent
 MARKET = ROOT / "data" / "market.json"
 
-# (UTC hour, UTC minute, 台北時間標籤)
-NOTIFY_SLOTS = [
-    (1, 10, "09:10"),
-    (2,  0, "10:00"),
-    (3,  0, "11:00"),
-    (4,  0, "12:00"),
-    (5,  0, "13:00"),
-    (5, 20, "13:20"),
-]
+# PO：取消全部便宜訊號推播，沒有任何啟用的通知時段。
+NOTIFY_SLOTS = []
 WINDOW_MIN = 6  # ±6 分鐘容許誤差（配合每 10 分鐘排程）
 
 LAZY_WATCHLIST = {
