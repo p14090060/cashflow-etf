@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-19 15:28",
+  "updated": "2026-11-19 16:00",
   "quote_date": "2026-11-19",
   "quote_time": "2026-11-19",
   "market_state": "closed",
@@ -15745,7 +15745,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 90,
-      "est": 0.054,
+      "est": 0.3,
       "div_next": null,
       "signal": "fair",
       "maD": -1.9,
