@@ -479,6 +479,15 @@ EXCLUDE_KW = [
     'R1', 'R2',   # 受益憑證（01xxxT），非 ETF
 ]
 
+# PO 2026-11-19：00986D 應列入一般商品（債券分類），但名稱含「債」會被④擋掉。
+# 只對「代號＋ISIN 官方全名」完全相符的這一檔略過④名稱關鍵字；①②③⑤（00 開頭、字尾、K／ETN 稽核清單）、
+# ISIN ETF 區段＋CFI CE…、兩市場完整性／類型證據、上市日與可信價格照原規則，不擴到其他名稱含「債」的商品。
+# 持股異動範圍另由 active_holdings_coverage／flow.js 排除，與這裡無關。
+CATALOG_KW_EXCEPTIONS = {"00986D": "主動復華金融債息"}
+# 新上市 ret1y 原規則以面額 10 元為基準；以下代號發行價不是 10 元、又沒有可核的原始基準 → 未滿一年時 ret1y＝null。
+# mis_fetcher.RET1Y_UNKNOWN_BASE 必須相同（兩個 writer 都要保留未知）。
+RET1Y_UNKNOWN_BASE = {"00986D"}
+
 # 代號字尾 L＝槓桿、R＝反向、U＝期貨／商品。2026-10-05 實測 ISIN ETF 區段 382 檔，
 # 字尾與名稱完全一致（0 例外）。名稱關鍵字擋不住簡稱（02001L 富邦蘋果正二N、
 # 00682U／00693U／00763U），所以用代號擋。A／B／D／K／C 等字尾不受影響。
@@ -511,6 +520,8 @@ def pool_excluded(code, name):
     pol = _policy.exclusion_reason(code, EXCLUDED_CODES)   # ⑤ K 尾碼／ETN 稽核清單（PO 2026-10-10）
     if pol:
         return pol
+    if CATALOG_KW_EXCEPTIONS.get(code) == name:   # ④ 例外：PO 明列的一般商品收錄（代號＋官方全名都相符才算）
+        return None
     if any(kw in name for kw in EXCLUDE_KW):  # ④ 名稱關鍵字
         return 'keyword'
     return None
@@ -1746,6 +1757,10 @@ for code, name in ALL_ETFS:
         # 新上市 ETF 以面額 NT$10 為基準計算報酬，反映申購成本
         if new_listing and len(adj) >= 2:
             ret1y = round((price - 10.0) / 10.0 * 100, 1)
+        # 00986D（發行價非 10 元、尚無可核的原始報酬基準）：上市未滿一年時 ret1y 保留未知，不套 10 元、不猜基準；
+        # 滿一年（new_listing False）即回原一年歷史計算
+        if new_listing and code in RET1Y_UNKNOWN_BASE:
+            ret1y = None
         # yfinance 歷史資料異常防呆：adj close 高低比 > 4 代表拆分調整失效，ret1y 不可信
         # 用 adj（已做拆分調整）而非原始 Close，避免正常拆股的 ETF 被誤判為 0
         _adj_max = float(adj.max()) if len(adj) > 0 else 0
@@ -1762,7 +1777,8 @@ for code, name in ALL_ETFS:
         recent_vols = v.tail(5).values.tolist()
 
         # 自動發現的 ETF：成交量太低（冷門）就跳過
-        if not curated and avg_vol < 100:
+        # PO 明列收錄的商品（CATALOG_KW_EXCEPTIONS）不因冷門被略過；熱度／排行仍照原公式，不加分
+        if not curated and avg_vol < 100 and CATALOG_KW_EXCEPTIONS.get(code) != name:
             print(f"[SKIP] {code} {name}  avg_vol={avg_vol:.0f} 太低，略過")
             continue
 

@@ -33,6 +33,8 @@ DIV_CAL     = ROOT / "data" / "dividend_calendar.json"    # TWSE 官方公告
 MANUAL_CAL  = ROOT / "data" / "manual_calendar.json"      # 人工核實（不被 Action 覆蓋）
 OUT         = ROOT / "data" / "market.json"
 
+# 新上市 ret1y 原以面額 10 元重算；發行價非 10 元且基準未核實的代號保留 null。須與 fetch_etf.RET1Y_UNKNOWN_BASE 相同。
+RET1Y_UNKNOWN_BASE = {"00986D"}
 FREQ_MAP = {"月配": 12, "雙月配": 6, "季配": 4, "半年配": 2, "年配": 1, "不配息": 0}
 
 # ── MIS API ──────────────────────────────────────────────
@@ -887,7 +889,9 @@ def main():
         e.pop("premium", None)   # 移除 NAV 相關欄位
 
         # 新上市 ETF：用最終價格和 NT$10 面額重算 ret1y，確保與顯示價格一致
-        if e.get("new_listing") and _price > 0 and not _insufficient:
+        if e.get("new_listing") and e.get("code") in RET1Y_UNKNOWN_BASE:
+            e["ret1y"] = None        # 基準未核實：價格換成官方／MIS 價後也不回填 10 元報酬
+        elif e.get("new_listing") and _price > 0 and not _insufficient:
             e["ret1y"] = round((_price - 10.0) / 10.0 * 100, 1)
         if _unit_bad:
             _price_unit.apply_market(e)

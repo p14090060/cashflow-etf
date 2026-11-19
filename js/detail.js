@@ -183,7 +183,9 @@ function _dtDivHtml(e) {
 }
 
 function _dtPerfHtml(e) {
-  const r1y = e.new_listing ? '上市以來（以面額 10 元計）' : '近一年';
+  // 00986D 發行價非 10 元、基準未核實：fetch／mis 已把 ret1y 保留未知，標籤不再寫「以面額 10 元計」
+  const r1y = !e.new_listing ? '近一年'
+            : (e.code === '00986D' && e.ret1y == null) ? '上市以來（基準待確認）' : '上市以來（以面額 10 元計）';
   let h = _dtRow('近 5 個交易日', _dtPct(e.ret5d))
         + _dtRow('近約 1 個月（22 個交易日）', _dtPct(e.ret1m))
         + _dtRow(r1y, _dtPct(e.ret1y));
