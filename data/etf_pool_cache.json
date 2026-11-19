@@ -1630,5 +1630,13 @@
     "section": "ETF",
     "cfi": "CEOIEU",
     "seen": "2026-11-19"
+  },
+  {
+    "code": "00986D",
+    "name": "主動復華金融債息",
+    "is_otc": true,
+    "section": "ETF",
+    "cfi": "CEOIBU",
+    "seen": "2026-11-19"
   }
 ]
