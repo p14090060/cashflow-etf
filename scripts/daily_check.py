@@ -1075,7 +1075,6 @@ def main():
 
     issues        = []
     updated       = []
-    cheap_alerts  = []
     div_alerts    = []
 
     # ── 1. 報酬率異常（台股 AI 行情 100-230% 屬正常，門檻設 300%）──
@@ -1134,11 +1133,6 @@ def main():
                 f"可能 FinMind 無資料或該檔已停止配息"
             )
         yld_prev[code] = yld
-
-        # ── 4. 訊號變便宜 ──
-        # 00403A 長期處於 cheap 訊號每天狂發通知，2026-07-21 Gavin 要求靜音（其他檢查仍照常）
-        if e.get("signal") == "cheap" and code != "00403A":
-            cheap_alerts.append(f"• {code} {name}：訊號轉為便宜，目前位置偏低")
 
         # ── 5. 配息 7 天內 ──
         days = e.get("days")
@@ -1223,7 +1217,7 @@ def main():
     # ── 主動式 ETF 持股資料健康檢查 ──
     active_issues = check_active_flow()
 
-    # ── 發通知 ──
+    # ── 發通知（PO已取消便宜訊號TG；資料故障／配息等通知保留）──
     lines = []
     if issues:
         lines.append("🚨 ETF存股雷達 資料異常")
@@ -1231,9 +1225,6 @@ def main():
     if updated:
         lines.append("✅ ETF存股雷達 avg 自動更新")
         lines.extend(updated)
-    if cheap_alerts:
-        lines.append("💚 監控清單 便宜訊號")
-        lines.extend(cheap_alerts)
     if active_issues:
         lines.append("📉 主動式 ETF 持股資料異常")
         lines.extend(active_issues)
