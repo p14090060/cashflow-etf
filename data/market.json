@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-21 15:45",
+  "updated": "2026-11-22 15:31",
   "quote_date": "2026-11-20",
   "quote_time": "2026-11-20 13:30",
   "market_state": "holiday",
@@ -1803,7 +1803,7 @@
       "yld": 25.5,
       "yld_verified": false,
       "yld_pending": false,
-      "days": 11,
+      "days": 10,
       "est": 0.14,
       "div_next": "2026-12-03",
       "signal": "cheap",
@@ -6818,7 +6818,7 @@
       "yld": 7.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
+      "days": 2,
       "est": 7.0,
       "div_next": "2026-11-30",
       "signal": "cheap",
@@ -8625,7 +8625,7 @@
       "yld": 8.6,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 3,
+      "days": 2,
       "est": 0.75,
       "div_next": "2026-11-23",
       "signal": "cheap",
@@ -9379,7 +9379,7 @@
       "yld": 5.1,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 0.15,
       "div_next": "2026-12-03",
       "signal": "fair",
@@ -9939,7 +9939,7 @@
       "yld": 5.4,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 12,
+      "days": 11,
       "est": 0.06,
       "div_next": "2027-01-04",
       "signal": "dear",
@@ -13740,7 +13740,7 @@
       "yld": 10.1,
       "yld_verified": true,
       "yld_pending": false,
-      "days": 10,
+      "days": 9,
       "est": 0.09,
       "div_next": "2026-12-03",
       "signal": "bond",
@@ -16656,26 +16656,6 @@
   ],
   "calendar": [
     {
-      "code": "00713",
-      "name": "台灣高息低波",
-      "day": "21",
-      "mon": "11月",
-      "amt": 1.25,
-      "soon": true,
-      "days_until": 0,
-      "source": "estimate"
-    },
-    {
-      "code": "00850",
-      "name": "元大ESG永續",
-      "day": "21",
-      "mon": "11月",
-      "amt": 0.85,
-      "soon": true,
-      "days_until": 0,
-      "source": "estimate"
-    },
-    {
       "code": "00901",
       "name": "永豐智能車供應鏈",
       "iso_date": "2026-11-24",
@@ -16683,7 +16663,7 @@
       "mon": "11月",
       "amt": 7.0,
       "soon": true,
-      "days_until": 3,
+      "days_until": 2,
       "source": "official",
       "amount_source": "TWSE"
     },
@@ -16695,7 +16675,7 @@
       "mon": "11月",
       "amt": 0.75,
       "soon": true,
-      "days_until": 3,
+      "days_until": 2,
       "source": "official",
       "amount_source": "TWSE × FinMind 核實"
     },
@@ -16706,7 +16686,7 @@
       "mon": "11月",
       "amt": 0.77,
       "soon": true,
-      "days_until": 3,
+      "days_until": 2,
       "source": "estimate"
     },
     {
@@ -16717,7 +16697,7 @@
       "mon": "12月",
       "amt": 0.15,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "FinMind（估算）"
     },
@@ -16729,7 +16709,7 @@
       "mon": "12月",
       "amt": null,
       "soon": true,
-      "days_until": 10,
+      "days_until": 9,
       "source": "official",
       "amount_source": "official"
     },
@@ -16741,7 +16721,7 @@
       "mon": "12月",
       "amt": null,
       "soon": true,
-      "days_until": 11,
+      "days_until": 10,
       "source": "official",
       "amount_source": "official"
     },
@@ -16753,7 +16733,7 @@
       "mon": "12月",
       "amt": null,
       "soon": true,
-      "days_until": 12,
+      "days_until": 11,
       "source": "official",
       "amount_source": "official"
     },
@@ -16764,7 +16744,7 @@
       "mon": "12月",
       "amt": 0.06,
       "soon": false,
-      "days_until": 19,
+      "days_until": 18,
       "source": "estimate"
     },
     {
@@ -16774,7 +16754,7 @@
       "mon": "12月",
       "amt": 1.1,
       "soon": false,
-      "days_until": 25,
+      "days_until": 24,
       "source": "estimate"
     },
     {
@@ -16784,7 +16764,7 @@
       "mon": "12月",
       "amt": 0.63,
       "soon": false,
-      "days_until": 25,
+      "days_until": 24,
       "source": "estimate"
     },
     {
@@ -16794,7 +16774,7 @@
       "mon": "12月",
       "amt": 0.38,
       "soon": false,
-      "days_until": 27,
+      "days_until": 26,
       "source": "estimate"
     },
     {
@@ -16804,7 +16784,7 @@
       "mon": "1月",
       "amt": 2.75,
       "soon": false,
-      "days_until": 56,
+      "days_until": 55,
       "source": "estimate"
     },
     {
@@ -16814,7 +16794,7 @@
       "mon": "1月",
       "amt": 0.6,
       "soon": false,
-      "days_until": 61,
+      "days_until": 60,
       "source": "estimate"
     },
     {
@@ -16824,7 +16804,7 @@
       "mon": "1月",
       "amt": 1.72,
       "soon": false,
-      "days_until": 62,
+      "days_until": 61,
       "source": "estimate"
     },
     {
@@ -16834,7 +16814,7 @@
       "mon": "2月",
       "amt": 1.25,
       "soon": false,
-      "days_until": 88,
+      "days_until": 87,
       "source": "estimate"
     }
   ],
