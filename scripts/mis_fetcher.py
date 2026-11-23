@@ -802,7 +802,12 @@ def main():
             # ①' 今天官方確認無成交：不編造今日成交價；價格是參考價（quote_date／quote_src 標明出處），
             # 今日漲跌不存在，成交量為官方 0 股
             _reference(e, b, None)
-            e.pop("change_pt", None); e.pop("change_pct", None); e.pop("mis_time", None)
+            e.pop("change_pt", None); e.pop("change_pct", None)
+            # 參考價沿用上一份 MIS 整筆時，保留它原本的成交時間（quote_date／quote_src／mis_time 同一筆）；
+            # 只剩日期的 MIS 列無法與已發布的同日 MIS 排序，會讓 Guard 擋下整批（2026-11-23 009806）。
+            # 其他參考來源（官方／yfinance）本來就沒有 mis_time。
+            if e.get("quote_src") != "MIS":
+                e.pop("mis_time", None)
             e["cur_vol"] = 0.0
             _vol_heat(e, b, 0.0, 0)
             e["close_status"] = "no_trade"
