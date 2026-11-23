@@ -420,12 +420,29 @@ def record_close_board(state, board, now):
     return True
 
 
-def top100_issues(board, rows, info_map, cal_map, recovery, yield_checks, today):
-    """榜內每檔的缺值位元與說明。正常狀態（新上市未滿一年、已確認不配息、本期不分配、已公告日期金額未定、待公告）不算。"""
+def unit_pending(e, market):
+    """2026-11-23：已核官方事件（price_unit.EVENTS，目前只有 00662）且 json_safe 原嚴格契約有效的「單位待確認」→ True。
+    market＝這一列實際來自 market.json（True）或 _base.json（False），由呼叫端依來源指定，不從欄位猜；
+    契約無效（壞狀態、非 null 指標、壞斷點）或非事件代號 → False，照原規則警報。"""
+    import json_safe, price_unit
+    code = e.get("code") if isinstance(e, dict) else None
+    if not price_unit.event_active(code) or e.get("price_unit_status") != json_safe.PRICE_UNIT_UNVERIFIED:
+        return False
+    try:
+        json_safe._check_price_unit(code, e, market)
+    except json_safe.DataInvalid:
+        return False
+    return True
+
+
+def top100_issues(board, rows, info_map, cal_map, recovery, yield_checks, today, base_codes=frozenset()):
+    """榜內每檔的缺值位元與說明。正常狀態（新上市未滿一年、已確認不配息、本期不分配、已公告日期金額未定、待公告）不算。
+    base_codes：rows 中來自 _base.json 的代號（其餘來自 market.json）；board["rows"] 依 board["origin"]。"""
     import official_frequency
     out = {}
     for code in board["codes"]:
         e = rows.get(code) or board["rows"][code]
+        e_market = (code not in base_codes) if code in rows else board.get("origin") != "base"
         meta = info_map.get(code)
         freq = official_frequency.known_policy(code, meta) or e.get("div_freq") or e.get("div_frequency")
         bits, why = 0, []
@@ -443,8 +460,12 @@ def top100_issues(board, rows, info_map, cal_map, recovery, yield_checks, today)
                 why.append("殖利率：" + ((yield_checks[code].get("detail") or "上櫃官方查證查無") if yc == "no_record"
                                        else "上市殖利率沒有已支援的自動官方來源（覆蓋不足，不是官方查無）"))
         if e.get("ret1y") is None and not e.get("new_listing") and not _hist_insufficient(e):
-            bits |= TOP_RETURN
-            why.append("報酬：沒有自動查證來源（覆蓋不足）")
+            if unit_pending(e, e_market):
+                print("[TOP100] %s 報酬缺值：價格單位待確認（斷點 %s），依已審政策如實 null，不列覆蓋不足"
+                      % (code, e.get("price_unit_break")))
+            else:
+                bits |= TOP_RETURN
+                why.append("報酬：沒有自動查證來源（覆蓋不足）")
         if bits:
             out[code] = (bits, why)
     return out
@@ -1086,6 +1107,9 @@ def main():
                 f"• {e['code']} {e.get('name','')}：近1年報酬 {ret1y:+.1f}%，"
                 f"數值異常（>300%），疑似拆分未修正，請人工確認"
             )
+        elif ret1y is None and not new_listing and not _hist_insufficient(e) and unit_pending(e, True):
+            # 2026-11-23：00662 已知單位待確認（market 嚴格契約有效）→ 不誤報抓取失敗，只在 log 交代
+            print(f"[UNIT] {e['code']} {e.get('name','')}：近1年報酬依單位待確認政策如實 null（斷點 {e.get('price_unit_break')}），不列抓取失敗")
         elif ret1y is None and not new_listing and not _hist_insufficient(e):
             # 2026-10-27：已知歷史不足（官方價保留、指標 null）改由 update_history_state 依查證進度與門檻彙整，不在此第一次就求助
             issues.append(
@@ -1188,7 +1212,8 @@ def main():
     new_entries, top_due, top_issues, top_rows = [], [], {}, {e["code"]: e for e in policy_etfs if isinstance(e.get("code"), str)}
     if board:
         new_day = record_close_board(state, board, now_ts)
-        top_issues = top100_issues(board, top_rows, info_map, cal_map, recovery, yield_checks, today_tpex)
+        _base_codes = {r.get("code") for r in (current_base or {}).get("etfs", []) if isinstance(r, dict)} if isinstance(current_base, dict) else set()
+        top_issues = top100_issues(board, top_rows, info_map, cal_map, recovery, yield_checks, today_tpex, _base_codes)
         top_due = update_top100_state(state, board, top_issues, new_day, now_ts)
         for c, (bits, why) in sorted(top_issues.items(), key=lambda x: board["codes"].index(x[0])):
             print("[TOP100] 第 %d 名 %s 缺值 %d：%s" % (board["codes"].index(c) + 1, c, bits, "；".join(why)))
