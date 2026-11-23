@@ -782,8 +782,7 @@ def fetch_fubon(date_obj, specific=False):
 #   TableTitle=="股票" 那一張，Rows = [代號, 名稱, 股數, 權重]，
 #   資料日在該表的 NavDate
 # ══════════════════════════════════════════════════════════════
-NOMURA_FUNDS = {
-    "00999A": "主動野村臺灣高息",
+NOMURA_FUNDS = {        # 00999A 改走下方 fetch_nomura_strict（驗證 TLS、禁轉址、嚴格解析）
     "00980A": "主動野村臺灣優選",
     "00985A": "主動野村台灣50",
 }
@@ -829,6 +828,103 @@ def fetch_nomura(date_obj, specific=False):
                            "data_date": data_date, "holdings": holdings}
             print(f"[野村] {ticker} {name}：{len(holdings)} 檔，資料日 {data_date or '?'}")
         time.sleep(1)
+    return out
+
+
+# ── 野村 00420A（NOV23 C）＋00999A（NOV23 00999A 傳輸）：同一個 GetFundAssets 官方端點，走獨立的嚴格路徑 ──
+#   00420A 新接；00999A 原走 fetch_nomura（urllib＋_SSL 不驗證），11/23 15:00 真 run TLS 握手逾時 → fetched:false。
+#   00980A／00985A 仍走 fetch_nomura、行為不變。每檔各發一次請求。
+#   這兩檔：驗證 TLS（系統信任庫＋主機名）、禁轉址、回應網址須精確等於端點；
+#   Entries.FundID、股票表唯一且表頭精確、表 NavDate＝FundAsset.NavDate、整數股數、代碼唯一，任一列不符 → 整檔本輪不採用（KEEP）。
+#   資料日一律用官方 NavDate（不改成查詢日）。只取最新一份、不支援歷史回補：00420A 首輪只建基準；00999A 快照已有前值（萬一遺失也只建新基準），不從空快照算買賣。
+#   海外代碼（000660 KS、6857 JP、688072 C1…）原樣保留尾碼，不與台股裸碼混；查無台股收盤 → 既有 no_price 股數條列，不填金額。
+#   每檔每輪只發一次請求（逾時 25 秒、不重試）；逾時／拒用 → 既有 KEEP（fetched:false），前值與舊異動原樣保留。期貨表不讀（與既有行為同）。
+NOMURA_API = "https://www.nomurafunds.com.tw/API/ETFAPI/api/Fund/GetFundAssets"
+NOMURA_STRICT_FUNDS = {"00420A": ("主動野村亞洲科技", "2026-11-19"),
+                       "00999A": ("主動野村臺灣高息", "2026-05-05")}
+_NOMURA_COLS = ["股票代號", "股票名稱", "股數", "權重(%)"]
+_NOMURA_CODE = re.compile(r"\d{4,6}[A-Z]?|[A-Z0-9]{1,8} [A-Z][A-Z0-9]")
+_NOMURA_SSL = ssl.create_default_context()
+
+
+class _NomuraNoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, "野村來源轉址拒用（→ %s）" % newurl, headers, fp)
+
+
+def _nomura_strict_post(payload):
+    req = urllib.request.Request(NOMURA_API, data=json.dumps(payload).encode(), headers={
+        "User-Agent": UA, "Content-Type": "application/json", "Referer": "https://www.nomurafunds.com.tw/ETFWEB/pcf"})
+    opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=_NOMURA_SSL), _NomuraNoRedirect())
+    with opener.open(req, timeout=25) as r:
+        if r.status != 200 or r.geturl() != NOMURA_API:
+            raise ValueError("野村回應狀態或來源不符：%s %s" % (r.status, r.geturl()))
+        body = r.read(2_000_001)
+    if len(body) > 2_000_000:
+        raise ValueError("回應過大")
+    return body
+
+
+def _nomura_date(v):
+    m = re.fullmatch(r"(\d{4})/(\d{2})/(\d{2})", v) if isinstance(v, str) else None
+    if not m:
+        raise ValueError("NavDate 格式不符：%r" % (v,))
+    return datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat()
+
+
+def parse_nomura_strict(ticker, body, today=None):
+    """野村 GetFundAssets 回應 → {name, issuer, data_date, holdings}；不符 → ValueError（不猜、不略過壞列）。"""
+    name, listed = NOMURA_STRICT_FUNDS[ticker]
+    d = json.loads(body.decode("utf-8"))
+    e = d.get("Entries") if isinstance(d, dict) else None
+    if not isinstance(e, dict) or d.get("StatusCode") != 0 or type(d.get("StatusCode")) is not int:
+        raise ValueError("查無資料或狀態碼非 0")
+    if e.get("FundID") != ticker:
+        raise ValueError("基金代號不符：%r" % (e.get("FundID"),))
+    data = e.get("Data")
+    if not isinstance(data, dict) or not isinstance(data.get("FundAsset"), dict) or not isinstance(data.get("Table"), list):
+        raise ValueError("回應缺少 FundAsset／Table")
+    tables = [t for t in data["Table"] if isinstance(t, dict) and t.get("TableTitle") == "股票"]
+    if len(tables) != 1 or [c.get("Name") if isinstance(c, dict) else None for c in tables[0].get("Columns") or []] != _NOMURA_COLS:
+        raise ValueError("股票表缺少、重複或欄位不符")
+    dd = _nomura_date(tables[0].get("NavDate"))
+    if _nomura_date(data["FundAsset"].get("NavDate")) != dd:
+        raise ValueError("股票表與基金資產 NavDate 不一致")
+    today = today or datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).date().isoformat()
+    if not listed <= dd <= today:
+        raise ValueError("資料日 %s 不在上市日 %s 與今天 %s 之間" % (dd, listed, today))
+    holdings = _Holdings()
+    for r in tables[0].get("Rows") or []:
+        if not (isinstance(r, list) and len(r) == 4 and all(isinstance(x, str) for x in r)) \
+                or not _NOMURA_CODE.fullmatch(r[0]) or not r[1].strip() \
+                or not re.fullmatch(r"\d{1,3}(?:,\d{3})*|\d+", r[2]) \
+                or not re.fullmatch(r"\d{1,3}(?:\.\d+)?", r[3]) or r[0] in holdings:
+            raise ValueError("持股列格式不符：%r" % (r,))
+        share = int(r[2].replace(",", ""))
+        if share <= 0 or not 0 < float(r[3]) <= 100:
+            raise ValueError("持股股數／權重不合理：%r" % (r,))
+        holdings[r[0]] = {"name": r[1].strip(), "shares": share}
+    if not holdings:
+        raise ValueError("股票表沒有持股列")
+    return {"name": name, "issuer": "野村", "data_date": dd, "holdings": holdings}
+
+
+def fetch_nomura_strict(date_obj, specific=False):
+    out = {}
+    if specific:
+        return out          # 不做歷史回補：首輪只建基準
+    for ticker, (name, _listed) in NOMURA_STRICT_FUNDS.items():
+        try:
+            body = _nomura_strict_post({"FundID": ticker, "SearchDate": None})
+        except Exception as e:
+            print(f"[野村] {ticker} 失敗: {e}")
+            continue
+        try:
+            out[ticker] = parse_nomura_strict(ticker, body)
+        except (ValueError, UnicodeError, KeyError, TypeError, AttributeError) as e:
+            print(f"[野村] {ticker} {name}：官方回應非預期（{e}），本輪不採用")
+            continue
+        print(f"[野村] {ticker} {name}：{len(out[ticker]['holdings'])} 檔，資料日 {out[ticker]['data_date']}")
     return out
 
 
@@ -2049,10 +2145,10 @@ def fetch_esun(date_obj, specific=False):
 ADAPTERS = [fetch_tsit, fetch_sinopac, fetch_kgi, fetch_taishin, fetch_ctbc,
             fetch_capital, fetch_fubon, fetch_nomura, fetch_fuhwa, fetch_allianz,
             fetch_fsitc, fetch_mega, fetch_yuanta, fetch_jpm, fetch_cathay,
-            fetch_ab, fetch_esun, fetch_allianz_discovered]
+            fetch_ab, fetch_esun, fetch_allianz_discovered, fetch_nomura_strict]
 
 # NEW_ACTIVE_HOLDINGS：新接兩檔的日期保護（既有其他檔維持原行為）
-STRICT_DATE_GUARD = ("00418A", "00413A", "00412A")
+STRICT_DATE_GUARD = ("00418A", "00413A", "00412A", "00420A", "00999A")   # 00420A／00999A：較舊／同日矛盾不覆蓋
 
 
 def _new_holdings_guard(etfs, prev):
