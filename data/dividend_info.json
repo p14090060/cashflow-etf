@@ -2810,9 +2810,11 @@
     "00901": {
       "name": "永豐智能車供應鏈",
       "frequency": "年配",
-      "months": [],
+      "months": [
+        11
+      ],
       "category": "高股息",
-      "avg_dividend_per_share": null,
+      "avg_dividend_per_share": 7.0,
       "_todo": true,
       "policy_source": {
         "kind": "sitca_etf_statement",
