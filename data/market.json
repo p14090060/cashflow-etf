@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-24 18:28",
+  "updated": "2026-11-24 19:02",
   "quote_date": "2026-11-24",
   "quote_time": "2026-11-24",
   "market_state": "closed",
@@ -16339,9 +16339,13 @@
       "quote_date": "2026-11-24",
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
-      "div_frequency": "不明",
+      "div_frequency": "半年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "",
+      "div_todo": true
     },
     {
       "code": "009833",
@@ -16388,9 +16392,13 @@
       "quote_date": "2026-11-24",
       "quote_src": "TWSE_MI_INDEX",
       "close_confirmed": true,
-      "div_frequency": "不明",
+      "div_frequency": "半年配",
       "yld_source": "none",
-      "yld_label": "無配息紀錄"
+      "yld_label": "無配息紀錄",
+      "div_months": [],
+      "div_avg_per_share": null,
+      "div_category": "",
+      "div_todo": true
     },
     {
       "code": "00986D",

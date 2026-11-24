@@ -2912,6 +2912,24 @@
       "category": "高股息",
       "avg_dividend_per_share": null,
       "_todo": true
+    },
+    "00420A": {
+      "name": "主動野村亞洲科技",
+      "frequency": "半年配",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "category": "",
+      "_source": "2026-11-24 X verified issuer policy only (not payment): https://www.nomurafunds.com.tw/event/ETF_00420A/index.html ; SHA256 3f50040a2e8e92b9b8554f40cfd887f504d5fe70c9c34dc235558471af7c3287 ; fund established at least 90 days, semiannual income assessment; amount and ex-date unknown."
+    },
+    "009833": {
+      "name": "野村韓國科技30",
+      "frequency": "半年配",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "category": "",
+      "_source": "2026-11-24 X verified issuer policy only (not payment): https://www.nomurafunds.com.tw/event/ETF_009833/index.html ; SHA256 ab7be0fe9e60d2e994ae384908f1da32b7409695d0dc52c3e085dcd93278963d ; fund established at least 90 days, semiannual income assessment; amount and ex-date unknown."
     }
   },
   "calendar": [
