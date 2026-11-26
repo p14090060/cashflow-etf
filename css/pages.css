@@ -135,6 +135,18 @@
   .rank-name     { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rank-price    { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); flex-shrink:0; text-align:right; margin-right:8px; min-width:44px; }
   .rank-sig      { flex-shrink:0; white-space:nowrap; }   /* PO Visual Polish 2：外觀＝首頁 TOP10 的 .sig-* 方框標籤（class 由 rank.js 加上） */
+  /* PO 2026-11-26 確認樣板（只限成交量排行 #rankRows；殖利率排行不動）：
+     上行＝名次／代碼／持股異動／價格／狀態；ETF 完整名稱獨占下一行、跨到右緣，必要時自然換行，不省略、不縮字。
+     持股異動 44px 實際點擊區只在上行，不覆蓋名稱；卡片可因此增高。.rank-etf 以 display:contents 讓代碼／按鈕／名稱直接進格線。 */
+  #rankRows .rank-main { display:grid; grid-template-columns:36px minmax(min-content,1fr) auto auto auto; align-items:center; }
+  #rankRows .rank-no { grid-column:1; grid-row:1 / span 2; align-self:center; justify-self:center; }
+  #rankRows .rank-etf, #rankRows .rank-etf.has-rank-flow { display:contents; }
+  #rankRows .rank-code { grid-column:2; grid-row:1; }
+  #rankRows .rank-flow-top, #rankRows .has-rank-flow .rank-flow-top { grid-column:3; grid-row:1; align-self:center; margin:0 4px 0 0; padding:0 6px;
+                   min-height:44px; min-width:44px; display:flex; align-items:center; justify-content:center; }
+  #rankRows .rank-price { grid-column:4; grid-row:1; }
+  #rankRows .rank-sig { grid-column:5; grid-row:1; }
+  #rankRows .rank-name, #rankRows .has-rank-flow .rank-name { grid-column:2 / -1; grid-row:2; white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; }
   .rank-freq     { width:68px; font-size:18px; color:var(--dim); flex-shrink:0; }
   .rank-num      { width:82px; font-size:18px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
   .rank-yld      { width:96px; white-space:nowrap; font-size:18px; font-family:var(--mono); font-weight:700; flex-shrink:0; text-align:right; }

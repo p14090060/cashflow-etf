@@ -239,7 +239,7 @@ function renderAll(etfs, cal, updatedAt, market, isClosed, isHoliday, meta) {
         <span class="hr-line"><span class="wait-code">${_homeEsc(e.code)}</span><span class="wait-name">${_homeEsc(e.name)}</span></span>
         <span class="hr-sub">
           <span class="hr-px" style="color:var(--warn)">參考價格 ${(+e.price).toFixed(2)}</span>
-          <span class="hr-ylbl" style="color:var(--dim)"> · 年殖利率 </span><span style="color:var(--fair);white-space:nowrap">${_homeEsc(rankYldText(e))}</span>
+          ${(y => `<span class="hr-ylbl" style="color:var(--dim)">${y === '待配息評價' ? ' · ' : ' · 年殖利率 '}</span><span style="color:var(--fair);white-space:nowrap">${_homeEsc(y)}</span>`)(rankYldText(e))}
         </span>
       </span>
       ${unitPending(e) ? `<span class="${UNIT_PENDING_CLS}">${UNIT_PENDING_LABEL}</span>` : historyLabel(e) ? `<span class="${HIST_LABEL_CLS}">${historyLabel(e)}</span>` : `<span class="${SIG_CLASS[e.signal] || 'sig-dear'}">${SIG_LABEL[e.signal] || '偏貴'}</span>`}
