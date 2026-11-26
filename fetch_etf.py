@@ -1435,11 +1435,49 @@ def _div_freq_offline(code, name):
     return "不明"
 
 
+# 2026-11-25 正式事故（run 45564803347）：上市 ISIN IncompleteRead、上櫃 502，資格依最後有效證據保留 206 檔，
+# 但上市日只收本輪 ISIN 原文 → 00420A／009833（歷史不足）與 00972（需替代區間查證）都因「沒有可追溯的上市日」SKIP，
+# _base 少 3 檔被 Gate 整批擋下。ISIN 本輪不完整時，比照 yield_comparison.attach：沿用前一版已發布 _base 裡
+# 「當初由 ISIN 取得」的上市日（listing_date／yield_basis.listing_date）；兩市場都成功時仍只收本輪原文。
+# 不新增請求、不猜上市日；前值也沒有 → 照原本拒絕（Gate 照樣擋縮水）。
+_PREV_BASE_ETFS = None
+
+
+def _prev_base_entry(code):
+    global _PREV_BASE_ETFS
+    if _PREV_BASE_ETFS is None:
+        try:
+            _PREV_BASE_ETFS = {e["code"]: e for e in json.loads(OUT_BASE.read_text(encoding="utf-8")).get("etfs") or []
+                               if isinstance(e, dict) and isinstance(e.get("code"), str)}
+        except Exception:
+            _PREV_BASE_ETFS = {}
+    return _PREV_BASE_ETFS.get(code)
+
+
+def _listing_date(code):
+    """本輪 ISIN 上市日；ISIN 本輪不完整時才退回前一版已發布 _base 記錄的 ISIN 上市日（須為合法日期）。"""
+    ld = ISIN_LISTING_DATE.get(code)
+    if ld or POOL_STATUS.get('markets_ok') == 2:
+        return ld
+    prev = _prev_base_entry(code)
+    if not isinstance(prev, dict):
+        return None
+    yb = prev.get("yield_basis")
+    for cand in (prev.get("listing_date"), yb.get("listing_date") if isinstance(yb, dict) else None):
+        if isinstance(cand, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", cand):
+            try:
+                datetime.date.fromisoformat(cand)
+                return cand
+            except ValueError:
+                pass
+    return None
+
+
 def history_fallback(code, name, curated):
     """回傳 (entry, None) 或 (None, 拒絕原因)。"""
     otc = code in TWO_CODES
     rows, ds = (_TPEX_OFFICIAL_ROWS, _TPEX_DATE) if otc else (_TWSE_OFFICIAL_ROWS, _TWSE_PRICE_DATE)
-    ld = ISIN_LISTING_DATE.get(code)
+    ld = _listing_date(code)
     if not ld:
         return None, "本輪 ISIN 沒有可追溯的上市日"
     if not ds or not re.fullmatch(r"\d{8}", str(ds)):
@@ -1508,12 +1546,18 @@ def _hist_today():
 
 def _hist_ineligible(code, today):
     """不具替代查證資格 → (狀態, 說明)；可查證的舊 ETF → None。保留額度與 alt_history 用同一判斷。"""
-    ld = ISIN_LISTING_DATE.get(code)
+    ld = _listing_date(code)
     try:
         d_list = datetime.date.fromisoformat(ld) if ld else None
     except ValueError:
         d_list = None
     if d_list is None:
+        # ISIN 本輪不完整、前值也沒記上市日：前一版已發布的是完整一年指標（非新上市、非歷史不足）→ 年齡已不只一年，
+        # 仍可走既有替代查證（同一額度、結果照樣須實際涵蓋滿一年才採用）；否則照原本不查。
+        prev = _prev_base_entry(code) if POOL_STATUS.get('markets_ok') != 2 else None
+        if (isinstance(prev, dict) and prev.get("new_listing") is False and prev.get("indicator_status") is None
+                and isinstance(prev.get("ret1y"), (int, float)) and not isinstance(prev.get("ret1y"), bool)):
+            return None
         return "no_listing", "沒有可追溯的上市日，不做替代查證"
     if (today - d_list).days < 365:
         return "new_listing", "上市 %s 未滿一年，歷史不足屬正常" % ld
