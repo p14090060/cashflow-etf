@@ -2930,6 +2930,27 @@
       "_todo": true,
       "category": "",
       "_source": "2026-11-24 X verified issuer policy only (not payment): https://www.nomurafunds.com.tw/event/ETF_009833/index.html ; SHA256 ab7be0fe9e60d2e994ae384908f1da32b7409695d0dc52c3e085dcd93278963d ; fund established at least 90 days, semiannual income assessment; amount and ex-date unknown."
+    },
+    "00419A": {
+      "name": "主動施羅德AI台股",
+      "months": [],
+      "avg_dividend_per_share": null,
+      "_todo": true,
+      "frequency": "季配",
+      "frequency_evidence": {
+        "status": "verified",
+        "code": "00419A",
+        "frequency": "季配",
+        "sources": [
+          {
+            "code": "00419A",
+            "frequency": "季配",
+            "url": "https://www.twse.com.tw/zh/ETFortune/newsDetail/8a8216d6a19afd9c01a20746ecc10595",
+            "sha256": "a9c6a2b344ceb8de87367b6307d5a75bab598e002560c008226362eab292fdc5"
+          }
+        ],
+        "checked_at": "2026-11-26T15:34:25.139658+08:00"
+      }
     }
   },
   "calendar": [
