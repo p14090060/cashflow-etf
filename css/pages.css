@@ -118,6 +118,8 @@
                    white-space:nowrap; flex-shrink:0; cursor:pointer; }
   :root[data-theme="light"] .rank-flow { color:#D97706; }   /* CP7 Visual Gate（PO）：light 持股異動字色；dark 不變 */
   .rank-flow:focus-visible { outline:2px solid var(--link); outline-offset:-2px; border-radius:6px; }
+  .rank-hdr-sub:not(.yr-cols) > div:nth-child(-n+3) { flex-shrink:0; }
+  .rank-hdr-sub:not(.yr-cols) > div:last-child { min-width:0; }
   .rank-main     { display:flex; align-items:center; }
   .rank-sub      { display:flex; align-items:center; padding-left:36px; margin-top:10px; }
   .rank-no       { width:36px; text-align:center; font-size:18px; font-weight:700; color:var(--dim); flex-shrink:0; }
@@ -132,7 +134,7 @@
   .rank-sig      { flex-shrink:0; white-space:nowrap; }   /* PO Visual Polish 2：外觀＝首頁 TOP10 的 .sig-* 方框標籤（class 由 rank.js 加上） */
   .rank-freq     { width:68px; font-size:18px; color:var(--dim); flex-shrink:0; }
   .rank-num      { width:82px; font-size:18px; font-family:var(--mono); font-weight:600; flex-shrink:0; text-align:right; }
-  .rank-yld      { width:72px; font-size:18px; font-family:var(--mono); font-weight:700; flex-shrink:0; text-align:right; }
+  .rank-yld      { width:96px; white-space:nowrap; font-size:18px; font-family:var(--mono); font-weight:700; flex-shrink:0; text-align:right; }
   /* CP7 Visual Gate（PO）：排行漲跌柱用鮮明紅綠（只限排行頁；長度／排序／資料不變） */
   .rank-sub .mb[data-k="up"] .mb-bar { background:var(--vivid-up-fill) !important; }
   .rank-sub .mb[data-k="dn"] .mb-bar { background:var(--vivid-dn-fill) !important; }
@@ -267,11 +269,11 @@
   @media (max-width:380px) {
     .rank-freq { width:56px; }
     .rank-num  { width:70px; }
-    .rank-yld  { width:68px; white-space:nowrap; }
+    .rank-yld  { width:96px; white-space:nowrap; }
     .rank-flow { margin-left:2px; padding:0 1px; }
     .rank-hdr-sub:not(.yr-cols) > div:nth-child(1) { width:56px !important; }
     .rank-hdr-sub:not(.yr-cols) > div:nth-child(2) { width:70px !important; }
-    .rank-hdr-sub:not(.yr-cols) > div:nth-child(3) { width:68px !important; }
+    .rank-hdr-sub:not(.yr-cols) > div:nth-child(3) { width:96px !important; }
   }
 
   /* 殖利率排行（工具頁）：卡片沿用 .rank-row，第二層改四欄 */
