@@ -201,7 +201,7 @@ function renderRank() {
           <div class="rank-name">${e.name}</div>
         </div>
         <div class="rank-price">${e.price}</div>
-        <div class="rank-sig ${unitPending(e) ? UNIT_PENDING_CLS : (SIG_CLS[e.signal] || '')}">${unitPending(e) ? UNIT_PENDING_LABEL : (SIG_LABEL[e.signal]||'--')}</div>
+        <div class="rank-sig ${unitPending(e) ? UNIT_PENDING_CLS : historyLabel(e) ? HIST_LABEL_CLS : (SIG_CLS[e.signal] || '')}">${unitPending(e) ? UNIT_PENDING_LABEL : (historyLabel(e) || SIG_LABEL[e.signal] || '--')}</div>
       </div>
       <div class="rank-sub">
         <div class="rank-freq" style="${noDiv ? '' : 'color:var(--num-accent)'}">${freq}</div>

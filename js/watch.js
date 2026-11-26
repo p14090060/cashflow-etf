@@ -69,8 +69,9 @@ const Watch = (function () {
   }
   function tagsHtml(e) {
     const pend = typeof unitPending === 'function' && unitPending(e);
-    const sig = pend ? UNIT_PENDING_LABEL : (typeof _DT_SIG !== 'undefined' && _DT_SIG[e.signal]) || '';
-    const cls = pend ? UNIT_PENDING_CLS : (typeof _DT_SIG_CLS !== 'undefined' && _DT_SIG_CLS[e.signal]) || '';
+    const hist = !pend && typeof historyLabel === 'function' ? historyLabel(e) : null;   // 歷史不足：新上市／更新中
+    const sig = pend ? UNIT_PENDING_LABEL : hist || (typeof _DT_SIG !== 'undefined' && _DT_SIG[e.signal]) || '';
+    const cls = pend ? UNIT_PENDING_CLS : hist ? HIST_LABEL_CLS : (typeof _DT_SIG_CLS !== 'undefined' && _DT_SIG_CLS[e.signal]) || '';
     const cat = (typeof catClassify === 'function') ? (catDefOf(catClassify(e)) || {}).label : '';
     const parts = [];
     if (sig) parts.push('<span class="' + cls + '">' + esc(sig) + '</span>');

@@ -55,6 +55,12 @@
     border:1px solid var(--sig-bond); border-radius:6px;
     padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
   }
+  /* 歷史不足（新上市／更新中）：中性灰框、透明底，尺寸同其他狀態標籤；不借用五態／債券色 */
+  .sig-new {
+    background:var(--sig-backing); color:var(--sig-new);
+    border:1px solid var(--sig-new); border-radius:6px;
+    padding:3px 10px; font-size:16px; font-weight:700; white-space:nowrap;
+  }
   /* 00662 R1：價格／歷史單位待確認——中性次要色，不借用五態任何一色（不是買賣判斷） */
   .sig-pending {
     background:var(--sig-backing); color:var(--dim);
@@ -89,7 +95,6 @@
   :root[data-theme="light"] .hot-rank.bronze { background:var(--rank3-bg); color:var(--rank3-fg); }
   :root[data-theme="light"] .hr-px  { color:#F05B02 !important; }
   :root[data-theme="light"] .hr-ylbl { color:#54657F !important; }
-  :root[data-theme="light"] .hr-new { color:#8B55EE; }
   .range-track { height:5px; background:rgba(var(--rgb-veil),.08); border-radius:3px; position:relative; margin-bottom:4px; }
   .range-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,rgba(var(--rgb-link),.15),rgba(var(--rgb-link),.6)); }
   .range-dot   { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:var(--link); border:2px solid var(--bg); }

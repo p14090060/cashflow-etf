@@ -128,6 +128,7 @@ function _dvView(e, c) {
 // ── 各 Tab 內容 ──────────────────────────────────────────
 function _dtHeadHtml(e) {
   const sig = unitPending(e) ? '<span class="' + UNIT_PENDING_CLS + '">' + UNIT_PENDING_LABEL + '</span>'
+    : historyLabel(e) ? '<span class="' + HIST_LABEL_CLS + '">' + historyLabel(e) + '</span>'
     : '<span class="' + (_DT_SIG_CLS[e.signal] || 'sig-dear') + '">' + (_DT_SIG[e.signal] || '偏貴') + '</span>';
   return '<div class="dt-headrow"><span class="dt-px">' + _dtNum(e.price, 2) + '</span>' + sig + '</div>';
 }

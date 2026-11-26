@@ -75,6 +75,7 @@
     --sig-fair:  #F0B840;   /* 合理 */
     --sig-cheap: #00e5a0;   /* 便宜 */
     --sig-bond:  #58a6ff;   /* 債券 */
+    --sig-new:   #9CA3AF;   /* 歷史不足（新上市／更新中）：中性灰，不借用五態色（不是買賣判斷） */
     --sig-backing: transparent; /* CP7 Visual Gate（PO）：Light＋Dark 狀態標籤都取消底襯，直接透出 card／row／panel 的 surface（對比 Known Blocker 見 AI_HANDOFF） */
     /* CP7 Visual Gate（PO：DO NOT OXIDIZE）：鮮明台股紅綠——排行報酬率／漲跌柱、Active Flow 加減碼與 treemap 共用同一組 */
     --vivid-up: #F46161;  --vivid-dn: #22C55E;           /* 文字（PO Visual Polish：排行改 --card2 底後 #F25555 只剩 4.33，微調到 4.7） */
@@ -98,6 +99,7 @@
     --up:    #DC2626;
     --dn:    #047857;
     --bond:  #1D4ED8;
+    --sig-new: #5F6B7A;   /* 歷史不足標籤：light 加深中性灰（奶油底／白卡皆 ≥ 4.5） */
     --sea:   #164c80;
     --gold:  #A14A07;
     --hot:   #B91C1C;

@@ -8,6 +8,32 @@
 function unitPending(e) { return !!e && e.price_unit_status === 'unverified'; }
 const UNIT_PENDING_LABEL = '待確認', UNIT_PENDING_CLS = 'sig-pending';
 
+// ── 歷史不足的價格訊號標籤（PO 2026-11-26：新上市／更新中；純顯示，不寫資料）──
+// 只在 signal 為 null 且 indicator_status 嚴格等於 insufficient_history 時適用；price_unit 待確認由呼叫端先判斷。
+// listing_date（行情既有欄位）為嚴格合法 ISO 日期，且距台北今天 0～30 個日曆日（含第 30 天）→ 新上市；
+// 第 31 天起、缺少、型別錯、格式錯、不存在日期、未來日期 → 更新中。不使用 new_listing 的一年語意、不猜日期。
+const HIST_NEW_LABEL = '新上市', HIST_UPDATING_LABEL = '更新中', HIST_LABEL_CLS = 'sig-new', HIST_NEW_DAYS = 30;
+function _histDayNum(iso) {
+  if (typeof iso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const y = +iso.slice(0, 4), m = +iso.slice(5, 7), d = +iso.slice(8, 10);
+  const t = Date.UTC(y, m - 1, d);
+  const c = new Date(t);
+  if (c.getUTCFullYear() !== y || c.getUTCMonth() !== m - 1 || c.getUTCDate() !== d) return null;
+  return t / 86400000;
+}
+// 台北日曆日（UTC+8，無日光節約）；測試可設 window.ETF_FIXED_TODAY='YYYY-MM-DD' 固定今天
+function histTodayIso() {
+  const fx = (typeof window !== 'undefined') ? window.ETF_FIXED_TODAY : undefined;
+  if (_histDayNum(fx) != null) return fx;
+  return new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+}
+function historyLabel(e, todayIso) {
+  if (!e || e.signal != null || e.indicator_status !== 'insufficient_history') return null;
+  const ld = _histDayNum(e.listing_date), td = _histDayNum(todayIso || histTodayIso());
+  const age = (ld == null || td == null) ? null : td - ld;
+  return (age != null && age >= 0 && age <= HIST_NEW_DAYS) ? HIST_NEW_LABEL : HIST_UPDATING_LABEL;
+}
+
 // ── Mini bar chart（全域，排行頁、Detail、自選卡共用）──────────────────
 // 台股語意（PO 硬規格，D1 全站）：漲＝紅、跌＝綠、0＝中性色、缺值＝灰。不得改成美股漲綠跌紅。
 // opts.token：用 --up／--dn token（自選卡）；未指定時沿用原本排行頁的色值，只修正 0 的顏色。
