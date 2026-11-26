@@ -68,6 +68,8 @@ function rankYldText(e) {
   const y = (typeof e.yld === 'number' && isFinite(e.yld)) ? e.yld : null;
   if (y != null && y > 0) return (e.yld_verified ? '' : '~') + y.toFixed(1) + '%';
   if (distNoDistView(e)) return '本期無';
+  const ev = evalDateLabel(e);   // 已核四檔評價日（format.js）；不適用 → null
+  if (ev) return ev;
   if (e.yld_pending === true) return '待公告';
   if (e.new_listing) return '待配息評價';
   if (y === 0 && e.yld_verified === true) return '0.0%';

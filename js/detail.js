@@ -50,10 +50,20 @@ function _dtYld(e) {
   if (e.yld_verified === true && y != null && y > 0) return y.toFixed(1) + '%';
   if (y != null && y > 0) return '待核實';
   if (typeof distNoDistView === 'function' && distNoDistView(e)) return '本期無';
+  const ev = typeof evalDateLabel === 'function' ? evalDateLabel(e) : null;   // 已核四檔評價日
+  if (ev) return ev;
   if (e.yld_pending === true) return '待公告';
   if (e.new_listing) return '待配息評價';
   if (y === 0 && e.yld_verified === true) return '0.0%';
   return '待確認';
+}
+
+// R2：_dtYld 是否真的走到 evalDateLabel 分支（不配息／正值／有效本期無優先；不遞迴呼叫 _dvView）
+function _dtEvalAdopted(e) {
+  if ((e.div_frequency || '') === '不配息') return false;
+  if (typeof e.yld === 'number' && isFinite(e.yld) && e.yld > 0) return false;
+  if (typeof distNoDistView === 'function' && distNoDistView(e)) return false;
+  return true;
 }
 
 // D-053：個股頁完整說明（只用 distNoDistView 已驗過的欄位；文字一律跳脫，連結只用驗證後的 TWSE 公告網址）
@@ -103,7 +113,11 @@ function _dvView(e, c) {
              amtNote: '—', calc: false, calcNote: '不配息，無可試算的配息' };
   }
   if (e.yld_pending === true || (e.new_listing && e.div_next == null)) {
-    return { st: 'P', label: '待公告', date: null, dateNote: '待公告', amount: null,
+    // R2：四檔登錄且總覽 _dtYld 實際採用 evalDateLabel 時，主狀態標籤沿用同一結果（待配息評價／待公告）。
+    // 除息日、金額仍未知（date／amount null、calc false），dateNote／amtNote 仍描述個別欄位「待公告」。
+    const evl = typeof evalDateLabel === 'function' ? evalDateLabel(e) : null;
+    const lbl = (evl && _dtYld(e) === evl && _dtEvalAdopted(e)) ? evl : '待公告';
+    return { st: 'P', label: lbl, date: null, dateNote: '待公告', amount: null,
              amtNote: '待公告', calc: false, calcNote: '配息尚未公告' };
   }
   // est 與 div_next 同源：兩者都來自同一次 calc_div_forecast（div_next 有值），
