@@ -61,7 +61,7 @@ function distNoDistView(e) {
 }
 
 // 排行殖利率欄文字（D-053 契約）：不配息→不適用；正殖利率→原百分比（未核實加 ~）；
-// 有效官方本期不分配→本期無；yld_pending→待公告（優先於新上市）；新上市→未滿1歲；已核實的真 0→0.0%；其餘→待確認
+// 有效官方本期不分配→本期無；yld_pending→待公告（優先於新上市）；新上市→待配息評價；已核實的真 0→0.0%；其餘→待確認
 function rankYldText(e) {
   const freq = e.div_freq || e.div_frequency || '?';
   if (freq === '不配息') return '不適用';
@@ -69,7 +69,7 @@ function rankYldText(e) {
   if (y != null && y > 0) return (e.yld_verified ? '' : '~') + y.toFixed(1) + '%';
   if (distNoDistView(e)) return '本期無';
   if (e.yld_pending === true) return '待公告';
-  if (e.new_listing) return '未滿1歲';
+  if (e.new_listing) return '待配息評價';
   if (y === 0 && e.yld_verified === true) return '0.0%';
   return '待確認';
 }
@@ -205,7 +205,7 @@ function renderRank() {
       <div class="rank-sub">
         <div class="rank-freq" style="${noDiv ? '' : 'color:var(--num-accent)'}">${freq}</div>
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
-        <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
+        <div class="rank-yld" style="color:${yldClr};${yldTxt === '待配息評價' ? 'font-size:12px;white-space:nowrap;' : ''}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>
         ${tagHtml}${flowHtml}
       </div>

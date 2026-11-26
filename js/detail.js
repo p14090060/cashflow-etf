@@ -51,7 +51,7 @@ function _dtYld(e) {
   if (y != null && y > 0) return '待核實';
   if (typeof distNoDistView === 'function' && distNoDistView(e)) return '本期無';
   if (e.yld_pending === true) return '待公告';
-  if (e.new_listing) return '未滿1歲';
+  if (e.new_listing) return '待配息評價';
   if (y === 0 && e.yld_verified === true) return '0.0%';
   return '待確認';
 }
