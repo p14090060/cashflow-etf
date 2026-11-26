@@ -761,6 +761,19 @@ def main():
                     e[k] = p[k]
                 else:
                     e.pop(k, None)
+            # 00662 已核拆分（price_unit.EVENTS）轉換輪：上一份是「單位待確認」時期寫的，量比／熱度是當時強制的 null，
+            # 基線已恢復正常 → 用上一份的實際成交量（張）配新基線重算衍生量值；實際量不可信 → 量相關欄位缺值（未知），
+            # 不補 0／1、不沿用 null 進訊號計算。其他代號與一般沿用路徑不變。
+            if (_price_unit.event_active(e["code"], today_iso) and p.get("price_unit_status") == _price_unit.UNVERIFIED
+                    and b.get("price_unit_status") != _price_unit.UNVERIFIED):
+                cv = e.get("cur_vol")
+                if _fin(cv) and cv >= 0:
+                    _vol_heat(e, b, cv, e.get("change_pct") if _fin(e.get("change_pct")) else 0)
+                    print(f"[UNIT] {e['code']}：單位已恢復，沿用上一份實際量 {cv} 張、以新基線重算量比 {e.get('vol_ratio')}")
+                else:
+                    for k in ("cur_vol", "vol_ratio", "heat"):
+                        e.pop(k, None)
+                    print(f"[UNIT] {e['code']}：單位已恢復，但上一份成交量不可信 → 量相關欄位缺值")
             if p.get("mis_time"):
                 e["mis_time"] = p["mis_time"]
             else:

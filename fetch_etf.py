@@ -1677,6 +1677,49 @@ def _twse_alt_history(code, name, today, previous):
         return None
 
 
+def _twse_split_rebuild(code, name, hist):
+    """已核官方拆分（price_unit.EVENTS，目前僅 00662 1拆5）且 Yahoo 一年日線被原 price_unit 判為單位不一致時，
+    改用既有 TWSE 官方一年月報（同 15 GET 上限、同一輪一檔額度、失敗不重試）重建同單位序列，交回原公式計算。
+    Yahoo 已一致 → 不發任何請求；重建失敗 → 回 None，保留 Yahoo 序列，由原 price_unit 照舊標待確認／null。
+    不對 Yahoo 混調價格做任何除比例，不清 price_unit 狀態。"""
+    global HIST_TWSE_USED
+    if code in TWO_CODES or code not in _price_unit.EVENTS:
+        return None
+    try:
+        import twse_history
+        end = datetime.datetime.strptime(_TWSE_PRICE_DATE, "%Y%m%d").date()
+        event = twse_history.split_event(code)
+        price = _TWSE_OFFICIAL_CLOSES.get(code)
+    except Exception as ex:
+        print("[SPLIT-TWSE] %s 官方末日／已核事件不能確認，不重建（%s）" % (code, type(ex).__name__))
+        return None
+    if event is None or not _price_unit.event_active(code, end):
+        return None
+    if isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price <= 0:
+        print("[SPLIT-TWSE] %s 本輪沒有有效官方收盤，不重建" % code)
+        return None
+    c = hist["Close"].dropna()
+    vcol = hist["Volume"] if "Volume" in hist.columns else None
+    rows = [(d.date(), float(x), float(vcol[d]) if vcol is not None and d in vcol.index else 0.0) for d, x in c.items()]
+    bad, _brk = _price_unit.base_problem(code, rows, price, round(float(c.tail(60).mean()), 2), as_of=end)
+    if not bad:
+        return None                                   # 來源已一致：照原路徑，不額外請求
+    if HIST_TWSE_USED:
+        print("[SPLIT-TWSE] %s 本輪 TWSE 官方歷史額度已用，不重建（維持待確認）" % code)
+        return None
+    HIST_TWSE_USED = True
+    try:
+        h = twse_history.fetch_history(code, name, _hist_today(), end, price, split=event)
+    except Exception as ex:
+        print("[SPLIT-TWSE] %s 官方拆分重建未完成（%s：%s）→ 維持待確認" % (code, type(ex).__name__, str(ex)[:150]))
+        return None
+    proof = h.attrs["twse_history"]
+    print("[SPLIT-TWSE] %s rebuilt %d rows (%s → %s)，拆分 1:%d 復牌 %s、拆前 %d 列價格÷比率、成交量為官方原始股數、請求 %d 次"
+          % (code, len(h), proof["first"], proof["last"], proof["split"]["ratio"], proof["split"]["resume"],
+             proof["split"]["adjusted_rows"], proof["requests"]))
+    return h
+
+
 def alt_history(tk, code, ticker_code, name=None):
     """period=1y 不足時的替代區間查證。合格回傳一年視窗日線，否則 None（狀態記在 HIST_CHECK）。"""
     today = _hist_today()
@@ -1734,6 +1777,10 @@ for code, name in ALL_ETFS:
                 hist = alt
         if hist.empty or len(hist) < 5:
             raise ValueError("insufficient data")
+        if code in _price_unit.EVENTS and "Close" in hist.columns and len(hist["Close"].dropna()) >= 5:
+            _rebuilt = _twse_split_rebuild(code, name, hist)   # 已核拆分且 Yahoo 混尺度 → 官方重建；否則原序列
+            if _rebuilt is not None:
+                hist = _rebuilt
 
         # 開盤前 Action 跑時，yfinance 最後一筆可能是 Close=NaN 的不完整當日資料
         c = hist["Close"].dropna()
@@ -1814,11 +1861,13 @@ for code, name in ALL_ETFS:
         # 手動覆蓋優先（已知 yfinance 資料有問題的 ETF）
         if code in _RET1Y_OVERRIDE:
             ret1y = _RET1Y_OVERRIDE[code]
-        avg_vol     = float(v.tail(20).mean())
+        # R2（PO 核准，僅已核拆分重建序列帶 Volume Equiv）：均量／連續性用拆後等值股數比較；當日實際量 cur_vol 仍取原始 Volume
+        v_cmp       = hist["Volume Equiv"].dropna() if "Volume Equiv" in hist.columns else v
+        avg_vol     = float(v_cmp.tail(20).mean())
         cur_vol     = float(v.iloc[-1])
         vol_ratio   = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 1.0
         today_chg   = round(float((c.iloc[-1] / c.iloc[-2] - 1) * 100), 2) if len(c) >= 2 else 0.0
-        recent_vols = v.tail(5).values.tolist()
+        recent_vols = v_cmp.tail(5).values.tolist()
 
         # 自動發現的 ETF：成交量太低（冷門）就跳過
         # PO 明列收錄的商品（CATALOG_KW_EXCEPTIONS）不因冷門被略過；熱度／排行仍照原公式，不加分

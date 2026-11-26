@@ -34,13 +34,18 @@ def _number(value, integer=False):
     return int(n) if integer else float(n)
 
 
-def parse_month(raw, code, name, month):
+def parse_month(raw, code, name, month, pad_title=False):
     try:
         d = json.loads(raw)
     except (ValueError, UnicodeError, TypeError) as ex:
         raise Unusable("月報不是JSON") from ex
     title = f"{month.year - 1911}年{month.month:02d}月 {code} {name} 各日成交資訊"
-    if not isinstance(d, dict) or d.get("stat") != "OK" or d.get("date") != month.strftime("%Y%m01") or d.get("title") != title or d.get("fields") != MONTH_FIELDS:
+    got = d.get("title") if isinstance(d, dict) else None
+    if pad_title and isinstance(got, str):
+        # 已核拆分重建路徑專用：官方名稱欄以半形空白補寬（「富邦NASDAQ       各日」）。只把連續半形空白
+        # 收成一格後逐字比對，代號／名稱／年月仍須完全相同；不做模糊包含。一般路徑行為不變。
+        got = re.sub(r" +", " ", got)
+    if not isinstance(d, dict) or d.get("stat") != "OK" or d.get("date") != month.strftime("%Y%m01") or got != title or d.get("fields") != MONTH_FIELDS:
         raise Unusable("月報身分／日期／表頭不符")
     if not isinstance(d.get("data"), list) or not d["data"]:
         raise Unusable("月報沒有資料列")
@@ -96,7 +101,7 @@ class _Tables(HTMLParser):
             self.tables.append(self.table); self.table = None
 
 
-def verify_no_splits(raw, code, name):
+def _profile_tables(raw, code, name):
     try:
         text = raw.decode("utf-8") if isinstance(raw, bytes) else raw
     except UnicodeError as ex:
@@ -107,12 +112,86 @@ def verify_no_splits(raw, code, name):
         raise Unusable("官方商品頁身分不符")
     p = _Tables(); p.feed(text)
     tables = [t for t in p.tables if t and t[0] == SPLIT_FIELDS]
-    if len(tables) != 1 or tables[0][1:] != [["查無資料"]]:
+    if len(tables) != 1:
         raise Unusable("分割紀錄存在或分割表未確認；不冒算調整後歷史")
     payments = [t for t in p.tables if t and t[0] == ["收益分配發放日", "配息（每1受益權益單位）"]]
     if len(payments) != 1:
         raise Unusable("商品頁配息摘要不能確認")
-    return payments[0][1:]
+    return tables[0][1:], payments[0][1:]
+
+
+def verify_no_splits(raw, code, name):
+    splits, payments = _profile_tables(raw, code, name)
+    if splits != [["查無資料"]]:
+        raise Unusable("分割紀錄存在或分割表未確認；不冒算調整後歷史")
+    return payments
+
+
+def split_event(code):
+    """只接受 price_unit.EVENTS 內已核官方拆分（目前僅 00662 1拆5）；其他代號／種類 → None。"""
+    import price_unit
+    ev = price_unit.EVENTS.get(code)
+    if not isinstance(ev, dict) or ev.get("kind") != "split":
+        return None
+    ratio = ev.get("ratio")
+    if isinstance(ratio, bool) or not isinstance(ratio, int) or ratio < 2:
+        raise Unusable("已核事件比率無效")
+    halt, resume = dt.date.fromisoformat(ev["halt_from"]), dt.date.fromisoformat(ev["resume"])
+    if not halt < resume:
+        raise Unusable("已核事件停牌／復牌日期衝突")
+    return {"code": code, "ratio": ratio, "halt_from": halt, "resume": resume}
+
+
+def pinned_event(event, code):
+    """R1：呼叫者傳入的拆分事件必須與 price_unit.EVENTS 內嵌已核事件逐欄完全一致（代號／比率／停牌／復牌、型別）。
+    不靠 1.8 倍斷點閾值認比率（1:4、1:3 會落在閾值內）；不一致一律拒用。"""
+    try:
+        pinned = split_event(code)
+    except (KeyError, TypeError, ValueError) as ex:
+        raise Unusable("已核事件內容無效") from ex
+    if pinned is None:
+        raise Unusable("代號沒有已核拆分事件")
+    if (not isinstance(event, dict) or set(event) != set(pinned)
+            or type(event.get("ratio")) is not int or type(event.get("code")) is not str
+            or type(event.get("halt_from")) is not dt.date or type(event.get("resume")) is not dt.date
+            or event != pinned):
+        raise Unusable("拆分事件與內嵌已核事件不一致（代號／比率／日期）")
+    return pinned
+
+
+def verify_split_profile(raw, code, name, event):
+    """商品頁身分／配息摘要照原檢查。分割表「查無資料」不能當「沒有分割」的證明，也不否定已核公告；
+    表內若有任何列，本程式不認得其格式 → 拒用（不猜是不是同一事件）。"""
+    if not isinstance(event, dict) or event.get("code") != code:
+        raise Unusable("已核事件與代號不符")
+    pinned_event(event, code)
+    splits, payments = _profile_tables(raw, code, name)
+    if splits != [["查無資料"]]:
+        raise Unusable("商品頁分割表有內容，無法與已核事件比對；不重建")
+    return payments
+
+
+def split_normalize(win, skipped, event, official_day):
+    """win：(日期, 官方原始收盤, 原始成交股數)，已排序。拆分前收盤 ÷ 已核比率；成交量保持官方原始股數。
+    必須：停牌期間沒有任何列、復牌日有有效收盤、原始序列唯一一個 1.8 倍斷點恰在復牌日、調整後無斷點。"""
+    import price_unit
+    event = pinned_event(event, event.get("code") if isinstance(event, dict) else None)
+    halt, resume, ratio = event["halt_from"], event["resume"], event["ratio"]
+    dates = [d for d, _, _ in win]
+    if not dates or not dates[0] < halt or official_day < resume:
+        raise Unusable("已核拆分不在一年視窗內")
+    if any(halt <= d < resume for d in dates) or any(halt <= dt.date.fromisoformat(x["date"]) < resume for x in skipped):
+        raise Unusable("停牌期間出現交易列，與已核停牌不符")
+    if resume not in dates:
+        raise Unusable("復牌日沒有有效官方收盤")
+    jumps = [b[0] for a, b in zip(win, win[1:]) if price_unit.jump(a[1], b[1])]
+    if jumps != [resume]:
+        raise Unusable("原始官方序列單位斷點%s與已核復牌日%s不符（混尺度／重複調整／日期錯）"
+                       % ([d.isoformat() for d in jumps], resume.isoformat()))
+    out = [(d, float(Decimal(str(c)) / ratio) if d < resume else c, v) for d, c, v in win]
+    if any(price_unit.jump(a[1], b[1]) for a, b in zip(out, out[1:])):
+        raise Unusable("依已核比率調整後仍有單位斷點；比率不符")
+    return out
 
 
 def cash_adjust(rows, events):
@@ -149,21 +228,23 @@ def cash_adjust(rows, events):
     return [float(x) for x in adj], used
 
 
-def build_history(months, profile, dividends, code, name, today, official_day, official_price):
+def build_history(months, profile, dividends, code, name, today, official_day, official_price, split=None):
     import pandas as pd
     import official_frequency as policy
     if not re.fullmatch(r"\d{4,6}[A-Z]?", code) or not isinstance(name, str) or not name:
         raise Unusable("ETF身分無效")
+    if split is not None:
+        split = pinned_event(split, code)
     if not isinstance(today, dt.date) or not isinstance(official_day, dt.date) or not 0 <= (today - official_day).days <= 15:
         raise Unusable("官方末日錯誤／過期")
-    payments = verify_no_splits(profile, code, name)
+    payments = verify_split_profile(profile, code, name, split) if split else verify_no_splits(profile, code, name)
     start = today - dt.timedelta(days=365)
     expected = month_starts(start, official_day)
     if set(months) != set(expected):
         raise Unusable("一年月報不完整")
     rows, skipped = [], []
     for month in expected:
-        rr, ss = parse_month(months[month], code, name, month); rows.extend(rr); skipped.extend(ss)
+        rr, ss = parse_month(months[month], code, name, month, pad_title=bool(split)); rows.extend(rr); skipped.extend(ss)
     if any(d > today for d, _, _ in rows) or any(dt.date.fromisoformat(x["date"]) > today for x in skipped):
         raise Unusable("官方月報含未來交易日")
     win = [(d, c, v) for d, c, v in rows if start <= d <= official_day]
@@ -172,6 +253,9 @@ def build_history(months, profile, dividends, code, name, today, official_day, o
         raise Unusable("一年日線涵蓋不足／未到官方末日")
     if any((b - a).days > 15 for a, b in zip(dates, dates[1:])):
         raise Unusable("一年日線中間缺口超過15天")
+    raw_win = win
+    if split:
+        win = split_normalize(win, skipped, split, official_day)
     if isinstance(official_price, bool) or not isinstance(official_price, (int, float)) or not math.isfinite(official_price) or official_price <= 0 or win[-1][1] != official_price:
         raise Unusable("歷史末價不等於本輪已驗官方收盤")
     try:
@@ -202,6 +286,8 @@ def build_history(months, profile, dividends, code, name, today, official_day, o
     for row in payments:
         if row == ["查無資料"]:
             continue
+        if split and row == ["尚無配息資料"] and len(payments) == 1 and not events:
+            continue                    # 拆分重建路徑：商品頁「尚無配息資料」且官方配息清單也是空的才放行（一致）
         try:
             if len(row) != 2:
                 raise ValueError("payment columns")
@@ -213,12 +299,25 @@ def build_history(months, profile, dividends, code, name, today, official_day, o
             raise Unusable("官方配息歷史與商品頁摘要不一致")
     in_window_events = [x for x in events if dates[0] <= x["ex_dividend_date"] <= official_day]
     events = sorted((x for x in in_window_events if dates[0] < x["ex_dividend_date"]), key=lambda x: x["ex_dividend_date"])
+    if split and any(x["ex_dividend_date"] < split["resume"] for x in in_window_events):
+        raise Unusable("拆分前現金分配的單位換算未支援；不重建")
     adj, used_events = cash_adjust(win, events)
     dividends_by_day = {x["ex_dividend_date"]: x["amount"] for x in in_window_events}
     index = pd.DatetimeIndex(dates).tz_localize("Asia/Taipei")
     hist = pd.DataFrame({"Close": [r[1] for r in win], "Volume": [r[2] for r in win], "Adj Close": adj,
                          "Dividends": [dividends_by_day.get(day, 0.) for day in dates]}, index=index)
+    if split:
+        # R2（PO 核准）：歷史量「比較基準」換成拆後等值股數（拆前原始股數×已核比率）；Volume 仍是官方原始股數。
+        raw_vol = {d: v for d, _, v in raw_win}
+        hist["Volume Equiv"] = [raw_vol[d] * split["ratio"] if d < split["resume"] else raw_vol[d] for d in dates]
     hist.attrs["twse_history"] = {"source": "TWSE_STOCK_DAY+ETFortune", "code": code, "first": dates[0].isoformat(), "last": dates[-1].isoformat(), "rows": len(win), "cash_events": used_events, "missing_close_rows": skipped}
+    if split:
+        pre = [(d, c) for d, c, _ in raw_win if d < split["resume"]]
+        hist.attrs["twse_history"]["split"] = {
+            "ratio": split["ratio"], "halt_from": split["halt_from"].isoformat(), "resume": split["resume"].isoformat(),
+            "price": "拆分前官方收盤÷已核比率（同單位）", "volume": "官方原始成交股數，未依拆分調整",
+            "volume_equiv": "比較基準：拆前原始股數×已核比率＝拆後等值股數；只用於均量／量比／熱度",
+            "adjusted_rows": len(pre), "last_pre_raw": [pre[-1][0].isoformat(), pre[-1][1]] if pre else None}
     return hist
 
 
@@ -235,7 +334,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def fetch_history(code, name, today, official_day, official_price, get=None):
+def fetch_history(code, name, today, official_day, official_price, get=None, split=None):
     """At most 15 existing official GETs, one pass; any failure stops this fallback."""
     if type(today) is not dt.date or type(official_day) is not dt.date or not 0 <= (today - official_day).days <= 15:
         raise Unusable("官方末日錯誤／過期")
@@ -261,11 +360,16 @@ def fetch_history(code, name, today, official_day, official_price, get=None):
         return raw
     if not re.fullmatch(r"\d{4,6}[A-Z]?", code):
         raise Unusable("代號無效")
+    if split is not None:
+        split = pinned_event(split, code)          # 錯事件在發出任何請求前就拒用
     start = today - dt.timedelta(days=365)
     profile = request("/zh/ETFortune/etfInfo/" + code)
-    verify_no_splits(profile, code, name)
+    if split:
+        verify_split_profile(profile, code, name, split)
+    else:
+        verify_no_splits(profile, code, name)
     dividends = request("/rwd/zh/ETFortune/dividendList", {"stkNo": code, "startDate": start.strftime("%Y%m%d")})
     months = {m: request("/exchangeReport/STOCK_DAY", {"response": "json", "date": m.strftime("%Y%m01"), "stockNo": code}) for m in month_starts(start, official_day)}
-    hist = build_history(months, profile, dividends, code, name, today, official_day, official_price)
+    hist = build_history(months, profile, dividends, code, name, today, official_day, official_price, split=split)
     hist.attrs["twse_history"].update(requests=len(calls), bodies=bodies)
     return hist
