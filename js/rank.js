@@ -207,7 +207,7 @@ function renderRank() {
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr};${yldTxt === '待配息評價' ? 'font-size:12px;white-space:nowrap;' : ''}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>
-        ${tagHtml}${flowHtml}
+        ${tagHtml || flowHtml ? `<div class="rank-actions">${tagHtml}${flowHtml}</div>` : ''}
       </div>
     </div>`;
   }).join('');
