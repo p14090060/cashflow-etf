@@ -129,6 +129,9 @@
   .rank-no.silver{ background:var(--rank2-bg); color:var(--rank2-fg); }
   .rank-no.bronze{ background:var(--rank3-bg); color:var(--rank3-fg); }
   .rank-etf      { flex:1; min-width:0; padding-right:6px; }
+  .rank-etf.has-rank-flow { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; }
+  .has-rank-flow .rank-code, .has-rank-flow .rank-name { grid-column:1; }
+  .has-rank-flow .rank-flow-top { grid-column:2; grid-row:1 / span 2; align-self:stretch; margin:0 0 0 4px; padding:2px 2px 0; display:flex; align-items:flex-start; }
   .rank-name     { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rank-price    { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--bright); flex-shrink:0; text-align:right; margin-right:8px; min-width:44px; }
   .rank-sig      { flex-shrink:0; white-space:nowrap; }   /* PO Visual Polish 2：外觀＝首頁 TOP10 的 .sig-* 方框標籤（class 由 rank.js 加上） */

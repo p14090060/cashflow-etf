@@ -189,14 +189,15 @@ function renderRank() {
     const hasFlow  = !!fe && _flowInScope(e.code);
     const code     = _rankEsc(e.code), name = _rankEsc(e.name);
     const flowHtml = hasFlow
-                   ? `<button type="button" class="rank-flow" aria-label="查看 ${code} 持股異動">持股異動</button>` : '';
+                   ? `<button type="button" class="rank-flow rank-flow-top" aria-label="查看 ${code} 持股異動">持股異動</button>` : '';
     const rankLbl  = wait ? '成交量待確認' : (prov ? '暫定第 ' + rank + ' 名' : '第 ' + rank + ' 名');
     return `<div class="rank-row${hasFlow ? ' has-flow' : ''}${wait ? ' rank-wait' : ''}" data-code="${code}" data-rank="${rank}">
       <button type="button" class="rank-hit" aria-label="${rankLbl} ${code} ${name}，查看詳細資料"></button>
       <div class="rank-main">
         <div class="rank-no ${cls}"${wait ? ' style="font-size:12px"' : ''}>${wait ? '待確認' : rank}</div>
-        <div class="rank-etf">
+        <div class="rank-etf${hasFlow ? ' has-rank-flow' : ''}">
           <div class="rank-code">${e.code}</div>
+          ${flowHtml}
           <div class="rank-name">${e.name}</div>
         </div>
         <div class="rank-price">${e.price}</div>
@@ -207,7 +208,7 @@ function renderRank() {
         <div class="rank-num" style="color:${y1C}">${ret1y}</div>
         <div class="rank-yld" style="color:${yldClr}">${yldTxt}</div>
         <div class="mini-bars">${miniBars((e.ret_months||[]).slice(-3))}</div>
-        ${tagHtml || flowHtml ? `<div class="rank-actions">${tagHtml}${flowHtml}</div>` : ''}
+        ${tagHtml ? `<div class="rank-actions">${tagHtml}</div>` : ''}
       </div>
     </div>`;
   }).join('');
