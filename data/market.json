@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-27 15:14",
+  "updated": "2026-11-27 17:09",
   "quote_date": "2026-11-27",
   "quote_time": "2026-11-27",
   "market_state": "closed",
@@ -13482,7 +13482,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 4,
-      "est": 0.09,
+      "est": 0.085,
       "div_next": "2026-12-03",
       "signal": "bond",
       "maD": -1.2,
@@ -15644,7 +15644,7 @@
       "yld_verified": true,
       "yld_pending": false,
       "days": 90,
-      "est": 0.054,
+      "est": 0.3,
       "div_next": null,
       "signal": "cheap",
       "maD": -2.2,
@@ -16383,7 +16383,7 @@
       "soon": true,
       "days_until": 4,
       "source": "official",
-      "amount_source": "FinMind（估算）"
+      "amount_source": "TWSE × FinMind 核實"
     },
     {
       "code": "00984D",
@@ -16391,11 +16391,11 @@
       "iso_date": "2026-12-01",
       "day": "1",
       "mon": "12月",
-      "amt": null,
+      "amt": 0.085,
       "soon": true,
       "days_until": 4,
       "source": "official",
-      "amount_source": "official"
+      "amount_source": "TWSE"
     },
     {
       "code": "00406A",
