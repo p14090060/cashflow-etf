@@ -4,6 +4,8 @@ Price/volume come from STOCK_DAY. Cash adjustments use the ETF's official divide
 history; never label unadjusted Close as Adj Close. Any unsupported action or incomplete
 source rejects the fallback. This module does not publish data or send notifications.
 """
+import base64
+import binascii
 import datetime as dt
 from decimal import Decimal, InvalidOperation
 from html.parser import HTMLParser
@@ -384,8 +386,92 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def fetch_history(code, name, today, official_day, official_price, get=None, split=None):
-    """At most 15 existing official GETs, one pass; any failure stops this fallback."""
+# ── 00662 官方歷史保留（data/_official_history.json；契約見 c-00662-history-retention/CONTRACT.md）──
+HIST_SCHEMA = 1
+HIST_FULL_DAYS = 7                 # 距上次全量成功滿 7 個台北日曆日 → 當輪強制全量
+HIST_MAX_BYTES = 200_000
+_ENTRY_KEYS = {"name", "event", "full_verified", "months"}
+_MONTH_KEYS = {"url", "fetched", "sha256", "raw_b64"}
+
+
+def month_url(code, month):
+    """與 fetch_history 實際送出的月報網址逐字相同（參數順序 response／date／stockNo）。"""
+    return HOST + "/exchangeReport/STOCK_DAY?" + urllib.parse.urlencode(
+        {"response": "json", "date": month.strftime("%Y%m01"), "stockNo": code})
+
+
+def _iso_date(value, what):
+    if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        raise Unusable("%s 日期格式錯誤" % what)
+    try:
+        return dt.date.fromisoformat(value)
+    except ValueError as ex:
+        raise Unusable("%s 日期無效" % what) from ex
+
+
+def _taipei_today():
+    return dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).date()
+
+
+def saved_month_bytes(code, name, month, rec, today):
+    """保存月原件 → 原始位元組。每次重算 SHA256，核對網址／抓取日／完成月份，並以 parse_month 驗原文。不合格丟 Unusable。"""
+    if not isinstance(rec, dict) or set(rec) != _MONTH_KEYS:
+        raise Unusable("保存月份欄位不符")
+    if rec["url"] != month_url(code, month):
+        raise Unusable("保存月份網址與代號／月份不符")
+    fetched = _iso_date(rec["fetched"], "保存抓取")
+    nxt = dt.date(month.year + (month.month == 12), 1 if month.month == 12 else month.month + 1, 1)
+    if not nxt <= fetched <= today:
+        raise Unusable("保存月份不是抓取時已完成的月份，或抓取日在未來")
+    h = rec["sha256"]
+    if not isinstance(h, str) or not re.fullmatch(r"[0-9a-f]{64}", h):
+        raise Unusable("保存 SHA256 格式錯誤")
+    try:
+        raw = base64.b64decode(rec["raw_b64"], validate=True) if isinstance(rec["raw_b64"], str) else None
+    except (binascii.Error, ValueError) as ex:
+        raise Unusable("保存原文 base64 無效") from ex
+    if not raw or len(raw) > 2_000_000 or hashlib.sha256(raw).hexdigest() != h:
+        raise Unusable("保存原文 SHA256 重算不符")
+    parse_month(raw, code, name, month, pad_title=True)
+    return raw
+
+
+def validate_history_doc(obj, today=None):
+    """整檔契約（json_safe.validate_official_history 與讀取端共用）。不合格丟 Unusable。"""
+    import price_unit
+    today = today or _taipei_today()
+    if not isinstance(obj, dict) or set(obj) != {"schema", "etfs"} or type(obj["schema"]) is not int or obj["schema"] != HIST_SCHEMA:
+        raise Unusable("官方歷史保存檔頂層／版本不符")
+    if not isinstance(obj["etfs"], dict):
+        raise Unusable("官方歷史保存檔 etfs 不是物件")
+    for code, e in obj["etfs"].items():
+        ev = price_unit.EVENTS.get(code) if isinstance(code, str) else None
+        if not isinstance(ev, dict) or ev.get("kind") != "split":
+            raise Unusable("%r 沒有已核拆分事件，不得保存" % (code,))
+        if not isinstance(e, dict) or set(e) != _ENTRY_KEYS:
+            raise Unusable("%s 保存欄位不符" % code)
+        if not isinstance(e["name"], str) or not e["name"].strip():
+            raise Unusable("%s 保存名稱無效" % code)
+        want = {"kind": "split", "ratio": ev["ratio"], "halt_from": ev["halt_from"], "resume": ev["resume"]}
+        got = e["event"]
+        if (not isinstance(got, dict) or got != want or type(got.get("ratio")) is not int
+                or not all(type(got.get(k)) is str for k in ("kind", "halt_from", "resume"))):
+            raise Unusable("%s 保存事件與已核事件不一致" % code)
+        if _iso_date(e["full_verified"], "%s 全量核對" % code) > today:
+            raise Unusable("%s 全量核對日期在未來" % code)
+        if not isinstance(e["months"], dict):
+            raise Unusable("%s 保存月份不是物件" % code)
+        for key, rec in e["months"].items():
+            if not isinstance(key, str) or not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", key):
+                raise Unusable("%s 保存月份鍵錯誤：%r" % (code, key))
+            saved_month_bytes(code, e["name"], dt.date(int(key[:4]), int(key[5:]), 1), rec, today)
+    return obj
+
+
+def fetch_history(code, name, today, official_day, official_price, get=None, split=None, saved=None):
+    """At most 15 existing official GETs, one pass; any failure stops this fallback.
+    saved：已核拆分路徑專用的保存條目（data/_official_history.json 的 etfs[code]）。無保存／全量到期 → 15 GET 全量；
+    未到期 → 只沿用有效的已完成月份原文，當月／商品頁／配息清單現抓。成功時 attrs["twse_history"]["retain"] 帶新條目。"""
     if type(today) is not dt.date or type(official_day) is not dt.date or not 0 <= (today - official_day).days <= 15:
         raise Unusable("官方末日錯誤／過期")
     if isinstance(official_price, bool) or not isinstance(official_price, (int, float)) or not math.isfinite(official_price) or official_price <= 0:
@@ -421,25 +507,75 @@ def fetch_history(code, name, today, official_day, official_price, get=None, spl
     if split is not None:
         split = pinned_event(split, code)          # 錯事件在發出任何請求前就拒用
     start = today - dt.timedelta(days=365)
-    profile_url = HOST + "/zh/ETFortune/etfInfo/" + code
-    profile = request("商品頁", "/zh/ETFortune/etfInfo/" + code)
+    needed = month_starts(start, official_day)
+    done_before = today.replace(day=1)                 # 早於本月 1 日＝抓取當時已過完的月份
+    reuse, retain_note = {}, None
+    if split:
+        full_due, why = True, "無保存"
+        if isinstance(saved, dict):
+            try:
+                fv = _iso_date(saved.get("full_verified"), "全量核對")
+                if saved.get("name") != name:
+                    why = "保存名稱與本輪不符"
+                elif fv > today or (today - fv).days >= HIST_FULL_DAYS:
+                    why = "距上次全量成功 %d 日（≥%d 或日期在未來）" % ((today - fv).days, HIST_FULL_DAYS)
+                else:
+                    full_due, why = False, "距上次全量成功 %d 日" % (today - fv).days
+            except Unusable as ex:
+                why = "保存不可用：%s" % ex
+        bad_saved = []
+        if not full_due:
+            months_saved = saved.get("months") if isinstance(saved.get("months"), dict) else {}
+            for m in needed:
+                key = m.strftime("%Y-%m")
+                if m < done_before and key in months_saved:
+                    try:
+                        reuse[m] = (saved_month_bytes(code, name, m, months_saved[key], today), months_saved[key]["fetched"])
+                    except Unusable as ex:
+                        bad_saved.append("%s（%s）" % (key, ex))
+        retain_note = {"full": full_due, "why": why, "bad_saved": bad_saved}
     try:
-        if split:
-            verify_split_profile(profile, code, name, split)
-        else:
-            verify_no_splits(profile, code, name)
-    except FetchFailed:
+        profile_url = HOST + "/zh/ETFortune/etfInfo/" + code
+        profile = request("商品頁", "/zh/ETFortune/etfInfo/" + code)
+        try:
+            if split:
+                verify_split_profile(profile, code, name, split)
+            else:
+                verify_no_splits(profile, code, name)
+        except FetchFailed:
+            raise
+        except Unusable as ex:
+            raise FetchFailed("商品頁", "rejected", profile_url, reason=str(ex)) from ex
+        dividends = request("配息清單", "/rwd/zh/ETFortune/dividendList", {"stkNo": code, "startDate": start.strftime("%Y%m%d")})
+        months = {m: (reuse[m][0] if m in reuse else
+                      request("月報" + m.strftime("%Y-%m"), "/exchangeReport/STOCK_DAY", {"response": "json", "date": m.strftime("%Y%m01"), "stockNo": code}))
+                  for m in needed}
+        try:
+            hist = build_history(months, profile, dividends, code, name, today, official_day, official_price, split=split)
+        except FetchFailed:
+            raise
+        except Unusable as ex:
+            raise FetchFailed("驗證", "rejected", reason=str(ex)) from ex
+    except Exception as ex:
+        if retain_note is not None:            # 讓呼叫端 log 出本輪全量／暖檔判定（失敗輪也看得到到期原因）
+            ex.retain_note = retain_note
         raise
-    except Unusable as ex:
-        raise FetchFailed("商品頁", "rejected", profile_url, reason=str(ex)) from ex
-    dividends = request("配息清單", "/rwd/zh/ETFortune/dividendList", {"stkNo": code, "startDate": start.strftime("%Y%m%d")})
-    months = {m: request("月報" + m.strftime("%Y-%m"), "/exchangeReport/STOCK_DAY", {"response": "json", "date": m.strftime("%Y%m01"), "stockNo": code})
-              for m in month_starts(start, official_day)}
-    try:
-        hist = build_history(months, profile, dividends, code, name, today, official_day, official_price, split=split)
-    except FetchFailed:
-        raise
-    except Unusable as ex:
-        raise FetchFailed("驗證", "rejected", reason=str(ex)) from ex
     hist.attrs["twse_history"].update(requests=len(calls), bodies=bodies)
+    if retain_note is not None:                        # 整條驗證已通過：組新保存條目（只含已完成月份原文）
+        old = saved.get("months") if isinstance(saved, dict) and isinstance(saved.get("months"), dict) else {}
+        new, revised = {}, []
+        for m in needed:
+            if m >= done_before:
+                continue
+            key, raw = m.strftime("%Y-%m"), months[m]
+            sha = hashlib.sha256(raw).hexdigest()
+            if isinstance(old.get(key), dict) and old[key].get("sha256") not in (None, sha):
+                revised.append(key)
+            new[key] = {"url": month_url(code, m), "fetched": reuse[m][1] if m in reuse else today.isoformat(),
+                        "sha256": sha, "raw_b64": base64.b64encode(raw).decode("ascii")}
+        entry = {"name": name, "event": {"kind": "split", "ratio": split["ratio"], "halt_from": split["halt_from"].isoformat(),
+                                         "resume": split["resume"].isoformat()},
+                 "full_verified": today.isoformat() if retain_note["full"] else saved["full_verified"], "months": new}
+        hist.attrs["twse_history"]["retain"] = dict(retain_note, entry=entry, revised=revised,
+                                                    reused=sorted(k.strftime("%Y-%m") for k in reuse))
     return hist

@@ -1686,6 +1686,43 @@ def _twse_alt_history(code, name, today, previous):
         return None
 
 
+OFFICIAL_HIST = Path(__file__).parent / "data" / "_official_history.json"
+_OH_NEW = {}          # 本輪重建成功的新保存條目（code → entry）；_base 寫成功後才寫檔
+
+
+def _official_history_doc():
+    """已發布的保存檔 → 已通過契約的 dict；不存在／壞檔／不合契約 → None（當作沒有保存，該輪全量，不讓 fetch 失敗）。"""
+    if not OFFICIAL_HIST.exists():
+        return None
+    try:
+        from json_safe import load_strict, validate_official_history
+        doc = load_strict(OFFICIAL_HIST)
+        validate_official_history(doc)
+        return doc
+    except Exception as ex:
+        print("[SPLIT-TWSE-HIST] 保存檔不可用，當作沒有保存（%s：%s）" % (type(ex).__name__, str(ex)[:150]))
+        return None
+
+
+def _write_official_history():
+    """_base 寫入成功後：把本輪成功重建的條目合併進保存檔（原子寫入＋契約驗證）。內容不變不寫、失敗不刪原檔。"""
+    if not _OH_NEW:
+        return
+    try:
+        from json_safe import strict_dumps, validate_official_history
+        doc = _official_history_doc() or {"schema": 1, "etfs": {}}
+        doc = {"schema": 1, "etfs": dict(doc["etfs"], **_OH_NEW)}
+        old = OFFICIAL_HIST.read_text(encoding="utf-8") if OFFICIAL_HIST.exists() else None
+        if old is not None and old == strict_dumps(doc):
+            print("[SPLIT-TWSE-HIST] 保存檔內容不變，不寫")
+            return
+        atomic_write_json(OFFICIAL_HIST, doc, validate=validate_official_history)
+        print("[SPLIT-TWSE-HIST] 保存檔已更新：%s" % ", ".join(
+            "%s %d 個月、全量核對 %s" % (c, len(e["months"]), e["full_verified"]) for c, e in sorted(_OH_NEW.items())))
+    except Exception as ex:
+        print("::warning::[SPLIT-TWSE-HIST] 保存檔未更新（原檔保留）：%s：%s" % (type(ex).__name__, str(ex)[:150]))
+
+
 def _twse_split_rebuild(code, name, hist):
     """已核官方拆分（price_unit.EVENTS，目前僅 00662 1拆5）且 Yahoo 一年日線被原 price_unit 判為單位不一致時，
     改用既有 TWSE 官方一年月報（同 15 GET 上限、同一輪一檔額度、失敗不重試）重建同單位序列，交回原公式計算。
@@ -1718,12 +1755,24 @@ def _twse_split_rebuild(code, name, hist):
         return None
     HIST_TWSE_USED = True
     try:
-        h = twse_history.fetch_history(code, name, _hist_today(), end, price, split=event)
+        _saved = ((_official_history_doc() or {}).get("etfs") or {}).get(code)
+        h = twse_history.fetch_history(code, name, _hist_today(), end, price, split=event, saved=_saved)
     except Exception as ex:
         print("[SPLIT-TWSE] %s 官方拆分重建未完成（%s：%s）→ 維持待確認" % (code, type(ex).__name__, str(ex)[:150]))
         _twse_fail_diag("SPLIT-TWSE", code, ex)
+        _rn = getattr(ex, "retain_note", None)
+        if _rn:
+            print("[SPLIT-TWSE-HIST] %s %s（%s）未完成，保存檔不更新%s" % (code, "全量核對" if _rn["full"] else "暖檔", _rn["why"],
+                  "；保存無效 " + "、".join(_rn["bad_saved"]) if _rn["bad_saved"] else ""))
         return None
     proof = h.attrs["twse_history"]
+    _ret = proof.get("retain")
+    if _ret:
+        _OH_NEW[code] = _ret["entry"]
+        print("[SPLIT-TWSE-HIST] %s %s（%s）沿用 %d 個已完成月份、現抓 %d 次%s%s" % (
+            code, "全量核對" if _ret["full"] else "暖檔", _ret["why"], len(_ret["reused"]), proof["requests"],
+            "；保存無效改現抓 " + "、".join(_ret["bad_saved"]) if _ret["bad_saved"] else "",
+            "；官方修訂月份 " + "、".join(_ret["revised"]) if _ret["revised"] else ""))
     print("[SPLIT-TWSE] %s rebuilt %d rows (%s → %s)，拆分 1:%d 復牌 %s、拆前 %d 列價格÷比率、成交量為官方原始股數、請求 %d 次"
           % (code, len(h), proof["first"], proof["last"], proof["split"]["ratio"], proof["split"]["resume"],
              proof["split"]["adjusted_rows"], proof["requests"]))
@@ -2126,6 +2175,7 @@ try:
 except Exception as e:
     print(f"::error::_base.json 未更新（驗證或寫入失敗，原檔保留）：{e}", file=sys.stderr)
     sys.exit(1)
+_write_official_history()                             # 00662 官方歷史保留：_base 成功後才寫；同一道原 Gate 提交
 
 # 2026-10-27：替代歷史查證狀態（執行期檔，不發布）。R1：綁定本輪執行識別（_run_id）、寫出後 _base 的實際內容 SHA256
 # 與查證時間；daily_check 只採用同一執行、同一份 _base 的紀錄。暫存檔＋os.replace 原子寫出。

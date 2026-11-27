@@ -937,6 +937,23 @@ def validate_active_snapshot(obj):
             _req_num(f"{w}.holdings.{sc}", x, "shares", 0)
 
 
+def validate_official_history(obj):
+    """data/_official_history.json（00662 已核拆分重建用的已完成月份官方原文）：大小上限＋twse_history 共用契約
+    （已核事件、欄位、網址、抓取日、base64 原文 SHA256 實際重算、parse_month 原文驗證）。
+    price_unit／twse_history 於呼叫時才 import：price_unit 模組層級 import 本檔，延遲 import 不形成循環。"""
+    import sys
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.append(here)
+    import twse_history
+    if len(strict_dumps(obj).encode("utf-8")) > twse_history.HIST_MAX_BYTES:
+        raise DataInvalid("_official_history.json 超過 %d bytes" % twse_history.HIST_MAX_BYTES)
+    try:
+        twse_history.validate_history_doc(obj)
+    except twse_history.Unusable as e:
+        raise DataInvalid("_official_history.json：%s" % e) from e
+
+
 # 檔名 → 契約（publish_gate.py／validate_data.py 依實際要提交的檔名查表；查不到的 JSON 只做嚴格解析）
 VALIDATORS = {
     "_base.json":             validate_base,
@@ -949,6 +966,7 @@ VALIDATORS = {
     "excluded_products.json": validate_excluded_products,
     "active_flow.json":       validate_active_flow,
     "_active_snapshot.json":  validate_active_snapshot,
+    "_official_history.json": validate_official_history,
 }
 
 

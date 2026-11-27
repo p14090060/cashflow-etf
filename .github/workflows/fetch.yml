@@ -93,7 +93,7 @@ jobs:
           python scripts/publish_gate.py --message "chore: update ETF base data $(date +'%Y-%m-%d %H:%M')" \
             data/_base.json data/dividend_info.json data/dividend_calendar.json data/known_codes.json \
             data/daily_state.json data/etf_pool_cache.json data/active_flow.json data/_active_snapshot.json \
-            data/excluded_products.json
+            data/excluded_products.json data/_official_history.json
 
       - name: Notify only after publication verification
         id: notify
