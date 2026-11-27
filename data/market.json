@@ -1,15 +1,15 @@
 {
-  "updated": "2026-11-27 13:20",
+  "updated": "2026-11-27 13:31",
   "quote_date": "2026-11-27",
   "quote_time": "2026-11-27 13:21",
-  "market_state": "live",
+  "market_state": "stale",
   "close_confirmed": {
     "etfs": 0,
     "traded": 0,
     "no_trade": 0,
     "total": 205
   },
-  "is_closed": false,
+  "is_closed": true,
   "is_holiday": false,
   "last_trading_time": null,
   "market": {
