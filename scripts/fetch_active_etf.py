@@ -950,6 +950,8 @@ FUHWA_FUNDS = {
 # 既有四檔維持原解析（不在本單範圍）。
 FUHWA_STRICT = {"00418A": "復華台灣新星主動式ETF基金"}
 _FUHWA_HEAD = ["證券代號", "證券名稱", "股數", "金額", "權重(%)"]
+_FUHWA_FUT_HEAD = ["期貨代號", "期貨名稱", "口數", "金額", "權重(%)"]
+_FUHWA_FUT_CODE = re.compile(r"[A-Z]{2,4}\d{6}")   # 台灣期交所商品＋到期年月，例 WTX202612
 
 
 def _fuhwa_stock_strict(ticker, rows, url):
@@ -971,8 +973,25 @@ def _fuhwa_stock_strict(ticker, rows, url):
     heads = [i for i, r in enumerate(rows) if r == _FUHWA_HEAD]
     if len(heads) != 1 or any(r and r[0] in ("證券代號", "股票代號") for i, r in enumerate(rows) if i != heads[0]):
         raise ValueError("持股表頭缺少、重複或欄位不符")
+    # NOV27：股票表之後可接一段「期貨」表（2026-11-26 起，例 WTX202612／30 口）。只認精確表頭＋逐列嚴格驗證；
+    # 期貨口數不進股票 holdings（不是股數、不做 Flow）。表頭變形、重複、出現在股票表前、空段或壞列 → 整檔拒用。
+    fut = [i for i, r in enumerate(rows) if r and r[0] in ("期貨代號", "期貨名稱")]
+    end = len(rows)
+    if fut:
+        if len(fut) != 1 or rows[fut[0]] != _FUHWA_FUT_HEAD or fut[0] <= heads[0] + 1:
+            raise ValueError("期貨表頭重複、位置或欄位不符：%r" % (rows[fut[0]],))
+        end = fut[0]
+        seen = set()
+        for r in rows[end + 1:]:
+            if (len(r) != 5 or not _FUHWA_FUT_CODE.fullmatch(r[0]) or not r[1].strip() or r[0] in seen
+                    or not re.fullmatch(r"[1-9]\d{0,2}(?:,\d{3})*", r[2])
+                    or not re.fullmatch(r"\d{1,3}(?:,\d{3})*", r[3]) or not re.fullmatch(r"\d{1,3}\.\d{1,4}%", r[4])):
+                raise ValueError("期貨列格式不符：%r" % (r,))
+            seen.add(r[0])
+        if not seen:
+            raise ValueError("期貨表頭後沒有期貨列")
     holdings = _Holdings()
-    for r in rows[heads[0] + 1:]:
+    for r in rows[heads[0] + 1:end]:
         if len(r) != 5 or not (re.fullmatch(r"\d{4,6}[A-Z]?", r[0]) or _BBG.fullmatch(r[0])) or not r[1].strip() \
                 or not re.fullmatch(r"\d{1,3}(?:,\d{3})*", r[2]) or r[0] in holdings:
             raise ValueError("持股列格式不符：%r" % (r,))
