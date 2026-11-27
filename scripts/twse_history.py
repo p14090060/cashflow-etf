@@ -13,6 +13,8 @@ import math
 import re
 import ssl
 import time
+import http.client
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -23,6 +25,50 @@ SPLIT_FIELDS = ["停止買賣日期", "分割(反分割)", "恢復買賣日期",
 
 class Unusable(ValueError):
     pass
+
+
+class FetchFailed(Unusable):
+    """官方歷史請求／驗證在某一階段失敗（仍是 Unusable：呼叫端照舊拒用）。diag 只含可安全寫進 log 的欄位：
+    stage（商品頁／配息清單／月報YYYY-MM／驗證）、kind（network／http_status／response／budget／rejected）、
+    url（本程式自己組的官方請求網址）、status（HTTP 狀態或 None）、location（僅 scheme://host/path）、
+    location_host_official、reason。不跟轉址、不重試。"""
+    def __init__(self, stage, kind, url=None, status=None, location=None, official=None, reason=""):
+        self.diag = {"stage": stage, "kind": kind, "url": url, "status": status,
+                     "location": location, "location_host_official": official, "reason": reason}
+        bits = ["階段=%s" % stage, "類別=%s" % kind]
+        if status is not None:
+            bits.append("HTTP %s" % status)
+        if kind == "http_status" and 300 <= (status or 0) < 400:
+            bits.append("Location=%s" % (location or "（無）"))
+            if location and not official:
+                bits.append("非官方主機")
+        if reason:
+            bits.append(reason)
+        if url:
+            bits.append("URL=%s" % url)
+        super().__init__("；".join(bits))
+
+
+_SAFE_PATH = re.compile(r"[^A-Za-z0-9/._~%\-]")
+
+
+def safe_location(value, base):
+    """Location 只留 scheme://host[:port]/path：去帳密、query、fragment，非 http(s) 只標 scheme；
+    path 只保留 URL 安全字元並截 120 字。回 (摘要, 是否為官方主機)；沒有 Location → (None, None)。"""
+    if value is None:
+        return None, None
+    try:
+        u = urllib.parse.urlsplit(urllib.parse.urljoin(base, str(value).strip()))
+        host, port = (u.hostname or ""), u.port
+    except ValueError:
+        return "（無法解析）", False
+    scheme = u.scheme.lower()
+    if scheme not in ("http", "https"):
+        return "（非 http(s)：%s）" % _SAFE_PATH.sub("?", scheme)[:12], False
+    host = re.sub(r"[^a-z0-9.\-]", "?", host.lower())[:80]
+    path = _SAFE_PATH.sub("?", u.path or "/")[:120]
+    official = scheme == "https" and host == "www.twse.com.tw" and port in (None, 443)
+    return "%s://%s%s%s" % (scheme, host, ":%d" % port if port else "", path), official
 
 
 def _number(value, integer=False):
@@ -244,7 +290,11 @@ def build_history(months, profile, dividends, code, name, today, official_day, o
         raise Unusable("一年月報不完整")
     rows, skipped = [], []
     for month in expected:
-        rr, ss = parse_month(months[month], code, name, month, pad_title=bool(split)); rows.extend(rr); skipped.extend(ss)
+        try:
+            rr, ss = parse_month(months[month], code, name, month, pad_title=bool(split))
+        except Unusable as ex:
+            raise Unusable("月報%s：%s" % (month.strftime("%Y-%m"), ex)) from ex
+        rows.extend(rr); skipped.extend(ss)
     if any(d > today for d, _, _ in rows) or any(dt.date.fromisoformat(x["date"]) > today for x in skipped):
         raise Unusable("官方月報含未來交易日")
     win = [(d, c, v) for d, c, v in rows if start <= d <= official_day]
@@ -342,18 +392,26 @@ def fetch_history(code, name, today, official_day, official_price, get=None, spl
         raise Unusable("本輪官方末價無效")
     calls, bodies = [], {}
     opener = urllib.request.build_opener(_NoRedirect(), urllib.request.HTTPSHandler(context=ssl.create_default_context()))
-    def request(path, params=None):
+    def request(stage, path, params=None):
         url = HOST + path + (("?" + urllib.parse.urlencode(params)) if params else "")
         if len(calls) >= 15:
-            raise Unusable("官方歷史查證額度已滿")
+            raise FetchFailed(stage, "budget", url, reason="官方歷史查證額度已滿")
         calls.append(url)
-        if get is None:
-            with opener.open(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=12) as r:
-                raw = r.read(2_000_001)
-        else:
-            raw = get(url)
+        try:
+            if get is None:
+                with opener.open(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=12) as r:
+                    raw = r.read(2_000_001)
+            else:
+                raw = get(url)
+        except urllib.error.HTTPError as ex:      # NoRedirect：3xx 在此以 HTTPError 結束，不跟轉址
+            loc, official = safe_location(ex.headers.get("Location") if ex.headers is not None else None, url)
+            raise FetchFailed(stage, "http_status", url, ex.code, loc, official) from ex
+        except (urllib.error.URLError, http.client.HTTPException, OSError) as ex:   # 逾時／DNS／TLS／連線中斷
+            inner = getattr(ex, "reason", None)
+            why = type(inner).__name__ if isinstance(inner, BaseException) else type(ex).__name__
+            raise FetchFailed(stage, "network", url, reason=why) from ex
         if not isinstance(raw, bytes) or not raw or len(raw) > 2_000_000:
-            raise Unusable("官方回應空白或過大")
+            raise FetchFailed(stage, "response", url, reason="官方回應空白或過大")
         bodies[url] = hashlib.sha256(raw).hexdigest()
         if get is None:
             time.sleep(.4)
@@ -363,13 +421,25 @@ def fetch_history(code, name, today, official_day, official_price, get=None, spl
     if split is not None:
         split = pinned_event(split, code)          # 錯事件在發出任何請求前就拒用
     start = today - dt.timedelta(days=365)
-    profile = request("/zh/ETFortune/etfInfo/" + code)
-    if split:
-        verify_split_profile(profile, code, name, split)
-    else:
-        verify_no_splits(profile, code, name)
-    dividends = request("/rwd/zh/ETFortune/dividendList", {"stkNo": code, "startDate": start.strftime("%Y%m%d")})
-    months = {m: request("/exchangeReport/STOCK_DAY", {"response": "json", "date": m.strftime("%Y%m01"), "stockNo": code}) for m in month_starts(start, official_day)}
-    hist = build_history(months, profile, dividends, code, name, today, official_day, official_price, split=split)
+    profile_url = HOST + "/zh/ETFortune/etfInfo/" + code
+    profile = request("商品頁", "/zh/ETFortune/etfInfo/" + code)
+    try:
+        if split:
+            verify_split_profile(profile, code, name, split)
+        else:
+            verify_no_splits(profile, code, name)
+    except FetchFailed:
+        raise
+    except Unusable as ex:
+        raise FetchFailed("商品頁", "rejected", profile_url, reason=str(ex)) from ex
+    dividends = request("配息清單", "/rwd/zh/ETFortune/dividendList", {"stkNo": code, "startDate": start.strftime("%Y%m%d")})
+    months = {m: request("月報" + m.strftime("%Y-%m"), "/exchangeReport/STOCK_DAY", {"response": "json", "date": m.strftime("%Y%m01"), "stockNo": code})
+              for m in month_starts(start, official_day)}
+    try:
+        hist = build_history(months, profile, dividends, code, name, today, official_day, official_price, split=split)
+    except FetchFailed:
+        raise
+    except Unusable as ex:
+        raise FetchFailed("驗證", "rejected", reason=str(ex)) from ex
     hist.attrs["twse_history"].update(requests=len(calls), bodies=bodies)
     return hist

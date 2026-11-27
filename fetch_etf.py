@@ -1641,6 +1641,14 @@ def verify_daily_history(hist, meta, ticker_code, want_range, today):
     return win, None
 
 
+def _twse_fail_diag(tag, code, ex):
+    """官方歷史失敗的定位摘要（twse_history.FetchFailed.diag：階段／類別／官方請求URL／HTTP狀態／安全化Location）。
+    只寫 log，不寫資料檔、不改狀態；非 FetchFailed 的例外不輸出此行。"""
+    diag = getattr(ex, "diag", None)
+    if isinstance(diag, dict):
+        print("[%s-DIAG] %s %s" % (tag, code, json.dumps(diag, ensure_ascii=False, sort_keys=True)))
+
+
 def _twse_alt_history(code, name, today, previous):
     """Yahoo不足才核同代號官方歷史；不碰正常一年資料、不填假指標。"""
     global HIST_TWSE_USED, HIST_TWSE_TARGET
@@ -1674,6 +1682,7 @@ def _twse_alt_history(code, name, today, previous):
     except Exception as ex:
         HIST_CHECK[code] = {"status": "error", "detail": previous["detail"] + "；TWSE官方歷史未能完成（%s：%s），下輪再查，不算查無" % (type(ex).__name__, str(ex)[:150]), "range": previous.get("range")}
         print("[HISTORY-TWSE] %s incomplete %s" % (code, type(ex).__name__))
+        _twse_fail_diag("HISTORY-TWSE", code, ex)
         return None
 
 
@@ -1712,6 +1721,7 @@ def _twse_split_rebuild(code, name, hist):
         h = twse_history.fetch_history(code, name, _hist_today(), end, price, split=event)
     except Exception as ex:
         print("[SPLIT-TWSE] %s 官方拆分重建未完成（%s：%s）→ 維持待確認" % (code, type(ex).__name__, str(ex)[:150]))
+        _twse_fail_diag("SPLIT-TWSE", code, ex)
         return None
     proof = h.attrs["twse_history"]
     print("[SPLIT-TWSE] %s rebuilt %d rows (%s → %s)，拆分 1:%d 復牌 %s、拆前 %d 列價格÷比率、成交量為官方原始股數、請求 %d 次"
